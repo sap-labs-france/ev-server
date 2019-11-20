@@ -324,10 +324,10 @@ export default class UserStorage {
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
-                                       params: {
-                                         password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
-                                         passwordBlockedUntil?: Date;
-                                       }): Promise<void> {
+    params: {
+      password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+      passwordBlockedUntil?: Date;
+    }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
     // Check Tenant
@@ -354,7 +354,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-                                          mobileToken: string, mobileOs: string, mobileLastChangedOn: Date): Promise<void> {
+    mobileToken: string, mobileOs: string, mobileLastChangedOn: Date): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -381,7 +381,7 @@ export default class UserStorage {
   }
 
   public static async saveUserEULA(tenantID: string, userID: string,
-                                   params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+    params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
     // Check Tenant
@@ -395,7 +395,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAccountVerification(tenantID: string, userID: string,
-                                                  params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
+    params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAccountVerification');
     // Check Tenant
@@ -409,7 +409,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-                                        params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
+    params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
     // Check Tenant
@@ -435,7 +435,7 @@ export default class UserStorage {
   }
 
   public static async saveUserBillingData(tenantID: string, userID: string,
-                                          billingData: BillingUserData): Promise<void> {
+    billingData: BillingUserData): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserBillingData');
     // Check Tenant
@@ -496,13 +496,13 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-                               params: {
-                                 notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-                                 userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
-                                 statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
-                                 notifications?: any; noLoginSince?: Date;
-                               },
-                               dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+    params: {
+      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
+      userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
+      statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
+      notifications?: any; noLoginSince?: Date;
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -571,7 +571,7 @@ export default class UserStorage {
       });
     }
     // Filter on last login to detect inactive user accounts
-    if(params.noLoginSince && moment(params.noLoginSince).isValid()) {
+    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
       filters.$and.push({
         'eulaAcceptedOn':  { $lte : params.noLoginSince }
       });
@@ -775,8 +775,8 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-                                      params: { search?: string; roles?: string[]; errorTypes?: string[] },
-                                      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+    params: { search?: string; roles?: string[]; errorTypes?: string[] },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -928,8 +928,8 @@ export default class UserStorage {
   }
 
   public static async getSites(tenantID: string,
-                               params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
-                               dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
+    params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
