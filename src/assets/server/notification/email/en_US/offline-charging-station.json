@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> vient de se Connecter",
+  "subject": "Offline Charging Station",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "Offline Charging Station",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,17 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Dear Administrator,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "The charging station <b>'<%- chargeBoxID %>'</b> is offline.",
+      ""
     ],
-    "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
-      "Cordialement,",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {
     }
   }
 }
+

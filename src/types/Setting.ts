@@ -12,13 +12,14 @@ export enum ComponentType {
 
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
+  category?: 'business' | 'technical';
   identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi';
   sensitiveData: string[];
   content: SettingContent;
 }
 
 export interface SettingContent {
-  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe';
+  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe' | 'notifications';
   ocpi?: OcpiSettings;
   simple?: SimplePricingSettings;
   convergentCharging?: ConvergentChargingPricingSettings;
@@ -26,6 +27,11 @@ export interface SettingContent {
   sac?: AnalyticsSettings;
   links?: AnalyticsLink[];
   concur?: ConcurRefundSettings;
+  notifications?: NotificationsSettings;
+}
+
+export interface NotificationsSettings {
+  userInactivity?: boolean;
 }
 
 export enum PricingSettingsType {

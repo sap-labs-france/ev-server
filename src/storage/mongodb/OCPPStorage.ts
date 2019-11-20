@@ -117,6 +117,62 @@ export default class OCPPStorage {
     };
   }
 
+  static async getLastStatusNotifications(tenantID: string, params: {dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string}) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getLastStatusNotifications');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set the filters
+    const filters: any = {};
+    // Date before provided?
+    if (params.dateBefore) {
+      filters.timestamp = {};
+      filters.timestamp.$lte = new Date(params.dateBefore);
+    }
+    // Charger
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Connector ID
+    if (params.connectorId) {
+      filters.connectorId = params.connectorId;
+    }
+    // Status
+    if (params.status) {
+      filters.status = params.status;
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Sort
+    aggregation.push({ $sort: { 'timestamp': -1 }});
+    // Skip
+    aggregation.push({ $skip: 0 });
+    // Limit
+    aggregation.push({ $limit: 1 });
+    // Read DB
+    const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    const statusNotifications = [];
+    // Create
+    for (const statusNotificationMDB of statusNotificationsMDB) {
+      // Create status notification
+      const statusNotification = statusNotificationMDB;
+      // Add
+      statusNotifications.push(statusNotification);
+    }
+    // Debug
+    Logging.traceEnd('OCPPStorage', 'getLastStatusNotifications', uniqueTimerID);
+    // Ok
+    return statusNotifications;
+  }
+
   static async saveStatusNotification(tenantID: string, statusNotificationToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');

@@ -2,7 +2,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { NotificationSeverity, PreparingSessionNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, OfflineChargingStationNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -498,6 +498,85 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendUserAccountInactivity(tenantID: string, notificationID: string, user: User, data: UserAccountInactivityNotification): Promise<void> {
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
+            notificationID, { intervalMins: 43200, intervalKey: null });
+          if (!hasBeenNotified) {
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, user);
+            // Send
+            await notificationSource.notificationTask.sendUserAccountInactivity(data, user, tenantID, NotificationSeverity.INFO);
+          }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, error);
+        }
+      }
+    }
+  }
+
+  static async sendPreparingSessionNotStartedNotification(tenantID: string, notificationID: string, user: User, data: PreparingSessionNotStartedNotification): Promise<void> {
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
+            notificationID, { intervalMins: 15, intervalKey: null });
+          if (!hasBeenNotified) {
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user);
+            // Send
+            await notificationSource.notificationTask.sendPreparingSessionNotStarted(data, user, tenantID, NotificationSeverity.INFO);
+          }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, error);
+        }
+      }
+    }
+  }
+
+  static async sendOfflineChargingStation(tenantID: string, chargingStation: ChargingStation, sourceData: OfflineChargingStationNotification): Promise<void> {
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Compute the id as day and hour so that just one of this email is sent per hour
+            const notificationID = chargingStation.id + new Date().toISOString();
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATION,
+              notificationID, { intervalMins: 60, intervalKey: null });
+            // Notified?
+            if (!hasBeenNotified) {
+              // Enabled?
+              if (notificationSource.enabled) {
+                // Save
+                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation, null);
+                // Send
+                for (const adminUser of adminUsers) {
+                  await notificationSource.notificationTask.sendOfflineChargingStation(sourceData, adminUser, tenantID, NotificationSeverity.INFO);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OFFLINE_CHARGING_STATION, error);
           }
         }
       }

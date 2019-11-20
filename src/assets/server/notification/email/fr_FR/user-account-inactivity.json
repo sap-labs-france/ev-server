@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> vient de se Connecter",
+  "subject": "Compte Utilisateur Inactif",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "Compte Utilisateur Inactif",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,12 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "Vous n'avez pas utitlisé l'application e-Mobility depuis le <%- lastLogin %>.",
+      "",
+      "Afin de respecter les régulations européennes sur la protection générale des données, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
     ],
-    "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
@@ -33,3 +31,4 @@
     }
   }
 }
+

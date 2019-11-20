@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> vient de se Connecter",
+  "subject": "Borne Hors Ligne",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "Borne Hors Ligne",
       "image": {
         "left": {
           "height": 60,
@@ -19,12 +19,9 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "La borne <b>'<%- chargeBoxID %>'</b> est hors ligne.",
+      ""
     ],
-    "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
@@ -33,3 +30,4 @@
     }
   }
 }
+
