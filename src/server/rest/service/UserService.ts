@@ -296,7 +296,7 @@ export default class UserService {
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
-    await Utils.checkIfUserTagIDsAreValid(user, filteredRequest.tags, req);
+    await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
     // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
@@ -740,7 +740,7 @@ export default class UserService {
       });
     }
     // Check if Tag IDs are valid
-    await Utils.checkIfUserTagIDsAreValid(null, filteredRequest.tags, req);
+    await Utils.checkIfUserTagsAreValid(null, filteredRequest.tags, req);
     // Clean request
     delete filteredRequest.passwords;
     // Set timestamp

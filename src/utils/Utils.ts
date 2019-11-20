@@ -935,21 +935,23 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagIDsAreValid(user: User, tags: Tag[], req: Request) {
+  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request) {
     // Check that the Badge ID is not already used
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      for (const tag of tags) {
-        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
-        if (foundUser && (!user || (foundUser.id !== user.id))) {
-          // Tag already used!
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
-            message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-            module: 'Utils',
-            method: 'checkIfUserTagsAreValid',
-            user: req.user.id
-          });
+      if (tags) {
+        for (const tag of tags) {
+          const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
+          if (foundUser && (!user || (foundUser.id !== user.id))) {
+            // Tag already used!
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              errorCode: Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+              message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+              module: 'Utils',
+              method: 'checkIfUserTagsAreValid',
+              user: req.user.id
+            });
+          }
         }
       }
     }
@@ -1105,7 +1107,7 @@ export default class Utils {
       });
     }
     if (filteredRequest.tags) {
-      if (!Utils._areTagIDsValid(filteredRequest.tags)) {
+      if (!Utils._areTagsValid(filteredRequest.tags)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -1237,7 +1239,7 @@ export default class Utils {
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
-  private static _areTagIDsValid(tags: Tag[]) {
+  private static _areTagsValid(tags: Tag[]) {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 

@@ -1,4 +1,4 @@
-import chai, { expect } from 'chai';
+import chai, { expect, assert } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function() {
+describe('User tests', function () {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -64,9 +64,9 @@ describe('User tests', function() {
     });
 
     describe('Where admin user', () => {
-
-      before(async () => {
+      before(() => {
         testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
           testData.userService = testData.centralUserService;
@@ -76,6 +76,7 @@ describe('User tests', function() {
             testData.userContext
           );
         }
+        assert(!!testData.userService, 'User service cannot be null');
       });
 
       describe('Using various basic APIs', () => {
@@ -176,7 +177,10 @@ describe('User tests', function() {
             Factory.user.build({ status: 'A' })
           );
           testData.createdUsers.push(user);
-          const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
+          const response = await testData.userService.userApi.readAllInError({}, {
+            limit: 100,
+            skip: 0
+          });
           expect(response.status).to.equal(200);
           response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
 
@@ -192,7 +196,10 @@ describe('User tests', function() {
             Factory.user.build({ status: 'P' })
           );
           testData.createdUsers.push(user);
-          const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
+          const response = await testData.userService.userApi.readAllInError({}, {
+            limit: 100,
+            skip: 0
+          });
           expect(response.status).to.equal(200);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
@@ -209,7 +216,10 @@ describe('User tests', function() {
             Factory.user.build({ status: 'B' })
           );
           testData.createdUsers.push(user);
-          const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
+          const response = await testData.userService.userApi.readAllInError({}, {
+            limit: 100,
+            skip: 0
+          });
           expect(response.status).to.equal(200);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
@@ -226,7 +236,10 @@ describe('User tests', function() {
             Factory.user.build({ status: 'L' })
           );
           testData.createdUsers.push(user);
-          const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
+          const response = await testData.userService.userApi.readAllInError({}, {
+            limit: 100,
+            skip: 0
+          });
           expect(response.status).to.equal(200);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
@@ -243,7 +256,10 @@ describe('User tests', function() {
             Factory.user.build({ status: 'I' })
           );
           testData.createdUsers.push(user);
-          const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
+          const response = await testData.userService.userApi.readAllInError({}, {
+            limit: 100,
+            skip: 0
+          });
           expect(response.status).to.equal(200);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;

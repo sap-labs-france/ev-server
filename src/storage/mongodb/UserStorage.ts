@@ -299,9 +299,11 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Cleanup Tags
-    const userTagsToSave = userTags.filter((tag) => tag && tag.id !== '');
+    const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
       await global.database.getCollection<any>(tenantID, 'tags')
         .insertMany(userTagsToSave.map((tag) => {
           const tagMDB = {

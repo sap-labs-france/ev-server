@@ -170,7 +170,7 @@ export default class ContextBuilder {
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
-          user.role === 'A');
+        user.role === 'A');
     }
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so first delete it
@@ -180,7 +180,8 @@ export default class ContextBuilder {
       // Update the email
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
-      defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
+      defaultAdminUser.tags = CONTEXTS.TENANT_USER_LIST[0].tags ? CONTEXTS.TENANT_USER_LIST[0].tags : [
+        { id: faker.random.alphaNumeric(8).toUpperCase(), internal: true, deleted: false }];
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
@@ -234,16 +235,21 @@ export default class ContextBuilder {
         status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
         assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
         emailPrefix: 'basic-',
-        tagIDs: []
+        tags: [
+          {
+            id: `A1234${index}`,
+            internal: false,
+            deleted: false
+          }
+        ]
       };
       userDef.id = new ObjectID().toHexString();
       const createUser: User = UserFactory.build();
-      userDef.tagIDs.push(`A1234${index}`);
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
-      if (userDef.tagIDs) {
-        createUser.tagIDs = userDef.tagIDs;
+      if (userDef.tags) {
+        createUser.tags = userDef.tags;
       }
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user, false);

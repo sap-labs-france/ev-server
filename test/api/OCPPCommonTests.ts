@@ -8,6 +8,7 @@ import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Factory from '../factories/Factory';
 import User from '../../src/types/User';
 import { fail } from 'assert';
+import Tag from '../../src/types/Tag';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -43,11 +44,11 @@ export default class OCPPCommonTests {
   public transactionCurrentTime: any;
 
   public createAnyUser = false;
-  public numberTag: any;
-  public validTag: any;
-  public invalidTag: any;
-  public anyUser: any;
-  public createdUsers: any[] = [];
+  public numberTag: number;
+  public validTag: string;
+  public invalidTag: string;
+  public anyUser: User;
+  public createdUsers: User[] = [];
 
   public constructor(tenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
@@ -137,7 +138,13 @@ export default class OCPPCommonTests {
     this.invalidTag = faker.random.alphaNumeric(21).toString();
     this.numberTag = faker.random.number(10000);
     if (this.createAnyUser) {
-      this.anyUser = await this.createUser(Factory.user.build({ tagIDs: [this.validTag, this.invalidTag, this.numberTag.toString()] }));
+      this.anyUser = await this.createUser(Factory.user.build({
+        tags: [
+          { id: this.validTag, internal: true, deleted: false },
+          { id: this.invalidTag, internal: true, deleted: false },
+          { id: this.numberTag.toString(), internal: true, deleted: false }
+        ]
+      }));
       if (!this.createdUsers) {
         this.createdUsers = [];
       }
@@ -172,8 +179,14 @@ export default class OCPPCommonTests {
     const foundChargingStation = response.data;
     // Check
     expect(foundChargingStation.connectors).to.not.be.null;
-    expect(foundChargingStation.connectors[0]).to.include({ status: this.chargingStationConnector1.status, errorCode: this.chargingStationConnector1.errorCode });
-    expect(foundChargingStation.connectors[1]).to.include({ status: this.chargingStationConnector2.status, errorCode: this.chargingStationConnector2.errorCode });
+    expect(foundChargingStation.connectors[0]).to.include({
+      status: this.chargingStationConnector1.status,
+      errorCode: this.chargingStationConnector1.errorCode
+    });
+    expect(foundChargingStation.connectors[1]).to.include({
+      status: this.chargingStationConnector2.status,
+      errorCode: this.chargingStationConnector2.errorCode
+    });
   }
 
   public async testChangeConnectorStatus() {
@@ -192,9 +205,15 @@ export default class OCPPCommonTests {
     expect(response.data.id).is.eql(this.chargingStationContext.getChargingStation().id);
     const foundChargingStation = response.data;
     // Check Connector 1
-    expect(foundChargingStation.connectors[0]).to.include({ status: this.chargingStationConnector1.status, errorCode: this.chargingStationConnector1.errorCode });
+    expect(foundChargingStation.connectors[0]).to.include({
+      status: this.chargingStationConnector1.status,
+      errorCode: this.chargingStationConnector1.errorCode
+    });
     // Connector 2 should be still 'Available'
-    expect(foundChargingStation.connectors[1]).to.include({ status: this.chargingStationConnector2.status, errorCode: this.chargingStationConnector2.errorCode });
+    expect(foundChargingStation.connectors[1]).to.include({
+      status: this.chargingStationConnector2.status,
+      errorCode: this.chargingStationConnector2.errorCode
+    });
     // Reset Status of Connector 1
     this.chargingStationConnector1.status = 'Available';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
@@ -545,7 +564,10 @@ export default class OCPPCommonTests {
     // Check Connector1
     const foundChargingStation = response.data;
     expect(foundChargingStation.connectors).to.not.be.null;
-    expect(foundChargingStation.connectors[0]).to.include({ status: this.chargingStationConnector1.status, errorCode: this.chargingStationConnector1.errorCode });
+    expect(foundChargingStation.connectors[0]).to.include({
+      status: this.chargingStationConnector1.status,
+      errorCode: this.chargingStationConnector1.errorCode
+    });
     // Check Transaction
     this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
     expect(this.newTransaction.message).to.contain('does not exist');
@@ -575,8 +597,8 @@ export default class OCPPCommonTests {
     expect(user.firstName).eq('User');
     expect(user.email).eq(`${unknownTag}@e-mobility.com`);
     expect(user.role).eq('B');
-    expect(user.tagIDs.length).eq(1);
-    expect(user.tagIDs[0]).eq(unknownTag);
+    expect(user.tags.length).eq(1);
+    expect(user.tags[0].id).eq(unknownTag);
   }
 
   public async testStartTransactionWithTagAsInteger() {
