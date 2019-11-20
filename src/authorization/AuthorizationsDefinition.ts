@@ -45,6 +45,9 @@ const GRANTS = {
         action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
       },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
@@ -130,6 +133,9 @@ const GRANTS = {
         }
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
       {
         resource: 'Transaction', action: ['Read'], attributes: ['*'],
         condition: {
