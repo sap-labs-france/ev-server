@@ -192,7 +192,7 @@ export interface UserAccountInactivityNotification extends BaseNotification {
 export interface PreparingSessionNotStartedNotification extends BaseNotification {
   'user': User;
   'chargeBoxID': string;
-  'startedOn': Date;
+  'startedOn': string;
   'evseDashboardURL': string;
 }
 
