@@ -90,7 +90,7 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: { search?: string; siteID: string},
+    params: { search?: string; siteID: string; siteOwnerOnly?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
@@ -108,6 +108,13 @@ export default class SiteStorage {
         siteID: Utils.convertToObjectID(params.siteID)
       }
     });
+    if (params.siteOwnerOnly) {
+      aggregation.push({
+        $match: {
+          siteOwner: true
+        }
+      });
+    }
     // Get users
     DatabaseUtils.pushUserLookupInAggregation(
       { tenantID, aggregation, localField: 'userID', foreignField: '_id',
