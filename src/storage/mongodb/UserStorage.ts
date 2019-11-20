@@ -19,6 +19,8 @@ import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
+import moment from 'moment';
+
 
 export default class UserStorage {
 
@@ -498,7 +500,7 @@ export default class UserStorage {
                                  notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
                                  userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
                                  statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
-                                 notifications?: UserNotifications;
+                                 notifications?: any; noLoginSince?: Date;
                                },
                                dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -566,6 +568,12 @@ export default class UserStorage {
     if (params.notificationsActive) {
       filters.$and.push({
         'notificationsActive': params.notificationsActive
+      });
+    }
+    // Filter on last login to detect inactive user accounts
+    if(params.noLoginSince && moment(params.noLoginSince).isValid()) {
+      filters.$and.push({
+        'eulaAcceptedOn':  { $lte : params.noLoginSince }
       });
     }
     if (params.notifications) {

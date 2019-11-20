@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> vient de se Connecter",
+  "subject": "Session Non Démarrée",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "Session Non Démarrée",
       "image": {
         "left": {
           "height": 60,
@@ -17,14 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "Vous n'avez pas démarré votre session sur la borne <b>'<%- chargeBoxID %>'</b>.",
+      ""
     ],
-    "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
@@ -33,3 +30,4 @@
     }
   }
 }
+

@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> vient de se Connecter",
+  "subject": "User Account Inactivity",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "User Account Inactivity",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,18 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+      "You haven't used the e-Mobility application since <%- lastLogin %>.",
+      "",
+      "Please be aware that in order to comply with the general data protection regulation, accounts that have not been used during the last six months will be automatically deleted."
     ],
-    "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
-      "Cordialement,",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {
     }
   }
 }
+

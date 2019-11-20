@@ -43,15 +43,16 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
-    const filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
-    filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filtered.ConnectorId = sanitize(request.ConnectorId);
-    filtered.SiteAreaID = sanitize(request.SiteAreaID);
-    filtered.SiteID = sanitize(request.SiteID);
-    filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
-    UtilsSecurity.filterSkipAndLimit(request, filtered);
-    UtilsSecurity.filterSort(request, filtered);
-    return filtered;
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.UserID = request.UserID ? sanitize(request.UserID) : null;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
@@ -65,7 +66,6 @@ export default class TransactionSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
-
     if (request.Statistics) {
       filteredRequest.Statistics = sanitize(request.Statistics);
     }
@@ -75,7 +75,6 @@ export default class TransactionSecurity {
     if (request.ReportIDs) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
-
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -163,9 +162,13 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        filteredTransaction.stop.inactivityStatusLevel =
+        if(transaction.chargeBox) {
+          filteredTransaction.stop.inactivityStatusLevel = 
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
             filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
+        } else {
+          filteredTransaction.stop.inactivityStatusLevel = 'info';
+        }
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         filteredTransaction.stop.signedData = transaction.stop.signedData;

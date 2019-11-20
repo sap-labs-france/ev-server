@@ -41,6 +41,18 @@
 			"activated": "activated",
 			"suspended": "suspended",
 			"body": "Your account has been {{status}} by an administrator"
+		},
+		"userAccountInactivity": {
+			"title": "User Account Inactivity",
+			"body": "Your account has been inactive since {{lastLogin}}. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted."
+		},
+		"preparingSessionNotStarted": {
+			"title": "Session Not Started",
+			"body": "Session not started on charging station '{{chargeBoxID}}'."
+		},
+		"offlineChargingStation": {
+			"title": "Offline Charging Station",
+			"body": "Charging station '{{chargeBoxID}}' is offline."
 		}
 	}
 }
