@@ -9,6 +9,7 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
+import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -33,6 +34,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
       currentMigrationTasks.push(new AddNotificationsFlagsToUsersTask());
       currentMigrationTasks.push(new MigrateCoordinatesTask());
+      currentMigrationTasks.push(new MigrateOcpiSettingTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

@@ -1,29 +1,33 @@
 import axios from 'axios';
-import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import Setting from '../../types/Setting';
+import Setting, { OcpiSettings } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import NotificationHandler from '../../notification/NotificationHandler';
-import Utils from '../../utils/Utils';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpoint from '../../types/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import Tenant from '../../types/Tenant';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 
-export default class OCPIClient {
-  private ocpiEndpoint: OCPIEndpoint;
-  private tenant: Tenant;
+export default abstract class OCPIClient {
+  protected ocpiEndpoint: OCPIEndpoint;
+  protected tenant: Tenant;
+  protected role: string;
+  protected settings: OcpiSettings;
 
-  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
+  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, role: string) {
+    if (role !== Constants.OCPI_ROLE.CPO || role !== Constants.OCPI_ROLE.EMSP) {
+      throw new Error(`Invalid OCPI role '${role}'`);
+    }
+
     this.tenant = tenant;
     this.ocpiEndpoint = ocpiEndpoint;
+    this.role = role;
   }
 
-  // Ping eMSP
+  /**
+   * Ping Ocpi Endpoint
+   */
   async ping() {
     const pingResult: any = {};
     // Try to access base Url (GET .../versions)
@@ -49,7 +53,9 @@ export default class OCPIClient {
     return pingResult;
   }
 
-  // Trigger Registration process for  eMSP
+  /**
+   * Register Ocpi Endpoint
+   */
   async register() {
     const registerResult: any = {};
 
@@ -107,7 +113,7 @@ export default class OCPIClient {
   }
 
   /**
-   * GET /ocpi/emsp/versions
+   * GET /ocpi/{role}/versions
    */
   async getVersions() {
     Logging.logInfo({
@@ -136,7 +142,7 @@ export default class OCPIClient {
   }
 
   /**
-   * GET /ocpi/emsp/{version}
+   * GET /ocpi/{role}/{version}
    */
   async getServices() {
     // Log
@@ -166,7 +172,7 @@ export default class OCPIClient {
   }
 
   /**
-   * POST /ocpi/emsp/{version}/credentials
+   * POST /ocpi/{role}/{version}/credentials
    */
   async postCredentials() {
     // Get credentials url
@@ -207,259 +213,42 @@ export default class OCPIClient {
     return respOcpiCredentials;
   }
 
-  /**
-   * PATH EVSE Status
-   */
-  async patchEVSEStatus(locationId: any, evseId: any, newStatus: any) {
-    // Check for input parameter
-    if (!locationId || !evseId || !newStatus) {
-      throw new Error('Invalid parameters');
-    }
+  protected async getOcpiSettings(): Promise<OcpiSettings> {
+    if (!this.settings) {
+      const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
+        this.tenant.id, Constants.COMPONENTS.OCPI);
 
-    // Get locations endpoint url
-    const locationsUrl = this.getEndpointUrl('locations');
-
-    if (!locationsUrl) {
-      throw new Error('Locations endpoint URL undefined');
-    }
-
-    // Read configuration to retrieve
-    const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
-      this.tenant.id, Constants.COMPONENTS.OCPI);
-
-    if (!ocpiSetting || !ocpiSetting.content) {
-      throw new Error('OCPI Settings not found');
-    }
-
-    const ocpiContent = ocpiSetting.content.ocpi;
-    if (!ocpiContent.countryCode || !ocpiContent.partyID) {
-      throw new Error('OCPI Country Code and/or Party ID undefined');
-    }
-
-    const countryCode = ocpiContent.countryCode;
-    const partyID = ocpiContent.partyID;
-
-    // Build url to EVSE
-    const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
-
-    // Build payload
-    const payload = { 'status': newStatus };
-
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: 'OcpiPatchLocations',
-      message: `Patch location at ${fullUrl}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'patchEVSEStatus',
-      detailedMessages: payload
-    });
-
-    // Call IOP
-    const response = await axios.patch(fullUrl, payload,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-
-    // Check response
-    if (!response.data) {
-      throw new Error('Invalid response from PATCH');
-    }
-  }
-
-
-  /**
-   * Send all EVSEs
-   */
-  async sendEVSEStatuses(processAllEVSEs = true) {
-    // Result
-    const sendResult = {
-      success: 0,
-      failure: 0,
-      total: 0,
-      logs: [],
-      chargeBoxIDsInFailure: [],
-      chargeBoxIDsInSuccess: []
-    };
-
-    // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.tenant.id, Constants.COMPONENTS.OCPI);
-
-    // Define get option
-    const options = {
-      'addChargeBoxID': true,
-      countryID: '',
-      partyID: ''
-    };
-
-    if (ocpiSetting && ocpiSetting.content) {
-      const configuration = ocpiSetting.content.ocpi;
-      options.countryID = configuration.countryCode;
-      options.partyID = configuration.partyID;
-    } else {
-      // Log error if failure
-      Logging.logError({
-        tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: 'OCPI Configuration not active',
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
-      });
-      return;
-    }
-
-    // Get timestamp before starting process - to be saved in DB at the end of the process
-    const startDate = new Date();
-
-    // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
-    //    - EVSEs (ChargingStations) in error from previous push
-    //    - EVSEs (ChargingStations) with status notification from latest pushDate
-    let chargeBoxIDsToProcess = [];
-
-    if (!processAllEVSEs) {
-      // Get ChargingStation in Failure from previous run
-      chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
-
-      // Get ChargingStation with new status notification
-      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
-
-      // Remove duplicates
-      chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
-    }
-
-    // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
-
-    // Loop through locations
-    for (const location of locationsResult.locations) {
-      if (location && location.evses) {
-        // Loop through EVSE
-        for (const evse of location.evses) {
-          // Total amount of EVSEs
-          sendResult.total++;
-          // Check if EVSE should be processed
-          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
-            continue;
-          }
-
-          // Process it if not empty
-          if (evse && location.id && evse.id) {
-            try {
-              await this.patchEVSEStatus(location.id, evse.uid, evse.status);
-              sendResult.success++;
-              sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
-              sendResult.logs.push(
-                `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
-              );
-            } catch (error) {
-              sendResult.failure++;
-              sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
-              sendResult.logs.push(
-                `Failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
-              );
-            }
-            if (sendResult.failure > 0) {
-              // Send notification to admins
-              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                this.tenant.id,
-                {
-                  'location': location.name,
-                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
-                }
-              );
-            }
-          }
-        }
+      if (!ocpiSetting || !ocpiSetting.content || !ocpiSetting.content.ocpi) {
+        throw new Error('OCPI Settings not found');
       }
+      this.settings = ocpiSetting.content.ocpi;
     }
-
-    // Log error if any
-    if (sendResult.failure > 0) {
-      // Log error if failure
-      Logging.logError({
-        tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
-        detailedMessages: sendResult.logs,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
-      });
-    } else if (sendResult.success > 0) {
-      // Log info
-      Logging.logInfo({
-        tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
-        detailedMessages: sendResult.logs,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
-      });
-    }
-
-    // Save result in ocpi endpoint
-    this.ocpiEndpoint.lastPatchJobOn = startDate;
-
-    // Set result
-    if (sendResult) {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': sendResult.success,
-        'failureNbr': sendResult.failure,
-        'totalNbr': sendResult.total,
-        'chargeBoxIDsInFailure': _.uniq(sendResult.chargeBoxIDsInFailure),
-        'chargeBoxIDsInSuccess': _.uniq(sendResult.chargeBoxIDsInSuccess)
-      };
-    } else {
-      this.ocpiEndpoint.lastPatchJobResult = {
-        'successNbr': 0,
-        'failureNbr': 0,
-        'totalNbr': 0,
-        'chargeBoxIDsInFailure': [],
-        'chargeBoxIDsInSuccess': []
-      };
-    }
-
-    // Save
-    await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
-
-    // Return result
-    return sendResult;
+    return this.settings;
   }
 
-  // Get ChargeBoxIDs in failure from previous job
-  getChargeBoxIDsInFailure() {
-    if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
-      return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
+  protected async getLocalCountryCode(): Promise<string> {
+    const setting = await this.getOcpiSettings();
+    if (!setting[this.role]) {
+      throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    return [];
+    if (!setting[this.role].countryCode) {
+      throw new Error(`OCPI Country code setting is missing for role ${this.role}`);
+    }
+    return setting[this.role].countryCode;
   }
 
-  // Get ChargeBoxIds with new status notifications
-  async getChargeBoxIDsWithNewStatusNotifications() {
-    // Get last job
-    const lastPatchJobOn = this.ocpiEndpoint.lastPatchJobOn ? this.ocpiEndpoint.lastPatchJobOn : new Date();
-
-    // Build params
-    const params = { 'dateFrom': lastPatchJobOn };
-
-    // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
-
-    // Loop through notifications
-    if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
+  protected async getLocalPartyID(): Promise<string> {
+    const setting = await this.getOcpiSettings();
+    if (!setting[this.role]) {
+      throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    return [];
+    if (!setting[this.role].partyID) {
+      throw new Error(`OCPI Party ID setting is missing for role ${this.role}`);
+    }
+    return setting[this.role].partyID;
   }
 
-  private getEndpointUrl(service) {
+  protected getEndpointUrl(service) {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }

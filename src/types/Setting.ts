@@ -76,8 +76,14 @@ export interface StripeBillingSettings {
 }
 
 export interface OcpiSettings {
-  countryCode: string;
-  partyID: string;
+  cpo: {
+    countryCode: string;
+    partyID: string;
+  };
+  emsp: {
+    countryCode: string;
+    partyID: string;
+  };
   businessDetails: {
     name: string;
     website: string;
