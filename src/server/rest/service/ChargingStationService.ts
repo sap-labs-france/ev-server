@@ -503,143 +503,148 @@ export default class ChargingStationService {
   }
 
   public static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
-    // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleAction', req.user);
-    let result;
-    // Remote Stop Transaction / Unlock Connector
-    if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
-      // Check Transaction ID
-      if (!filteredRequest.args || !filteredRequest.args.transactionId) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_AUTH_ERROR,
-          message: 'Transaction ID is mandatory',
-          module: 'ChargingStationService',
-          method: 'handleAction',
-          user: req.user,
-          action: action
-        });
-      }
-      // Get Transaction
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
-      UtilsService.assertObjectExists(transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
+    try {
+      // Filter - Type is hacked because code below is. Would need approval to change code structure.
+      const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
+      UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
+      // Get the Charging station
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+      UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
         'ChargingStationService', 'handleAction', req.user);
-      // Add connector ID
-      filteredRequest.args.connectorId = transaction.connectorId;
-      // Check Tag ID
-      if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
-          message: 'The user does not have any badge',
-          module: 'ChargingStationService',
-          method: 'handleAction',
-          user: req.user,
-          action: action
-        });
-      }
-      // Check if user is authorized
-      await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
-      // Set the tag ID to handle the Stop Transaction afterwards
-      transaction.remotestop = {
-        timestamp: new Date(),
-        tagID: req.user.tagIDs[0],
-        userID: req.user.id
-      };
-      // Save Transaction
-      await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
-      // Ok: Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
-      // Remote Start Transaction
-    } else if (action === 'RemoteStartTransaction') {
-      // Check Tag ID
-      if (!filteredRequest.args || !filteredRequest.args.tagID) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
-          message: 'The user does not have any badge',
-          module: 'ChargingStationService',
-          method: 'handleAction',
-          user: req.user,
-          action: action
-        });
-      }
-      // Check if user is authorized
-      await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
-      // Ok: Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
-    } else if (action === 'GetCompositeSchedule') {
-      // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
-        throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
-          user: req.user,
-          action: action,
-          entity: Constants.ENTITY_CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
-          value: chargingStation.id
-        });
-      }
-      // Check if we have to load all connectors in case connector 0 fails
-      if (req.body.hasOwnProperty('loadAllConnectors')) {
-        filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
-      }
-      if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
-        // Call for connector 0
+      let result;
+      // Remote Stop Transaction / Unlock Connector
+      if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
+        // Check Transaction ID
+        if (!filteredRequest.args || !filteredRequest.args.transactionId) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_AUTH_ERROR,
+            message: 'Transaction ID is mandatory',
+            module: 'ChargingStationService',
+            method: 'handleAction',
+            user: req.user,
+            action: action
+          });
+        }
+        // Get Transaction
+        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
+        UtilsService.assertObjectExists(transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
+          'ChargingStationService', 'handleAction', req.user);
+        // Add connector ID
+        filteredRequest.args.connectorId = transaction.connectorId;
+        // Check Tag ID
+        if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+            message: 'The user does not have any badge',
+            module: 'ChargingStationService',
+            method: 'handleAction',
+            user: req.user,
+            action: action
+          });
+        }
+        // Check if user is authorized
+        await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
+        // Set the tag ID to handle the Stop Transaction afterwards
+        transaction.remotestop = {
+          timestamp: new Date(),
+          tagID: req.user.tagIDs[0],
+          userID: req.user.id
+        };
+        // Save Transaction
+        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+        // Ok: Execute it
         result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
-        if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
-          result = [];
-          // Call each connectors
-          for (const connector of chargingStation.connectors) {
-            filteredRequest.args.connectorId = connector.connectorId;
-            // Execute request
-            const simpleResult = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
-            // Fix central reference date
-            const centralTime = new Date();
-            simpleResult.centralSystemTime = centralTime;
-            result.push(simpleResult);
+        // Remote Start Transaction
+      } else if (action === 'RemoteStartTransaction') {
+        // Check Tag ID
+        if (!filteredRequest.args || !filteredRequest.args.tagID) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+            message: 'The user does not have any badge',
+            module: 'ChargingStationService',
+            method: 'handleAction',
+            user: req.user,
+            action: action
+          });
+        }
+        // Check if user is authorized
+        await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
+        // Ok: Execute it
+        result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      } else if (action === 'GetCompositeSchedule') {
+        // Check auth
+        if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
+          throw new AppAuthError({
+            errorCode: Constants.HTTP_AUTH_ERROR,
+            user: req.user,
+            action: action,
+            entity: Constants.ENTITY_CHARGING_STATION,
+            module: 'ChargingStationService',
+            method: 'handleAction',
+            value: chargingStation.id
+          });
+        }
+        // Check if we have to load all connectors in case connector 0 fails
+        if (req.body.hasOwnProperty('loadAllConnectors')) {
+          filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
+        }
+        if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
+          // Call for connector 0
+          result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+          if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
+            result = [];
+            // Call each connectors
+            for (const connector of chargingStation.connectors) {
+              filteredRequest.args.connectorId = connector.connectorId;
+              // Execute request
+              const simpleResult = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+              // Fix central reference date
+              const centralTime = new Date();
+              simpleResult.centralSystemTime = centralTime;
+              result.push(simpleResult);
+            }
           }
+        } else {
+          // Execute it
+          result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+          // Fix central reference date
+          const centralTime = new Date();
+          result.centralSystemTime = centralTime;
         }
       } else {
+        // Check auth
+        if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
+          throw new AppAuthError({
+            errorCode: Constants.HTTP_AUTH_ERROR,
+            user: req.user,
+            action: action,
+            entity: Constants.ENTITY_CHARGING_STATION,
+            module: 'ChargingStationService',
+            method: 'handleAction',
+            value: chargingStation.id
+          });
+        }
         // Execute it
         result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
-        // Fix central reference date
-        const centralTime = new Date();
-        result.centralSystemTime = centralTime;
       }
-    } else {
-      // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
-        throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
-          user: req.user,
-          action: action,
-          entity: Constants.ENTITY_CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
-          value: chargingStation.id
-        });
-      }
-      // Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        source: chargingStation.id, user: req.user, action: action,
+        module: 'ChargingStationService', method: 'handleAction',
+        message: `'${action}' has been executed successfully`,
+        detailedMessages: result
+      });
+      // Return
+      res.json(result);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
     }
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      source: chargingStation.id, user: req.user, action: action,
-      module: 'ChargingStationService', method: 'handleAction',
-      message: `'${action}' has been executed successfully`,
-      detailedMessages: result
-    });
-    // Return
-    res.json(result);
-    next();
   }
 
   public static async handleActionSetMaxIntensitySocket(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
