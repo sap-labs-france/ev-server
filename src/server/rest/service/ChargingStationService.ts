@@ -642,7 +642,7 @@ export default class ChargingStationService {
       res.json(result);
       next();
     } catch (error) {
-      // Log withe tenantID
+      // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
     }
   }
