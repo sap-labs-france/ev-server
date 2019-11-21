@@ -1,27 +1,28 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { PricingSettingsType } from '../types/Setting';
 import SessionHashService from '../server/rest/service/SessionHashService';
+import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import UserNotifications from '../types/UserNotifications';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import UserNotifications from '../types/UserNotifications';
-import SettingStorage from '../storage/mongodb/SettingStorage';
-import { PricingSettingsType } from '../types/Setting';
 
 export default class Authorizations {
 
-  private static configuration: any;
+  private static configuration: AuthorizationConfiguration;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
     const context = {
@@ -697,7 +698,7 @@ export default class Authorizations {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      );
+      ).catch((err) => Logging.logError(err));
       // Not authorized
       throw new AppError({
         source: chargingStation.id,
