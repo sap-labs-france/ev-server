@@ -98,10 +98,16 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    if (!requestedSites || requestedSites.length === 0) {
-      return loggedUser.sitesAdmin;
+
+    const sites: Set<string> = new Set(loggedUser.sitesAdmin);
+    for (const siteID of loggedUser.sitesOwner) {
+      sites.add(siteID);
     }
-    return requestedSites.filter((site) => loggedUser.sitesAdmin.includes(site));
+
+    if (!requestedSites || requestedSites.length === 0) {
+      return [...sites];
+    }
+    return requestedSites.filter((site) => sites.has(site));
   }
 
   public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {
@@ -211,7 +217,8 @@ export default class Authorizations {
       tagID: transaction.tagID,
       site: transaction.siteID,
       sites: loggedUser.sites,
-      sitesAdmin: loggedUser.sitesAdmin
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
     };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ, context);
   }
