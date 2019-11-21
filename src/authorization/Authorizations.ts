@@ -99,10 +99,12 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
+
     const sites: Set<string> = new Set(loggedUser.sitesAdmin);
     for (const siteID of loggedUser.sitesOwner) {
       sites.add(siteID);
     }
+
     if (!requestedSites || requestedSites.length === 0) {
       return [...sites];
     }
