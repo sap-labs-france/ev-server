@@ -134,9 +134,6 @@ const GRANTS = {
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
-        resource: 'Report', action: ['Read'], attributes: ['*']
-      },
-      {
         resource: 'Transaction', action: ['Read'], attributes: ['*'],
         condition: {
           Fn: 'OR',
