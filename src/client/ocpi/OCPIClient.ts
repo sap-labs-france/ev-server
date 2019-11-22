@@ -1,13 +1,12 @@
-import axios from 'axios';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPIEndpoint from '../../types/OCPIEndpoint';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import Setting, { OcpiSettings } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import Tenant from '../../types/Tenant';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import axios from 'axios';
 
 export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
