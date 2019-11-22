@@ -39,7 +39,7 @@ describe('Template for Dev Unit Test', function() {
       const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
       const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
       const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-      const response = await chargingStationContext.startTransaction(1, user.tagIDs[0], 0, moment());
+      const response = await chargingStationContext.startTransaction(1, user.tags[0].id, 0, moment());
       expect(response).to.be.transactionValid;
       const userCentralService = tenantContextAll.getUserCentralServerService(CONTEXTS.USER_CONTEXTS.BASIC_USER);
       const tenantListResponse = await userCentralService.transactionApi.readAllActive({});
@@ -51,7 +51,7 @@ describe('Template for Dev Unit Test', function() {
       const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.NO_SITE);
       const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
       const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
-      const response = await chargingStationContext.startTransaction(1, user.tagIDs[0], 0, moment());
+      const response = await chargingStationContext.startTransaction(1, user.tags[0].id, 0, moment());
       expect(response).to.be.transactionStatus('Rejected');
     });
 

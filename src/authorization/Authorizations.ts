@@ -12,6 +12,7 @@ import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Tag from '../types/Tag';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
@@ -152,7 +153,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
-      'tagIDs': user.tagIDs,
+      'tagIDs': user.tags ? user.tags.map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
@@ -676,7 +677,13 @@ export default class Authorizations {
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User TagIDs
-      await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      const tag: Tag = {
+        id: tagID,
+        deleted: false,
+        internal: false,
+        userID: user.id
+      };
+      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role

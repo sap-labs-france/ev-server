@@ -40,28 +40,28 @@ export default class CONTEXTS {
 
   static readonly USER_CONTEXTS: any = {
     DEFAULT_ADMIN: {
-      role: 'A', status: 'A', assignedToSite: true, withTagIDs: true
+      role: 'A', status: 'A', assignedToSite: true, withTags: true
     },
     ADMIN_UNASSIGNED: {
-      role: 'A', status: 'A', assignedToSite: false, withTagIDs: true
+      role: 'A', status: 'A', assignedToSite: false, withTags: true
     },
     BASIC_USER: {
-      role: 'B', status: 'A', assignedToSite: true, withTagIDs: true
+      role: 'B', status: 'A', assignedToSite: true, withTags: true
     },
     BASIC_USER_UNASSIGNED: {
-      role: 'B', status: 'A', assignedToSite: false, withTagIDs: true
+      role: 'B', status: 'A', assignedToSite: false, withTags: true
     },
     BASIC_USER_PENDING: {
-      role: 'B', status: 'P', assignedToSite: true, withTagIDs: true
+      role: 'B', status: 'P', assignedToSite: true, withTags: true
     },
     BASIC_USER_LOCKED: {
-      role: 'B', status: 'L', assignedToSite: true, withTagIDs: true
+      role: 'B', status: 'L', assignedToSite: true, withTags: true
     },
     BASIC_USER_NO_TAGS: {
-      role: 'B', status: 'A', assignedToSite: true, withTagIDs: false
+      role: 'B', status: 'A', assignedToSite: true, withTags: false
     },
     DEMO_USER: {
-      role: 'D', status: 'A', assignedToSite: true, withTagIDs: true
+      role: 'D', status: 'A', assignedToSite: true, withTags: true
     },
   };
 
@@ -228,7 +228,11 @@ export default class CONTEXTS {
       role: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.role,
       status: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
-      tagIDs: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTagIDs ? ['A1234'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
+        id: 'A1234',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Admin not assigned
       id: '5ce249a1a39ae1c056c123ef',
@@ -242,7 +246,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
       emailPrefix: 'a-unassigned-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTagIDs ? ['A12341'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
+        id: 'A12341',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Basic user
       id: '5ce249a1a39ae1c056c123ab',
@@ -256,7 +264,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
       emailPrefix: 'basic-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTagIDs ? ['A12342'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
+        id: 'A12342',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Demo user
       id: '5ce249a1a39ae1c056c123cd',
@@ -270,7 +282,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.DEMO_USER.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEMO_USER.assignedToSite,
       emailPrefix: 'demo-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTagIDs ? ['A12343'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
+        id: 'A12343',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Basic user unassigned
       id: '5ce249a1a39ae1c056c456ad',
@@ -284,7 +300,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
       emailPrefix: 'b-unassigned-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTagIDs ? ['A12348'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
+        id: 'A12348',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Basic user pending
       id: '5ce249a1a39ae1c056c456ab',
@@ -298,7 +318,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
       emailPrefix: 'b-pending-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTagIDs ? ['A12349'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
+        id: 'A12349',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Basic user Locked
       id: '5ce249a1a39ae1c056c789ef',
@@ -312,7 +336,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
       emailPrefix: 'b-locked-',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTagIDs ? ['A123410'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
+        id: 'A123410',
+        internal: false,
+        deleted: false
+      }] : null)
     },
     { // Basic user No Tags
       id: '5ce249a1a39ae1c056c567ab',
@@ -326,7 +354,11 @@ export default class CONTEXTS {
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
       emailPrefix: 'b-notTag',
-      tagIDs: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTagIDs ? ['A123411'] : null)
+      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
+        id: 'A123411',
+        internal: false,
+        deleted: false
+      }] : null)
     }
   ];
 

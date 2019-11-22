@@ -53,7 +53,7 @@ export default class StatisticsContext {
         for (const user of users) {
           this.setUser(user);
           startTime = startTime.clone().add(1, 'days');
-          let response = await chargingStation.startTransaction(1, user.tagIDs[0], 0, startTime);
+          let response = await chargingStation.startTransaction(1, user.tags[0].id, 0, startTime);
           expect(response).to.be.transactionValid;
           const transactionId = response.data.transactionId;
 
@@ -69,7 +69,7 @@ export default class StatisticsContext {
             }
           }
           const endTime = startTime.clone().add(StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES, 'minutes');
-          response = await chargingStation.stopTransaction(transactionId, user.tagIDs[0], StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
+          response = await chargingStation.stopTransaction(transactionId, user.tags[0].id, StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
           expect(response).to.be.transactionStatus('Accepted');
 
           // Add a fake refund data to transaction

@@ -151,7 +151,7 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'TagIDs must be provided',
+        message: 'UserID must be provided',
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount',
         user: req.user,
