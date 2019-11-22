@@ -662,11 +662,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
       }
-      if (Authorizations.isSiteAdmin(req.user)) {
-        filter.siteAdminIDs = req.user.sitesAdmin;
-      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
