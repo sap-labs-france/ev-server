@@ -1,10 +1,10 @@
 [
- {  
-  "name": "YourName", 
+ {
+  "name": "YourName",
   "firstName": "",
-  "email": "YourEmail", 
+  "email": "YourEmail",
   "status": "A",
-  "tagIDs": [],
+  "tags": [],
   "role": "A"
  }
 ]

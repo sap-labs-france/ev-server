@@ -1,27 +1,29 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { PricingSettingsType } from '../types/Setting';
 import SessionHashService from '../server/rest/service/SessionHashService';
+import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Tag from '../types/Tag';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import UserNotifications from '../types/UserNotifications';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import UserNotifications from '../types/UserNotifications';
-import SettingStorage from '../storage/mongodb/SettingStorage';
-import { PricingSettingsType } from '../types/Setting';
 
 export default class Authorizations {
 
-  private static configuration: any;
+  private static configuration: AuthorizationConfiguration;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
     const context = {
@@ -98,10 +100,16 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    if (!requestedSites || requestedSites.length === 0) {
-      return loggedUser.sitesAdmin;
+
+    const sites: Set<string> = new Set(loggedUser.sitesAdmin);
+    for (const siteID of loggedUser.sitesOwner) {
+      sites.add(siteID);
     }
-    return requestedSites.filter((site) => loggedUser.sitesAdmin.includes(site));
+
+    if (!requestedSites || requestedSites.length === 0) {
+      return [...sites];
+    }
+    return requestedSites.filter((site) => sites.has(site));
   }
 
   public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {
@@ -145,7 +153,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
-      'tagIDs': user.tagIDs,
+      'tagIDs': user.tags ? user.tags.map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
@@ -211,7 +219,8 @@ export default class Authorizations {
       tagID: transaction.tagID,
       site: transaction.siteID,
       sites: loggedUser.sites,
-      sitesAdmin: loggedUser.sitesAdmin
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
     };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ, context);
   }
@@ -668,7 +677,13 @@ export default class Authorizations {
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User TagIDs
-      await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      const tag: Tag = {
+        id: tagID,
+        deleted: false,
+        internal: false,
+        userID: user.id
+      };
+      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role
@@ -690,7 +705,7 @@ export default class Authorizations {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      );
+      ).catch((err) => Logging.logError(err));
       // Not authorized
       throw new AppError({
         source: chargingStation.id,

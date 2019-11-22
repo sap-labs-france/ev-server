@@ -6,6 +6,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import UserNotifications from '../../../../types/UserNotifications';
+import Tag from '../../../../types/Tag';
 
 export default class UserSecurity {
 
@@ -118,8 +119,15 @@ export default class UserSecurity {
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
       }
-      if (request.tagIDs) {
-        filteredRequest.tagIDs = sanitize(request.tagIDs);
+      if (request.tags) {
+        filteredRequest.tags = [];
+        for (const tag of request.tags) {
+          // Filter
+          const filteredTag = UserSecurity.filterTagRequest(tag);
+          if (filteredTag) {
+            filteredRequest.tags.push(filteredTag);
+          }
+        }
       }
       if (request.plateID) {
         filteredRequest.plateID = sanitize(request.plateID);
@@ -133,7 +141,7 @@ export default class UserSecurity {
 
   // User
   static filterUserResponse(user: User, loggedUser: UserToken): User {
-    const filteredUser: any = {};
+    const filteredUser: User = {} as User;
     if (!user) {
       return null;
     }
@@ -157,7 +165,7 @@ export default class UserSecurity {
         filteredUser.status = user.status;
         filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
         filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-        filteredUser.tagIDs = user.tagIDs;
+        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         filteredUser.errorCode = user.errorCode;
@@ -179,7 +187,7 @@ export default class UserSecurity {
         }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
-        filteredUser.tagIDs = user.tagIDs;
+        filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         filteredUser.errorCode = user.errorCode;
@@ -222,6 +230,19 @@ export default class UserSecurity {
       }
     }
     users.result = filteredUsers;
+  }
+
+  static filterTagRequest(tag: Tag): Tag {
+    let filteredTag: Tag;
+    if (tag) {
+      filteredTag = {
+        id: sanitize(tag.id),
+        internal: UtilsSecurity.filterBoolean(tag.internal),
+        provider: sanitize(tag.provider),
+        deleted: false
+      };
+    }
+    return filteredTag;
   }
 
   static filterNotificationsRequest(notifications): UserNotifications {

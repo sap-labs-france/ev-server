@@ -84,7 +84,7 @@ describe('Transaction tests', function() {
 
         it('Should not be authorized on a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
         });
 
         it('Should be authorized to stop a transaction started by itself', async () => {
@@ -93,7 +93,7 @@ describe('Transaction tests', function() {
 
         it('Should not be authorized to stop a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
         it('Cannot read a not existing transaction', async () => {
@@ -110,7 +110,7 @@ describe('Transaction tests', function() {
 
         it('Cannot read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
         it('Can read a started transaction', async () => {
@@ -293,7 +293,7 @@ describe('Transaction tests', function() {
 
         it('Should be authorized on a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
         it('Should be authorized to stop a transaction started by itself', async () => {
@@ -302,12 +302,12 @@ describe('Transaction tests', function() {
 
         it('Should be authorized to stop a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });
 
@@ -403,7 +403,7 @@ describe('Transaction tests', function() {
 
         it('Should not be authorized to stop a transaction started by another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
         it('Should not be authorized to stop a transaction started by unknown user', async () => {
@@ -424,7 +424,7 @@ describe('Transaction tests', function() {
 
         it('Cannot read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
         it('Cannot read a transaction of unknown user', async () => {
@@ -506,7 +506,7 @@ describe('Transaction tests', function() {
 
         it('Should be authorized on a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
         it('Should be authorized to stop a transaction started by itself', async () => {
@@ -515,12 +515,12 @@ describe('Transaction tests', function() {
 
         it('Should be authorized to stop a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });
 
@@ -605,7 +605,7 @@ describe('Transaction tests', function() {
 
         it('Should not be authorized on a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
         });
 
         it('Should be authorized to stop a transaction started by itself', async () => {
@@ -614,7 +614,7 @@ describe('Transaction tests', function() {
 
         it('Should not be authorized to stop a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
         it('Cannot read a not existing transaction', async () => {
@@ -631,7 +631,7 @@ describe('Transaction tests', function() {
 
         it('Cannot read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
         it('Can read a started transaction', async () => {
@@ -758,7 +758,7 @@ describe('Transaction tests', function() {
 
         it('Should be authorized on a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
         it('Should be authorized to stop a transaction started by itself', async () => {
@@ -767,12 +767,12 @@ describe('Transaction tests', function() {
 
         it('Should be authorized to stop a transaction started by another', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
           const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tagIDs[0]);
+          await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });
 

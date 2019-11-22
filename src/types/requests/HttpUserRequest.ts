@@ -1,9 +1,9 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import User from '../User';
+import Tag from '../Tag';
 
-export interface HttpUserRequest extends Partial<Omit<User, 'tagIDs'>> {
+export interface HttpUserRequest extends Partial<User> {
   passwords: {password?: string};
-  tagIDs: string|string[];
 }
 
 export interface HttpUserMobileTokenRequest {

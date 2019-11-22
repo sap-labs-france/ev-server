@@ -151,7 +151,7 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'TagIDs must be provided',
+        message: 'UserID must be provided',
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount',
         user: req.user,
@@ -656,6 +656,15 @@ export default class TransactionService {
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {

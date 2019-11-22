@@ -45,6 +45,9 @@ const GRANTS = {
         action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
       },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
@@ -249,7 +252,10 @@ const GRANTS = {
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
-      }
+      },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
     ]
   },
 };

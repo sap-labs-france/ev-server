@@ -144,8 +144,8 @@ export default class ContextBuilder {
     await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);
     await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
-    if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
-      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
+    if (CONTEXTS.TENANT_USER_LIST[0].tags) {
+      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tags);
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
@@ -203,8 +203,8 @@ export default class ContextBuilder {
       await UserStorage.saveUserStatus(buildTenant.id, user.id, userDef.status);
       await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
-      if (userDef.tagIDs) {
-        await UserStorage.saveUserTags(buildTenant.id, user.id, userDef.tagIDs);
+      if (userDef.tags) {
+        await UserStorage.saveUserTags(buildTenant.id, user.id, userDef.tags);
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);
       if (userDef.assignedToSite) {

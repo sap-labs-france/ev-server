@@ -2,6 +2,7 @@ import Address from './Address';
 import { BillingUserData } from '../integration/billing/Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import UserNotifications from './UserNotifications';
+import Tag from './Tag';
 
 export default interface User extends CreatedUpdatedProps {
   id: string;
@@ -31,7 +32,7 @@ export default interface User extends CreatedUpdatedProps {
   verificationToken?: string;
   verifiedAt?: Date;
   errorCode?: string;
-  tagIDs?: string[];
+  tags?: Tag[];
   billingData?: BillingUserData;
   mobileOs: string;
   mobileToken: string;

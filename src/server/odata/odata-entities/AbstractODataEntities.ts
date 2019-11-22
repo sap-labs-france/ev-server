@@ -17,9 +17,9 @@ export default class AbstractODataEntities {
     }
     // Handle address
     if (entity.address) {
-      entity = _.merge(entity, entity.address)
+      entity = _.merge(entity, entity.address);
       // Handle coordinates
-      this.moveCoordinatesToRoot(entity, entity.address)
+      this.moveCoordinatesToRoot(entity, entity.address);
     }
     return entity;
   }
@@ -35,8 +35,8 @@ export default class AbstractODataEntities {
       entity.latitude = coordinatesEntity.coordinates[1];
       entity.longitude = coordinatesEntity.coordinates[0];
     } else {
-      entity.latitude = "";
-      entity.longitude = "";
+      entity.latitude = '';
+      entity.longitude = '';
     }
     return entity;
   }

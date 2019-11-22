@@ -110,6 +110,8 @@ describe('Filters with multiple values tests', function() {
       expect(read.data.result).to.not.be.empty;
       // Test for unicity
       for (let i = 0; i < read.data.result.length; i++) {
+        expect(read.data.result[i].id).not.equal(null);
+        expect(read.data.result[i].user).not.equal(null);
         for (let j = 0; j < read.data.result.length; j++) {
           if (i !== j) {
             expect(read.data.result[i]).not.equal(read.data.result[j]);

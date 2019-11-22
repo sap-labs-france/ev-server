@@ -1,4 +1,4 @@
-import { Transaction } from "@google-cloud/firestore";
+import { Transaction } from '@google-cloud/firestore';
 
 export interface DataResult<T> {
   count: number;

@@ -125,7 +125,12 @@ export default class UserStorage {
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate([
-        { $match: { '_id': tagID } },
+        {
+          $match: {
+            '_id': tagID,
+            'deleted': false
+          }
+        },
         {
           $project: {
             id: '$_id',
@@ -290,24 +295,32 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserTags(tenantID: string, userID: string, userTagIDs: string[]): Promise<void> {
+  public static async saveUserTags(tenantID: string, userID: string, userTags: Tag[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Cleanup Tags
-    const userTagIDsToSave = userTagIDs.filter((tagID) => tagID && tagID !== '');
-    // Delete former Tag IDs
-    await global.database.getCollection<any>(tenantID, 'tags')
-      .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
-    // Add new ones
-    const uniqueUserTagIDsToSave = [...new Set(userTagIDsToSave)];
-    if (uniqueUserTagIDsToSave.length > 0) {
+    const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
+
+    if (userTagsToSave.length > 0) {
       await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(uniqueUserTagIDsToSave.map((userTagIDToSave) => ({ _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) })));
+        .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .insertMany(userTagsToSave.map((tag) => {
+          const tagMDB = {
+            _id: tag.id,
+            userID: Utils.convertToObjectID(userID),
+            internal: tag.internal,
+            deleted: tag.deleted
+          };
+          // Check Created/Last Changed By
+          DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
+          return tagMDB;
+        }));
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
+    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTags });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -516,7 +529,7 @@ export default class UserStorage {
           '$or': [
             { 'name': { $regex: params.search, $options: 'i' } },
             { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tagIDs': { $regex: params.search, $options: 'i' } },
+            { 'tags.id': { $regex: params.search, $options: 'i' } },
             { 'email': { $regex: params.search, $options: 'i' } },
             { 'plateID': { $regex: params.search, $options: 'i' } }
           ]
@@ -558,7 +571,7 @@ export default class UserStorage {
       });
     }
     // Filter on last login to detect inactive user accounts
-    if(params.noLoginSince && moment(params.noLoginSince).isValid()) {
+    if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
       filters.$and.push({
         'eulaAcceptedOn':  { $lte : params.noLoginSince }
       });
@@ -572,27 +585,12 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    // Add TagIDs
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
-        localField: '_id',
-        foreignField: 'userID',
-        as: 'tagIDs'
-      }
+
+    // Add Tags
+    DatabaseUtils.pushTagLookupInAggregation({
+      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
-    // Project tag IDs
-    aggregation.push({
-      $addFields: {
-        tagIDs: {
-          $map: {
-            input: '$tagIDs',
-            as: 't',
-            in: '$$t._id'
-          }
-        }
-      }
-    });
+
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
       filters.$and.push({
@@ -677,14 +675,22 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Clean user object
     for (const userMDB of usersMDB) {
       delete (userMDB as any).siteusers;
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
+      params,
+      limit,
+      skip,
+      sort: dbParams.sort
+    });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
@@ -753,7 +759,10 @@ export default class UserStorage {
     });
     // Read DB
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd('UserStorage', 'getTags', uniqueTimerID);
@@ -792,7 +801,7 @@ export default class UserStorage {
           '$or': [
             { 'name': { $regex: params.search, $options: 'i' } },
             { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tagIDs': { $regex: params.search, $options: 'i' } },
+            { 'tags.id': { $regex: params.search, $options: 'i' } },
             { 'email': { $regex: params.search, $options: 'i' } },
             { 'plateID': { $regex: params.search, $options: 'i' } }
           ]
@@ -801,26 +810,9 @@ export default class UserStorage {
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block
-    // Add TagIDs
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
-        localField: '_id',
-        foreignField: 'userID',
-        as: 'tagIDs'
-      }
-    });
-    // Mongodb adding common fields
-    aggregation.push({
-      $addFields: {
-        tagIDs: {
-          $map: {
-            input: '$tagIDs',
-            as: 't',
-            in: '$$t._id'
-          }
-        }
-      }
+    // Add Tags
+    DatabaseUtils.pushTagLookupInAggregation({
+      tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
     // Mongodb facets block
     // If the organization component is active the system looks for non active users or active users that
@@ -889,7 +881,10 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: false })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: false
+      })
       .toArray();
     // Clean user object
     for (const userMDB of usersMDB) {
@@ -897,7 +892,12 @@ export default class UserStorage {
       delete (userMDB as any).sites;
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
+      params,
+      limit,
+      skip,
+      sort: dbParams.sort
+    });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
@@ -1015,13 +1015,21 @@ export default class UserStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; siteOwner: boolean; site: Site }>(tenantID, 'siteusers')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Create
     const sites: SiteUser[] = [];
     for (const siteUserMDB of siteUsersMDB) {
       if (siteUserMDB.site) {
-        sites.push({ siteAdmin: siteUserMDB.siteAdmin, siteOwner: siteUserMDB.siteOwner, userID: siteUserMDB.userID, site: siteUserMDB.site });
+        sites.push({
+          siteAdmin: siteUserMDB.siteAdmin,
+          siteOwner: siteUserMDB.siteOwner,
+          userID: siteUserMDB.userID,
+          site: siteUserMDB.site
+        });
       }
     }
     // Debug
@@ -1060,7 +1068,7 @@ export default class UserStorage {
       } as UserNotifications,
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
-      tagIDs: []
+      tags: []
     };
   }
 
