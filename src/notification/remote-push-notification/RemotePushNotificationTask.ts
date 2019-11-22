@@ -277,9 +277,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
       return Promise.resolve();
     }
     // Create message
-    const message = this.createMessage(notificationType, title, body, user, data, severity);
+    const message = this.createMessage(notificationType, title, body, data, severity);
     // Send message
-    admin.messaging().send(message).then((response) => {
+    admin.messaging().sendToDevice(
+        user.mobileToken,
+        message,
+        { priority: 'high', timeToLive: 60*60*24 }
+      ).then((response) => {
       // Response is a message ID string.
       Logging.logInfo({
         tenantID: tenantID,
@@ -303,27 +307,19 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(notificationType: UserNotificationType, title: string, body: string, user: User, data: object, severity: NotificationSeverity): admin.messaging.Message {
-    const message: admin.messaging.Message = {
+  private createMessage(notificationType: UserNotificationType, title: string, body: string, data: object, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+    // Build message
+    const message: admin.messaging.MessagingPayload = {
       notification: {
         title,
-        body
-      },
-      token: user.mobileToken
+        body,
+        icon: '@drawable/ic_stat_ic_notification',
+        sound: 'default',
+        badge: '0',
+        color: severity ? severity : NotificationSeverity.INFO,
+        channelId: 'e-Mobility'
+      }
     };
-    // Android?
-    if (user.mobileOs === Constants.MOBILE_OS_ANDROID) {
-      message.android = {
-        ttl: 3600 * 1000,
-        notification: {
-          icon: '@drawable/ic_stat_ic_notification',
-          color: severity ? severity : NotificationSeverity.INFO,
-          sound: 'default',
-          channelId: 'e-Mobility'
-        },
-        priority: 'high'
-      };
-    }
     // Extra data
     message.data = { notificationType, ...data };
     return message;

@@ -1,4 +1,3 @@
-import * as Express from 'express';
 import UserToken from '../../src/types/UserToken';
 
 declare module 'express' {
