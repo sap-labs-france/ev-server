@@ -657,6 +657,17 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
+    }
     // Get Reports
     const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
       limit: filteredRequest.Limit,
