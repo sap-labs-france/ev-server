@@ -11,6 +11,8 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import OCPIUtils from '../../ocpi/OCPIUtils';
 import OCPIEndpoint from '../../../types/OCPIEndpoint';
 import Utils from '../../../utils/Utils';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 
 const MODULE_NAME = 'OCPIEndpointService';
 
@@ -200,7 +202,8 @@ export default class OCPIEndpointService {
 
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = new OCPIClient(tenant, filteredRequest);
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, filteredRequest);
+
     // Try to ping
     const pingResult = await ocpiClient.ping();
     // Check ping result
@@ -246,7 +249,7 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = new OCPIClient(tenant, ocpiEndpoint);
+    const ocpiClient = new CpoOCPIClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses();
     // Return result
@@ -276,7 +279,7 @@ export default class OCPIEndpointService {
 
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = new OCPIClient(tenant, ocpiEndpoint);
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
     // Try to register
     const result = await ocpiClient.register();
 
