@@ -34,7 +34,7 @@ export default class AddTagTypeTask extends MigrationTask {
   }
 
   getVersion() {
-    return '0.2';
+    return '1.0';
   }
 
   getName() {
