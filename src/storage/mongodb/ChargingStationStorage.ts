@@ -191,10 +191,23 @@ export default class ChargingStationStorage {
     filters.$and.push({ 'connectors.status': params.connectorStatus });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
-      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore }});
-    }   
+      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
+    }
     // Add in aggregation
     aggregation.push({ $match: filters });
+    // Build lookups to fetch sites from chargers
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        as: 'siteArea'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { 'path': '$siteArea', 'preserveNullAndEmptyArrays': true }
+    });
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
