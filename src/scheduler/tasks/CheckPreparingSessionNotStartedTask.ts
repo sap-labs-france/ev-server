@@ -1,15 +1,14 @@
 import moment from 'moment';
+import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import ChargingStation from '../../types/ChargingStation';
 import { CheckPreparingSessionNotStartedTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import NotificationHandler from '../../notification/NotificationHandler';
 import Utils from '../../utils/Utils';
-import ChargingStation from '../../types/ChargingStation';
+import SchedulerTask from '../SchedulerTask';
 
 export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
 
