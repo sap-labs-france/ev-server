@@ -498,8 +498,8 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getRefundReports(tenantID: string, filter: { ownerID?: string }, dbParams: DbParams, projectFields?: string[]):
-      Promise<{ count: number; result: RefundReport[]; stats: {}; }> {
+  public static async getRefundReports(tenantID: string, filter: { ownerID?: string; siteAdminIDs?: string[] }, dbParams: DbParams, projectFields?: string[]):
+  Promise<{ count: number; result: RefundReport[]; stats: {} }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -510,14 +510,38 @@ export default class TransactionStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    const ownerMatch = { $or: [] };
+    const filterMatch = {};
+    filterMatch['refundData.reportId'] = { '$ne': null };
+
+    if (filter.ownerID) {
+      ownerMatch.$or.push({
+        userID: Utils.convertToObjectID(filter.ownerID)
+      });
+    }
+    if (filter.siteAdminIDs) {
+      ownerMatch.$or.push({
+        siteID: {
+          $in: filter.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        }
+      });
+    }
+    if (ownerMatch.$or && ownerMatch.$or.length > 0) {
+      aggregation.push({
+        $match: {
+          $and: [
+            ownerMatch, filterMatch
+          ]
+        }
+      });
+    } else {
+      aggregation.push({
+        $match: filterMatch
+      });
+    }
     aggregation.push(
       { '$group': { '_id': '$refundData.reportId', 'userID': { '$first': '$userID' } } }
     );
-    if (filter.ownerID) {
-      aggregation.push(
-        { '$match': { 'userID': Utils.convertToObjectID(filter.ownerID) } }
-      );
-    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

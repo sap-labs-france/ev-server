@@ -7,6 +7,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../types/OCPIEndpoint';
+import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 
@@ -74,7 +75,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
     });
 
     // Build OCPI Client
-    const ocpiClient = new OCPIClient(tenant, ocpiEndpoint);
+    const ocpiClient = new CpoOCPIClient(tenant, ocpiEndpoint);
 
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses(false);
