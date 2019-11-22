@@ -34,10 +34,10 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
             // Send notification
             moment.locale(siteOwners.result[0].user.locale);
             NotificationHandler.sendPreparingSessionNotStartedNotification(tenant.id,siteOwners.result[0].user.id,siteOwners.result[0].user, {
-              'user': siteOwners.result[0].user,
-              'chargeBoxID': chargingStation.id,
-              'startedOn': moment(chargingStation.connectors['statusLastChangedOn']).format('LL'),
-              'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
+              user: siteOwners.result[0].user,
+              chargeBoxID: chargingStation.id,
+              startedOn: moment(chargingStation.connectors['statusLastChangedOn']).format('LL'),
+              evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
             });
           }
         }
