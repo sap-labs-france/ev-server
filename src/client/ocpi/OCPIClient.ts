@@ -1,22 +1,22 @@
-import axios from 'axios';
-import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import NotificationHandler from '../../notification/NotificationHandler';
+import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import Setting from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import NotificationHandler from '../../notification/NotificationHandler';
-import Utils from '../../utils/Utils';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import Tenant from '../../types/Tenant';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
+import _ from 'lodash';
+import axios from 'axios';
 
 export default class OCPIClient {
-  private ocpiEndpoint: OCPIEndpoint;
-  private tenant: Tenant;
+  private readonly ocpiEndpoint: OCPIEndpoint;
+  private readonly tenant: Tenant;
 
   constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
     this.tenant = tenant;
@@ -372,7 +372,7 @@ export default class OCPIClient {
                   'location': location.name,
                   'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
                 }
-              );
+              ).catch((err) => Logging.logError(err));
             }
           }
         }
