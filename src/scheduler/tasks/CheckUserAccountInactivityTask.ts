@@ -18,7 +18,6 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
       // Get Users
       const users = await UserStorage.getUsers(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       for (const user of users.result) {
-        user.email = 'serge.fabiano@sap.com'; // Debug
         // Notification 
         moment.locale(user.locale);
         await NotificationHandler.sendUserAccountInactivity(
