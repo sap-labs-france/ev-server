@@ -78,7 +78,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+        chargeBoxID: data.chargeBoxID
       },
       severity
     );

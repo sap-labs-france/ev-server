@@ -202,6 +202,7 @@ export interface OfflineChargingStationNotification extends BaseNotification {
   chargeBoxID: string;
   lastHeartbeat: Date;
   evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface NotificationSource {

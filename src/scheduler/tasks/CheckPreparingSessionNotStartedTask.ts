@@ -2,7 +2,6 @@ import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
-import ChargingStation from '../../types/ChargingStation';
 import { CheckPreparingSessionNotStartedTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -40,7 +39,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
           if (siteOwners && siteOwners.count > 0) {
             // Send notification
             moment.locale(siteOwners.result[0].user.locale);
-            NotificationHandler.sendPreparingSessionNotStartedNotification(tenant.id, chargingStation, siteOwners.result[0].user, {
+            await NotificationHandler.sendPreparingSessionNotStartedNotification(tenant.id, chargingStation, siteOwners.result[0].user, {
               user: siteOwners.result[0].user,
               chargeBoxID: chargingStation.id,
               connectorId: Utils.getConnectorLetterFromConnectorID(connectorId),

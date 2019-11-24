@@ -511,7 +511,7 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Override the ID to send notification on 
-          const notificationID = new Date().toISOString();
+          const notificationID = user.id + '~' + new Date().toISOString();
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
@@ -535,7 +535,7 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Override the ID to send notification on 
-          const notificationID = new Date().toISOString();
+          const notificationID = chargingStation.id + '~' + new Date().toISOString();
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
@@ -565,11 +565,11 @@ export default class NotificationHandler {
         if (notificationSource.enabled) {
           try {
             // Override the ID to send notification on 
-            const notificationID = new Date().toISOString();
+            const notificationID = chargingStation.id + '~' + new Date().toISOString();
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATION,
-              notificationID, { intervalMins: 60 });
+              notificationID, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?

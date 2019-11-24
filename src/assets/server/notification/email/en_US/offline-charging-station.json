@@ -22,6 +22,10 @@
       "The charging station <b>'<%- chargeBoxID %>'</b> is offline.",
       ""
     ],
+    "action": {
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

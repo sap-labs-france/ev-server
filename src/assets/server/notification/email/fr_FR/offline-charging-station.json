@@ -22,6 +22,10 @@
       "La borne <b>'<%- chargeBoxID %>'</b> est hors ligne.",
       ""
     ],
+    "action": {
+      "title": "Voir <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
