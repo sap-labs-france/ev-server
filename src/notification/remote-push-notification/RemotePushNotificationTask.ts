@@ -69,19 +69,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
     const title = i18n.t('notifications.offlineChargingStation.title');
-    const body = i18n.t('notifications.offlineChargingStation.body',
-      { chargeBoxID: data.chargeBoxID });
+    const body = i18n.t('notifications.offlineChargingStation.body');
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, {
-        chargeBoxID: data.chargeBoxID
-      },
-      severity
-    );
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, null, severity);
   }
 
   public sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
@@ -260,13 +255,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
   private sendRemotePushNotificationToUser(tenantID: string, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {
     // Checks
     if (!this.initialized) {
-      // Bypass
       return Promise.resolve();
     }
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
       Logging.logWarning({
         tenantID: tenantID,
-        source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
+        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
@@ -277,7 +271,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       return Promise.resolve();
     }
     // Create message
-    const message = this.createMessage(notificationType, title, body, data, severity);
+    const message = this.createMessage(tenantID, notificationType, title, body, data, severity);
     // Send message
     admin.messaging().sendToDevice(
         user.mobileToken,
@@ -287,7 +281,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Response is a message ID string.
       Logging.logInfo({
         tenantID: tenantID,
-        source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
+        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
@@ -297,7 +291,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error) => {
       Logging.logError({
         tenantID: tenantID,
-        source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
+        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
@@ -307,7 +301,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(notificationType: UserNotificationType, title: string, body: string, data: object, severity: NotificationSeverity): admin.messaging.MessagingPayload {
+  private createMessage(tenantID: string, notificationType: UserNotificationType, title: string, body: string, data: object, severity: NotificationSeverity): admin.messaging.MessagingPayload {
     // Build message
     const message: admin.messaging.MessagingPayload = {
       notification: {
@@ -321,7 +315,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       }
     };
     // Extra data
-    message.data = { notificationType, ...data };
+    message.data = { tenantID, notificationType, ...data };
     return message;
   }
 }

@@ -12,12 +12,6 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
     try {
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'CheckUserAccountInactivityTask',
-        method: 'run', action: 'InactiveUsersNotification',
-        message: 'The task \'CheckUserAccountInactivityTask\' is being run'
-      });
       // Compute the date some months ago
       const someMonthsAgo = moment().subtract(config.userAccountInactivityMonths - 1, 'months').toDate();
       const params = { 'statuses': ['A'], 'noLoginSince': someMonthsAgo };

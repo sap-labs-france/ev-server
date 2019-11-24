@@ -20,16 +20,9 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
           method: 'run', action: 'OcpiPatchLocations',
           message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
         });
-
         // Skip execution
         return;
       }
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'OCPIPatchLocationsTask',
-        method: 'run', action: 'OcpiPatchLocations',
-        message: 'The task \'OCPIPatchLocationsTask\' is being run'
-      });
       // Get all available endpoints
       const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: Constants.OCPI_ROLE.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
       for (const ocpiEndpoint of ocpiEndpoints.result) {

@@ -13,12 +13,6 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
     try {
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'CheckPreparingSessionNotStartedTask',
-        method: 'run', action: 'CheckPreparingSessionNotStartedTask',
-        message: 'The task \'CheckPreparingSessionNotStartedTask\' is being run'
-      });
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate();
       const params = { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };

@@ -106,7 +106,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('session-not-started', data, user, tenantID, severity);
   }
 
-  public sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenantID, severity);
   }

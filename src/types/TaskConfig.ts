@@ -1,7 +1,7 @@
 export interface TaskConfig {
 }
 
-export interface CheckOfflineChargingStationTaskConfig extends TaskConfig {
+export interface CheckOfflineChargingStationsTaskConfig extends TaskConfig {
   offlineChargingStationMins?: number;
 }
 

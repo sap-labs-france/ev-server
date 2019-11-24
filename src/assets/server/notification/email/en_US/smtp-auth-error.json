@@ -24,6 +24,10 @@
       "Please check your configuration.",
       ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

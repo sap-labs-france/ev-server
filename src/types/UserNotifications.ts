@@ -14,7 +14,7 @@ export default interface UserNotifications {
   sendSmtpAuthError?: boolean;
   sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
-  sendOfflineChargingStation?: boolean;
+  sendOfflineChargingStations?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -30,7 +30,7 @@ export type UserNotificationKeys =
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStation'
+ 'sendOfflineChargingStations'
 ;
 
 export enum UserNotificationType {
@@ -200,10 +200,8 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
 }
 
 export interface OfflineChargingStationNotification extends BaseNotification {
-  chargeBoxID: string;
-  lastHeartbeat: Date;
+  chargeBoxIDs: string;
   evseDashboardURL: string;
-  evseDashboardChargingStationURL: string;
 }
 
 export interface NotificationSource {

@@ -29,7 +29,6 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       });
       return;
     }
-
     // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id, {
       'refundStatus': [Constants.REFUND_STATUS_SUBMITTED]

@@ -1,10 +1,10 @@
 {
-  "subject": "'<%- chargeBoxID %>' est Hors Ligne",
+  "subject": "Bornes Hors Ligne",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Hors Ligne",
+      "title": "Bornes Hors Ligne",
       "image": {
         "left": {
           "height": 60,
@@ -19,12 +19,12 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La borne <b>'<%- chargeBoxID %>'</b> est hors ligne.",
+      "Les bornes suivantes sont hors ligne dans votre organisation : <b><%- chargeBoxIDs %></b> ",
       ""
     ],
     "action": {
-      "title": "Voir <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [
       "Cordialement,",
