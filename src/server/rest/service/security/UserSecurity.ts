@@ -259,6 +259,8 @@ export default class UserSecurity {
       filtered.sendChargingStationRegistered = UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered);
       filtered.sendOcpiPatchStatusError = UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError);
       filtered.sendSmtpAuthError = UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError);
+      filtered.sendOfflineChargingStation = UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStation);
+      filtered.sendPreparingSessionNotStarted = UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted);
     }
     return filtered;
   }

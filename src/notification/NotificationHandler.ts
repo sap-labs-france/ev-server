@@ -528,7 +528,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendPreparingSessionNotStartedNotification(tenantID: string, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
+  static async sendPreparingSessionNotStarted(tenantID: string, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
@@ -541,12 +541,17 @@ export default class NotificationHandler {
             tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
             notificationID, { intervalMins: 15 });
           if (!hasBeenNotified) {
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-              Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user, chargingStation, {
-                'connectorId': sourceData.connectorId
-              });
-            // Send
-            await notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenantID, NotificationSeverity.INFO);
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendPreparingSessionNotStarted) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user, chargingStation, {
+                  'connectorId': sourceData.connectorId
+                }
+              );
+              // Send
+              await notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenantID, NotificationSeverity.INFO);
+            }
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, error);
@@ -572,12 +577,12 @@ export default class NotificationHandler {
               notificationID, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
-              // Enabled?
-              if (notificationSource.enabled) {
-                // Save
-                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation, null);
-                // Send
-                for (const adminUser of adminUsers) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation, null);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendOfflineChargingStation) {
                   await notificationSource.notificationTask.sendOfflineChargingStation(sourceData, adminUser, tenantID, NotificationSeverity.INFO);
                 }
               }

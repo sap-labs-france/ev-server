@@ -14,6 +14,7 @@ export default interface UserNotifications {
   sendSmtpAuthError?: boolean;
   sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
+  sendOfflineChargingStation?: boolean;
 }
 
 export type UserNotificationKeys =
