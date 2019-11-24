@@ -19,9 +19,13 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You haven't started the session on charging station <b>'<%- chargeBoxID %>'</b>.",
+      "You haven't started the session on charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>.",
       ""
     ],
+    "action": {
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

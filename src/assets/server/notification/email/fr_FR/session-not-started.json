@@ -19,9 +19,13 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Vous n'avez pas démarré votre session sur la borne <b>'<%- chargeBoxID %>'</b>.",
+      "Vous n'avez pas démarré votre session sur la borne <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b>.",
       ""
     ],
+    "action": {
+      "title": "Voir <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

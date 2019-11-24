@@ -48,7 +48,7 @@
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Not Started",
-			"body": "Session not started on charging station '{{chargeBoxID}}'."
+			"body": "Session not started on charging station '{{chargeBoxID}}', connector '{{connectorId}}'."
 		},
 		"offlineChargingStation": {
 			"title": "Offline Charging Station",

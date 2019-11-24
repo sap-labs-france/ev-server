@@ -16,7 +16,7 @@ export default class CheckOfflineChargingStationTask extends SchedulerTask {
         tenantID: tenant.id,
         module: 'CheckOfflineChargingStationTask',
         method: 'run', action: 'checkOfflineChargingStation',
-        message: 'The subtask \'CheckOfflineChargingStationTask\' is being run'
+        message: 'The task \'CheckOfflineChargingStationTask\' is being run'
       });
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate();

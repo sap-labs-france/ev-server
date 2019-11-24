@@ -26,10 +26,8 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
       for (const user of users.result) {
         // Notification 
         moment.locale(user.locale);
-        const notificationId = user.id + new Date().toString();
         NotificationHandler.sendUserAccountInactivity(
           tenant.id,
-          notificationId,
           user,
           {
             'user': user,

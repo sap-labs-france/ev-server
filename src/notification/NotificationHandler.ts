@@ -442,12 +442,12 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Compute the id as day and hour so that just one of this email is sent per hour
+            // Override the ID to send notification on 
             const notificationID = new Date().toISOString();
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_AUTH_EMAIL_ERROR,
-              notificationID, { intervalMins: 60, intervalKey: null });
+              notificationID, { intervalMins: 60 });
             if (!hasBeenNotified) {
               // Email enabled?
               if (NotificationHandler.notificationConfig.Email.enabled) {
@@ -476,12 +476,12 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Compute the id as day and hour so that just one of this email is sent per hour
+            // Override the ID to send notification on 
             const notificationID = new Date().toISOString();
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR,
-              notificationID, { intervalMins: 60, intervalKey: null });
+              notificationID, { intervalMins: 60 });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
@@ -504,20 +504,22 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserAccountInactivity(tenantID: string, notificationID: string, user: User, data: UserAccountInactivityNotification): Promise<void> {
+  static async sendUserAccountInactivity(tenantID: string, user: User, sourceData: UserAccountInactivityNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
       if (notificationSource.enabled) {
         try {
+          // Override the ID to send notification on 
+          const notificationID = new Date().toISOString();
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
-            notificationID, { intervalMins: 43200, intervalKey: null });
+            notificationID, { intervalMins: 43200 });
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, user);
             // Send
-            await notificationSource.notificationTask.sendUserAccountInactivity(data, user, tenantID, NotificationSeverity.INFO);
+            await notificationSource.notificationTask.sendUserAccountInactivity(sourceData, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, error);
@@ -526,20 +528,25 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendPreparingSessionNotStartedNotification(tenantID: string, notificationID: string, user: User, data: PreparingSessionNotStartedNotification): Promise<void> {
+  static async sendPreparingSessionNotStartedNotification(tenantID: string, chargingStation: ChargingStation, user: User, sourceData: PreparingSessionNotStartedNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
       if (notificationSource.enabled) {
         try {
+          // Override the ID to send notification on 
+          const notificationID = new Date().toISOString();
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
-            notificationID, { intervalMins: 15, intervalKey: null });
+            notificationID, { intervalMins: 15 });
           if (!hasBeenNotified) {
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user);
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+              Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user, chargingStation, {
+                'connectorId': sourceData.connectorId
+              });
             // Send
-            await notificationSource.notificationTask.sendPreparingSessionNotStarted(data, user, tenantID, NotificationSeverity.INFO);
+            await notificationSource.notificationTask.sendPreparingSessionNotStarted(sourceData, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, error);
@@ -557,12 +564,12 @@ export default class NotificationHandler {
         // Active?
         if (notificationSource.enabled) {
           try {
-            // Compute the id as day and hour so that just one of this email is sent per hour
-            const notificationID = chargingStation.id + new Date().toISOString();
+            // Override the ID to send notification on 
+            const notificationID = new Date().toISOString();
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATION,
-              notificationID, { intervalMins: 60, intervalKey: null });
+              notificationID, { intervalMins: 60 });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?

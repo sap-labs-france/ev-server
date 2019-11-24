@@ -59,11 +59,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     I18nManager.switchLocale(user.locale);
     // Get Message Text
     const title = i18n.t('notifications.preparingSessionNotStarted.title');
-    const body = i18n.t('notifications.preparingSessionNotStarted.body',
-      { chargeBoxID: data.chargeBoxID });
+    const body = i18n.t('notifications.preparingSessionNotStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SESSION_NOT_STARTED, title, body, user, {
-      chargeBoxID: data.chargeBoxID
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
+        chargeBoxID: data.chargeBoxID,
+        connectorId: data.connectorId
       },
       severity
     );
@@ -292,7 +292,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
         action: 'RemotePushNotification',
-        detailedMessages: [title, body, response]
+        detailedMessages: [title, body, data, response]
       });
     }).catch((error) => {
       Logging.logError({

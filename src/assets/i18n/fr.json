@@ -48,7 +48,7 @@
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Non Démarrée",
-			"body": "Session non démarrée sur la borne '{{chargeBoxID}}'."
+			"body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}'."
 		},
 		"offlineChargingStation": {
 			"title": "Borne Hors Ligne",

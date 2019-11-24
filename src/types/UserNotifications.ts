@@ -43,7 +43,7 @@ export enum UserNotificationType {
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
   SMTP_AUTH_ERROR = 'SmtpAuthError',
-  SESSION_NOT_STARTED = 'SessionNotStarted',
+  PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
 }
@@ -192,8 +192,10 @@ export interface UserAccountInactivityNotification extends BaseNotification {
 export interface PreparingSessionNotStartedNotification extends BaseNotification {
   user: User;
   chargeBoxID: string;
+  connectorId: string;
   startedOn: string;
   evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface OfflineChargingStationNotification extends BaseNotification {
