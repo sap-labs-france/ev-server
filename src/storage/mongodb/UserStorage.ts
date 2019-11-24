@@ -573,7 +573,8 @@ export default class UserStorage {
     // Filter on last login to detect inactive user accounts
     if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
       filters.$and.push({
-        'eulaAcceptedOn':  { $lte : params.noLoginSince }
+        'eulaAcceptedOn':  { $lte : params.noLoginSince },
+        'role': 'B'
       });
     }
     if (params.notifications) {

@@ -26,13 +26,13 @@ export default class NotificationHandler {
     }
   ];
 
-  static async saveNotification(tenantID: string, channel: string, notificationID: string = new Date().toISOString(),
-    sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
+  static async saveNotification(tenantID: string, channel: string, notificationID: string,
+      sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
       channel: channel,
-      sourceId: notificationID,
+      sourceId: notificationID ? notificationID : new Date().toISOString(),
       sourceDescr: sourceDescr,
       userID: (user ? user.id : null),
       chargeBoxID: (chargingStation ? chargingStation.id : null),
@@ -73,7 +73,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string,
+  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string, userID: string,
     interval?: { intervalMins?: number; intervalKey?: object }): Promise<boolean> {
     try {
       // Check
@@ -87,6 +87,9 @@ export default class NotificationHandler {
         }
         if (chargeBoxID) {
           params.chargeBoxID = chargeBoxID
+        }
+        if (userID) {
+          params.userID = userID
         }
         // Save it
         const notifications = await NotificationStorage.getNotifications(
@@ -144,7 +147,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_END_OF_CHARGE,
-            chargingStation.id, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
+            chargingStation.id, user.id, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfCharge) {
@@ -478,7 +481,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_AUTH_EMAIL_ERROR,
-              null, { intervalMins: 60 });
+              null, null, { intervalMins: 60 });
             if (!hasBeenNotified) {
               // Email enabled?
               if (NotificationHandler.notificationConfig.Email.enabled) {
@@ -512,7 +515,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR,
-              null, { intervalMins: 60 });
+              null, null, { intervalMins: 60 });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
@@ -548,7 +551,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
-            null, { intervalMins: 43200 });
+            null, user.id, { intervalMins: 60 * 24 * 30 });
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(
               tenantID, notificationSource.channel, null, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, user);
@@ -572,7 +575,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
-            chargingStation.id, { intervalMins: 15 });
+            chargingStation.id, user.id, { intervalMins: 15 });
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendPreparingSessionNotStarted) {
@@ -606,7 +609,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATIONS,
-              null, { intervalMins: 60 * 24 });
+              null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save

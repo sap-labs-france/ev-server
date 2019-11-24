@@ -13,11 +13,12 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
     try {
       // Compute the date some months ago
-      const someMonthsAgo = moment().subtract(config.userAccountInactivityMonths - 1, 'months').toDate();
+      const someMonthsAgo = moment().subtract(config.userAccountInactivityMonths, 'months').toDate();
       const params = { 'statuses': ['A'], 'noLoginSince': someMonthsAgo };
       // Get Users
       const users = await UserStorage.getUsers(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       for (const user of users.result) {
+        user.email = 'serge.fabiano@sap.com'; // Debug
         // Notification 
         moment.locale(user.locale);
         await NotificationHandler.sendUserAccountInactivity(

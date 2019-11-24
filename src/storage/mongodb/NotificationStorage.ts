@@ -25,14 +25,6 @@ export default class NotificationStorage {
     const aggregation: any[] = [];
     // Set the filters
     const filters: any = {};
-    // Set Site?
-    if (params.userID) {
-      // Set User ID
-      filters['$or'] = [
-        { userID: Utils.convertToObjectID(params.userID) },
-        { userID: null }
-      ];
-    }
     // Set Date From?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -49,6 +41,10 @@ export default class NotificationStorage {
     // Set ChargeBox?
     if (params.chargeBoxID) {
       filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Set User ID?
+    if (params.userID) {
+      filters.userID = Utils.convertToObjectID(params.userID);
     }
     // Set Data
     if (params.data) {
@@ -146,8 +142,8 @@ export default class NotificationStorage {
 
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
-      userID: notificationToSave.userID,
-      timestamp: notificationToSave.timestamp,
+      userID: Utils.convertToObjectID(notificationToSave.userID),
+      timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,
       sourceId: notificationToSave.sourceId,
       sourceDescr: notificationToSave.sourceDescr,
