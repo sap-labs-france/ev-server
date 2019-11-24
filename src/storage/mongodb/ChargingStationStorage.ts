@@ -10,6 +10,7 @@ import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { DataResult } from '../../types/DataResult';
+import moment from 'moment';
 
 export default class ChargingStationStorage {
 
@@ -26,7 +27,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; },
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date;},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -58,6 +59,10 @@ export default class ChargingStationStorage {
           { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
         ]
       });
+    }
+    // Filter on last heart beat
+    if (params.offlineSince && moment(params.offlineSince).isValid()) {
+      filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
     // Add in aggregation
     aggregation.push({
@@ -167,6 +172,51 @@ export default class ChargingStationStorage {
       count: (chargingStationsCountMDB.length > 0 ?
         (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStationsMDB
+    };
+  }
+
+  public static async getChargingStationsByConnectorStatus(tenantID: string,
+    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<DataResult<ChargingStation>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Create filters
+    const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }] };
+    // Filter on status preparing
+    filters.$and.push({ 'connectors.status': params.connectorStatus });
+    // Date before provided
+    if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
+      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
+    }
+    // Add in aggregation
+    aggregation.push({ $match: filters });
+    // Build lookups to fetch sites from chargers
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        as: 'siteArea'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { 'path': '$siteArea', 'preserveNullAndEmptyArrays': true }
+    });
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Read DB
+    const chargingStations = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .toArray();
+      // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
+    return {
+      count: chargingStations.length,
+      result: chargingStations
     };
   }
 
@@ -353,8 +403,7 @@ export default class ChargingStationStorage {
       maximumPower: chargingStationToSave.maximumPower,
       cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
-      latitude: chargingStationToSave.latitude,
-      longitude: chargingStationToSave.longitude,
+      coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
       currentIPAddress: chargingStationToSave.currentIPAddress
     };

@@ -107,7 +107,8 @@ export default class Database {
             'type': connector.type,
             'voltage': Utils.convertToInt(connector.voltage),
             'amperage': Utils.convertToInt(connector.amperage),
-            'activeTransactionID': Utils.convertToInt(connector.activeTransactionID)
+            'activeTransactionID': Utils.convertToInt(connector.activeTransactionID),
+            'statusLastChangedOn': Utils.convertToDate(connector.statusLastChangedOn)
           });
         } else {
           dest.connectors.push(null);

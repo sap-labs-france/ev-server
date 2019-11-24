@@ -1,27 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
+import RefundFactory from '../../../integration/refund/RefundFactory';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import OCPPService from '../../../server/ocpp/services/OCPPService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Consumption from '../../../types/Consumption';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
+import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import OCPPService from '../../../server/ocpp/services/OCPPService';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import Transaction from '../../../types/Transaction';
-import TransactionSecurity from './security/TransactionSecurity';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
-import Consumption from '../../../types/Consumption';
-import RefundFactory from '../../../integration/refund/RefundFactory';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -106,9 +106,7 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
-
     const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
-
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -120,7 +118,6 @@ export default class TransactionService {
         action: action
       });
     }
-
     const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
@@ -154,7 +151,7 @@ export default class TransactionService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'TagIDs must be provided',
+        message: 'UserID must be provided',
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount',
         user: req.user,
@@ -226,7 +223,6 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-
     const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
     if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
       throw new AppError({
@@ -238,7 +234,6 @@ export default class TransactionService {
         user: req.user
       });
     }
-
     // Handle active transactions
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     if (!transaction.stop) {
@@ -295,7 +290,6 @@ export default class TransactionService {
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
       UtilsService.assertObjectExists(user, `User with ID '${transaction.userID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     }
-
     if (!chargingStation.inactive) {
       for (const connector of chargingStation.connectors) {
         if (connector && connector.activeTransactionID === transaction.id) {
@@ -310,7 +304,6 @@ export default class TransactionService {
         }
       }
     }
-
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
       {
@@ -323,7 +316,8 @@ export default class TransactionService {
         timestamp: Utils.convertToDate(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp).toISOString(),
         meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart
       },
-      true);
+      true
+    );
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, source: chargingStation.id,
@@ -409,8 +403,7 @@ export default class TransactionService {
     // Return
     res.json(
       // Filter
-      TransactionSecurity.filterTransactionResponse(
-        transaction, req.user)
+      TransactionSecurity.filterTransactionResponse( transaction, req.user)
     );
     next();
   }
@@ -437,14 +430,13 @@ export default class TransactionService {
       'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
-      chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
-      startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime
-    }, {
-      limit: filteredRequest.Limit,
-      skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
-      onlyRecordCount: filteredRequest.OnlyRecordCount
-    });
+        chargeBoxIDs: [chargingStation.id],
+        connectorId: filteredRequest.ConnectorId,
+        startDateTime: filteredRequest.StartDateTime,
+        endDateTime: filteredRequest.EndDateTime
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -504,14 +496,13 @@ export default class TransactionService {
       filter.connectorId = filteredRequest.ConnectorId;
     }
     filter.withChargeBoxes = true;
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
     // Get Transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -575,12 +566,8 @@ export default class TransactionService {
       filter.search = filteredRequest.Search;
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -617,11 +604,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
       }
-      if (Authorizations.isSiteAdmin(req.user)) {
-        filter.siteAdminIDs = req.user.sitesAdmin;
-      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -641,17 +626,57 @@ export default class TransactionService {
     if (filteredRequest.Search) {
       filter.search = filteredRequest.Search;
     }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
     // Filter
-    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
     res.json(transactions);
+    next();
+  }
+
+  public static async handleGetRefundReports(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetRefundReports'
+      });
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    }
+    // Get Reports
+    const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    });
+    // Filter
+    TransactionSecurity.filterRefundReportsResponse(reports, req.user);
+    // Return
+    res.json(reports);
     next();
   }
 
@@ -676,7 +701,6 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
@@ -691,7 +715,6 @@ export default class TransactionService {
         filter.siteAdminIDs = req.user.sitesAdmin;
       }
     }
-
     // Date
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -702,14 +725,15 @@ export default class TransactionService {
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
     }
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID;
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Hash userId and tagId for confidentiality purposes
@@ -775,9 +799,9 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-      filter.errorType = ['negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price'];
+      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price'];
     } else {
-      filter.errorType = ['negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption'];
+      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

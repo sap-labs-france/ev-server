@@ -1,3 +1,5 @@
+import { InactivityStatusLevel } from './UserNotifications';
+
 export default interface Connector {
   connectorId: number;
   currentConsumption: number;
@@ -15,4 +17,6 @@ export default interface Connector {
   activeTransactionID: number;
   activeTransactionDate: Date;
   activeTagID: string;
+  statusLastChangedOn?: Date;
+  inactivityStatusLevel?: InactivityStatusLevel;
 }

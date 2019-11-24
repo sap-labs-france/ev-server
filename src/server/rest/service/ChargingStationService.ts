@@ -20,6 +20,7 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationService {
 
@@ -152,13 +153,11 @@ export default class ChargingStationService {
     if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
       chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
-    // Update Latitude
-    if (filteredRequest.hasOwnProperty('latitude')) {
-      chargingStation.latitude = filteredRequest.latitude;
-    }
-    // Update Longitude
-    if (filteredRequest.hasOwnProperty('longitude')) {
-      chargingStation.longitude = filteredRequest.longitude;
+    if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
+      chargingStation.coordinates = [
+        sanitize(filteredRequest.coordinates[0]),
+        sanitize(filteredRequest.coordinates[1])
+      ];
     }
     // Update Connectors
     if (filteredRequest.connectors) {
@@ -976,8 +975,12 @@ export default class ChargingStationService {
       csv += `${chargingStation.createdOn},`;
       csv += `${chargingStation.connectors ? chargingStation.connectors.length : ''},`;
       csv += `${chargingStation.siteAreaID},`;
-      csv += `${chargingStation.latitude ? chargingStation.latitude : ''},`;
-      csv += `${chargingStation.longitude ? chargingStation.longitude : ''},`;
+      if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
+        csv += `${chargingStation.coordinates[1]},`;
+        csv += `${chargingStation.coordinates[0]},`;
+      } else {
+        csv += '\'\',\'\',';
+      }
       csv += `${chargingStation.chargePointSerialNumber},`;
       csv += `${chargingStation.chargePointModel},`;
       csv += `${chargingStation.chargeBoxSerialNumber},`;

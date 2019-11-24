@@ -196,6 +196,84 @@ export default class SiteService {
     next();
   }
 
+  public static async handleUpdateSiteOwner(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.canCreateSite(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleUpdateSiteOwner'
+      });
+    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteOwner');
+    // Filter
+    const filteredRequest = SiteSecurity.filterUpdateSiteOwnerRequest(req.body);
+    // Check
+    if (!filteredRequest.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The User ID must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteOwner',
+        user: req.user
+      });
+    }
+    if (!filteredRequest.siteID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Site ID must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteOwner',
+        user: req.user
+      });
+    }
+    // Get the Site
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    if (!site) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
+    }
+    // Get the User
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    if (!user) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The User with ID '${filteredRequest.userID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
+    }
+    // Update
+    await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID);
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserAdmin',
+      message: `The User '${Utils.buildUserFullName(user)}' has been granted Site Owner on site '${site.name}'`,
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleRemoveUsersFromSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
@@ -309,12 +387,13 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
+      ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteOwner', 'siteID']
     );
     // Filter
     users.result = users.result.map((siteuser) => ({
       siteID: siteuser.siteID,
       siteAdmin: siteuser.siteAdmin,
+      siteOwner: siteuser.siteOwner,
       user: UserSecurity.filterUserResponse(siteuser.user, req.user)
     }));
     res.json(users);
@@ -425,7 +504,7 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'companyID', 'company.name',
+      ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
         'autoUserSiteAssignment']
     );
     // Build the result

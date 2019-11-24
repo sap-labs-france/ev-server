@@ -7,8 +7,5 @@ interface SchedulerTask {
   name: string;
   active: boolean;
   periodicity: string;
-  config: {
-    retentionPeriodWeeks: number;
-    securityRetentionPeriodWeeks: number;
-  };
+  config: any;
 }

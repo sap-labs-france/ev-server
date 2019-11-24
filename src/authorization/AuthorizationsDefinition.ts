@@ -45,6 +45,9 @@ const GRANTS = {
         action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
       },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
@@ -204,7 +207,7 @@ const GRANTS = {
       { resource: 'User', action: ['Read'], attributes: ['*'] },
       {
         resource: 'Site', action: ['Update'], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
         resource: 'SiteArea', action: ['Create', 'Update', 'Delete'], attributes: ['*'],
@@ -218,8 +221,11 @@ const GRANTS = {
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
+        resource: 'Transaction', action: ['Read'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
+      },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
@@ -231,7 +237,27 @@ const GRANTS = {
         args: { 'sites': '$.site' }
       },
     ]
-  }
+  },
+  siteOwner: {
+    '$extend': {
+      'basic': {}
+    },
+    grants: [
+      { resource: 'Users', action: 'List', attributes: ['*'] },
+      { resource: 'User', action: ['Read'], attributes: ['*'] },
+      {
+        resource: 'Site', action: ['Update'], attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
+      },
+      {
+        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
+      },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
+    ]
+  },
 };
 
 export default class AuthorizationsDefinition {

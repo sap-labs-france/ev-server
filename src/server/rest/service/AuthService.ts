@@ -19,6 +19,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import AuthSecurity from './security/AuthSecurity';
+import Tag from '../../../types/Tag';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -247,9 +248,14 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, Constants.USER_STATUS_PENDING);
-    // Save User Tags
-    const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
-    await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+
+    const tag: Tag = {
+      id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
+      deleted: false,
+      internal: true
+    };
+    await UserStorage.saveUserTags(tenantID, newUser.id, [tag]);
+
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {

@@ -1,5 +1,5 @@
 {
-  "subject": "<%- chargeBoxID %> just Connected",
+  "subject": "'<%- chargeBoxID %>' just Connected",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

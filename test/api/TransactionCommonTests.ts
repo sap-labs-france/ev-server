@@ -84,7 +84,7 @@ export default class TransactionCommonTests {
 
   public async testReadTransactionOfUser(allowed = true, transactionTag: string) {
     const connectorId = 1;
-    const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
+    const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -104,7 +104,7 @@ export default class TransactionCommonTests {
 
   public async testReadStartedTransactionWithoutMeterValue() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = faker.random.number({ min: 0, max: 1000 });
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -134,7 +134,7 @@ export default class TransactionCommonTests {
 
   public async testReadStartedTransactionWithOneMeterValue() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -168,7 +168,7 @@ export default class TransactionCommonTests {
 
   public async testReadStartedTransactionWithMultipleMeterValues() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     const currentTime = startDate.clone();
@@ -200,7 +200,7 @@ export default class TransactionCommonTests {
 
   public async testReadClosedTransactionWithoutMeterStartAndMeterValues() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 0;
     const startDate = moment();
@@ -225,7 +225,7 @@ export default class TransactionCommonTests {
 
   public async testReadClosedTransactionWithDifferentMeterStartAndMeterStop() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -252,7 +252,7 @@ export default class TransactionCommonTests {
 
   public async testReadNoCompletedTransactions() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -264,7 +264,7 @@ export default class TransactionCommonTests {
 
   public async testReadSomeCompletedTransactionsWithoutStatistics() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment().toDate();
@@ -308,7 +308,7 @@ export default class TransactionCommonTests {
 
   public async testReadSomeCompletedTransactionsWithHistoricalStatistics() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -362,7 +362,7 @@ export default class TransactionCommonTests {
 
   public async testReadSomeCompletedTransactionsWithRefundStatistics() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -420,7 +420,7 @@ export default class TransactionCommonTests {
 
   public async testReadNoTransactionsInError() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -432,7 +432,7 @@ export default class TransactionCommonTests {
 
   public async testReadSomeTransactionsInError() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -465,7 +465,7 @@ export default class TransactionCommonTests {
 
   public async testReadConsumptionStartedTransactionWithoutMeterValues() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -481,7 +481,7 @@ export default class TransactionCommonTests {
 
   public async testReadConsumptionStartedTransactionWithMultipleMeterValues() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     const currentTime = startDate.clone();
@@ -525,7 +525,7 @@ export default class TransactionCommonTests {
 
   public async testReadConsumptionStartedTransactionWithDifferentDateParameters() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment('2018-11-06T08:00:00.000Z');
     let cumulated = meterStart;
@@ -781,7 +781,7 @@ export default class TransactionCommonTests {
 
   public async testReadConsumptionStoppedTransactionWithoutMeterValues() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -814,7 +814,7 @@ export default class TransactionCommonTests {
   public async testReadActiveTransactionsWithMultipleActiveTransactions() {
     const connectorId1 = 1;
     const connectorId2 = 2;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -859,7 +859,7 @@ export default class TransactionCommonTests {
 
   public async testDeleteStartedTransaction(allowed = true) {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -881,7 +881,7 @@ export default class TransactionCommonTests {
 
   public async testDeleteClosedTransaction(allowed = true) {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const meterStop = 1000;
     const startDate = moment();
@@ -907,7 +907,7 @@ export default class TransactionCommonTests {
 
   public async testReadPriceForStoppedTransaction() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -963,7 +963,7 @@ export default class TransactionCommonTests {
 
   public async testReadInactivityForStoppedTransaction() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -1018,7 +1018,7 @@ export default class TransactionCommonTests {
 
   public async testSendMailNotificationWhenStartingTransaction() {
     const connectorId = 1;
-    const tagId = this.transactionUser.tagIDs[0];
+    const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -1058,7 +1058,7 @@ export default class TransactionCommonTests {
 
   public async testIsAuthorizedOnStartedTransaction(allowed: boolean, canStop?: boolean, canRead?: boolean, transactionTag?: string) {
     const connectorId = 1;
-    const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
+    const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
@@ -1079,7 +1079,7 @@ export default class TransactionCommonTests {
 
   public async testIsAuthorizedToStopTransaction(allowed: boolean, canStop?: boolean, transactionTag?: string) {
     const connectorId = 1;
-    const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
+    const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
     const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);

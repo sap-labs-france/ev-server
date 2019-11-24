@@ -1,32 +1,34 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { PricingSettingsType } from '../types/Setting';
 import SessionHashService from '../server/rest/service/SessionHashService';
+import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Tag from '../types/Tag';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
+import UserNotifications from '../types/UserNotifications';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import UserNotifications from '../types/UserNotifications';
-import SettingStorage from '../storage/mongodb/SettingStorage';
-import { PricingSettingsType } from '../types/Setting';
 
 export default class Authorizations {
 
-  private static configuration: any;
+  private static configuration: AuthorizationConfiguration;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
     const context = {
       'UserID': transaction.userID,
-      'sitesAdmin': loggedUser.sitesAdmin,
+      'sitesOwner': loggedUser.sitesOwner,
       'site': transaction.siteID
     };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
@@ -91,41 +93,47 @@ export default class Authorizations {
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
 
-  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
+  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites?: string[]): string[] {
     if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
       return null;
     }
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-    if (!requestedSites || requestedSites.length === 0) {
-      return loggedUser.sitesAdmin;
+
+    const sites: Set<string> = new Set(loggedUser.sitesAdmin);
+    for (const siteID of loggedUser.sitesOwner) {
+      sites.add(siteID);
     }
-    return requestedSites.filter((site) => loggedUser.sitesAdmin.includes(site));
+
+    if (!requestedSites || requestedSites.length === 0) {
+      return [...sites];
+    }
+    return requestedSites.filter((site) => sites.has(site));
   }
 
   public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {
-    let companyIDs = [];
-    let siteIDs = [];
-    let siteAdminIDs = [];
-    // Admin
-    if (!Authorizations.isAdmin(user)) {
-      // Get User's site
-      const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
-        Constants.DB_PARAMS_MAX_LIMIT))
-        .result.map((siteUser) => siteUser.site);
-      // Get User's Site Admin
-      const sitesAdmin = await UserStorage.getSites(
-        tenantID, { userID: user.id, siteAdmin: true },
-        Constants.DB_PARAMS_MAX_LIMIT,
-        ['site.id']
-      );
-      // Assign
-      siteIDs = sites.map((site) => site.id);
-      companyIDs = [...new Set(sites.map((site) => site.companyID))];
-      siteAdminIDs = sitesAdmin.result.map((siteUser) => siteUser.site.id);
-    }
-    // Tenant
+    const companyIDs = new Set<string>();
+    const siteIDs = [];
+    const siteAdminIDs = [];
+    const siteOwnerIDs = [];
+    // Get User's site
+    const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+      Constants.DB_PARAMS_MAX_LIMIT)).result;
+
+    sites.forEach((siteUser) => {
+      if (!Authorizations.isAdmin(user)) {
+        siteIDs.push(siteUser.site.id);
+        companyIDs.add(siteUser.site.companyID);
+        if (siteUser.siteAdmin) {
+          siteAdminIDs.push(siteUser.site.id);
+        }
+      }
+      if (siteUser.siteOwner) {
+        siteOwnerIDs.push(siteUser.site.id);
+      }
+    });
+
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -145,7 +153,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
-      'tagIDs': user.tagIDs,
+      'tagIDs': user.tags ? user.tags.map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
@@ -154,9 +162,10 @@ export default class Authorizations {
       'tenantName': tenantName,
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
-      'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length),
-      'companies': companyIDs,
+      'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length, siteOwnerIDs.length),
+      'companies': [...companyIDs],
       'sitesAdmin': siteAdminIDs,
+      'sitesOwner': siteOwnerIDs,
       'sites': siteIDs,
       'activeComponents': activeComponents
     };
@@ -210,9 +219,14 @@ export default class Authorizations {
       tagID: transaction.tagID,
       site: transaction.siteID,
       sites: loggedUser.sites,
-      sitesAdmin: loggedUser.sitesAdmin
+      sitesAdmin: loggedUser.sitesAdmin,
+      sitesOwner: loggedUser.sitesOwner
     };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ, context);
+  }
+
+  public static canReadReport(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_REPORT, Constants.ACTION_READ);
   }
 
   public static canUpdateTransaction(loggedUser: UserToken): boolean {
@@ -297,7 +311,7 @@ export default class Authorizations {
 
   public static canUpdateSite(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE,
-      { 'site': siteID, 'sites': loggedUser.sitesAdmin });
+      { 'site': siteID, 'sitesAdmin': loggedUser.sitesAdmin, 'sitesOwner': loggedUser.sitesOwner });
   }
 
   public static canDeleteSite(loggedUser: UserToken, siteID: string): boolean {
@@ -532,6 +546,10 @@ export default class Authorizations {
     return user.role === Constants.ROLE_BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
+  public static isSiteOwner(user: UserToken): boolean {
+    return user.sitesOwner && user.sitesOwner.length > 0;
+  }
+
   public static isBasic(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_BASIC;
   }
@@ -638,9 +656,9 @@ export default class Authorizations {
     return user;
   }
 
-  private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number): ReadonlyArray<string> {
+  private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
     // Get the group from User's role
-    const groups = Authorizations.getAuthGroupsFromUser(user.role, sitesAdminCount);
+    const groups = Authorizations.getAuthGroupsFromUser(user.role, sitesAdminCount, sitesOwnerCount);
     // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
@@ -659,13 +677,22 @@ export default class Authorizations {
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User TagIDs
-      await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      const tag: Tag = {
+        id: tagID,
+        deleted: false,
+        internal: false,
+        userID: user.id
+      };
+      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role
       await UserStorage.saveUserRole(tenantID, user.id, user.role);
       // Save User Admin data
-      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive, notifications: user.notifications });
+      await UserStorage.saveUserAdminData(tenantID, user.id, {
+        notificationsActive: user.notificationsActive,
+        notifications: user.notifications
+      });
       // No need to save the password as it is empty anyway
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
@@ -678,7 +705,7 @@ export default class Authorizations {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      );
+      ).catch((err) => Logging.logError(err));
       // Not authorized
       throw new AppError({
         source: chargingStation.id,
@@ -725,7 +752,10 @@ export default class Authorizations {
       // Save User Role
       await UserStorage.saveUserRole(tenantID, user.id, Constants.ROLE_BASIC);
       // Save User Admin data
-      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive, notifications: user.notifications });
+      await UserStorage.saveUserAdminData(tenantID, user.id, {
+        notificationsActive: user.notificationsActive,
+        notifications: user.notifications
+      });
     }
     return user;
   }
@@ -737,7 +767,7 @@ export default class Authorizations {
     return Authorizations.configuration;
   }
 
-  private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number): ReadonlyArray<string> {
+  private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
     const groups: Array<string> = [];
     switch (userRole) {
       case Constants.ROLE_ADMIN:
@@ -757,13 +787,19 @@ export default class Authorizations {
         groups.push('demo');
         break;
     }
+
+    if (sitesOwnerCount > 0) {
+      groups.push('siteOwner');
+    }
+
     return groups;
   }
 
   private static canPerformAction(loggedUser: UserToken, resource, action, context?): boolean {
     // Get the groups
     const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role,
-      loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0);
+      loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0,
+      loggedUser.sitesOwner ? loggedUser.sitesOwner.length : 0);
 
     // Check
     const authorized = AuthorizationsDefinition.getInstance().can(groups, resource, action, context);

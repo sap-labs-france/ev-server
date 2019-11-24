@@ -1,5 +1,5 @@
 {
-  "subject": "Unknown User Badged",
+  "subject": "'<%- chargeBoxID %>' - Unknown User Badged",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

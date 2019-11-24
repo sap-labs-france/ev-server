@@ -2,6 +2,7 @@ import { BillingTransactionData } from '../integration/billing/Billing';
 import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
+import { InactivityStatusLevel } from './UserNotifications';
 
 export default interface Transaction {
   id: number;
@@ -28,6 +29,7 @@ export default interface Transaction {
     totalConsumption: number;
     totalDurationSecs: number;
     currentTotalDurationSecs: number;
+    inactivityStatusLevel: InactivityStatusLevel;
     timestamp: Date;
     transactionData?: any;
     signedData?: any;
@@ -59,6 +61,7 @@ export default interface Transaction {
   timezone: string;
   lastUpdate?: Date;
   currentTotalInactivitySecs: number;
+  currentInactivityStatusLevel: InactivityStatusLevel;
   currentStateOfCharge: number;
   numberOfMeterValues: number;
   currentConsumption: number;

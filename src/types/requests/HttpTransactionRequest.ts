@@ -30,6 +30,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   RefundStatus?: string;
   MinimalPrice?: boolean;
   Statistics?: 'refund'|'history';
+  ReportIDs?: string;
 }
 
 export interface HttpConsumptionFromTransactionRequest {

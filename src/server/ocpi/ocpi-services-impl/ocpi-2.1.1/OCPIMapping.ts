@@ -22,7 +22,7 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant: Tenant, site: Site, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build object
     return {
       'id': site.id,
@@ -32,8 +32,8 @@ export default class OCPIMapping {
       'postal_code': site.address.postalCode,
       'country': site.address.country,
       'coordinates': {
-        'latitude': site.address.latitude,
-        'longitude': site.address.longitude
+        'latitude': site.address.coordinates[1],
+        'longitude': site.address.coordinates[0]
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
       'last_updated': site.lastChangedOn
@@ -46,7 +46,7 @@ export default class OCPIMapping {
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
    */
-  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build evses array
     const evses: any = [];
     // Convert charging stations to evse(s)
@@ -63,16 +63,19 @@ export default class OCPIMapping {
   }
 
   /**
- * Get Evses from Site
- * @param {Tenant} tenant
- * @param {Site} site
- * @param options
- * @return Array of OCPI EVSES
- */
-  static async getEvsesFromSite(tenant: Tenant, site: Site, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+   * Get Evses from Site
+   * @param {Tenant} tenant
+   * @param {Site} site
+   * @param options
+   * @return Array of OCPI EVSES
+   */
+  static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargeBoxes: true, siteIDs: [site.id] },
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, {
+        withChargeBoxes: true,
+        siteIDs: [site.id]
+      },
       Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
@@ -87,7 +90,7 @@ export default class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Result
     const result: any = { count: 0, locations: [] };
 
@@ -144,7 +147,7 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build evse ID
     const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
@@ -175,7 +178,7 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build evse id
     const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
@@ -320,14 +323,16 @@ export default class OCPIMapping {
     if (ocpiSetting && ocpiSetting.content) {
       const configuration = ocpiSetting.content.ocpi;
       credential.token = token;
-      credential.country_code = configuration.countryCode;
-      credential.party_id = configuration.partyID;
+
+      if (role === Constants.OCPI_ROLE.EMSP) {
+        credential.country_code = configuration.cpo.countryCode;
+        credential.party_id = configuration.cpo.partyID;
+      } else {
+        credential.country_code = configuration.emsp.countryCode;
+        credential.party_id = configuration.emsp.partyID;
+      }
+
       credential.business_details = configuration.businessDetails;
-    } else {
-      // TODO: remove this - temporary configuration to handle non existing service.
-      credential.token = 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==';
-      credential.country_code = 'FR';
-      credential.party_id = 'SLF';
     }
 
     // Return credential object

@@ -8,6 +8,5 @@ export default Factory.define('address')
   .attr('city', () => faker.address.city())
   .attr('region', () => faker.address.state())
   .attr('department', () => faker.address.county())
-  .attr('longitude', () => parseFloat(faker.address.longitude()))
-  .attr('latitude', () => parseFloat(faker.address.latitude()))
+  .attr('coordinates', () => [parseFloat(faker.address.longitude()), parseFloat(faker.address.latitude())])
   .attr('country', () => faker.address.country());

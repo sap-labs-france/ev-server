@@ -12,6 +12,9 @@ export default class Constants {
   public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
   public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
   public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+  public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
+  public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
+  public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
 
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
@@ -85,6 +88,7 @@ export default class Constants {
   public static readonly ENTITY_TRANSACTIONS = 'Transactions';
   public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
   public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
+  public static readonly ENTITY_REPORT = 'Report';
   public static readonly ENTITY_USER = 'User';
   public static readonly ENTITY_USERS = 'Users';
   public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
@@ -279,7 +283,7 @@ export default class Constants {
   public static readonly OCPI_ROLE = {
     CPO: 'CPO',
     EMSP: 'EMSP'
-  }
+  };
 
   // OCPI EVSE STATUS
   public static readonly EVSE_STATUS = {
@@ -365,7 +369,6 @@ export default class Constants {
     'image': 0,
     'address': 0,
     'plateID': 0,
-    'tagIDs': 0,
     'verificationToken': 0
   };
 

@@ -1,0 +1,40 @@
+{
+  "subject": "Compte Utilisateur Inactif",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Compte Utilisateur Inactif",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Vous ne vous êtes pas connecté sur l'application e-Mobility depuis le <%- lastLogin %>.",
+      "",
+      "Afin de respecter les lois européennes sur la protection générale des données, votre compte pourra être désactivé par un administrateur et eventuellement supprimé.",
+      "",
+      "Veuiller vous connecter à votre compte et prendre connaissance des dernières conditions générales d'utilisation."
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+
