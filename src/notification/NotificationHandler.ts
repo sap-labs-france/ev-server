@@ -73,19 +73,25 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, notificationID: string,
+  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, chargeBoxID: string,
     interval?: { intervalMins?: number; intervalKey?: object }): Promise<boolean> {
     try {
       // Check
       if (interval && interval.intervalMins) {
+        const params: any = {
+          channel,
+          sourceDescr
+        };
+        if (interval.intervalKey) {
+          params.data = interval.intervalKey
+        }
+        if (chargeBoxID) {
+          params.chargeBoxID = chargeBoxID
+        }
         // Save it
         const notifications = await NotificationStorage.getNotifications(
           tenantID,
-          {
-            channel,
-            sourceDescr,
-            data: interval.intervalKey
-          },
+          params,
           Constants.DB_PARAMS_MAX_LIMIT
         );
         // Check
@@ -97,11 +103,20 @@ export default class NotificationHandler {
             return true;
           }
         }
-        // Default
-        return false;
       }
-      // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID,
+      // Default
+      return false;
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
+    }
+  }
+
+  static async hasNotifiedSourceByID(tenantID: string, channel: string, notificationID: string): Promise<boolean> {
+    try {
+      // Get Notif
+      const notifications = await NotificationStorage.getNotifications(
+        tenantID,
         {
           channel: channel,
           sourceId: notificationID
@@ -128,7 +143,7 @@ export default class NotificationHandler {
             chargingStation, Utils.getConnectorIDFromConnectorLetter(sourceData.connectorId));
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel,
-            Constants.SOURCE_END_OF_CHARGE, notificationID, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
+            Constants.SOURCE_END_OF_CHARGE, chargingStation.id, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
           if (!hasBeenNotified) {
             // Alter Notification ID
             notificationID = `${notificationID}-${new Date().toISOString()}`;
@@ -160,8 +175,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_OPTIMAL_CHARGE_REACHED, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+            tenantID, notificationSource.channel, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
@@ -190,8 +205,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_END_OF_SESSION, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+            tenantID, notificationSource.channel, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfSession) {
@@ -220,8 +235,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_END_OF_SESSION, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+            tenantID, notificationSource.channel, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfSession) {
@@ -410,8 +425,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_TRANSACTION_STARTED, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+            tenantID, notificationSource.channel, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendSessionStarted) {
@@ -447,7 +462,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_AUTH_EMAIL_ERROR,
-              notificationID, { intervalMins: 60 });
+              null, { intervalMins: 60 });
             if (!hasBeenNotified) {
               // Email enabled?
               if (NotificationHandler.notificationConfig.Email.enabled) {
@@ -481,7 +496,7 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR,
-              notificationID, { intervalMins: 60 });
+              null, { intervalMins: 60 });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
@@ -515,7 +530,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
-            notificationID, { intervalMins: 43200 });
+            null, { intervalMins: 43200 });
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, user);
             // Send
@@ -539,7 +554,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
-            notificationID, { intervalMins: 15 });
+            chargingStation.id, { intervalMins: 15 });
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendPreparingSessionNotStarted) {
@@ -574,11 +589,12 @@ export default class NotificationHandler {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
               tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATION,
-              notificationID, { intervalMins: 60 * 24 });
+              chargingStation.id, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
-              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation, null);
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?

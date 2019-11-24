@@ -1,5 +1,5 @@
 {
-  "subject": "Session Not Started",
+  "subject": "'<%- chargeBoxID %>' - Session Not Started",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

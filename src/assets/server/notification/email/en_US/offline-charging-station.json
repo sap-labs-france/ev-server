@@ -1,5 +1,5 @@
 {
-  "subject": "Offline Charging Station",
+  "subject": "'<%- chargeBoxID %>' is Offline",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

@@ -1,5 +1,5 @@
 {
-  "subject": "Borne Hors Ligne",
+  "subject": "'<%- chargeBoxID %>' est Hors Ligne",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

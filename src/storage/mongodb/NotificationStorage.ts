@@ -11,7 +11,7 @@ import DbParams from '../../types/database/DbParams';
 export default class NotificationStorage {
 
   static async getNotifications(tenantID: string,
-    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object },
+    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object, chargeBoxID?: string; },
     dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
@@ -45,6 +45,10 @@ export default class NotificationStorage {
     // Set Source?
     if (params.sourceDescr) {
       filters.sourceDescr = params.sourceDescr;
+    }
+    // Set ChargeBox?
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
     }
     // Set Data
     if (params.data) {

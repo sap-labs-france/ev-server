@@ -1,5 +1,5 @@
 {
-  "subject": "Primary Email Server Authentification Failed",
+  "subject": "Primary Email Server - Authentification Failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
