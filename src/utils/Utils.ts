@@ -471,11 +471,9 @@ export default class Utils {
     if (withID && user.iNumber) {
       fullName += ` (${user.iNumber})`;
     }
-
     if (withEmail && user.email) {
       fullName += `; ${user.email}`;
     }
-
     return fullName;
   }
 
