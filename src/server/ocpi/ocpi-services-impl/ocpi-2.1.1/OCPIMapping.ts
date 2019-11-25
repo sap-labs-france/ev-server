@@ -72,7 +72,8 @@ export default class OCPIMapping {
   static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, {
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
+      {
         withChargeBoxes: true,
         siteIDs: [site.id]
       },
@@ -118,7 +119,7 @@ export default class OCPIMapping {
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { internal: true }, { limit, skip });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
