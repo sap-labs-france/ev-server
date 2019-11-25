@@ -16,7 +16,7 @@ export default abstract class OCPIClient {
   protected settings: OcpiSettings;
 
   constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, role: string) {
-    if (role !== Constants.OCPI_ROLE.CPO || role !== Constants.OCPI_ROLE.EMSP) {
+    if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
 
