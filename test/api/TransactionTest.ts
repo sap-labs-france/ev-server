@@ -347,6 +347,10 @@ describe('Transaction tests', function() {
 
       });
 
+      it('Should be able to export transactions to refund data to a file', async () => {
+        await testData.transactionCommonTests.testExportTransactionsToRefund({});
+      });
+
     });
 
   });

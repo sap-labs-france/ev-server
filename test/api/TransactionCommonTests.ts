@@ -1111,4 +1111,14 @@ export default class TransactionCommonTests {
     }
   }
 
+  public async testExportTransactionsToRefund(params) {
+    const response = await this.centralUserService.transactionApi.exportTransactionsToRefund(params);
+    const transactionsToRefund = await this.centralUserService.transactionApi.readAllToRefund(params);
+    const responseFileArray = Utils.convertExportFileToObjectArray(response.data);
+
+    expect(response.status).eq(200);
+    expect(response.data).not.null;
+    expect(responseFileArray.length).to.be.eql(transactionsToRefund.data.result.length);
+  }
+
 }

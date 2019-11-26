@@ -36,8 +36,16 @@ export default class TransactionApi extends CrudApi {
     return super.delete(id, '/client/api/TransactionDelete');
   }
 
+  public readAllToRefund(params) {
+    return super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING,'/client/api/TransactionsToRefund');
+  }
+
   public readAllRefundReports(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/TransactionsRefundReports');
+  }
+
+  public exportTransactionsToRefund(params) {
+    return super.read(params, '/client/api/TransactionsToRefundExport');
   }
 
 }
