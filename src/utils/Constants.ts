@@ -182,6 +182,7 @@ export default class Constants {
   public static readonly SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING = 'convergentCharging';
   public static readonly SETTING_REFUND_CONTENT_TYPE_CONCUR = 'concur';
   public static readonly SETTING_REFUND_CONTENT_TYPE_GIREVE = 'gireve';
+  public static readonly SETTING_REFUND_CONTENT_TYPE_OCPI = 'ocpi';
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
 

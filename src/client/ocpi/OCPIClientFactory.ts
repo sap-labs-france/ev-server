@@ -15,7 +15,7 @@ export default class OCPIClientFactory {
     ) {
       const setting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.OCPI);
       // Check
-      if (!setting || !setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
+      if (!setting || !setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_OCPI]) {
         Logging.logDebug({
           tenantID: tenant.id,
           module: 'OCPIClientFactory',
