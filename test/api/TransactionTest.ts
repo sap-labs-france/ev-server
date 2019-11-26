@@ -157,6 +157,10 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithRefundStatistics();
         });
 
+        it('Should increase sessions count by only one after a completed session', async () => {
+          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
+        });
+
       });
 
       describe('Using function "readAllInError"', () => {
@@ -329,6 +333,12 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testReadSomeTransactionsInError();
         });
 
+      });
+
+      describe('Using function "readAllCompleted"', () => {
+        it('Should increase sessions count by only one after a completed session', async () => {
+          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
+        });
       });
 
       describe('Using function "delete"', () => {
