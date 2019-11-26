@@ -18,7 +18,7 @@ describe('Filters with multiple values tests', function() {
 
   before(async function() {
     // Init values
-    testData.centralService = new CentralServerService('slf', { email: config.get('admin.username'), password: config.get('admin.password') });
+    testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });
 
   after(async function() {
@@ -103,7 +103,6 @@ describe('Filters with multiple values tests', function() {
     });
 
     it('Refund : Check that multi-filtering based on reports ID works', async () => {
-      testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
       const read = await testData.centralService.transactionApi.readAllRefundReports({}, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.result).to.not.be.empty;
