@@ -761,6 +761,90 @@ export default class TransactionService {
     });
   }
 
+  public static async handleGetTransactionsToRefundExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsToRefundExport'
+      });
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+    }
+    if (filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
+    }
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    }
+    if (filteredRequest.StartDateTime) {
+      filter.startDateTime = filteredRequest.StartDateTime;
+    }
+    if (filteredRequest.EndDateTime) {
+      filter.endDateTime = filteredRequest.EndDateTime;
+    }
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
+    }
+    if (filteredRequest.MinimalPrice) {
+      filter.minimalPrice = filteredRequest.MinimalPrice;
+    }
+    if (filteredRequest.Statistics) {
+      filter.statistics = filteredRequest.Statistics;
+    }
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
+    // Filter
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
+    // Hash userId and tagId for confidentiality purposes
+    for (const transaction of transactions.result) {
+      if (transaction.user) {
+        transaction.user.id = transaction.user ? Cypher.hash(transaction.user.id) : '';
+      }
+      transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
+    }
+    const filename = 'transactions_to_refund_export.csv';
+    fs.writeFile(filename, TransactionService.convertToCSV(transactions.result), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
+        }
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
+          }
+        });
+      });
+    });
+  }
+
   public static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
