@@ -337,7 +337,7 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllCompleted"', () => {
         it('Should increase sessions count by only one after a completed session', async () => {
-          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
+          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({OnlyRecordCount: true});
         });
       });
 
