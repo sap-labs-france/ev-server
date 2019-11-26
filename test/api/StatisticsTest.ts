@@ -7,6 +7,7 @@ import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import StatisticsApi from './client/StatisticsApi';
 import StatisticsContext from './contextProvider/StatisticsContext';
+import Utils from './Utils';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -331,7 +332,7 @@ describe('Statistics tests', function() {
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
-        let objectArray = StatisticsApi.convertExportFileToObjectArray(adminUserListResponse.data);
+        let objectArray = Utils.convertExportFileToObjectArray(adminUserListResponse.data);
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
@@ -340,7 +341,7 @@ describe('Statistics tests', function() {
         expect(adminUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
-        objectArray = StatisticsApi.convertExportFileToObjectArray(adminUserListResponse.data);
+        objectArray = Utils.convertExportFileToObjectArray(adminUserListResponse.data);
         expect(objectArray.length,
           `Number of exported users should be ${numberOfUsers}`
         ).to.be.eql(numberOfUsers);
@@ -475,7 +476,7 @@ describe('Statistics tests', function() {
         expect(basicUserListResponse.data,
           'Query response for all years on data per charging station should not be empty'
         ).not.to.be.empty;
-        let objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
+        let objectArray = Utils.convertExportFileToObjectArray(basicUserListResponse.data);
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
@@ -484,7 +485,7 @@ describe('Statistics tests', function() {
         expect(basicUserListResponse.data,
           'Query response for all years on data per user should not be empty'
         ).not.to.be.empty;
-        objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
+        objectArray = Utils.convertExportFileToObjectArray(basicUserListResponse.data);
         expect(objectArray.length,
           'Number of exported users should be 1'
         ).to.be.eql(1);
@@ -620,7 +621,7 @@ describe('Statistics tests', function() {
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
-        let objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
+        let objectArray = Utils.convertExportFileToObjectArray(demoUserListResponse.data);
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
@@ -629,7 +630,7 @@ describe('Statistics tests', function() {
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
-        objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
+        objectArray = Utils.convertExportFileToObjectArray(demoUserListResponse.data);
         expect(objectArray.length,
           `Number of exported users should be ${numberOfUsers}`
         ).to.be.eql(numberOfUsers);
