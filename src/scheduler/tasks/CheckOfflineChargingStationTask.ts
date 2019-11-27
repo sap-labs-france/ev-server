@@ -23,7 +23,7 @@ export default class CheckOfflineChargingStationTask extends SchedulerTask {
       const params = { 'offlineSince': someMinutesAgo };
       const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       for (const chargingStation of chargingStations.result) {
-        // send notification
+        // Send notification
         NotificationHandler.sendOfflineChargingStation(
           tenant.id,
           chargingStation,
@@ -32,7 +32,7 @@ export default class CheckOfflineChargingStationTask extends SchedulerTask {
             'lastHeartbeat': chargingStation.lastHeartBeat,
             'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
           }
-        );       
+        );
       }
     } catch (error) {
       // Log error

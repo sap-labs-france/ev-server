@@ -1,8 +1,7 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpSiteRequest extends HttpByIDRequest {
-}
+export type HttpSiteRequest = HttpByIDRequest;
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
   WithAvailableChargers: boolean;

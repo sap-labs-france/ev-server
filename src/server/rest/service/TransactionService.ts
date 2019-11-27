@@ -403,7 +403,7 @@ export default class TransactionService {
     // Return
     res.json(
       // Filter
-      TransactionSecurity.filterTransactionResponse( transaction, req.user)
+      TransactionSecurity.filterTransactionResponse(transaction, req.user)
     );
     next();
   }
@@ -430,12 +430,12 @@ export default class TransactionService {
       'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
-        chargeBoxIDs: [chargingStation.id],
-        connectorId: filteredRequest.ConnectorId,
-        startDateTime: filteredRequest.StartDateTime,
-        endDateTime: filteredRequest.EndDateTime
-      },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      chargeBoxIDs: [chargingStation.id],
+      connectorId: filteredRequest.ConnectorId,
+      startDateTime: filteredRequest.StartDateTime,
+      endDateTime: filteredRequest.EndDateTime
+    },
+    { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);

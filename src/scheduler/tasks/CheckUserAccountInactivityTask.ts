@@ -24,7 +24,7 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
       // Get Users
       const users = await UserStorage.getUsers(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       for (const user of users.result) {
-        // Notification 
+        // Notification
         moment.locale(user.locale);
         const notificationId = user.id + new Date().toString();
         NotificationHandler.sendUserAccountInactivity(

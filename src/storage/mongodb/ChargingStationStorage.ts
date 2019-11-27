@@ -184,15 +184,15 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Flatten the charging stations records
-    aggregation.push({'$unwind':'$connectors'});
+    aggregation.push({ '$unwind':'$connectors' });
     // Create filters
     const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }] };
     // Filter on status preparing
     filters.$and.push({ 'connectors.status': params.connectorStatus });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
-      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore }});
-    }   
+      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
+    }
     // Add in aggregation
     aggregation.push({ $match: filters });
     // Change ID
