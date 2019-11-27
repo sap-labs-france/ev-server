@@ -4,8 +4,7 @@ import OCPIEndpoint from '../../types/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import Setting, { OcpiSettings } from '../../types/Setting';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
+import { OcpiSettings } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
 
@@ -15,12 +14,13 @@ export default abstract class OCPIClient {
   protected role: string;
   protected settings: OcpiSettings;
 
-  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, role: string) {
+  protected constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint, role: string) {
     if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
 
     this.tenant = tenant;
+    this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
     this.role = role;
   }
@@ -213,39 +213,24 @@ export default abstract class OCPIClient {
     return respOcpiCredentials;
   }
 
-  protected async getOcpiSettings(): Promise<OcpiSettings> {
-    if (!this.settings) {
-      const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
-        this.tenant.id, Constants.COMPONENTS.OCPI);
-
-      if (!ocpiSetting || !ocpiSetting.content || !ocpiSetting.content.ocpi) {
-        throw new Error('OCPI Settings not found');
-      }
-      this.settings = ocpiSetting.content.ocpi;
-    }
-    return this.settings;
-  }
-
-  protected async getLocalCountryCode(): Promise<string> {
-    const setting = await this.getOcpiSettings();
-    if (!setting[this.role]) {
+  protected getLocalCountryCode(): string {
+    if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    if (!setting[this.role].countryCode) {
+    if (!this.settings[this.role].countryCode) {
       throw new Error(`OCPI Country code setting is missing for role ${this.role}`);
     }
-    return setting[this.role].countryCode;
+    return this.settings[this.role].countryCode;
   }
 
-  protected async getLocalPartyID(): Promise<string> {
-    const setting = await this.getOcpiSettings();
-    if (!setting[this.role]) {
+  protected getLocalPartyID(): string {
+    if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    if (!setting[this.role].partyID) {
+    if (!this.settings[this.role].partyID) {
       throw new Error(`OCPI Party ID setting is missing for role ${this.role}`);
     }
-    return setting[this.role].partyID;
+    return this.settings[this.role].partyID;
   }
 
   protected getEndpointUrl(service) {

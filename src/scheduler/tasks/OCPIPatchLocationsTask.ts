@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 
@@ -61,7 +62,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
     });
     // Build OCPI Client
-    const ocpiClient = new CpoOCPIClient(tenant, ocpiEndpoint);
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses(false);
     Logging.logInfo({
