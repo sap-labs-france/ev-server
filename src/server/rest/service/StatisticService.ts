@@ -478,6 +478,14 @@ export default class StatisticService {
       filter.startDateTime = moment().startOf('year').toDate().toISOString();
       filter.endDateTime = moment().endOf('year').toDate().toISOString();
     }
+    // DateFrom
+    if (filteredRequest.DateFrom) {
+      filter.startDateTime = filteredRequest.DateFrom;
+    }
+    // DateUntil
+    if (filteredRequest.DateUntil) {
+      filter.endDateTime = filteredRequest.DateUntil;
+    }
     // Site
     if (filteredRequest.SiteIDs) {
       filter.siteIDs = filteredRequest.SiteIDs;
