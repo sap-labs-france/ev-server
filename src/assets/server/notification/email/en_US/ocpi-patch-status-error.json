@@ -24,6 +24,10 @@
       "Check the logs.",
       ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

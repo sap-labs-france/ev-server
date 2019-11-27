@@ -471,11 +471,9 @@ export default class Utils {
     if (withID && user.iNumber) {
       fullName += ` (${user.iNumber})`;
     }
-
     if (withEmail && user.email) {
       fullName += `; ${user.email}`;
     }
-
     return fullName;
   }
 
@@ -485,11 +483,11 @@ export default class Utils {
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
 
-  public static getRandomInt() {
+  public static getRandomInt(): number {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildEvseURL(subdomain) {
+  public static buildEvseURL(subdomain): string {
     if (subdomain) {
       return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
     }
@@ -516,29 +514,26 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
-
+  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string>{
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
-  public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
+  public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
+  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
-    // Add
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
 
-  public static isServerInProductionMode() {
+  public static isServerInProductionMode(): boolean {
     const env = process.env.NODE_ENV || 'dev';
     return (env === 'production');
   }

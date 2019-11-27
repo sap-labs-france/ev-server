@@ -573,7 +573,8 @@ export default class UserStorage {
     // Filter on last login to detect inactive user accounts
     if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
       filters.$and.push({
-        'eulaAcceptedOn':  { $lte : params.noLoginSince }
+        'eulaAcceptedOn': { $lte: params.noLoginSince },
+        'role': 'B'
       });
     }
     if (params.notifications) {
@@ -699,7 +700,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { internal?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -711,6 +712,9 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
+    if (params && params.hasOwnProperty('internal')) {
+      aggregation.push({ $match: { 'internal': params.internal } });
+    }
 
     // Limit records?
     if (!dbParams.onlyRecordCount) {

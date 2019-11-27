@@ -8,13 +8,6 @@ import SchedulerTask from '../SchedulerTask';
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
     try {
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'LoggingDatabaseTableCleanupTask',
-        method: 'run', action: 'LogsCleanup',
-        message: 'The task \'loggingDatabaseTableCleanupTask\' is being run'
-      });
-
       // Delete date
       const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate().toISOString();
       // Delete

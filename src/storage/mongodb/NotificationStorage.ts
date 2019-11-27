@@ -11,7 +11,7 @@ import DbParams from '../../types/database/DbParams';
 export default class NotificationStorage {
 
   static async getNotifications(tenantID: string,
-    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object },
+    params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object, chargeBoxID?: string; },
     dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
@@ -25,14 +25,6 @@ export default class NotificationStorage {
     const aggregation: any[] = [];
     // Set the filters
     const filters: any = {};
-    // Set Site?
-    if (params.userID) {
-      // Set User ID
-      filters['$or'] = [
-        { userID: Utils.convertToObjectID(params.userID) },
-        { userID: null }
-      ];
-    }
     // Set Date From?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -45,6 +37,14 @@ export default class NotificationStorage {
     // Set Source?
     if (params.sourceDescr) {
       filters.sourceDescr = params.sourceDescr;
+    }
+    // Set ChargeBox?
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Set User ID?
+    if (params.userID) {
+      filters.userID = Utils.convertToObjectID(params.userID);
     }
     // Set Data
     if (params.data) {
@@ -142,8 +142,8 @@ export default class NotificationStorage {
 
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
-      userID: notificationToSave.userID,
-      timestamp: notificationToSave.timestamp,
+      userID: Utils.convertToObjectID(notificationToSave.userID),
+      timestamp: Utils.convertToDate(notificationToSave.timestamp),
       channel: notificationToSave.channel,
       sourceId: notificationToSave.sourceId,
       sourceDescr: notificationToSave.sourceDescr,

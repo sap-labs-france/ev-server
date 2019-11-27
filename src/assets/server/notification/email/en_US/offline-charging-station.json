@@ -1,10 +1,10 @@
 {
-  "subject": "Offline Charging Station",
+  "subject": "Offline Charging Stations",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Offline Charging Station",
+      "title": "Offline Charging Stations",
       "image": {
         "left": {
           "height": 60,
@@ -19,9 +19,13 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The charging station <b>'<%- chargeBoxID %>'</b> is offline.",
+      "The following charging stations are offline in your organization: <b><%- chargeBoxIDs %></b>",
       ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

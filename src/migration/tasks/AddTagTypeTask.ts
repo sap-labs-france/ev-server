@@ -15,7 +15,7 @@ export default class AddTagTypeTask extends MigrationTask {
 
   async migrateTenant(tenant: Tenant) {
     // Add the status property to the refunded transactions
-    const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
+    let result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {
         'internal': { $exists: false }
       },
@@ -31,6 +31,12 @@ export default class AddTagTypeTask extends MigrationTask {
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }
+    // Remove tagIDs from User
+    await global.database.getCollection<any>(tenant.id, 'users').updateMany(
+      { },
+      { $unset: { 'tagIDs': '', 'mobileLastChanged': '', 'lastLogin': '', 'image': '' } },
+      { upsert: false }
+    );
   }
 
   getVersion() {

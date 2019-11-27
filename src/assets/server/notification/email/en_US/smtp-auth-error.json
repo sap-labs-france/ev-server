@@ -1,5 +1,5 @@
 {
-  "subject": "Primary Email Server Authentification Failed",
+  "subject": "Primary Email Server - Authentification Failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -24,6 +24,10 @@
       "Please check your configuration.",
       ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."

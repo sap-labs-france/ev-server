@@ -8,7 +8,7 @@ import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
-import CheckOfflineChargingStationTask from './tasks/CheckOfflineChargingStationTask';
+import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -44,9 +44,9 @@ export default class SchedulerManager {
           case 'CheckUserAccountInactivityTask':
             schedulerTask = new CheckUserAccountInactivityTask();
             break;
-          case 'CheckOfflineChargingStationTask':
+          case 'CheckOfflineChargingStationsTask':
             // The task runs every five minutes
-            schedulerTask = new CheckOfflineChargingStationTask();
+            schedulerTask = new CheckOfflineChargingStationsTask();
             break;
           case 'CheckPreparingSessionNotStartedTask':
             // The task runs every five minutes

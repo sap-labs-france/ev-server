@@ -14,6 +14,7 @@ export default interface UserNotifications {
   sendSmtpAuthError?: boolean;
   sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
+  sendOfflineChargingStations?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -29,7 +30,7 @@ export type UserNotificationKeys =
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStation'
+ 'sendOfflineChargingStations'
 ;
 
 export enum UserNotificationType {
@@ -43,7 +44,7 @@ export enum UserNotificationType {
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
   SMTP_AUTH_ERROR = 'SmtpAuthError',
-  SESSION_NOT_STARTED = 'SessionNotStarted',
+  PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
 }
@@ -64,142 +65,143 @@ interface BaseNotification {
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
-  'user': User;
-  'transactionId': number;
-  'chargeBoxID': string;
-  'connectorId': string;
-  'totalConsumption': string;
-  'stateOfCharge': number;
-  'totalDuration': string;
-  'evseDashboardChargingStationURL': string;
-  'evseDashboardURL': string;
+  user: User;
+  transactionId: number;
+  chargeBoxID: string;
+  connectorId: string;
+  totalConsumption: string;
+  stateOfCharge: number;
+  totalDuration: string;
+  evseDashboardChargingStationURL: string;
+  evseDashboardURL: string;
 }
 
 export interface OptimalChargeReachedNotification extends BaseNotification {
-  'user': User;
-  'transactionId': number;
-  'chargeBoxID': string;
-  'connectorId': string;
-  'totalConsumption': string;
-  'stateOfCharge': number;
-  'evseDashboardChargingStationURL': string;
-  'evseDashboardURL': string;
+  user: User;
+  transactionId: number;
+  chargeBoxID: string;
+  connectorId: string;
+  totalConsumption: string;
+  stateOfCharge: number;
+  evseDashboardChargingStationURL: string;
+  evseDashboardURL: string;
 }
 
 
 export interface EndOfSessionNotification extends BaseNotification {
-  'user': User;
-  'alternateUser': User;
-  'transactionId': number;
-  'chargeBoxID': string;
-  'connectorId': string;
-  'totalConsumption': string;
-  'totalInactivity': string;
-  'stateOfCharge': number;
-  'totalDuration': string;
-  'evseDashboardChargingStationURL': string;
-  'evseDashboardURL': string;
+  user: User;
+  alternateUser: User;
+  transactionId: number;
+  chargeBoxID: string;
+  connectorId: string;
+  totalConsumption: string;
+  totalInactivity: string;
+  stateOfCharge: number;
+  totalDuration: string;
+  evseDashboardChargingStationURL: string;
+  evseDashboardURL: string;
 }
 
 export interface EndOfSignedSessionNotification extends BaseNotification {
-  'user': User;
-  'alternateUser': User;
-  'transactionId': number;
-  'chargeBoxID': string;
-  'connectorId': string;
-  'tagId': string;
-  'startDate': string;
-  'endDate': string;
-  'meterStart': string;
-  'meterStop': string;
-  'totalConsumption': string;
-  'price': number;
-  'relativeCost': number;
-  'startSignedData': string;
-  'endSignedData': string;
-  'evseDashboardURL': string;
+  user: User;
+  alternateUser: User;
+  transactionId: number;
+  chargeBoxID: string;
+  connectorId: string;
+  tagId: string;
+  startDate: string;
+  endDate: string;
+  meterStart: string;
+  meterStop: string;
+  totalConsumption: string;
+  price: number;
+  relativeCost: number;
+  startSignedData: string;
+  endSignedData: string;
+  evseDashboardURL: string;
 }
 
 export interface RequestPasswordNotification extends BaseNotification {
-  'user': User;
-  'evseDashboardResetPassURL': string;
-  'evseDashboardURL': string;
+  user: User;
+  evseDashboardResetPassURL: string;
+  evseDashboardURL: string;
 }
 
 export interface UserAccountStatusChangedNotification extends BaseNotification {
-  'user': User;
-  'evseDashboardURL': string;
+  user: User;
+  evseDashboardURL: string;
 }
 
 export interface NewRegisteredUserNotification extends BaseNotification {
-  'tenant': string;
-  'user': User;
-  'evseDashboardURL': string;
-  'evseDashboardVerifyEmailURL': string;
+  tenant: string;
+  user: User;
+  evseDashboardURL: string;
+  evseDashboardVerifyEmailURL: string;
 }
 
 export interface VerificationEmailNotification extends BaseNotification {
-  'user': User;
-  'evseDashboardURL': string;
-  'evseDashboardVerifyEmailURL': string;
+  user: User;
+  evseDashboardURL: string;
+  evseDashboardVerifyEmailURL: string;
 }
 
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
-  'chargeBoxID': string;
-  'connectorId': string;
-  'error': string;
-  'evseDashboardURL': string;
-  'evseDashboardChargingStationURL': string;
+  chargeBoxID: string;
+  connectorId: string;
+  error: string;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface ChargingStationRegisteredNotification extends BaseNotification {
-  'chargeBoxID': string;
-  'evseDashboardURL': string;
-  'evseDashboardChargingStationURL': string;
+  chargeBoxID: string;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface UnknownUserBadgedNotification extends BaseNotification {
-  'chargeBoxID': string;
-  'badgeID': string;
-  'evseDashboardURL': string;
-  'evseDashboardUserURL': string;
+  chargeBoxID: string;
+  badgeID: string;
+  evseDashboardURL: string;
+  evseDashboardUserURL: string;
 }
 
 export interface TransactionStartedNotification extends BaseNotification {
-  'user': User;
-  'transactionId': number;
-  'chargeBoxID': string;
-  'connectorId': string;
-  'evseDashboardURL': string;
-  'evseDashboardChargingStationURL': string;
+  user: User;
+  transactionId: number;
+  chargeBoxID: string;
+  connectorId: string;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface SmtpAuthErrorNotification extends BaseNotification {
-  'evseDashboardURL': string;
+  evseDashboardURL: string;
 }
 
 export interface OCPIPatchChargingStationsStatusesErrorNotification extends BaseNotification {
-  'location': string;
-  'evseDashboardURL': string;
+  location: string;
+  evseDashboardURL: string;
 }
 
 export interface UserAccountInactivityNotification extends BaseNotification {
-  'user': User;
-  'lastLogin': string;
-  'evseDashboardURL': string;
+  user: User;
+  lastLogin: string;
+  evseDashboardURL: string;
 }
 
 export interface PreparingSessionNotStartedNotification extends BaseNotification {
-  'user': User;
-  'chargeBoxID': string;
-  'startedOn': Date;
-  'evseDashboardURL': string;
+  user: User;
+  chargeBoxID: string;
+  connectorId: string;
+  startedOn: string;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 
 export interface OfflineChargingStationNotification extends BaseNotification {
-  'chargeBoxID': string;
-  'lastHeartbeat': Date;
-  'evseDashboardURL': string;
+  chargeBoxIDs: string;
+  evseDashboardURL: string;
 }
 
 export interface NotificationSource {

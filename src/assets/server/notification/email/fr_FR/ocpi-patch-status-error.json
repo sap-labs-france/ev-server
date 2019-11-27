@@ -24,6 +24,10 @@
       "Veuillez contrôler le journal des logs.",
       ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

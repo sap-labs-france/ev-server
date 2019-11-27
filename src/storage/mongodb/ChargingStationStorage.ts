@@ -176,15 +176,13 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsByConnectorStatus(tenantID: string,
-    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<ChargingStation[]> {
+    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
-    // Flatten the charging stations records
-    aggregation.push({ '$unwind':'$connectors' });
     // Create filters
     const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }] };
     // Filter on status preparing
@@ -195,6 +193,19 @@ export default class ChargingStationStorage {
     }
     // Add in aggregation
     aggregation.push({ $match: filters });
+    // Build lookups to fetch sites from chargers
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        as: 'siteArea'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { 'path': '$siteArea', 'preserveNullAndEmptyArrays': true }
+    });
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
@@ -203,8 +214,10 @@ export default class ChargingStationStorage {
       .toArray();
       // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
-    // Ok
-    return chargingStations;
+    return {
+      count: chargingStations.length,
+      result: chargingStations
+    };
   }
 
   public static async getChargingStationsInError(tenantID: string,

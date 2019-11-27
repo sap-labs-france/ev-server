@@ -770,7 +770,6 @@ export default class OCPPService {
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
         tenantID,
-        transaction.id + '-EOC',
         transaction.user,
         chargingStation,
         {

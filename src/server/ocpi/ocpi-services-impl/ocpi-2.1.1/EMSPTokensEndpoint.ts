@@ -2,13 +2,12 @@ import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import uuid = require('uuid');
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -124,7 +123,11 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         allowedStatus = 'NOT_ALLOWED';
     }
 
-    res.json(OCPIUtils.success({ allowed: allowedStatus }));
+    res.json(OCPIUtils.success(
+      {
+        allowed: allowedStatus,
+        authorization_id: uuid()
+      }));
   }
 }
 

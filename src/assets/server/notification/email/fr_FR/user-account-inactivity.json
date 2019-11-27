@@ -19,10 +19,16 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Vous n'avez pas utitlisé l'application e-Mobility depuis le <%- lastLogin %>.",
+      "Vous ne vous êtes pas connecté sur l'application e-Mobility depuis le <%- lastLogin %>.",
       "",
-      "Afin de respecter les régulations européennes sur la protection générale des données, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
+      "Afin de respecter les lois européennes sur la protection générale des données, votre compte pourra être désactivé par un administrateur et eventuellement supprimé.",
+      "",
+      "Veuiller vous connecter à votre compte et prendre connaissance des dernières conditions générales d'utilisation."
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
