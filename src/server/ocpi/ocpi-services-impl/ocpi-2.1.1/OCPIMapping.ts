@@ -10,7 +10,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import Connector from '../../../../types/Connector';
 
@@ -164,6 +164,7 @@ export default class OCPIMapping {
         'uid': `${chargingStation.id}*${connector.connectorId}`,
         'evse_id': OCPIMapping.convert2evseid(`${evseID}*${connector.connectorId}`),
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
+        'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)]
       };
       // Check addChargeBoxID flag
@@ -197,6 +198,7 @@ export default class OCPIMapping {
       'uid': `${chargingStation.id}`,
       'evse_id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
+      'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       'connectors': connectors
     };
 
@@ -340,7 +342,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role}/versions`);
+    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.content) {
@@ -348,11 +350,11 @@ export default class OCPIMapping {
       credential.token = token;
 
       if (role === Constants.OCPI_ROLE.EMSP) {
-        credential.country_code = configuration.cpo.countryCode;
-        credential.party_id = configuration.cpo.partyID;
-      } else {
         credential.country_code = configuration.emsp.countryCode;
         credential.party_id = configuration.emsp.partyID;
+      } else {
+        credential.country_code = configuration.cpo.countryCode;
+        credential.party_id = configuration.cpo.partyID;
       }
 
       credential.business_details = configuration.businessDetails;

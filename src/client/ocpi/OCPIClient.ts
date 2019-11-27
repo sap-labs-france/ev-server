@@ -182,7 +182,7 @@ export default abstract class OCPIClient {
       throw new Error('Credentials url not available');
     }
 
-    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
+    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({
@@ -192,11 +192,11 @@ export default abstract class OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'postCredentials',
-      detailedMessages: cpoCredentials
+      detailedMessages: credentials
     });
 
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.post(credentialsUrl, cpoCredentials,
+    const respOcpiCredentials = await axios.post(credentialsUrl, credentials,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
