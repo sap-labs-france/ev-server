@@ -10,6 +10,8 @@ import StatisticSecurity from './security/StatisticSecurity';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import UserToken from '../../../types/UserToken';
+import I18nManager from '../../../utils/I18nManager';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
@@ -436,13 +438,11 @@ export default class StatisticService {
       } else {
         method = 'getUserStats';
       }
-
       // Query data
       const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
-
       // Build the result
-      const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
-      fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
+      const filename = 'exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv';
+      fs.writeFile(filename, StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
         if (createError) {
           throw createError;
@@ -557,7 +557,8 @@ export default class StatisticService {
     return transactions;
   }
 
-  static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
+  static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
+    I18nManager.switchLanguage(loggedUser.language);
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
@@ -565,31 +566,31 @@ export default class StatisticService {
     }
     let csv: string;
     if (dataCategory === 'C') {
-      csv = 'chargeBoxId,';
+      csv = 'Charging Station' + Constants.CSV_SEPARATOR;
     } else {
-      csv = 'userName,firstName,';
+      csv = 'User' + Constants.CSV_SEPARATOR;
     }
     if (year && year !== '0') {
-      csv += 'year,';
+      csv += 'Year' + Constants.CSV_SEPARATOR;
       if (dataScope && dataScope === 'month') {
-        csv += 'month,';
+        csv += 'Month' + Constants.CSV_SEPARATOR;
       }
     }
     switch (dataType) {
       case 'Consumption':
-        csv += 'consumptionKwH\r\n';
+        csv += 'Consumption (kW.h)\r\n';
         break;
       case 'Usage':
-        csv += 'usageHours\r\n';
+        csv += 'Usage (Hours)\r\n';
         break;
       case 'Inactivity':
-        csv += 'inactivityHours\r\n';
+        csv += 'Inactivity (Hours)\r\n';
         break;
       case 'Transactions':
-        csv += 'numberOfSessions\r\n';
+        csv += 'Number of Sessions\r\n';
         break;
       case 'Pricing':
-        csv += 'price,priceUnit\r\n';
+        csv += 'Price' + Constants.CSV_SEPARATOR + 'Price Unit\r\n';
         break;
       default:
         return csv;
@@ -727,19 +728,19 @@ export default class StatisticService {
       // Now build the export file
       let number: number;
       for (transaction of transactions) {
-        csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
-          `${transaction.user.name},${transaction.user.firstName},`;
-        csv += (year && year !== '0') ? `${year},` : '';
-        csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
+        csv += (dataCategory === 'C') ? `${transaction._id.chargeBox}` + Constants.CSV_SEPARATOR :
+          `${Utils.buildUserFullName(transaction.user, false)}` + Constants.CSV_SEPARATOR;
+        csv += (year && year !== '0') ? `${year}` + Constants.CSV_SEPARATOR : '';
+        csv += (transaction._id.month > 0) ? `${transaction._id.month}` + Constants.CSV_SEPARATOR : '';
         number = Math.round(transaction.total * 100) / 100;
         // Use raw numbers - it makes no sense to format numbers here,
         // anyway only locale 'en-US' is supported here as could be seen by:
         // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         if (dataType === 'Pricing') {
           if (transaction._id.unit) {
-            csv += number + `,${transaction._id.unit}` + '\r\n';
+            csv += number + Constants.CSV_SEPARATOR + `${transaction._id.unit}` + '\r\n';
           } else {
-            csv += number + ', ' + '\r\n';
+            csv += number + Constants.CSV_SEPARATOR + ' ' + '\r\n';
           }
         } else {
           csv += number + '\r\n';

@@ -54,6 +54,6 @@ export default class I18nManager {
   }
 
   public static formatDateTime(value: Date, format = 'LLL') {
-    return moment(value).format(format);
+    return moment(new Date(value)).format(format);
   }
 }
