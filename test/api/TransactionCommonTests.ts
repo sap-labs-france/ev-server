@@ -1127,4 +1127,14 @@ export default class TransactionCommonTests {
     const afterTransaction = await this.centralUserService.transactionApi.readAllCompleted(params);
     expect(afterTransaction.data.count).to.be.eq(beforeTransaction.data.count + 1);
   }
+
+  public async testExportTransactionsToRefund(params) {
+    const response = await this.centralUserService.transactionApi.exportTransactionsToRefund(params);
+    const transactionsToRefund = await this.centralUserService.transactionApi.readAllToRefund(params);
+    const responseFileArray = Utils.convertExportFileToObjectArray(response.data);
+
+    expect(response.status).eq(200);
+    expect(response.data).not.null;
+    expect(responseFileArray.length).to.be.eql(transactionsToRefund.data.result.length);
+  }
 }

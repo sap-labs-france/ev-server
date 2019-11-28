@@ -22,6 +22,8 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
+import I18nManager from '../../../utils/I18nManager';
+import UserToken from '../../../types/UserToken';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -736,6 +738,83 @@ export default class TransactionService {
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
+    const filename = 'exported-transactions.csv';
+    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
+        }
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
+          }
+        });
+      });
+    });
+  }
+
+  public static async handleGetTransactionsToRefundExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsToRefundExport'
+      });
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+    }
+    if (filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
+    }
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    }
+    if (filteredRequest.StartDateTime) {
+      filter.startDateTime = filteredRequest.StartDateTime;
+    }
+    if (filteredRequest.EndDateTime) {
+      filter.endDateTime = filteredRequest.EndDateTime;
+    }
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
+    }
+    if (filteredRequest.MinimalPrice) {
+      filter.minimalPrice = filteredRequest.MinimalPrice;
+    }
+    if (filteredRequest.Statistics) {
+      filter.statistics = filteredRequest.Statistics;
+    }
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
+    // Filter
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Hash userId and tagId for confidentiality purposes
     for (const transaction of transactions.result) {
       if (transaction.user) {
@@ -743,8 +822,8 @@ export default class TransactionService {
       }
       transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
     }
-    const filename = 'transactions_export.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(transactions.result), (err) => {
+    const filename = 'exported-refund-transactions.csv';
+    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
       if (err) {
         throw err;
       }
@@ -819,22 +898,20 @@ export default class TransactionService {
     next();
   }
 
-  public static convertToCSV(transactions: Transaction[]): string {
-    let csv = 'id,chargeBoxID,connectorID,userID,tagID,startDate,endDate,meterStart,meterStop,totalConsumption,totalDuration,totalInactivity,price,priceUnit\r\n';
+  public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
+    I18nManager.switchLanguage(loggedUser.language);
+    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
     for (const transaction of transactions) {
-      csv += `${transaction.id},`;
-      csv += `${transaction.chargeBoxID},`;
-      csv += `${transaction.connectorId},`;
-      csv += `${transaction.user ? transaction.user.id : ''},`;
-      csv += `${transaction.tagID},`;
-      csv += `${transaction.timestamp},`;
-      csv += `${transaction.stop ? transaction.stop.timestamp : ''},`;
-      csv += `${transaction.meterStart},`;
-      csv += `${transaction.stop ? transaction.stop.meterStop : ''},`;
-      csv += `${transaction.stop ? transaction.stop.totalConsumption : ''},`;
-      csv += `${transaction.stop ? transaction.stop.totalDurationSecs : ''},`;
-      csv += `${transaction.stop ? transaction.stop.totalInactivitySecs : ''},`;
-      csv += `${transaction.stop ? transaction.stop.price : ''},`;
+      csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.chargeBoxID}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${I18nManager.formatDateTime(transaction.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${I18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}`: ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumption / 1000) : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs / 60) : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs) : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.price * 100) / 100 : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;

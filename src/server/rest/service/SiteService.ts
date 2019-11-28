@@ -234,6 +234,16 @@ export default class SiteService {
         user: req.user
       });
     }
+    if (!filteredRequest.hasOwnProperty('siteOwner')) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Site Owner value must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserOwner',
+        user: req.user
+      });
+    }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     if (!site) {
@@ -242,7 +252,7 @@ export default class SiteService {
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
         module: 'SiteService',
-        method: 'handleUpdateSiteUserAdmin',
+        method: 'handleUpdateSiteUserOwner',
         user: req.user,
         actionOnUser: filteredRequest.userID
       });
@@ -255,17 +265,17 @@ export default class SiteService {
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.userID}' does not exist`,
         module: 'SiteService',
-        method: 'handleUpdateSiteUserAdmin',
+        method: 'handleUpdateSiteUserOwner',
         user: req.user,
         actionOnUser: filteredRequest.userID
       });
     }
     // Update
-    await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID);
+    await SiteStorage.updateSiteOwner(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteOwner);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserAdmin',
+      user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserOwner',
       message: `The User '${Utils.buildUserFullName(user)}' has been granted Site Owner on site '${site.name}'`,
       action: action
     });
