@@ -7,6 +7,8 @@ export default class StatisticSecurity {
   static filterStatisticsRequest(request: any): HttpStatisticsRequest {
     return {
       Year: Utils.convertToInt(sanitize(request.Year)),
+      DateFrom: request.DateFrom ? sanitize(request.DateFrom) : null,
+      DateUntil: request.DateUntil ? sanitize(request.DateUntil) : null,
       SiteAreaIDs: request.SiteAreaID ? sanitize(request.SiteAreaID).split('|') : null,
       ChargeBoxIDs: request.ChargeBoxID ? sanitize(request.ChargeBoxID).split('|') : null,
       UserIDs: request.UserID ? sanitize(request.UserID).split('|') : null,

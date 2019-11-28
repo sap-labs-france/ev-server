@@ -150,7 +150,7 @@ export default class OCPPStorage {
       });
     }
     // Sort
-    aggregation.push({ $sort: { 'timestamp': -1 }});
+    aggregation.push({ $sort: { 'timestamp': -1 } });
     // Skip
     aggregation.push({ $skip: 0 });
     // Limit

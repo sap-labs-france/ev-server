@@ -1,5 +1,7 @@
 export default interface HttpStatisticsRequest {
   Year?: string|number;
+  DateFrom?: Date;
+  DateUntil?: Date;
   SiteID?: string;
   SiteIDs?: string[];
   PeriodInMonth?: string|number;

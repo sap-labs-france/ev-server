@@ -23,11 +23,13 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const company of companies) {
-      if (company.address && company.address.longitude && company.address.latitude) {
-        company.address.coordinates = [
-          parseFloat(company.address.longitude),
-          parseFloat(company.address.latitude)
-        ];
+      if (company.address && company.address.hasOwnProperty('longitude') && company.address.hasOwnProperty('latitude')) {
+        if (company.address.longitude && company.address.latitude) {
+          company.address.coordinates = [
+            parseFloat(company.address.longitude),
+            parseFloat(company.address.latitude)
+          ];          
+        }
         delete company.address.longitude;
         delete company.address.latitude;
         await global.database.getCollection(tenant.id, 'companies').replaceOne(
@@ -54,11 +56,13 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const site of sites) {
-      if (site.address && site.address.longitude && site.address.latitude) {
-        site.address.coordinates = [
-          parseFloat(site.address.longitude),
-          parseFloat(site.address.latitude)
-        ];
+      if (site.address && site.address.hasOwnProperty('longitude') && site.address.hasOwnProperty('latitude')) {
+        if (site.address.longitude && site.address.latitude) {
+          site.address.coordinates = [
+            parseFloat(site.address.longitude),
+            parseFloat(site.address.latitude)
+          ];
+        }
         delete site.address.longitude;
         delete site.address.latitude;
         await global.database.getCollection(tenant.id, 'sites').replaceOne(
@@ -85,11 +89,13 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const sitearea of siteareas) {
-      if (sitearea.address && sitearea.address.longitude && sitearea.address.latitude) {
-        sitearea.address.coordinates = [
-          parseFloat(sitearea.address.longitude),
-          parseFloat(sitearea.address.latitude)
-        ];
+      if (sitearea.address && sitearea.address.hasOwnProperty('longitude') && sitearea.address.hasOwnProperty('latitude')) {
+        if (sitearea.address.longitude && sitearea.address.latitude) {
+          sitearea.address.coordinates = [
+            parseFloat(sitearea.address.longitude),
+            parseFloat(sitearea.address.latitude)
+          ];
+        }
         delete sitearea.address.longitude;
         delete sitearea.address.latitude;
         await global.database.getCollection(tenant.id, 'siteareas').replaceOne(
@@ -116,11 +122,13 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const user of users) {
-      if (user.address && user.address.longitude && user.address.latitude) {
-        user.address.coordinates = [
-          parseFloat(user.address.longitude),
-          parseFloat(user.address.latitude)
-        ];
+      if (user.address && user.address.hasOwnProperty('longitude') && user.address.hasOwnProperty('latitude')) {
+        if (user.address.longitude && user.address.latitude) {
+          user.address.coordinates = [
+            parseFloat(user.address.longitude),
+            parseFloat(user.address.latitude)
+          ];
+        }
         delete user.address.longitude;
         delete user.address.latitude;
         await global.database.getCollection(tenant.id, 'users').replaceOne(
@@ -147,11 +155,13 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const chargingstation of chargingstations) {
-      if (chargingstation.longitude && chargingstation.latitude) {
-        chargingstation.coordinates = [
-          parseFloat(chargingstation.longitude),
-          parseFloat(chargingstation.latitude)
-        ];
+      if (chargingstation.hasOwnProperty('longitude') && chargingstation.hasOwnProperty('latitude')) {
+        if (chargingstation.longitude && chargingstation.latitude) {
+          chargingstation.coordinates = [
+            parseFloat(chargingstation.longitude),
+            parseFloat(chargingstation.latitude)
+          ];
+        }
         delete chargingstation.longitude;
         delete chargingstation.latitude;
         await global.database.getCollection(tenant.id, 'chargingstations').replaceOne(
@@ -173,7 +183,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {
