@@ -13,10 +13,10 @@ export default class OCPIClientFactory {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)
     ) {
-      const setting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.OCPI);
+      const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
-      if (!setting || !setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_OCPI]) {
-        Logging.logDebug({
+      if (!ocpiSettings) {
+        Logging.logError({
           tenantID: tenant.id,
           module: 'OCPIClientFactory',
           method: 'getOcpiClient',
@@ -25,12 +25,36 @@ export default class OCPIClientFactory {
       }
       switch (ocpiEndpoint.role) {
         case Constants.OCPI_ROLE.CPO:
-          return new EmspOCPIClient(tenant, ocpiEndpoint);
+          return new EmspOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
         case Constants.OCPI_ROLE.EMSP:
-          return new CpoOCPIClient(tenant, ocpiEndpoint);
+          return new CpoOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
       }
     }
-    // OCPI is not active
-    return null;
+  }
+
+  static async getCpoOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<CpoOCPIClient> {
+    if (ocpiEndpoint.role === Constants.OCPI_ROLE.EMSP) {
+      const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+      return client as CpoOCPIClient;
+    }
+    Logging.logError({
+      tenantID: tenant.id,
+      module: 'OCPIClientFactory',
+      method: 'getCpoOcpiClient',
+      message: `CpoOCPIClient is not compatible with endpoint role '${ocpiEndpoint.role}'`
+    });
+  }
+
+  static async getEmspOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<EmspOCPIClient> {
+    if (ocpiEndpoint.role === Constants.OCPI_ROLE.CPO) {
+      const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+      return client as EmspOCPIClient;
+    }
+    Logging.logError({
+      tenantID: tenant.id,
+      module: 'OCPIClientFactory',
+      method: 'getEmspOcpiClient',
+      message: `EmspOCPIClient is not compatible with endpoint role '${ocpiEndpoint.role}'`
+    });
   }
 }

@@ -249,7 +249,7 @@ export default class OCPIEndpointService {
     UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handleSendEVSEStatusesOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
-    const ocpiClient = new CpoOCPIClient(tenant, ocpiEndpoint);
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses();
     // Return result
