@@ -822,8 +822,8 @@ export default class TransactionService {
       }
       transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
     }
-    const filename = 'transactions_to_refund_export.csv';
-    fs.writeFile(filename, TransactionService.convertToCSV(transactions.result), (err) => {
+    const filename = 'exported-refund-transactions.csv';
+    fs.writeFile(filename, TransactionService.convertToCSV(req.user, transactions.result), (err) => {
       if (err) {
         throw err;
       }
@@ -900,7 +900,7 @@ export default class TransactionService {
 
   public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
     I18nManager.switchLanguage(loggedUser.language);
-    let csv = `Session ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
     for (const transaction of transactions) {
       csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.chargeBoxID}` + Constants.CSV_SEPARATOR;
@@ -911,7 +911,7 @@ export default class TransactionService {
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumption / 1000) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs / 60) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? transaction.stop.price : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.price * 100) / 100 : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;
