@@ -14,9 +14,9 @@ export default class Utils {
     const objectArray = [];
     const fileArray = Utils.convertExportFileToRawArray(fileData);
     if (Array.isArray(fileArray) && fileArray.length > 0) {
-      const columns = fileArray[0].split(',');
+      const columns = fileArray[0].split('\t');
       for (let i = 1; i < fileArray.length; i++) {
-        const values = fileArray[i].split(',');
+        const values = fileArray[i].split('\t');
         jsonString = '{';
         for (let j = 0; j < columns.length; j++) {
           if (j > 0) {
