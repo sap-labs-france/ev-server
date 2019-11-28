@@ -1111,6 +1111,23 @@ export default class TransactionCommonTests {
     }
   }
 
+  public async testSessionsAmountIncreaseByOne(params) {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tags[0].id;
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment().toDate();
+    const stopDate = moment(startDate).add(1, 'hour');
+    const beforeTransaction = await this.centralUserService.transactionApi.readAllCompleted(params);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId1 = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    const afterTransaction = await this.centralUserService.transactionApi.readAllCompleted(params);
+    expect(afterTransaction.data.count).to.be.eq(beforeTransaction.data.count + 1);
+  }
+
   public async testExportTransactionsToRefund(params) {
     const response = await this.centralUserService.transactionApi.exportTransactionsToRefund(params);
     const transactionsToRefund = await this.centralUserService.transactionApi.readAllToRefund(params);
@@ -1120,5 +1137,4 @@ export default class TransactionCommonTests {
     expect(response.data).not.null;
     expect(responseFileArray.length).to.be.eql(transactionsToRefund.data.result.length);
   }
-
 }
