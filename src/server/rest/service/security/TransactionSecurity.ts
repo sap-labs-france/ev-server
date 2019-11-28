@@ -162,8 +162,8 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        if(transaction.chargeBox) {
-          filteredTransaction.stop.inactivityStatusLevel = 
+        if (transaction.chargeBox) {
+          filteredTransaction.stop.inactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
             filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
         } else {
