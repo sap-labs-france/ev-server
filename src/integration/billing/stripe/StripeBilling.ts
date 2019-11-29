@@ -685,6 +685,21 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       };
     }
 
+    const email = req.body.email ? sanitize(req.body.email) : user.email;
+    const fullName = Utils.buildUserFullName(user, false);
+
+    let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
+    locale = locale.substr(0, 2).toLocaleLowerCase();
+
+    let description: string;
+    // LOCALE_SUPPORT_NEEDED #BEGIN
+    if (locale === 'fr') {
+      description = 'Client généré pour {{email}}';
+    } else {
+      description = 'Generated customer for {{email}}';
+    }
+    description = description.replace('{{email}}', email);
+
     let customer;
     if (!user.billingData || !user.billingData.customerID) {
       customer = await this._getCustomer(user, req);
@@ -702,6 +717,20 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           user.billingData.customerID
         );
       } catch (error) {
+        try {
+          customer = await this.stripe.customers.create({
+            email: email,
+            description: description,
+            name: fullName,
+            preferred_locales: [locale]
+          });
+        } catch (e) {
+          return {
+            success: false,
+            message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
+              `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe and was not bale to be created`
+          };
+        }
         return {
           success: false,
           message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
