@@ -365,7 +365,7 @@ export default class OCPPService {
           });          
         } else {
           // Log
-          Logging.logInfo({
+          Logging.logWarning({
             tenantID: tenantID, source: chargingStation.id, user: lastTransaction.userID,
             module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'ExtraInactivity',
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
@@ -1397,15 +1397,6 @@ export default class OCPPService {
       await this.handleBillingForTransaction(headers.tenantID, transaction, 'stop');
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
-      // Remove runtime data
-      delete transaction.currentConsumption;
-      delete transaction.currentCumulatedPrice;
-      delete transaction.currentSignedData;
-      delete transaction.currentTotalInactivitySecs;
-      delete transaction.currentTotalConsumption;
-      delete transaction.currentStateOfCharge;
-      delete transaction.lastMeterValue;
-      delete transaction.numberOfMeterValues;
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User

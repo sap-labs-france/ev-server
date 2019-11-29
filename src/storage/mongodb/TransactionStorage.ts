@@ -65,6 +65,15 @@ export default class TransactionStorage {
       currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
     };
     if (transactionToSave.stop) {
+      // Remove runtime props
+      delete transactionMDB.currentConsumption;
+      delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentSignedData;
+      delete transactionMDB.currentStateOfCharge;
+      delete transactionMDB.currentTotalConsumption;
+      delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.lastMeterValue;
+      // Add stop
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
         timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
@@ -125,8 +134,6 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
-    // Add Last Changed Created Props
-    DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
