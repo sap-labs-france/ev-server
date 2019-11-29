@@ -3,6 +3,7 @@ import CredentialsEndpoint from './CredentialsEndpoint';
 import CPOLocationsEndpoint from './CPOLocationsEndpoint';
 import { Configuration } from '../../../../types/configuration/Configuration';
 import Constants from '../../../../utils/Constants';
+import CPOTokensEndpoint from './CPOTokensEndpoint';
 
 const VERSION = '2.1.1';
 
@@ -17,6 +18,7 @@ export default class CPOService extends AbstractOCPIService {
     // Register Endpoints
     this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new CPOLocationsEndpoint(this));
+    this.registerEndpoint(new CPOTokensEndpoint(this));
   }
 }
 

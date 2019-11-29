@@ -23,6 +23,39 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   /**
+   * Get Tokens
+   */
+  async getTokens() {
+    // Get tokens endpoint url
+    const tokensUrl = this.getEndpointUrl('tokens');
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: 'OcpiPatchLocations',
+      message: `Get Tokens at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'getTokens'
+    });
+
+    // Call IOP
+    const response = await axios.get(tokensUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    // Check response
+    if (response.data) {
+      Logging.logDebug(`${response.data.length} Tokens retrieved`);
+    }
+  }
+
+  /**
    * PATH EVSE Status
    */
   async patchEVSEStatus(locationId: any, evseId: any, newStatus: any) {
@@ -33,10 +66,6 @@ export default class CpoOCPIClient extends OCPIClient {
 
     // Get locations endpoint url
     const locationsUrl = this.getEndpointUrl('locations');
-
-    if (!locationsUrl) {
-      throw new Error('Locations endpoint URL undefined');
-    }
 
     // Read configuration to retrieve
     const countryCode = this.getLocalCountryCode();
