@@ -281,7 +281,7 @@ export default class EMailNotificationTask implements NotificationTask {
         // Log
         try {
           Logging.logError({
-            tenantID: tenant, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+            tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
@@ -310,7 +310,7 @@ export default class EMailNotificationTask implements NotificationTask {
       } else {
         // Email sent successfully
         Logging.logInfo({
-          tenantID: tenant,
+          tenantID: tenant.id,
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
