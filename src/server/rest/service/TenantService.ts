@@ -202,7 +202,7 @@ export default class TenantService {
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      Constants.DEFAULT_TENANT,
+      filteredRequest.id,
       Utils.generateGUID(),
       tenantUser,
       {
