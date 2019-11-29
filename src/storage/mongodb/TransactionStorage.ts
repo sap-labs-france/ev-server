@@ -76,6 +76,7 @@ export default class TransactionStorage {
         totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
+        extraInactivityComputed: transactionToSave.stop.extraInactivityComputed,
         totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),

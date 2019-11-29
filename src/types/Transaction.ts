@@ -26,6 +26,7 @@ export default interface Transaction {
     stateOfCharge: number;
     totalInactivitySecs: number;
     extraInactivitySecs: number;
+    extraInactivityComputed: boolean;
     totalConsumption: number;
     totalDurationSecs: number;
     currentTotalDurationSecs: number;

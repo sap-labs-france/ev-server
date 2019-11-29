@@ -341,24 +341,55 @@ export default class OCPPService {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === Constants.CONN_STATUS_FINISHING &&
-      statusNotification.status === Constants.CONN_STATUS_AVAILABLE &&
-      statusNotification.hasOwnProperty('timestamp')) {
+        statusNotification.status === Constants.CONN_STATUS_AVAILABLE &&
+        statusNotification.hasOwnProperty('timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
       // FInished?
       if (lastTransaction && lastTransaction.stop) {
-        // Compute Extra inactivity
-        const transactionStopTimestamp = lastTransaction.stop.timestamp;
-        const statusNotifTimestamp = new Date(statusNotification.timestamp);
-        lastTransaction.stop.extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+        if (!lastTransaction.stop.extraInactivityComputed) {
+          // Compute Extra inactivity
+          const transactionStopTimestamp = lastTransaction.stop.timestamp;
+          const statusNotifTimestamp = new Date(statusNotification.timestamp);
+          lastTransaction.stop.extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
+          lastTransaction.stop.extraInactivityComputed = true;
+          // Save
+          await TransactionStorage.saveTransaction(tenantID, lastTransaction);
+          // Log
+          Logging.logInfo({
+            tenantID: tenantID, source: chargingStation.id, user: lastTransaction.userID,
+            module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'ExtraInactivity',
+            message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+            detailedMessages: lastTransaction
+          });          
+        } else {
+          // Log
+          Logging.logInfo({
+            tenantID: tenantID, source: chargingStation.id, user: lastTransaction.userID,
+            module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'ExtraInactivity',
+            message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
+            detailedMessages: lastTransaction
+          });          
+        }
+      }
+    // OCPP 1.6: Charging --> Available
+    } else if (connector.status === Constants.CONN_STATUS_CHARGING &&
+        statusNotification.status === Constants.CONN_STATUS_AVAILABLE) {
+      // Get the last transaction
+      const lastTransaction = await TransactionStorage.getLastTransaction(
+        tenantID, chargingStation.id, connector.connectorId);
+      // FInished?
+      if (lastTransaction && lastTransaction.stop && !lastTransaction.stop.extraInactivityComputed) {
+        // Marked done
+        lastTransaction.stop.extraInactivityComputed = true;
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
         // Log
         Logging.logInfo({
           tenantID: tenantID, source: chargingStation.id, user: lastTransaction.userID,
-          module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'StatusNotification',
-          message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+          module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'ExtraInactivity',
+          message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > No Extra Inactivity has been added`,
           detailedMessages: lastTransaction
         });
       }
