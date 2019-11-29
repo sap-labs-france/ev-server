@@ -351,10 +351,16 @@ export default class OCPPService {
         // Compute Extra inactivity
         const transactionStopTimestamp = lastTransaction.stop.timestamp;
         const statusNotifTimestamp = new Date(statusNotification.timestamp);
-        const extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
-        lastTransaction.stop.extraInactivitySecs = extraInactivitySecs;
+        lastTransaction.stop.extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
         // Save
         await TransactionStorage.saveTransaction(tenantID, lastTransaction);
+        // Log
+        Logging.logInfo({
+          tenantID: tenantID, source: chargingStation.id, user: lastTransaction.userID,
+          module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'StatusNotification',
+          message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity of ${lastTransaction.stop.extraInactivitySecs} secs has been added`,
+          detailedMessages: lastTransaction
+        });
       }
     }
   }
