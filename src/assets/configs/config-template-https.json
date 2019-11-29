@@ -125,10 +125,10 @@
     "databaseURL": ""
   },
   "Email": {
-    "from": "admin.noreply@evse.com",
     "admins": [],
     "bcc": "",
     "smtp": {
+      "from": "noreply@gmail.com",
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
