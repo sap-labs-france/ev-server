@@ -111,4 +111,8 @@ export default class CleanupAllTransactions extends MigrationTask {
   getName() {
     return 'CleanupAllTransactions';
   }
+
+  isAsynchronous() {
+    return true;
+  }
 }
