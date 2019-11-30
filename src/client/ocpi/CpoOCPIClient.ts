@@ -17,8 +17,41 @@ export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {
-      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.EMSP}`);
+    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {
+      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.CPO}`);
+    }
+  }
+
+  /**
+   * Get Tokens
+   */
+  async getTokens() {
+    // Get tokens endpoint url
+    const tokensUrl = this.getEndpointUrl('tokens');
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: 'OcpiPatchLocations',
+      message: `Get Tokens at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'getTokens'
+    });
+
+    // Call IOP
+    const response = await axios.get(tokensUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    // Check response
+    if (response.data) {
+      Logging.logDebug(`${response.data.length} Tokens retrieved`);
     }
   }
 
@@ -33,10 +66,6 @@ export default class CpoOCPIClient extends OCPIClient {
 
     // Get locations endpoint url
     const locationsUrl = this.getEndpointUrl('locations');
-
-    if (!locationsUrl) {
-      throw new Error('Locations endpoint URL undefined');
-    }
 
     // Read configuration to retrieve
     const countryCode = this.getLocalCountryCode();
@@ -132,7 +161,7 @@ export default class CpoOCPIClient extends OCPIClient {
           }
 
           // Process it if not empty
-          if (evse && location.id && evse.id) {
+          if (evse && location.id && evse.uid) {
             try {
               await this.patchEVSEStatus(location.id, evse.uid, evse.status);
               sendResult.success++;

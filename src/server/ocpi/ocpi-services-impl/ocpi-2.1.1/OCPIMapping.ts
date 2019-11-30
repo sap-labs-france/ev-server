@@ -145,6 +145,32 @@ export default class OCPIMapping {
     };
   }
 
+  /**
+   * Get All OCPI Tokens from given tenant
+   * @param {Tenant} tenant
+   */
+  static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
+    // Result
+    const tokens: OCPIToken[] = [];
+
+    // Get all tokens
+    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
+
+    if (user) {
+      const tag = user.tags.find((value) => value.id === tokenId);
+      return {
+        uid: tokenId,
+        type: 'RFID',
+        'auth_id': tag.userID,
+        'visual_number': tag.userID,
+        issuer: user.name,
+        valid: !tag.deleted,
+        whitelist: 'ALLOWED_OFFLINE',
+        'last_updated': user.lastChangedOn
+      };
+    }
+  }
+
   //
   /**
    * Convert ChargingStation to Multiple EVSEs

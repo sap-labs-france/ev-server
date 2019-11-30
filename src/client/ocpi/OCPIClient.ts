@@ -22,7 +22,7 @@ export default abstract class OCPIClient {
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
-    this.role = role;
+    this.role = role.toLowerCase();
   }
 
   /**
@@ -178,10 +178,6 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials');
 
-    if (!credentialsUrl) {
-      throw new Error('Credentials url not available');
-    }
-
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
 
     // Log
@@ -237,7 +233,8 @@ export default abstract class OCPIClient {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
-    return null;
+
+    throw new Error(`No endpoint URL defined for service ${service}`);
   }
 
 }
