@@ -22,7 +22,7 @@ export default abstract class OCPIClient {
     this.tenant = tenant;
     this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
-    this.role = role;
+    this.role = role.toLowerCase();
   }
 
   /**

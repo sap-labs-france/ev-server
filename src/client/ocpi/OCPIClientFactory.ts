@@ -25,15 +25,15 @@ export default class OCPIClientFactory {
       }
       switch (ocpiEndpoint.role) {
         case Constants.OCPI_ROLE.CPO:
-          return new EmspOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
-        case Constants.OCPI_ROLE.EMSP:
           return new CpoOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
+        case Constants.OCPI_ROLE.EMSP:
+          return new EmspOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
       }
     }
   }
 
   static async getCpoOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<CpoOCPIClient> {
-    if (ocpiEndpoint.role === Constants.OCPI_ROLE.EMSP) {
+    if (ocpiEndpoint.role === Constants.OCPI_ROLE.CPO) {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as CpoOCPIClient;
     }
@@ -46,7 +46,7 @@ export default class OCPIClientFactory {
   }
 
   static async getEmspOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<EmspOCPIClient> {
-    if (ocpiEndpoint.role === Constants.OCPI_ROLE.CPO) {
+    if (ocpiEndpoint.role === Constants.OCPI_ROLE.EMSP) {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as EmspOCPIClient;
     }

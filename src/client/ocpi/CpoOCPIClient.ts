@@ -17,8 +17,8 @@ export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {
-      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.EMSP}`);
+    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {
+      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.CPO}`);
     }
   }
 
@@ -161,7 +161,7 @@ export default class CpoOCPIClient extends OCPIClient {
           }
 
           // Process it if not empty
-          if (evse && location.id && evse.id) {
+          if (evse && location.id && evse.uid) {
             try {
               await this.patchEVSEStatus(location.id, evse.uid, evse.status);
               sendResult.success++;
