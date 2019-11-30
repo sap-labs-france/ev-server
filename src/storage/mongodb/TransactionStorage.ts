@@ -36,7 +36,6 @@ export default class TransactionStorage {
     // ID not provided?
     if (!transactionToSave.id) {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
-      // Blla
     }
     // Transfer
     const transactionMDB: any = {
