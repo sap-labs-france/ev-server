@@ -11,10 +11,11 @@ import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import { OcpiSettings } from '../../types/Setting';
 
 export default class CpoOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
-    super(tenant, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
+  constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
+    super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
 
     if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.EMSP}`);
@@ -38,8 +39,8 @@ export default class CpoOCPIClient extends OCPIClient {
     }
 
     // Read configuration to retrieve
-    const countryCode = await this.getLocalCountryCode();
-    const partyID = await this.getLocalPartyID();
+    const countryCode = this.getLocalCountryCode();
+    const partyID = this.getLocalPartyID();
 
     // Build url to EVSE
     const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
@@ -92,8 +93,8 @@ export default class CpoOCPIClient extends OCPIClient {
     // Define get option
     const options = {
       'addChargeBoxID': true,
-      countryID: await this.getLocalCountryCode(),
-      partyID: await this.getLocalPartyID()
+      countryID: this.getLocalCountryCode(),
+      partyID: this.getLocalPartyID()
     };
 
     // Get timestamp before starting process - to be saved in DB at the end of the process

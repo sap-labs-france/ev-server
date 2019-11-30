@@ -202,7 +202,7 @@ export default class SiteStorage {
     };
   }
 
-  public static async updateSiteOwner(tenantID: string, siteID: string, userID: string): Promise<void> {
+  public static async updateSiteOwner(tenantID: string, siteID: string, userID: string, siteOwner: boolean): Promise<void> {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteOwner');
     await Utils.checkTenant(tenantID);
 
@@ -220,7 +220,7 @@ export default class SiteStorage {
         userID: Utils.convertToObjectID(userID)
       },
       {
-        $set: { siteOwner: true }
+        $set: { siteOwner: siteOwner }
       });
     Logging.traceEnd('SiteStorage', 'updateSiteOwner', uniqueTimerID, { siteID, userID });
   }

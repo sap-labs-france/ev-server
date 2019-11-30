@@ -188,21 +188,21 @@ export default class TenantService {
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Role
     await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
+    // Save User Status
+    await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
     // Save User Account Verification
     const verificationToken = Utils.generateToken(filteredRequest.email);
     await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
-
     const resetHash = Utils.generateGUID();
     // Init Password info
     await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
-
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      Constants.DEFAULT_TENANT,
+      filteredRequest.id,
       Utils.generateGUID(),
       tenantUser,
       {

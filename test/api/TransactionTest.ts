@@ -157,6 +157,10 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testReadSomeCompletedTransactionsWithRefundStatistics();
         });
 
+        it('Should increase sessions count by only one after a completed session', async () => {
+          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({});
+        });
+
       });
 
       describe('Using function "readAllInError"', () => {
@@ -331,6 +335,12 @@ describe('Transaction tests', function() {
 
       });
 
+      describe('Using function "readAllCompleted"', () => {
+        it('Should increase sessions count by only one after a completed session', async () => {
+          await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({OnlyRecordCount: true});
+        });
+      });
+
       describe('Using function "delete"', () => {
 
         after(async () => {
@@ -345,6 +355,10 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testDeleteClosedTransaction();
         });
 
+      });
+
+      it('Should be able to export transactions to refund data to a file', async () => {
+        await testData.transactionCommonTests.testExportTransactionsToRefund({});
       });
 
     });

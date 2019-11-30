@@ -25,7 +25,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             chargeBoxIDs: chargingStationIDs,
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain)
           }
-        );       
+        );
       }
     } catch (error) {
       // Log error

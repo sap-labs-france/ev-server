@@ -1,4 +1,4 @@
-import chai, { expect, assert } from 'chai';
+import chai, { assert, expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('User tests', function () {
+describe('User tests', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {

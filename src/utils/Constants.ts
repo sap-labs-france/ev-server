@@ -16,6 +16,8 @@ export default class Constants {
   public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
   public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
 
+  public static readonly CSV_SEPARATOR = '\t';
+  
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
@@ -182,6 +184,7 @@ export default class Constants {
   public static readonly SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING = 'convergentCharging';
   public static readonly SETTING_REFUND_CONTENT_TYPE_CONCUR = 'concur';
   public static readonly SETTING_REFUND_CONTENT_TYPE_GIREVE = 'gireve';
+  public static readonly SETTING_REFUND_CONTENT_TYPE_OCPI = 'ocpi';
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
 
