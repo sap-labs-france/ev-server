@@ -832,6 +832,9 @@ export default class AuthService {
 
   public static async userLoginWrongPassword(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Add wrong trial + 1
+    if (isNaN(user.passwordWrongNbrTrials)) {
+      user.passwordWrongNbrTrials = 0;
+    }
     const passwordWrongNbrTrials = user.passwordWrongNbrTrials + 1;
     // Check if the number of trial is reached
     if (passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -934,9 +937,11 @@ export default class AuthService {
         user: user
       });
     }
-
     // Check password
-    const match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
+    let match = false;
+    if (user.password) {
+      match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
+    }
     // Check new and old version of hashing the password
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending

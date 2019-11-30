@@ -73,6 +73,7 @@ export default class TransactionStorage {
       delete transactionMDB.currentTotalConsumption;
       delete transactionMDB.currentTotalInactivitySecs;
       delete transactionMDB.lastMeterValue;
+      delete transactionMDB.numberOfMeterValues;
       // Add stop
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
@@ -85,7 +86,7 @@ export default class TransactionStorage {
         totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
-        extraInactivityComputed: transactionToSave.stop.extraInactivityComputed,
+        extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
         totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
@@ -945,8 +946,9 @@ export default class TransactionStorage {
     switch (errorType) {
       case 'long_inactivity':
         return [
-          { $match: { 'stop.totalInactivitySecs': { $gte: 86400 } } },
-          { $addFields: { 'errorCode': 'long_inactivity' } }
+          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } }},
+          { $match: { 'totalInactivity': { $gte: 86400 } }},
+          { $addFields: { 'errorCode': 'long_inactivity' }}
         ];
       case 'no_consumption':
         return [

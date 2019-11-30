@@ -14,6 +14,7 @@ import Transaction from '../../../types/Transaction';
 import Consumption from '../../../types/Consumption';
 import { ConvergentChargingPricingSettings } from '../../../types/Setting';
 import { PricedConsumption } from '../../../types/Pricing';
+import Constants from '../../../utils/Constants';
 
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSettings> {
   public statefulChargingService: StatefulChargingService;
@@ -65,7 +66,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.name, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING',
+      siteArea.name, consumptionData.userID, Constants.REFUND_STATUS_CANCELLED, 30000, 'ALL_TRANSACTION_AND_RECURRING',
       false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {

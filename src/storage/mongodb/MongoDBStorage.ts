@@ -143,6 +143,10 @@ export default class MongoDBStorage {
       { fields: { timestamp: 1 } },
       { fields: { transactionId: 1 } }
     ]);
+    // Status Notifications
+    await this.handleIndexesInCollection(collections, tenantID, 'statusnotifications', [
+      { fields: { timestamp: 1 } }
+    ]);
     // Tags
     await this.handleIndexesInCollection(collections, tenantID, 'tags', [
       { fields: { userID: 1 } }
