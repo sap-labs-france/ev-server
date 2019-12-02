@@ -258,6 +258,35 @@ export default class OCPIEndpointService {
     next();
   }
 
+  static async handleSendTokensOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canSendTokensOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_SEND_TOKENS,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handleSendTokensOcpiEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendTokensRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handleSendTokensOcpiEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handleSendTokensOcpiEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+    // Send EVSE statuses
+    const sendResult = await ocpiClient.sendTokens();
+    // Return result
+    res.json(sendResult);
+
+    next();
+  }
+
   static async handleUnregisterOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
