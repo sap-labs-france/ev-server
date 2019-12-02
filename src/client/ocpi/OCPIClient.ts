@@ -53,6 +53,48 @@ export default abstract class OCPIClient {
     return pingResult;
   }
 
+  async unregister() {
+    const unregisterResult: any = {};
+
+    try {
+      // Get available version.
+      const ocpiVersions = await this.getVersions();
+
+      // Loop through versions and pick the same one
+      let versionFound = false;
+      for (const ocpiVersion of ocpiVersions.data.data) {
+        if (ocpiVersion.version === '2.1.1') {
+          versionFound = true;
+          this.ocpiEndpoint.version = ocpiVersion.version;
+          this.ocpiEndpoint.versionUrl = ocpiVersion.url;
+          break;
+        }
+      }
+
+      // If not found trigger exception
+      if (!versionFound) {
+        throw new Error('OCPI Endpoint version 2.1.1 not found');
+      }
+
+      // Delete credentials
+      await this.deleteCredentials();
+
+      // Save endpoint
+      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
+
+      // Send success
+      unregisterResult.statusCode = 200;
+      unregisterResult.statusText = 'OK';
+    } catch (error) {
+      unregisterResult.message = error.message;
+      unregisterResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+    }
+
+    // Return result
+    return unregisterResult;
+  }
+
   /**
    * Register Ocpi Endpoint
    */
@@ -171,6 +213,38 @@ export default abstract class OCPIClient {
     return respOcpiServices;
   }
 
+  async deleteCredentials() {
+    // Get credentials url
+    const credentialsUrl = this.getEndpointUrl('credentials');
+
+    // Log
+    Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: 'OcpiPostCredentials',
+      message: `Delete credentials at ${credentialsUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'postCredentials'
+    });
+
+    // Call eMSP with CPO credentials
+    const respOcpiCredentials = await axios.delete(credentialsUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    // Check response
+    if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
+      throw new Error(`Invalid response from delete credentials ${JSON.stringify(respOcpiCredentials.data)}`);
+    }
+
+    return respOcpiCredentials;
+  }
+
   /**
    * POST /ocpi/{role}/{version}/credentials
    */
@@ -203,7 +277,7 @@ export default abstract class OCPIClient {
 
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
-      throw new Error('Invalid response from POST');
+      throw new Error(`Invalid response from post credentials ${JSON.stringify(respOcpiCredentials.data)}`);
     }
 
     return respOcpiCredentials;
