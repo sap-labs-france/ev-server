@@ -1,5 +1,5 @@
 import sanitize from 'mongo-sanitize';
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, response, Response} from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -182,6 +182,48 @@ export default class BillingService {
           }
         }
       }
+
+      // Fourth step : synchronize users w/ old BillingData from own database
+      const usersMDB = await UserStorage.getUsers(tenant.id,
+        { 'statuses': [Constants.USER_STATUS_ACTIVE] },
+        { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+      const usersBillingImpl = await billingImpl.getUsers();
+
+      usersMDB.result.forEach((userMDB) => {
+        let userInBillingImpl = false;
+        usersBillingImpl.data.forEach((userBilling) => {
+          if (userMDB.billingData && userMDB.billingData.customerID === userBilling.id) {
+            userInBillingImpl = true;
+          }
+        });
+
+        if (!userInBillingImpl) {
+          try {
+            let createReq = { ...req };
+            createReq.body = { ...req.body, ...userMDB };
+            let newBillingUserData: BillingUserData;
+            billingImpl.createUser((<Request>createReq)).then((response) => {
+              newBillingUserData = response;
+              // Keep method found in own database
+              if (userMDB.billingData && userMDB.billingData.method) {
+                newBillingUserData.method = userMDB.billingData.method;
+              }
+              UserStorage.saveUserBillingData(tenant.id, userMDB.id, newBillingUserData);
+            });
+
+            actionsDone.synchronized++;
+          } catch (e) {
+            Logging.logError({
+              tenantID: tenant.id,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              module: 'BillingService', method: 'handleSynchronizeUsers',
+              message: `Unable to create billing customer with ID '${userMDB.billingData.customerID}`,
+              detailedMessages: `Synchronization failed for customer ID '${userMDB.billingData.customerID}' from the Billing application.\n${e}`
+            });
+          }
+        }
+      });
 
       // Final step
       await billingImpl.finalizeSynchronization();

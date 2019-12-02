@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
-import Stripe from 'stripe';
+import Stripe, {customers, IList, IListPromise} from 'stripe';
 import AppError from '../../../exception/AppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -107,6 +107,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       success: false,
       message: 'Provided secret key for Stripe is not valid.'
     };
+  }
+
+  public async getUsers(): Promise<IList<customers.ICustomer>> {
+    return this.stripe.customers.list();
   }
 
   public async synchronizeUser(user: User): Promise<BillingUserData> {
