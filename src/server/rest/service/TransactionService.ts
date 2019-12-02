@@ -910,7 +910,7 @@ export default class TransactionService {
       csv += `${transaction.stop ? `${I18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}`: ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumption / 1000) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs / 60) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs) : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs / 60) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.price * 100) / 100 : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
