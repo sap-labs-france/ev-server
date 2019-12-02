@@ -13,6 +13,7 @@ import SessionHashService from './service/SessionHashService';
 import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
 import SiteService from './service/SiteService';
+import SmartChargingService from './service/SmartChargingService';
 import StatisticService from './service/StatisticService';
 import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
@@ -163,8 +164,11 @@ class RequestMapper {
           ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
+          ChargingStationConfigurationWithKeys: ChargingStationService.handleGetChargingStationConfigurationWithKeys.bind(this),
           ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
+          ChargerManufacturerParameters: SmartChargingService.handleGetChargerManufacturerParameters.bind(this),
+          ChargerSchedule: SmartChargingService.handleGetChargerSchedule.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),

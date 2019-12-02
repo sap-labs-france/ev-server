@@ -194,31 +194,21 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
-    // Check
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
-    // Get the Charging Station`
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
-    // Found?
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
-    // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
-      throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
-        user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_CHARGING_STATION,
-        module: 'ChargingStationService',
-        method: 'handleGetChargingStationConfiguration',
-        value: chargingStation.id
-      });
-    }
-    // Get the Config
-    const configuration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
     // Return the result
-    res.json(configuration);
+    res.json(await ChargingStationService._getChargingStationConfiguration(req));
+    next();
+  }
+
+  public static async handleGetChargingStationConfigurationWithKeys(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Get the Config
+    const configurationWithParams = await ChargingStationService._getChargingStationConfiguration(req);
+    const keys: string[] = req.query.Keys.split(' ');
+    for (let i = 0; i < keys.length; i++) {
+      configurationWithParams.configuration.push(configurationWithParams.configuration.find((o) => o.key === keys[i]));
+    }
+    configurationWithParams.configuration.splice(0, configurationWithParams.configuration.length - keys.length);
+    // Return the result
+    res.json(configurationWithParams);
     next();
   }
 
@@ -966,6 +956,34 @@ export default class ChargingStationService {
         chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
     }
     return chargingStations;
+  }
+
+  private static async _getChargingStationConfiguration(req: Request): Promise<any> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
+    // Check
+    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+    // Get the Charging Station`
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    // Found?
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+    // Check auth
+    if (!Authorizations.canReadChargingStation(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleGetChargingStationConfiguration',
+        value: chargingStation.id
+      });
+    }
+    // Get the Config
+    const configuration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
+    // Return the result
+    return configuration;
   }
 
   private static _convertToCSV(chargingStations: ChargingStation[]): string {
