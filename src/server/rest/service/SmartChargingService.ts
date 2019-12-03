@@ -4,6 +4,7 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
+import { LimiterKeyList } from '../../../types/ChargerManufacturerParameters';
 import Logging from '../../../utils/Logging';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SmartChargingSecurity from './security/SmartChargingSecurity';
@@ -28,20 +29,24 @@ export default class SmartChargingService {
       });
     }
 
-    if (!filteredRequest.manufacturer || !filteredRequest.model) {
+    if (!filteredRequest.manufacturer || !filteredRequest.model || !filteredRequest.firmware) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'Manufacturer and Model must be provided',
+        message: 'Manufacturer, Model and Firmware must be provided',
         module: 'SmartChargingService',
         method: 'handleGetChargerManufacturerParameters',
         user: req.user
       });
     }
     // Get the Config
-    const parameters = await SmartChargingStorage.getChargerManufacturerParameters(req.user.tenantID, filteredRequest.manufacturer, filteredRequest.model);
+    const parameters = await SmartChargingStorage.getChargerManufacturerParameters(req.user.tenantID, filteredRequest.manufacturer, filteredRequest.model, filteredRequest.firmware);
+    const result: LimiterKeyList = {
+      'count': parameters.parameters.length,
+      'keys': parameters.parameters
+    };
     // Return the result
-    res.json(parameters.parameters);
+    res.json(result);
     next();
   }
 

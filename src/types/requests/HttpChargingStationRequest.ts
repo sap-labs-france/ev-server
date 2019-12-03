@@ -22,6 +22,7 @@ export interface HttpChargingStationRequest {
 export interface HttpChargerManufacturerParametersRequest {
   manufacturer: string;
   model: string;
+  firmware: string;
 }
 
 export interface HttpChargerScheduleRequest {

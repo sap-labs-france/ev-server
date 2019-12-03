@@ -5,7 +5,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
 export default class SmartChargingStorage {
-  public static async getChargerManufacturerParameters(tenantID: string, manufacturer: string, model: string): Promise<ChargerManufacturerParameters> {
+  public static async getChargerManufacturerParameters(tenantID: string, manufacturer: string, model: string, firmware: string): Promise<ChargerManufacturerParameters> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SmartChargingStorage', 'getChargerManufacturerParameters');
     // Check Tenant
@@ -15,6 +15,7 @@ export default class SmartChargingStorage {
       .findOne({
         'manufacturer': manufacturer,
         'model': model,
+        'firmware': firmware
       });
     // Debug
     Logging.traceEnd('SmartChargingStorage', 'getChargerManufacturerParameters', uniqueTimerID);

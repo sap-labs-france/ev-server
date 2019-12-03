@@ -10,6 +10,7 @@ export default class PricingSecurity {
     const filteredRequest: HttpChargerManufacturerParametersRequest = {} as HttpChargerManufacturerParametersRequest;
     filteredRequest.manufacturer = sanitize(request.Manufacturer);
     filteredRequest.model = sanitize(request.Model);
+    filteredRequest.firmware = sanitize(request.Firmware);
     return filteredRequest;
   }
 
