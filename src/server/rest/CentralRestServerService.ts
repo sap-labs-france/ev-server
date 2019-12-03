@@ -189,6 +189,7 @@ class RequestMapper {
           PricingUpdate: PricingService.handleUpdatePricing.bind(this),
           UserUpdate: UserService.handleUpdateUser.bind(this),
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
+          ChargerScheduleUpdate: SmartChargingService.handleChargerScheduleUpdate.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),

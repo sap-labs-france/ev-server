@@ -20,12 +20,13 @@ export interface HttpChargingStationRequest {
 }
 
 export interface HttpChargerManufacturerParametersRequest {
-  Manufacturer: string;
-  Model: string;
+  manufacturer: string;
+  model: string;
 }
 
 export interface HttpChargerScheduleRequest {
-  ChargerID: string;
+  chargerID: string;
+  schedule?: [];
 }
 
 export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpChargingStationCommandRequest {

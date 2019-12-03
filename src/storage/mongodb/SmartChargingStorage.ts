@@ -1,6 +1,6 @@
-import Database from '../../utils/Database';
+import { ChargerManufacturerParameters } from '../../types/ChargerManufacturerParameters';
+import { ChargerSchedule } from '../../types/ChargerSchedule';
 import global from '../../types/GlobalType';
-import { ChargerManufacturerParameters, ChargerSchedule } from '../../types/ChargerManufacturerParameters';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
@@ -34,5 +34,19 @@ export default class SmartChargingStorage {
     // Debug
     Logging.traceEnd('SmartChargingStorage', 'getChargerSchedule', uniqueTimerID);
     return ScheduleMDB;
+  }
+
+  public static async saveChargerSchedule(tenantID: string, chargerSchedule: ChargerSchedule): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SmartChargingStorage', 'getChargerSchedule');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Update DB
+    await global.database.getCollection<any>(tenantID, 'chargerschedules')
+      .findOneAndUpdate({
+        'chargerID': chargerSchedule.chargerID,
+      }, { $set: chargerSchedule });
+    // Debug
+    Logging.traceEnd('SmartChargingStorage', 'getChargerSchedule', uniqueTimerID);
   }
 }

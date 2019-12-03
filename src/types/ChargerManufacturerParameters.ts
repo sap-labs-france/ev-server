@@ -5,8 +5,3 @@ export interface ChargerManufacturerParameters {
   parameters: string[];
 }
 
-export interface ChargerSchedule {
-  _id?: string;
-  ChargerID: string;
-  schedule: [];
-}
