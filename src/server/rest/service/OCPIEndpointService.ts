@@ -258,6 +258,54 @@ export default class OCPIEndpointService {
     next();
   }
 
+  static async handleUnregisterOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_REGISTER,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handleUnregisterOcpiEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
+    // Get OcpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handleUnregisterOcpiEndpoint', req.user);
+
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+    // Try to register
+    const result = await ocpiClient.unregister();
+
+    // Check ping result
+    if (result.statusCode === 200) {
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
+        message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
+        action: action, detailedMessages: result
+      });
+      res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
+    } else {
+      // Log
+      Logging.logSecurityError({
+        tenantID: req.user.tenantID,
+        user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
+        message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
+        action: action, detailedMessages: result
+      });
+      res.json(result);
+    }
+    next();
+  }
+
   static async handleRegisterOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {

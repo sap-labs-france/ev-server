@@ -167,13 +167,13 @@ export default class CpoOCPIClient extends OCPIClient {
               sendResult.success++;
               sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
+                `Updated successfully status for locationID:${location.id} - evseID:${evse.evse_id}`
               );
             } catch (error) {
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `Failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
+                `Failure updating status for locationID:${location.id} - evseID:${evse.evse_id}:${error.message}`
               );
             }
             if (sendResult.failure > 0) {
