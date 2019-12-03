@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
-import Stripe, {customers, IList, IListPromise} from 'stripe';
+import Stripe, { customers } from 'stripe';
 import AppError from '../../../exception/AppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -14,6 +14,7 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
+import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 
 // Parameter tax_rates is currently not available in @types/stripe
 // declare module 'stripe' {
@@ -109,8 +110,19 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     };
   }
 
-  public async getUsers(): Promise<IList<customers.ICustomer>> {
-    return this.stripe.customers.list();
+  public async getUsers(): Promise<customers.ICustomer[]> {
+    const users = [] as customers.ICustomer[];
+    let request;
+    const requestParams = { limit: 2 } as ICustomerListOptions;
+    do {
+      request = await this.stripe.customers.list(requestParams);
+      users.push(...request.data);
+      if (request.has_more) {
+        requestParams.starting_after = users[users.length - 1].id;
+      }
+    } while (request.has_more);
+
+    return users;
   }
 
   public async synchronizeUser(user: User): Promise<BillingUserData> {
@@ -205,6 +217,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const billingSettings = await SettingStorage.getSettingByIdentifier(this.tenantId, Constants.COMPONENTS.BILLING);
     if (billingSettings.content.stripe) {
       billingSettings.content.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
+      this.settings.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       await SettingStorage.saveSetting(this.tenantId, billingSettings);
     }
   }

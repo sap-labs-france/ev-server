@@ -1,5 +1,5 @@
 import sanitize from 'mongo-sanitize';
-import { NextFunction, Request, Response, response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -107,10 +107,10 @@ export default class BillingService {
         error: 0
       };
 
-      // Second step: Get recently updated customers from Billing application
+      // First step: Get recently updated customers from Billing application
       let changedBillingCustomers = await billingImpl.getUpdatedCustomersForSynchronization();
 
-      // Third step: Treat all not-synchronized users from own database
+      // Second step: Treat all not-synchronized users from own database
       const users = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
         { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
@@ -143,18 +143,18 @@ export default class BillingService {
         }
       }
 
-      // First step : synchronize users w/ old BillingData from own database
-      const usersMDB = await UserStorage.getUsers(tenant.id,
+      // Third step : synchronize users with old BillingData from own database
+      let usersMDB = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE] },
         { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
       const usersBillingImpl = await billingImpl.getUsers();
 
       for (const userMDB of usersMDB.result) {
-
         let userInBillingImpl = false;
-        for (const userBilling of usersBillingImpl.data) {
+        for (const userBilling of usersBillingImpl) {
           if (userMDB.billingData && userMDB.billingData.customerID === userBilling.id) {
             userInBillingImpl = true;
+            break;
           }
         }
 
@@ -163,12 +163,20 @@ export default class BillingService {
             const createReq = { ...req } as Request;
             createReq.body = { ...req.body, ...userMDB };
             const newBillingUserData: BillingUserData = await billingImpl.createUser(createReq);
-            // Keep method found in own database
-            if (userMDB.billingData && userMDB.billingData.method) {
-              newBillingUserData.method = userMDB.billingData.method;
+            if (newBillingUserData.customerID) {
+              // Keep method found in own database
+              if (userMDB.billingData && userMDB.billingData.method) {
+                newBillingUserData.method = userMDB.billingData.method;
+              }
+              await UserStorage.saveUserBillingData(tenant.id, userMDB.id, newBillingUserData);
+              // Delete duplicate customers
+              if (changedBillingCustomers && changedBillingCustomers.length > 0) {
+                changedBillingCustomers = changedBillingCustomers.filter((id) => id !== newBillingUserData.customerID);
+              }
+              actionsDone.synchronized++;
+            } else {
+              actionsDone.error++;
             }
-            await UserStorage.saveUserBillingData(tenant.id, userMDB.id, newBillingUserData);
-            actionsDone.synchronized++;
           } catch (e) {
             Logging.logError({
               tenantID: tenant.id,
@@ -184,44 +192,54 @@ export default class BillingService {
       }
 
       // Fourth step: synchronize remaining customers from Billing
-      // if (changedBillingCustomers && changedBillingCustomers.length > 0) {
-      //   Logging.logInfo({
-      //     tenantID: tenant.id,
-      //     source: Constants.CENTRAL_SERVER,
-      //     action: Constants.ACTION_SYNCHRONIZE_BILLING,
-      //     module: 'BillingService', method: 'handleSynchronizeUsers',
-      //     message: `Users are going to be synchronized for ${changedBillingCustomers.length} changed Billing customers`
-      //   });
-      //   for (const changedBillingCustomer of changedBillingCustomers) {
-      //     const billingUsers = await UserStorage.getUsers(tenant.id,
-      //       { billingCustomer: changedBillingCustomer },
-      //       Constants.DB_PARAMS_SINGLE_RECORD);
-      //     if (billingUsers.count > 0) {
-      //       try {
-      //         const updatedBillingUserData = await billingImpl.synchronizeUser(billingUsers.result[0]);
-      //         if (updatedBillingUserData.customerID) {
-      //           await UserStorage.saveUserBillingData(tenant.id, billingUsers.result[0].id, updatedBillingUserData);
-      //           actionsDone.synchronized++;
-      //         } else {
-      //           actionsDone.error++;
-      //         }
-      //       } catch (error) {
-      //         actionsDone.error++;
-      //         Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
-      //       }
-      //     } else {
-      //       Logging.logError({
-      //         tenantID: tenant.id,
-      //         source: Constants.CENTRAL_SERVER,
-      //         action: Constants.ACTION_SYNCHRONIZE_BILLING,
-      //         module: 'BillingService', method: 'handleSynchronizeUsers',
-      //         message: `No user exists for billing customer ID '${changedBillingCustomer}`,
-      //         detailedMessages: `Synchronization failed for customer ID '${changedBillingCustomer}' from the Billing application. No user exists for this customer ID`
-      //       });
-      //       actionsDone.error++;
-      //     }
-      //   }
-      // }
+      if (changedBillingCustomers && changedBillingCustomers.length > 0) {
+        Logging.logInfo({
+          tenantID: tenant.id,
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService', method: 'handleSynchronizeUsers',
+          message: `Users are going to be synchronized for ${changedBillingCustomers.length} changed Billing customers`
+        });
+        for (const changedBillingCustomer of changedBillingCustomers) {
+          const billingUsers = await billingImpl.getUsers();
+          let userStillExistsInStripe = false;
+          for (const billingUser of billingUsers) {
+            if (billingUser.id === changedBillingCustomer) {
+              userStillExistsInStripe = true;
+            }
+          }
+          if (!userStillExistsInStripe) {
+            continue;
+          }
+          usersMDB = await UserStorage.getUsers(tenant.id,
+            { billingCustomer: changedBillingCustomer },
+            Constants.DB_PARAMS_SINGLE_RECORD);
+          if (usersMDB.count > 0) {
+            try {
+              const updatedBillingUserData = await billingImpl.synchronizeUser(usersMDB.result[0]);
+              if (updatedBillingUserData.customerID) {
+                await UserStorage.saveUserBillingData(tenant.id, usersMDB.result[0].id, updatedBillingUserData);
+                actionsDone.synchronized++;
+              } else {
+                actionsDone.error++;
+              }
+            } catch (error) {
+              actionsDone.error++;
+              Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
+            }
+          } else {
+            Logging.logError({
+              tenantID: tenant.id,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              module: 'BillingService', method: 'handleSynchronizeUsers',
+              message: `No user exists for billing customer ID '${changedBillingCustomer}`,
+              detailedMessages: `Synchronization failed for customer ID '${changedBillingCustomer}' from the Billing application. No user exists for this customer ID`
+            });
+            actionsDone.error++;
+          }
+        }
+      }
 
       // Final step
       await billingImpl.finalizeSynchronization();
