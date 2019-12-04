@@ -37,6 +37,7 @@ export interface TransactionIdemPotencyKey {
 
 export default class StripeBilling extends Billing<StripeBillingSettingsContent> {
   private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
+  private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSettings, currency: string) {
@@ -113,7 +114,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
   public async getUsers(): Promise<customers.ICustomer[]> {
     const users = [] as customers.ICustomer[];
     let request;
-    const requestParams = { limit: 2 } as ICustomerListOptions;
+    const requestParams = { limit: StripeBilling.STRIPE_MAX_CUSTOMER_LIST } as ICustomerListOptions;
     do {
       request = await this.stripe.customers.list(requestParams);
       users.push(...request.data);
