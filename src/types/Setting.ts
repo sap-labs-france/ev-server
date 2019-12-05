@@ -1,5 +1,5 @@
-import { BillingSettings } from '../integration/billing/Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import {BillingSettings} from "./Billing";
 
 export enum ComponentType {
   OCPI = 'ocpi',

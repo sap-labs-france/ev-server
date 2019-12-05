@@ -10,7 +10,8 @@ import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import { BillingUserData } from '../../../integration/billing/Billing';
+import User from '../../../types/User';
+import {BillingUserData} from "../../../types/Billing";
 
 export default class BillingService {
 
@@ -108,28 +109,28 @@ export default class BillingService {
       };
 
       // First step: Get recently updated customers from Billing application
-      let changedBillingCustomers = await billingImpl.getUpdatedCustomersForSynchronization();
+      let usersChangedInBilling = await billingImpl.getUpdatedUsersInBillingForSynchronization();
 
       // Second step: Treat all not-synchronized users from own database
-      const users = await UserStorage.getUsers(tenant.id,
+      const usersNotSynchronized = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
         { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
-      if (users.count > 0) {
+      if (usersNotSynchronized.count > 0) {
         // Process them
         Logging.logInfo({
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_SYNCHRONIZE_BILLING,
           module: 'BillingService', method: 'handleSynchronizeUsers',
-          message: `${users.count} changed active users are going to be synchronized with Billing application`
+          message: `${usersNotSynchronized.count} changed active users are going to be synchronized with Billing application`
         });
-        for (const user of users.result) {
+        for (const user of usersNotSynchronized.result) {
           try {
             const newBillingUserData = await billingImpl.synchronizeUser(user);
             if (newBillingUserData.customerID) {
               // Delete duplicate customers
-              if (changedBillingCustomers && changedBillingCustomers.length > 0) {
-                changedBillingCustomers = changedBillingCustomers.filter((id) => id !== newBillingUserData.customerID);
+              if (usersChangedInBilling && usersChangedInBilling.length > 0) {
+                usersChangedInBilling = usersChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
               }
               await UserStorage.saveUserBillingData(tenant.id, user.id, newBillingUserData);
               actionsDone.synchronized++;
@@ -144,15 +145,15 @@ export default class BillingService {
       }
 
       // Third step : synchronize users with old BillingData from own database
-      let usersMDB = await UserStorage.getUsers(tenant.id,
+      let usersOldBillingData = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE] },
         { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
-      const usersBillingImpl = await billingImpl.getUsers();
+      const usersInBilling: Partial<User>[] = await billingImpl.getUsers();
 
-      for (const userMDB of usersMDB.result) {
+      for (const userMDB of usersOldBillingData.result) {
         let userInBillingImpl = false;
-        for (const userBilling of usersBillingImpl) {
-          if (userMDB.billingData && userMDB.billingData.customerID === userBilling.id) {
+        for (const userBilling of usersInBilling) {
+          if (userMDB.billingData && userMDB.billingData.customerID === userBilling.billingData.customerID) {
             userInBillingImpl = true;
             break;
           }
@@ -170,8 +171,8 @@ export default class BillingService {
               }
               await UserStorage.saveUserBillingData(tenant.id, userMDB.id, newBillingUserData);
               // Delete duplicate customers
-              if (changedBillingCustomers && changedBillingCustomers.length > 0) {
-                changedBillingCustomers = changedBillingCustomers.filter((id) => id !== newBillingUserData.customerID);
+              if (usersChangedInBilling && usersChangedInBilling.length > 0) {
+                usersChangedInBilling = usersChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
               }
               actionsDone.synchronized++;
             } else {
@@ -192,15 +193,15 @@ export default class BillingService {
       }
 
       // Fourth step: synchronize remaining customers from Billing
-      if (changedBillingCustomers && changedBillingCustomers.length > 0) {
+      if (usersChangedInBilling && usersChangedInBilling.length > 0) {
         Logging.logInfo({
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_SYNCHRONIZE_BILLING,
           module: 'BillingService', method: 'handleSynchronizeUsers',
-          message: `Users are going to be synchronized for ${changedBillingCustomers.length} changed Billing customers`
+          message: `Users are going to be synchronized for ${usersChangedInBilling.length} changed Billing customers`
         });
-        for (const changedBillingCustomer of changedBillingCustomers) {
+        for (const changedBillingCustomer of usersChangedInBilling) {
           const billingUsers = await billingImpl.getUsers();
           let userStillExistsInStripe = false;
           for (const billingUser of billingUsers) {
@@ -211,14 +212,14 @@ export default class BillingService {
           if (!userStillExistsInStripe) {
             continue;
           }
-          usersMDB = await UserStorage.getUsers(tenant.id,
+          usersOldBillingData = await UserStorage.getUsers(tenant.id,
             { billingCustomer: changedBillingCustomer },
             Constants.DB_PARAMS_SINGLE_RECORD);
-          if (usersMDB.count > 0) {
+          if (usersOldBillingData.count > 0) {
             try {
-              const updatedBillingUserData = await billingImpl.synchronizeUser(usersMDB.result[0]);
+              const updatedBillingUserData = await billingImpl.synchronizeUser(usersOldBillingData.result[0]);
               if (updatedBillingUserData.customerID) {
-                await UserStorage.saveUserBillingData(tenant.id, usersMDB.result[0].id, updatedBillingUserData);
+                await UserStorage.saveUserBillingData(tenant.id, usersOldBillingData.result[0].id, updatedBillingUserData);
                 actionsDone.synchronized++;
               } else {
                 actionsDone.error++;
