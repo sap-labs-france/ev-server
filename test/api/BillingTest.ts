@@ -1,4 +1,4 @@
-import Billing, { BillingUserData } from '../../src/integration/billing/Billing';
+import Billing from '../../src/integration/billing/Billing';
 import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
 import ContextProvider from './contextProvider/ContextProvider';
@@ -11,11 +11,12 @@ import User from '../../src/types/User';
 import config from '../config';
 import { expect } from 'chai';
 import { StripeBillingSettings } from '../../src/types/Setting';
+import { BillingUserData } from '../../src/types/Billing';
 
 const billingSettings = {
   url: config.get('billing.url'),
   publicKey: config.get('billing.publicKey'),
-  secretKey: Cypher.encrypt(config.get('billing.secretKey')),
+  secretKey: config.get('billing.secretKey'),
   noCardAllowed: config.get('billing.noCardAllowed'),
   advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
   currency: config.get('billing.currency'),
@@ -61,16 +62,18 @@ describe('Billing Service', function() {
     expect(testData.userService).to.not.be.null;
     const tenant = testData.tenantContext.getTenant();
     if (tenant.id) {
-      const settingsMDB = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-      expect(settingsMDB.data.count).to.be.eq(1);
-      const componentSetting = settingsMDB.data.result[0];
+      const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+      expect(tenantBillingSettings.data.count).to.be.eq(1);
+      const componentSetting = tenantBillingSettings.data.result[0];
       componentSetting.content.stripe = { ...billingSettings };
-
+      componentSetting.sensitiveData = ['content.stripe.secretKey'];
       await testData.userService.settingApi.update(componentSetting);
+
+      billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
       billingImpl = new StripeBilling(tenant.id, billingSettings, config.get('billing.currency'));
       expect(billingImpl).to.not.be.null;
     } else {
-      throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}`);
+      throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
     }
   });
 
