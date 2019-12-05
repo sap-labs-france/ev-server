@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
+import { customers } from 'stripe';
 
 export interface BillingSettings {
   currency: string; // Must come from 'pricing' settings!
@@ -91,6 +92,8 @@ export default abstract class Billing<T extends BillingSettings> {
 
   // eslint-disable-next-line no-unused-vars
   async abstract checkIfUserCanBeDeleted(user: User, req: Request): Promise<void>;
+
+  async abstract getUsers(): Promise<customers.ICustomer[]>;
 
   async abstract createUser(req: Request): Promise<BillingUserData>;
 
