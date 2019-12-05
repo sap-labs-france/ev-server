@@ -25,9 +25,6 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 //  }
 // }
 
-export interface StripeBillingSettingsContent extends BillingSettings, StripeBillingSettings {
-}
-
 export interface TransactionIdemPotencyKey {
   transactionID: number;
   keyNewInvoiceItem: string;
@@ -35,13 +32,13 @@ export interface TransactionIdemPotencyKey {
   timestamp: number;
 }
 
-export default class StripeBilling extends Billing<StripeBillingSettingsContent> {
+export default class StripeBilling extends Billing<StripeBillingSettings> {
   private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
   private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSettings, currency: string) {
-    const stripeSettings: StripeBillingSettingsContent = settings as StripeBillingSettingsContent;
+    const stripeSettings: StripeBillingSettings = settings;
     stripeSettings.currency = currency;
     super(tenantId, stripeSettings);
     if (this.settings.secretKey) {

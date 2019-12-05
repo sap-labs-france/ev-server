@@ -1,3 +1,4 @@
+import { BillingSettings } from '../integration/billing/Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export enum ComponentType {
@@ -63,7 +64,7 @@ export interface ConvergentChargingPricingSettings extends PricingSetting {
   password: string;
 }
 
-export interface StripeBillingSettings {
+export interface StripeBillingSettings extends BillingSettings {
   url: string;
   secretKey: string;
   publicKey: string;
