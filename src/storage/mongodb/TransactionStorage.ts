@@ -65,6 +65,16 @@ export default class TransactionStorage {
       currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
     };
     if (transactionToSave.stop) {
+      // Remove runtime props
+      delete transactionMDB.currentConsumption;
+      delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentSignedData;
+      delete transactionMDB.currentStateOfCharge;
+      delete transactionMDB.currentTotalConsumption;
+      delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.lastMeterValue;
+      delete transactionMDB.numberOfMeterValues;
+      // Add stop
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
         timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
@@ -76,6 +86,7 @@ export default class TransactionStorage {
         totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
+        extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
         totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
@@ -124,8 +135,6 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
-    // Add Last Changed Created Props
-    DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
@@ -198,8 +207,8 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-      string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
@@ -485,7 +494,10 @@ export default class TransactionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Convert Object IDs to String
     this._convertRemainingTransactionObjectIDs(transactionsMDB);
@@ -498,8 +510,7 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getRefundReports(tenantID: string, filter: { ownerID?: string; siteAdminIDs?: string[] }, dbParams: DbParams, projectFields?: string[]):
-  Promise<{ count: number; result: RefundReport[]; stats: {} }> {
+  public static async getRefundReports(tenantID: string, filter: { ownerID?: string; siteAdminIDs?: string[] }, dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[]; stats: {} }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -620,7 +631,10 @@ export default class TransactionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const reportsMDB = await global.database.getCollection<RefundReport>(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd('TransactionStorage', 'getRefundReports', uniqueTimerID, { dbParams });
@@ -784,7 +798,10 @@ export default class TransactionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     const transactionCountMDB = transactionsMDB.length;
     // Convert remaining Object IDs to String
@@ -929,8 +946,9 @@ export default class TransactionStorage {
     switch (errorType) {
       case 'long_inactivity':
         return [
-          { $match: { 'stop.totalInactivitySecs': { $gte: 86400 } } },
-          { $addFields: { 'errorCode': 'long_inactivity' } }
+          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } }},
+          { $match: { 'totalInactivity': { $gte: 86400 } }},
+          { $addFields: { 'errorCode': 'long_inactivity' }}
         ];
       case 'no_consumption':
         return [
@@ -939,7 +957,14 @@ export default class TransactionStorage {
         ];
       case 'negative_inactivity':
         return [
-          { $match: { 'stop.totalInactivitySecs': { $lt: 0 } } },
+          {
+            $match: {
+              $or: [
+                { 'stop.totalInactivitySecs': { $lt: 0 } },
+                { 'stop.extraInactivitySecs': { $lt: 0 } },
+              ]
+            }
+          },
           { $addFields: { 'errorCode': 'negative_inactivity' } }
         ];
       case 'negative_duration':

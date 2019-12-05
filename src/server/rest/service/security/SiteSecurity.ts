@@ -25,6 +25,9 @@ export default class SiteSecurity {
       siteID: sanitize(request.siteID),
       userID: sanitize(request.userID)
     } as HttpSiteOwnerRequest;
+    if ('siteOwner' in request) {
+      filteredRequest.siteOwner = UtilsSecurity.filterBoolean(request.siteOwner);
+    }
     return filteredRequest;
   }
 

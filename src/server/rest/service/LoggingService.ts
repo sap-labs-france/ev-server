@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import LoggingSecurity from './security/LoggingSecurity';
 import Utils from '../../../utils/Utils';
+import UserToken from '../../../types/UserToken';
+import I18nManager from '../../../utils/I18nManager';
 
 export default class LoggingService {
   static async handleGetLoggings(action: string, req: Request, res: Response, next: NextFunction) {
@@ -111,8 +113,8 @@ export default class LoggingService {
       });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
-      const filename = 'loggings_export.csv';
-      fs.writeFile(filename, LoggingService.convertToCSV(loggings.result), (err) => {
+      const filename = 'exported-logs.csv';
+      fs.writeFile(filename, LoggingService.convertToCSV(req.user, loggings.result), (err) => {
         if (err) {
           throw err;
         }
@@ -163,19 +165,19 @@ export default class LoggingService {
     }
   }
 
-  static convertToCSV(loggings) {
-    let csv = 'id,timestamp,level,type,action,message,method,module,source,host,process\r\n';
+  private static convertToCSV(loggedUser: UserToken, loggings) {
+    I18nManager.switchLanguage(loggedUser.language);
+    let csv = `Date${Constants.CSV_SEPARATOR}Level${Constants.CSV_SEPARATOR}Type${Constants.CSV_SEPARATOR}Action${Constants.CSV_SEPARATOR}Message${Constants.CSV_SEPARATOR}Method${Constants.CSV_SEPARATOR}Module${Constants.CSV_SEPARATOR}Source${Constants.CSV_SEPARATOR}Host${Constants.CSV_SEPARATOR}Process\r\n`;
     for (const log of loggings) {
-      csv += `${log.id},`;
-      csv += `${log.timestamp},`;
-      csv += `${log.level},`;
-      csv += `${log.type},`;
-      csv += `${log.action},`;
-      csv += `${log.message},`;
-      csv += `${log.method},`;
-      csv += `${log.module},`;
-      csv += `${log.source}`;
-      csv += `${log.host}`;
+      csv += `${I18nManager.formatDateTime(log.timestamp, 'L')} ${I18nManager.formatDateTime(log.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${log.level}` + Constants.CSV_SEPARATOR;
+      csv += `${log.type}` + Constants.CSV_SEPARATOR;
+      csv += `${log.action}` + Constants.CSV_SEPARATOR;
+      csv += `${log.message}` + Constants.CSV_SEPARATOR;
+      csv += `${log.method}` + Constants.CSV_SEPARATOR;
+      csv += `${log.module}` + Constants.CSV_SEPARATOR;
+      csv += `${log.source}` + Constants.CSV_SEPARATOR;
+      csv += `${log.host}` + Constants.CSV_SEPARATOR;
       csv += `${log.process}\r\n`;
     }
     return csv;

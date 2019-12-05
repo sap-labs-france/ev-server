@@ -47,7 +47,7 @@ export default class NotificationHandler {
         source: (chargingStation ? chargingStation.id : null),
         module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr, actionOnUser: user,
-        message: 'User is being notified'
+        message: `User is being notified (${channel})`
       });
     } else {
       // Admin
@@ -56,7 +56,7 @@ export default class NotificationHandler {
         source: (chargingStation ? chargingStation.id : null),
         module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr,
-        message: 'Admin users are being notified'
+        message: `Admin users are being notified (${channel})`
       });
     }
   }

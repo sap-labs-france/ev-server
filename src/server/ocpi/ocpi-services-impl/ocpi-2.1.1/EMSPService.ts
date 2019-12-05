@@ -5,6 +5,8 @@ import { Configuration } from '../../../../types/configuration/Configuration';
 import Constants from '../../../../utils/Constants';
 import EMSPLocationsEndpoint from './EMSPLocationsEndpoint';
 import EMSPTokensEndpoint from './EMSPTokensEndpoint';
+import EMSPSessionsEndpoint from './EMSPSessionsEndpoint';
+import EMSPCdrsEndpoint from './EMSPCdrsEndpoint';
 
 const VERSION = '2.1.1';
 
@@ -20,6 +22,8 @@ export default class EMSPService extends AbstractOCPIService {
     this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new EMSPLocationsEndpoint(this));
     this.registerEndpoint(new EMSPTokensEndpoint(this));
+    this.registerEndpoint(new EMSPSessionsEndpoint(this));
+    this.registerEndpoint(new EMSPCdrsEndpoint(this));
   }
 }
 

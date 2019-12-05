@@ -35,6 +35,7 @@
     "@typescript-eslint/explicit-member-accessibility": "off",
     "@typescript-eslint/member-ordering": "error",
     "@typescript-eslint/await-thenable": "error",
+    "@typescript-eslint/require-await": "error",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/promise-function-async": "error",
     "curly": "error",
@@ -50,7 +51,6 @@
     "no-lone-blocks": "error",
     "no-multi-spaces": "error",
     "no-empty": "error",
-    "require-await": "error",
     "no-return-assign": [
       "error",
       "always"

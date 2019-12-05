@@ -1,4 +1,3 @@
-import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../types/OCPIEndpoint';
 import { TaskConfig } from '../../types/TaskConfig';
@@ -9,7 +8,7 @@ import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
 import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 
-export default class OCPIPatchLocationsTask extends SchedulerTask {
+export default class OCPIGetTokensTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
@@ -17,7 +16,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
-          module: 'OCPIPatchLocationsTask',
+          module: 'OCPIGetTokensTask',
           method: 'run', action: 'OcpiPatchLocations',
           message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
         });
@@ -41,35 +40,35 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
     if (ocpiEndpoint.status !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIPatchLocationsTask',
-        method: 'run', action: 'OcpiPatchLocations',
+        module: 'OCPIGetTokensTask',
+        method: 'run', action: 'OcpiGetTokens',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
       return;
     } else if (!ocpiEndpoint.backgroundPatchJob) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIPatchLocationsTask',
-        method: 'run', action: 'OcpiPatchLocations',
+        module: 'OCPIGetTokensTask',
+        method: 'run', action: 'OcpiGetTokens',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
       return;
     }
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIPatchLocationsTask',
-      method: 'patch', action: 'OcpiPatchLocations',
+      module: 'OCPIGetTokensTask',
+      method: 'patch', action: 'OcpiGetTokens',
       message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
     });
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
-    const sendResult = await ocpiClient.sendEVSEStatuses(false);
+    const result = await ocpiClient.getTokens();
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIPatchLocationsTask',
-      method: 'patch', action: 'OcpiPatchLocations',
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
+      module: 'OCPIGetTokensTask',
+      method: 'patch', action: 'OcpiGetTokens',
+      message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`
     });
   }
 }

@@ -159,7 +159,7 @@ export default class UserSecurity {
         filteredUser.notificationsActive = user.notificationsActive;
         if (user.notifications) {
           filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
-        };
+        }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.status = user.status;

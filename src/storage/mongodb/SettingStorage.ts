@@ -5,7 +5,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting, { ComponentType, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import Setting, { ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 
@@ -65,6 +65,17 @@ export default class SettingStorage {
     Logging.traceEnd('SettingStorage', 'saveSetting', uniqueTimerID, { settingToSave });
     // Create
     return settingFilter._id.toHexString();
+  }
+
+  public static async getOCPISettings(tenantID: string): Promise<OcpiSettings> {
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Get the currency
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      if (config.ocpi) {
+        return config.ocpi;
+      }
+    }
   }
 
   public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {

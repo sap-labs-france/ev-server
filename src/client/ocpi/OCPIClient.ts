@@ -4,8 +4,7 @@ import OCPIEndpoint from '../../types/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import Setting, { OcpiSettings } from '../../types/Setting';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
+import { OcpiSettings } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
 
@@ -15,14 +14,15 @@ export default abstract class OCPIClient {
   protected role: string;
   protected settings: OcpiSettings;
 
-  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint, role: string) {
+  protected constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint, role: string) {
     if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
 
     this.tenant = tenant;
+    this.settings = settings;
     this.ocpiEndpoint = ocpiEndpoint;
-    this.role = role;
+    this.role = role.toLowerCase();
   }
 
   /**
@@ -51,6 +51,48 @@ export default abstract class OCPIClient {
 
     // Return result
     return pingResult;
+  }
+
+  async unregister() {
+    const unregisterResult: any = {};
+
+    try {
+      // Get available version.
+      const ocpiVersions = await this.getVersions();
+
+      // Loop through versions and pick the same one
+      let versionFound = false;
+      for (const ocpiVersion of ocpiVersions.data.data) {
+        if (ocpiVersion.version === '2.1.1') {
+          versionFound = true;
+          this.ocpiEndpoint.version = ocpiVersion.version;
+          this.ocpiEndpoint.versionUrl = ocpiVersion.url;
+          break;
+        }
+      }
+
+      // If not found trigger exception
+      if (!versionFound) {
+        throw new Error('OCPI Endpoint version 2.1.1 not found');
+      }
+
+      // Delete credentials
+      await this.deleteCredentials();
+
+      // Save endpoint
+      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
+
+      // Send success
+      unregisterResult.statusCode = 200;
+      unregisterResult.statusText = 'OK';
+    } catch (error) {
+      unregisterResult.message = error.message;
+      unregisterResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+    }
+
+    // Return result
+    return unregisterResult;
   }
 
   /**
@@ -171,32 +213,22 @@ export default abstract class OCPIClient {
     return respOcpiServices;
   }
 
-  /**
-   * POST /ocpi/{role}/{version}/credentials
-   */
-  async postCredentials() {
+  async deleteCredentials() {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials');
-
-    if (!credentialsUrl) {
-      throw new Error('Credentials url not available');
-    }
-
-    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: 'OcpiPostCredentials',
-      message: `Post credentials at ${credentialsUrl}`,
+      message: `Delete credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: 'postCredentials',
-      detailedMessages: cpoCredentials
+      method: 'postCredentials'
     });
 
     // Call eMSP with CPO credentials
-    const respOcpiCredentials = await axios.post(credentialsUrl, cpoCredentials,
+    const respOcpiCredentials = await axios.delete(credentialsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -207,52 +239,76 @@ export default abstract class OCPIClient {
 
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
-      throw new Error('Invalid response from POST');
+      throw new Error(`Invalid response from delete credentials ${JSON.stringify(respOcpiCredentials.data)}`);
     }
 
     return respOcpiCredentials;
   }
 
-  protected async getOcpiSettings(): Promise<OcpiSettings> {
-    if (!this.settings) {
-      const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
-        this.tenant.id, Constants.COMPONENTS.OCPI);
+  /**
+   * POST /ocpi/{role}/{version}/credentials
+   */
+  async postCredentials() {
+    // Get credentials url
+    const credentialsUrl = this.getEndpointUrl('credentials');
 
-      if (!ocpiSetting || !ocpiSetting.content || !ocpiSetting.content.ocpi) {
-        throw new Error('OCPI Settings not found');
-      }
-      this.settings = ocpiSetting.content.ocpi;
+    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
+
+    // Log
+    Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: 'OcpiPostCredentials',
+      message: `Post credentials at ${credentialsUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'postCredentials',
+      detailedMessages: credentials
+    });
+
+    // Call eMSP with CPO credentials
+    const respOcpiCredentials = await axios.post(credentialsUrl, credentials,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    // Check response
+    if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
+      throw new Error(`Invalid response from post credentials ${JSON.stringify(respOcpiCredentials.data)}`);
     }
-    return this.settings;
+
+    return respOcpiCredentials;
   }
 
-  protected async getLocalCountryCode(): Promise<string> {
-    const setting = await this.getOcpiSettings();
-    if (!setting[this.role]) {
+  protected getLocalCountryCode(): string {
+    if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    if (!setting[this.role].countryCode) {
+    if (!this.settings[this.role].countryCode) {
       throw new Error(`OCPI Country code setting is missing for role ${this.role}`);
     }
-    return setting[this.role].countryCode;
+    return this.settings[this.role].countryCode;
   }
 
-  protected async getLocalPartyID(): Promise<string> {
-    const setting = await this.getOcpiSettings();
-    if (!setting[this.role]) {
+  protected getLocalPartyID(): string {
+    if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
-    if (!setting[this.role].partyID) {
+    if (!this.settings[this.role].partyID) {
       throw new Error(`OCPI Party ID setting is missing for role ${this.role}`);
     }
-    return setting[this.role].partyID;
+    return this.settings[this.role].partyID;
   }
 
   protected getEndpointUrl(service) {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
-    return null;
+
+    throw new Error(`No endpoint URL defined for service ${service}`);
   }
 
 }

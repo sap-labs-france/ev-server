@@ -140,6 +140,7 @@ class RequestMapper {
           Notifications: NotificationService.handleGetNotifications.bind(this),
           TransactionsCompleted: TransactionService.handleGetTransactionsCompleted.bind(this),
           TransactionsToRefund: TransactionService.handleGetTransactionsToRefund.bind(this),
+          TransactionsToRefundExport: TransactionService.handleGetTransactionsToRefundExport.bind(this),
           TransactionsRefundReports: TransactionService.handleGetRefundReports.bind(this),
           TransactionsExport: TransactionService.handleGetTransactionsExport.bind(this),
           TransactionsActive: TransactionService.handleGetTransactionsActive.bind(this),
@@ -199,6 +200,7 @@ class RequestMapper {
           SettingUpdate: SettingService.handleUpdateSetting.bind(this),
           OcpiEndpointUpdate: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
+          OcpiEndpointUnregister: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;

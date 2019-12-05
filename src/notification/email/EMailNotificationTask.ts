@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { OfflineChargingStationNotification, PreparingSessionNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -98,16 +98,16 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenant, severity);
   }
 
-  public sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>  {
+  public sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('user-account-inactivity', data, user, tenant, severity);
   }
 
-  public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>  {
+  public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Send it
     return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
-  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>  {
+  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Send it
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
@@ -281,7 +281,7 @@ export default class EMailNotificationTask implements NotificationTask {
         // Log
         try {
           Logging.logError({
-            tenantID: tenant, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+            tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
@@ -310,7 +310,7 @@ export default class EMailNotificationTask implements NotificationTask {
       } else {
         // Email sent successfully
         Logging.logInfo({
-          tenantID: tenant,
+          tenantID: tenant.id,
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),

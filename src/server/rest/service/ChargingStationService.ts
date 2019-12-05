@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -15,12 +16,12 @@ import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../.
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationService {
 
@@ -380,16 +381,16 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json(await ChargingStationService._getChargingStations(req));
+    res.json(await ChargingStationService.getChargingStations(req));
     next();
   }
 
   public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
-    const chargingStations = await ChargingStationService._getChargingStations(req);
+    const chargingStations = await ChargingStationService.getChargingStations(req);
     // Build export
-    const filename = 'chargingStations_export.csv';
-    fs.writeFile(filename, ChargingStationService._convertToCSV(chargingStations.result), (err) => {
+    const filename = 'exported-charging-stations.csv';
+    fs.writeFile(filename, ChargingStationService.convertToCSV(req.user, chargingStations.result), (err) => {
       if (err) {
         throw err;
       }
@@ -554,7 +555,7 @@ export default class ChargingStationService {
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
       // Ok: Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
       // Remote Start Transaction
     } else if (action === 'RemoteStartTransaction') {
       // Check Tag ID
@@ -572,7 +573,7 @@ export default class ChargingStationService {
       // Check if user is authorized
       await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
       // Ok: Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
@@ -592,14 +593,14 @@ export default class ChargingStationService {
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
         // Call for connector 0
-        result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+        result = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
         if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
           result = [];
           // Call each connectors
           for (const connector of chargingStation.connectors) {
             filteredRequest.args.connectorId = connector.connectorId;
             // Execute request
-            const simpleResult = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+            const simpleResult = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
             // Fix central reference date
             const centralTime = new Date();
             simpleResult.centralSystemTime = centralTime;
@@ -608,7 +609,7 @@ export default class ChargingStationService {
         }
       } else {
         // Execute it
-        result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+        result = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
         // Fix central reference date
         const centralTime = new Date();
         result.centralSystemTime = centralTime;
@@ -627,7 +628,7 @@ export default class ChargingStationService {
         });
       }
       // Execute it
-      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService.handleChargingStationAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     }
     // Log
     Logging.logSecurityInfo({
@@ -925,7 +926,7 @@ export default class ChargingStationService {
     return Authorizations.canStopTransaction(user, transaction);
   }
 
-  private static async _getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
+  private static async getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -968,40 +969,38 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static _convertToCSV(chargingStations: ChargingStation[]): string {
-    let csv = 'id,createdOn,connectors,siteAreaID,latitude,longitude,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
+  private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
+    I18nManager.switchLanguage(loggedUser.language);
+    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Number of Phases${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
-      csv += `${chargingStation.id},`;
-      csv += `${chargingStation.createdOn},`;
-      csv += `${chargingStation.connectors ? chargingStation.connectors.length : ''},`;
-      csv += `${chargingStation.siteAreaID},`;
+      csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
+      csv += `${I18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${I18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.connectors ? chargingStation.connectors.length : '0'}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.siteArea.name}` + Constants.CSV_SEPARATOR;
       if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
-        csv += `${chargingStation.coordinates[1]},`;
-        csv += `${chargingStation.coordinates[0]},`;
+        csv += `${chargingStation.coordinates[1]}` + Constants.CSV_SEPARATOR;
+        csv += `${chargingStation.coordinates[0]}` + Constants.CSV_SEPARATOR;
       } else {
-        csv += '\'\',\'\',';
+        csv += `''${Constants.CSV_SEPARATOR}''`;
       }
-      csv += `${chargingStation.chargePointSerialNumber},`;
-      csv += `${chargingStation.chargePointModel},`;
-      csv += `${chargingStation.chargeBoxSerialNumber},`;
-      csv += `${chargingStation.chargePointVendor},`;
-      csv += `${chargingStation.firmwareVersion},`;
-      csv += `${chargingStation.endpoint},`;
-      csv += `${chargingStation.ocppVersion},`;
-      csv += `${chargingStation.ocppProtocol},`;
-      csv += `${chargingStation.lastHeartBeat},`;
-      csv += `${chargingStation.deleted},`;
-      csv += `${chargingStation.inactive},`;
-      csv += `${chargingStation.lastReboot},`;
-      csv += `${chargingStation.numberOfConnectedPhase},`;
-      csv += `${chargingStation.maximumPower},`;
-      csv += `${chargingStation.cannotChargeInParallel},`;
+      csv += `${chargingStation.chargePointSerialNumber}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.chargePointModel}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.chargeBoxSerialNumber}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.chargePointVendor}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.firmwareVersion}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.ocppVersion}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
+      csv += `${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${I18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${I18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.numberOfConnectedPhase}` + Constants.CSV_SEPARATOR;
+      csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
+      csv += (!chargingStation.cannotChargeInParallel ? 'yes' : 'no') + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.powerLimitUnit}\r\n`;
     }
     return csv;
   }
 
-  private static async _handleAction(tenantID: string, chargingStation: ChargingStation, action: string, args: any) {
+  private static async handleChargingStationAction(tenantID: string, chargingStation: ChargingStation, action: string, args: any) {
     switch (action) {
       case 'ClearCache':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearCache');

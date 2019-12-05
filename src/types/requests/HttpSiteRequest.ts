@@ -1,8 +1,7 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpSiteRequest extends HttpByIDRequest {
-}
+export type HttpSiteRequest = HttpByIDRequest;
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
   WithAvailableChargers: boolean;
@@ -29,6 +28,7 @@ export interface HttpSiteUserAdminRequest {
 export interface HttpSiteOwnerRequest {
   userID: string;
   siteID: string;
+  siteOwner: boolean;
 }
 
 export interface HttpSiteUsersRequest extends HttpDatabaseRequest {

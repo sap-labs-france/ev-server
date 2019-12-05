@@ -16,6 +16,8 @@ export default class Constants {
   public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
   public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
 
+  public static readonly CSV_SEPARATOR = '\t';
+  
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;

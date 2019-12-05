@@ -9,6 +9,10 @@ import Tenant from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
+import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
+import Connector from '../../../../types/Connector';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -22,10 +26,11 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static async convertSite2Location(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
     // Build object
     return {
       'id': site.id,
+      'type': OCPILocationType.UNKNOWN,
       'name': site.name,
       'address': `${site.address.address1} ${site.address.address2}`,
       'city': site.address.city,
@@ -46,7 +51,7 @@ export default class OCPIMapping {
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
    */
-  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Build evses array
     const evses: any = [];
     // Convert charging stations to evse(s)
@@ -69,18 +74,17 @@ export default class OCPIMapping {
    * @param options
    * @return Array of OCPI EVSES
    */
-  static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static async getEvsesFromSite(tenant: Tenant, site: Site, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse[]> {
     // Build evses array
     const evses = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
-      {
-        withChargeBoxes: true,
-        siteIDs: [site.id]
-      },
-      Constants.DB_PARAMS_MAX_LIMIT);
+      {withChargeBoxes: true,
+      siteIDs: [site.id]
+    },
+    Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
-      evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
+      evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
 
     // Return evses
@@ -141,6 +145,32 @@ export default class OCPIMapping {
     };
   }
 
+  /**
+   * Get All OCPI Tokens from given tenant
+   * @param {Tenant} tenant
+   */
+  static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
+    // Result
+    const tokens: OCPIToken[] = [];
+
+    // Get all tokens
+    const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
+
+    if (user) {
+      const tag = user.tags.find((value) => value.id === tokenId);
+      return {
+        uid: tokenId,
+        type: 'RFID',
+        'auth_id': tag.userID,
+        'visual_number': tag.userID,
+        issuer: user.name,
+        valid: !tag.deleted,
+        whitelist: 'ALLOWED_OFFLINE',
+        'last_updated': user.lastChangedOn
+      };
+    }
+  }
+
   //
   /**
    * Convert ChargingStation to Multiple EVSEs
@@ -148,7 +178,7 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Build evse ID
     const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
@@ -157,8 +187,9 @@ export default class OCPIMapping {
     const evses = connectors.map((connector: any) => {
       const evse: any = {
         'uid': `${chargingStation.id}*${connector.connectorId}`,
-        'id': OCPIMapping.convert2evseid(`${evseID}*${connector.connectorId}`),
+        'evse_id': OCPIMapping.convert2evseid(`${evseID}*${connector.connectorId}`),
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
+        'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)]
       };
       // Check addChargeBoxID flag
@@ -179,7 +210,7 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
     // Build evse id
     const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
@@ -190,8 +221,9 @@ export default class OCPIMapping {
     // Build evse
     const evse: any = {
       'uid': `${chargingStation.id}`,
-      'id': evseID,
-      'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
+      'evse_id': evseID,
+      'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
+      'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
       'connectors': connectors
     };
 
@@ -209,7 +241,7 @@ export default class OCPIMapping {
    * The logic may need to be reviewed based on the list of handled status per connector
    * @param {*} connectors
    */
-  static aggregateConnectorsStatus(connectors: any) {
+  static aggregateConnectorsStatus(connectors: Connector[]) {
     // Build array with charging station ordered by priority
     const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED, Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
 
@@ -233,14 +265,30 @@ export default class OCPIMapping {
    * @param evseID pass evse ID in order to build connector id (specs for Gireve)
    * @param {*} connector
    */
-  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: any, evseID: any) {
+  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: Connector, evseID: string): OCPIConnector {
+    let type, format;
+    switch (connector.type) {
+      case 'C':
+        type = OCPIConnectorType.CHADEMO;
+        format = OCPIConnectorFormat.CABLE;
+        break;
+      case 'T2':
+        type = OCPIConnectorType.IEC_62196_T2;
+        format = OCPIConnectorFormat.SOCKET;
+        break;
+      case 'CCS':
+        type = OCPIConnectorType.IEC_62196_T2_COMBO;
+        format = OCPIConnectorFormat.CABLE;
+        break;
+    }
     return {
       'id': `${evseID}*${connector.connectorId}`,
-      'type': Constants.MAPPING_CONNECTOR_TYPE[connector.type],
+      'standard': type,
+      'format': OCPIConnectorFormat.CABLE,
       'voltage': connector.voltage,
       'amperage': connector.amperage,
       'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(chargingStation.numberOfConnectedPhase),
-      'last_update': chargingStation.lastHeartBeat
+      'last_updated': chargingStation.lastHeartBeat
     };
   }
 
@@ -248,14 +296,14 @@ export default class OCPIMapping {
    * Convert internal Power (1/3 Phase) to PowerType
    * @param {*} power
    */
-  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase) {
+  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase): OCPIPowerType {
     switch (numberOfConnectedPhase) {
       case 0:
-        return Constants.CONNECTOR_POWER_TYPE.DC;
+        return OCPIPowerType.DC;
       case 1:
-        return Constants.CONNECTOR_POWER_TYPE.AC_1_PHASE;
+        return OCPIPowerType.AC_1_PHASE;
       case 3:
-        return Constants.CONNECTOR_POWER_TYPE.AC_3_PHASE;
+        return OCPIPowerType.AC_3_PHASE;
     }
   }
 
@@ -272,24 +320,25 @@ export default class OCPIMapping {
    * Convert internal status to OCPI Status
    * @param {*} status
    */
-  static convertStatus2OCPIStatus(status: string) {
+  static convertStatus2OCPIStatus(status: string): OCPIEvseStatus {
     switch (status) {
       case Constants.CONN_STATUS_AVAILABLE:
-        return Constants.EVSE_STATUS.AVAILABLE;
+        return OCPIEvseStatus.AVAILABLE;
       case Constants.CONN_STATUS_OCCUPIED:
-        return Constants.EVSE_STATUS.BLOCKED;
+        return OCPIEvseStatus.BLOCKED;
       case Constants.CONN_STATUS_CHARGING:
-        return Constants.EVSE_STATUS.CHARGING;
+        return OCPIEvseStatus.CHARGING;
       case Constants.CONN_STATUS_FAULTED:
-        return Constants.EVSE_STATUS.INOPERATIVE;
+        return OCPIEvseStatus.INOPERATIVE;
       case 'Preparing':
       case 'SuspendedEV':
       case 'SuspendedEVSE':
       case 'Finishing':
+        return OCPIEvseStatus.BLOCKED;
       case 'Reserved':
-        return Constants.EVSE_STATUS.BLOCKED;
+        return OCPIEvseStatus.RESERVED;
       default:
-        return Constants.EVSE_STATUS.UNKNOWN;
+        return OCPIEvseStatus.UNKNOWN;
     }
   }
 
@@ -318,7 +367,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role}/versions`);
+    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.content) {
@@ -326,11 +375,11 @@ export default class OCPIMapping {
       credential.token = token;
 
       if (role === Constants.OCPI_ROLE.EMSP) {
-        credential.country_code = configuration.cpo.countryCode;
-        credential.party_id = configuration.cpo.partyID;
-      } else {
         credential.country_code = configuration.emsp.countryCode;
         credential.party_id = configuration.emsp.partyID;
+      } else {
+        credential.country_code = configuration.cpo.countryCode;
+        credential.party_id = configuration.cpo.partyID;
       }
 
       credential.business_details = configuration.businessDetails;
