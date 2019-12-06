@@ -49,6 +49,12 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
+  static filterOcpiEndpointSendTokensRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
   static filterOcpiEndpointRegisterRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
