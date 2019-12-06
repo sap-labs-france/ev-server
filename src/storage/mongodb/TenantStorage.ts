@@ -121,10 +121,25 @@ export default class TenantStorage {
         $match: filters
       });
     }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
     // Count Records
     const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Sort
@@ -160,7 +175,8 @@ export default class TenantStorage {
     Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, dbParams });
     // Ok
     return {
-      count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
+      count: (tenantsCountMDB.length > 0 ?
+        (tenantsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tenantsCountMDB[0].count) : 0),
       result: tenantsMDB
     };
   }

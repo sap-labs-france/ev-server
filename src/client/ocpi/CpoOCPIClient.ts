@@ -58,7 +58,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * PATH EVSE Status
    */
-  async patchEVSEStatus(locationId: any, evseId: any, newStatus: any) {
+  async patchEVSEStatus(locationId: string, evseId: string, newStatus: any) {
     // Check for input parameter
     if (!locationId || !evseId || !newStatus) {
       throw new Error('Invalid parameters');
