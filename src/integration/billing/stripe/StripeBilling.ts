@@ -1,19 +1,23 @@
-import { Request } from 'express';
-import moment from 'moment';
-import sanitize from 'mongo-sanitize';
-import Stripe from 'stripe';
 import AppError from '../../../exception/AppError';
+import Billing from '../Billing';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { StripeBillingSettings } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import Stripe from 'stripe';
+import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import Logging from '../../../utils/Logging';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
+import i18n from 'i18n-js';
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../../types/Billing';
+import { Request } from 'express';
+import { StripeBillingSettings } from '../../../types/Setting';
+import I18nManager from '../../../utils/I18nManager';
 
 // Parameter tax_rates is currently not available in @types/stripe
 // declare module 'stripe' {
@@ -24,9 +28,6 @@ import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingR
 //  }
 // }
 
-export interface StripeBillingSettingsContent extends BillingSettings, StripeBillingSettings {
-}
-
 export interface TransactionIdemPotencyKey {
   transactionID: number;
   keyNewInvoiceItem: string;
@@ -34,12 +35,13 @@ export interface TransactionIdemPotencyKey {
   timestamp: number;
 }
 
-export default class StripeBilling extends Billing<StripeBillingSettingsContent> {
+export default class StripeBilling extends Billing<StripeBillingSettings> {
   private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
+  private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSettings, currency: string) {
-    const stripeSettings: StripeBillingSettingsContent = settings as StripeBillingSettingsContent;
+    const stripeSettings: StripeBillingSettings = settings;
     stripeSettings.currency = currency;
     super(tenantId, stripeSettings);
     if (this.settings.secretKey) {
@@ -109,6 +111,28 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     };
   }
 
+  public async getUsers(): Promise<Partial<User>[]> {
+    const users = [] as Partial<User>[];
+    let request;
+    const requestParams = { limit: StripeBilling.STRIPE_MAX_CUSTOMER_LIST } as ICustomerListOptions;
+    do {
+      request = await this.stripe.customers.list(requestParams);
+      for (const user of request.data) {
+        users.push({
+          email: user.email,
+          billingData: {
+            customerID: user.customerID
+          }
+        });
+      }
+      if (request.has_more) {
+        requestParams.starting_after = users[users.length - 1].id;
+      }
+    } while (request.has_more);
+
+    return users;
+  }
+
   public async synchronizeUser(user: User): Promise<BillingUserData> {
     const buildReq: Partial<Request> = {};
     buildReq.body = {};
@@ -128,7 +152,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     return await this.updateUser(user, fullReq);
   }
 
-  public async getUpdatedCustomersForSynchronization(): Promise<string[]> {
+  public async getUpdatedUsersInBillingForSynchronization(): Promise<string[]> {
     const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
     let stillData = true;
     let lastEventID: string;
@@ -201,6 +225,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const billingSettings = await SettingStorage.getSettingByIdentifier(this.tenantId, Constants.COMPONENTS.BILLING);
     if (billingSettings.content.stripe) {
       billingSettings.content.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
+      this.settings.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       await SettingStorage.saveSetting(this.tenantId, billingSettings);
     }
   }
@@ -339,26 +364,17 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     locale = locale.substr(0, 2).toLocaleLowerCase();
 
     let description = '';
-    // LOCALE_SUPPORT_NEEDED #BEGIN
     const chargeBox = await ChargingStationStorage.getChargingStation(this.tenantId, transaction.chargeBoxID);
+    I18nManager.switchLocale(user.locale);
     if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      if (locale === 'fr') {
-        description = 'Charger {{totalConsumption}} kWh à {{siteArea}} (terminé à {{time}})';
-      } else {
-        description = 'Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})';
-      }
+      description = i18n.t('billing.charging_stop_sitearea');
       description = description.replace('{{siteArea}}', chargeBox.siteArea.name);
     } else {
-      if (locale === 'fr') {
-        description = 'Charger {{totalConsumption}} kWh à la borne {{chargeBox}} (terminé à {{time}})';
-      } else {
-        description = 'Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})';
-      }
+      description = i18n.t('billing.charging_stop_chargebox');
       description = description.replace('{{chargeBox}}', transaction.chargeBoxID);
     }
     description = description.replace('{{totalConsumption}}', `${Math.round(transaction.stop.totalConsumption / 100) / 10}`);
     description = description.replace('{{time}}', transaction.stop.timestamp.toLocaleTimeString(user.locale.replace('_', '-')));
-    // LOCALE_SUPPORT_NEEDED #END
 
     let collectionMethod = 'send_invoice';
     let daysUntilDue = 30;
@@ -685,6 +701,17 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       };
     }
 
+    const email = req.body.email ? sanitize(req.body.email) : user.email;
+    const fullName = Utils.buildUserFullName(user, false);
+
+    let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
+    locale = locale.substr(0, 2).toLocaleLowerCase();
+
+    I18nManager.switchLocale(user.locale);
+    let description: string;
+    description = i18n.t('billing.generated_user');
+    description = description.replace('{{email}}', email);
+
     let customer;
     if (!user.billingData || !user.billingData.customerID) {
       customer = await this._getCustomer(user, req);
@@ -702,6 +729,20 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           user.billingData.customerID
         );
       } catch (error) {
+        try {
+          customer = await this.stripe.customers.create({
+            email: email,
+            description: description,
+            name: fullName,
+            preferred_locales: [locale]
+          });
+        } catch (e) {
+          return {
+            success: false,
+            message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
+              `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe and was not bale to be created`
+          };
+        }
         return {
           success: false,
           message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
@@ -944,15 +985,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
     locale = locale.substr(0, 2).toLocaleLowerCase();
 
+    I18nManager.switchLocale(user.locale);
     let description: string;
-    // LOCALE_SUPPORT_NEEDED #BEGIN
-    if (locale === 'fr') {
-      description = 'Client généré pour {{email}}';
-    } else {
-      description = 'Generated customer for {{email}}';
-    }
+    description = i18n.t('billing.generated_user');
     description = description.replace('{{email}}', email);
-    // LOCALE_SUPPORT_NEEDED #END
 
     let customer = await this._getCustomer(user, req);
     if (!customer['id']) {

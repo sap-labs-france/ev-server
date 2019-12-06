@@ -1,4 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import {BillingSettings} from "./Billing";
 
 export enum ComponentType {
   OCPI = 'ocpi',
@@ -63,7 +64,7 @@ export interface ConvergentChargingPricingSettings extends PricingSetting {
   password: string;
 }
 
-export interface StripeBillingSettings {
+export interface StripeBillingSettings extends BillingSettings {
   url: string;
   secretKey: string;
   publicKey: string;
