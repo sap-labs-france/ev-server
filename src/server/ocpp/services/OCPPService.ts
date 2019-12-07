@@ -1,8 +1,8 @@
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
 import { BillingTransactionData } from '../../../integration/billing/Billing';
+import BillingFactory from '../../../integration/billing/BillingFactory';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -15,17 +15,20 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation from '../../../types/ChargingStation';
 import Connector from '../../../types/Connector';
 import Consumption from '../../../types/Consumption';
+import { OCPPBootNotification } from '../../../types/ocpp/OCPPBootNotification';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import I18nManager from '../../../utils/I18nManager';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -45,7 +48,7 @@ export default class OCPPService {
     this.chargingStationConfig = chargingStationConfig;
   }
 
-  public async handleBootNotification(headers, bootNotification) {
+  public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotification) {
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -68,9 +71,8 @@ export default class OCPPService {
       bootNotification.ocppProtocol = headers.ocppProtocol;
       bootNotification.ocppVersion = headers.ocppVersion;
       // Set the default Heart Beat
-      bootNotification.lastReboot = new Date();
-      bootNotification.lastHeartBeat = bootNotification.lastReboot;
-      bootNotification.timestamp = bootNotification.lastReboot;
+      bootNotification.lastHeartBeat = new Date();;
+      bootNotification.timestamp = bootNotification.lastHeartBeat;
       // Get the charging station
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
@@ -103,12 +105,22 @@ export default class OCPPService {
           });
         }
         // New Charging Station: Create
-        chargingStation = bootNotification;
+        chargingStation = {} as ChargingStation;
+        for (const key in bootNotification) {
+          chargingStation[key] = bootNotification[key];
+        }
         // Update timestamp
         chargingStation.createdOn = new Date();
-
+        // Assign to Site Area
         if (token.siteAreaID) {
-          chargingStation.siteAreaID = token.siteAreaID;
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, token.siteAreaID);
+          if (siteArea) {
+            chargingStation.siteAreaID = token.siteAreaID;
+            // Set the same coordinates
+            if (siteArea.address && siteArea.address.coordinates && siteArea.address.coordinates.length === 2) {
+              chargingStation.coordinates = siteArea.address.coordinates;
+            }
+          }
         }
       } else {
         // Existing Charging Station: Update
@@ -131,7 +143,6 @@ export default class OCPPService {
         chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
         chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
         chargingStation.firmwareVersion = bootNotification.firmwareVersion;
-        chargingStation.lastReboot = bootNotification.lastReboot;
         // Back again
         chargingStation.deleted = false;
       }
@@ -192,7 +203,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleHeartbeat(headers, heartbeat) {
+  public async handleHeartbeat(headers: OCPPHeader, heartbeat) {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -226,7 +237,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleStatusNotification(headers, statusNotification) {
+  public async handleStatusNotification(headers: OCPPHeader, statusNotification) {
     try {
       // Get charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -434,7 +445,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleMeterValues(headers, meterValues) {
+  public async handleMeterValues(headers: OCPPHeader, meterValues) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -996,7 +1007,7 @@ export default class OCPPService {
     };
   }
 
-  public async handleAuthorize(headers, authorize) {
+  public async handleAuthorize(headers: OCPPHeader, authorize) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1032,7 +1043,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleDiagnosticsStatusNotification(headers, diagnosticsStatusNotification) {
+  public async handleDiagnosticsStatusNotification(headers: OCPPHeader, diagnosticsStatusNotification) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1062,7 +1073,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleFirmwareStatusNotification(headers, firmwareStatusNotification) {
+  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1092,7 +1103,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleStartTransaction(headers, startTransaction) {
+  public async handleStartTransaction(headers: OCPPHeader, startTransaction) {
     try {
       // Get the charging station
       const chargingStation: ChargingStation = await OCPPUtils.checkAndGetChargingStation(
@@ -1289,7 +1300,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleDataTransfer(headers, dataTransfer) {
+  public async handleDataTransfer(headers: OCPPHeader, dataTransfer) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1322,7 +1333,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleStopTransaction(headers, stopTransaction, isSoftStop = false, stoppedByCentralSystem = false) {
+  public async handleStopTransaction(headers: OCPPHeader, stopTransaction, isSoftStop = false, stoppedByCentralSystem = false) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);

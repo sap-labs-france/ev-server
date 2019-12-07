@@ -342,7 +342,7 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
-  public static convertToDate(date): Date {
+  public static convertToDate(date: any): Date {
     // Check
     if (!date) {
       return date;
@@ -387,7 +387,7 @@ export default class Utils {
     return userToken.activeComponents.includes(componentName);
   }
 
-  public static convertToObjectID(id): ObjectID {
+  public static convertToObjectID(id: any): ObjectID {
     let changedID = id;
     // Check
     if (typeof id === 'string') {
@@ -397,7 +397,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertToInt(id): number {
+  public static convertToInt(id: any): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -410,7 +410,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertToFloat(id): number {
+  public static convertToFloat(id: any): number {
     let changedID = id;
     if (!id) {
       return 0;

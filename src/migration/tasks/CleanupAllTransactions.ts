@@ -5,7 +5,7 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
-import { DBStatusNotification } from '../../types/ocpp/StatusNotification';
+import { DBOCPPStatusNotification } from '../../types/ocpp/OCPPStatusNotification';
 
 export default class CleanupAllTransactions extends MigrationTask {
   async migrate() {
@@ -33,7 +33,7 @@ export default class CleanupAllTransactions extends MigrationTask {
     ).toArray();
     for (const transactionMDB of transactionsMDB) {
       // Get the two last Status
-      const statusNotificationsMDB: DBStatusNotification[] = await global.database.getCollection<any>(tenant.id, 'statusnotifications').find(
+      const statusNotificationsMDB: DBOCPPStatusNotification[] = await global.database.getCollection<any>(tenant.id, 'statusnotifications').find(
         {
           chargeBoxID: transactionMDB.chargeBoxID,
           connectorId: transactionMDB.connectorId,
