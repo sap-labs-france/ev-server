@@ -12,7 +12,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStation, { PowerLimitUnits } from '../../../types/ChargingStation';
 import Connector from '../../../types/Connector';
 import Consumption from '../../../types/Consumption';
 import { OCPPBootNotification } from '../../../types/ocpp/OCPPBootNotification';
@@ -109,8 +109,9 @@ export default class OCPPService {
         for (const key in bootNotification) {
           chargingStation[key] = bootNotification[key];
         }
-        // Update timestamp
+        // Update props
         chargingStation.createdOn = new Date();
+        chargingStation.powerLimitUnit = PowerLimitUnits.AMPERE;
         // Assign to Site Area
         if (token.siteAreaID) {
           const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, token.siteAreaID);

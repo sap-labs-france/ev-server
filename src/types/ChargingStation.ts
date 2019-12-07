@@ -27,11 +27,16 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   numberOfConnectedPhase: number;
   maximumPower: number;
   cannotChargeInParallel: boolean;
-  powerLimitUnit: string;
+  powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
   connectors: Connector[];
 
   errorCode?: string;
   currentIPAddress?: string;
   siteArea?: SiteArea;
+}
+
+export enum PowerLimitUnits {
+  WATT = 'W',
+  AMPERE = 'A'
 }
