@@ -1,0 +1,46 @@
+[
+  {
+    "id": "Schneider~EV2S22P44",
+    "chargePointVendor": "Schneider Electric",
+    "extraFilters": {
+      "chargeBoxSerialNumber": "EV.2S22P44"
+    },
+    "template": {
+      "maximumPower": 44340,
+      "numberOfConnectedPhase": 3,
+      "cannotChargeInParallel": false,
+      "powerLimitUnit": "A",
+      "connectors": [
+        {
+          "connectorId": 1,
+          "status": "Unavailable",
+          "errorCode": "NoError",
+          "info": "",
+          "vendorErrorCode": "",
+          "power": 22170,
+          "type": "T2",
+          "voltage": 400,
+          "amperage": 32
+        },
+        {
+          "connectorId": 2,
+          "status": "Unavailable",
+          "errorCode": "NoError",
+          "info": "",
+          "vendorErrorCode": "",
+          "power": 22170,
+          "type": "T2",
+          "voltage": 400,
+          "amperage": 32
+        }
+      ],
+      "capabilities": {
+        "supportStaticLimitationForChargingStation": true,
+        "supportStaticLimitationPerConnector": false,
+        "supportChargePointMaxProfile": false,
+        "supportTxDefaultProfile": true,
+        "supportTxProfile": true
+      }
+    }
+  }
+]

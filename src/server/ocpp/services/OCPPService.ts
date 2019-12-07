@@ -9,10 +9,11 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationTemplate, PowerLimitUnits } from '../../../types/ChargingStation';
 import Connector from '../../../types/Connector';
 import Consumption from '../../../types/Consumption';
 import { OCPPBootNotification } from '../../../types/ocpp/OCPPBootNotification';
@@ -28,7 +29,6 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -71,8 +71,9 @@ export default class OCPPService {
       bootNotification.ocppProtocol = headers.ocppProtocol;
       bootNotification.ocppVersion = headers.ocppVersion;
       // Set the default Heart Beat
-      bootNotification.lastHeartBeat = new Date();;
-      bootNotification.timestamp = bootNotification.lastHeartBeat;
+      bootNotification.lastReboot = new Date();
+      bootNotification.lastHeartBeat = bootNotification.lastReboot;
+      bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
@@ -123,6 +124,8 @@ export default class OCPPService {
             }
           }
         }
+        // Enrich Charging Station
+        await this.enrichCharingStationWithTemplate(headers.tenantID, chargingStation);
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -144,6 +147,7 @@ export default class OCPPService {
         chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
         chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
         chargingStation.firmwareVersion = bootNotification.firmwareVersion;
+        chargingStation.lastReboot = bootNotification.lastReboot;
         // Back again
         chargingStation.deleted = false;
       }
@@ -201,6 +205,35 @@ export default class OCPPService {
         'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
+    }
+  }
+
+  private async enrichCharingStationWithTemplate(tenantID: string, chargingStation: ChargingStation) {
+    let foundTemplate: ChargingStationTemplate = null;
+    // Get the Templates
+    const chargingStationTemplates: ChargingStationTemplate[] = 
+      await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
+    // Parse Them
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      // Keep it
+      foundTemplate = chargingStationTemplate;
+      // Browse filter for extra matching
+      for (const filter in chargingStationTemplate.extraFilters) {
+        // Check
+        if (chargingStationTemplate.extraFilters.hasOwnProperty(filter)) {
+          const filterValue: string = chargingStationTemplate.extraFilters[filter];
+          if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
+            foundTemplate = null;
+            break;              
+          }
+        }
+      }
+    }
+    // Copy from template
+    if (foundTemplate) {
+      for (const key in foundTemplate.template) {
+        chargingStation[key] = foundTemplate.template[key];
+      }
     }
   }
 

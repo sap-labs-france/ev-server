@@ -12,4 +12,5 @@ export interface OCPPBootNotification {
   chargePointSerialNumber: string;
   chargeBoxSerialNumber: string;
   firmwareVersion: string;
+  lastReboot: Date;
 }
