@@ -1,13 +1,14 @@
-import { ObjectID } from 'mongodb';
+import Setting, { BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting, { ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<Setting> {
@@ -110,6 +111,38 @@ export default class SettingStorage {
       }
     }
     return pricingSettings;
+  }
+
+  public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
+    const billingSettings = {
+      identifier: ComponentType.BILLING,
+    } as BillingSettings;
+
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
+
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      // ID
+      billingSettings.id = settings.result[0].id;
+      billingSettings.sensitiveData = settings.result[0].sensitiveData;
+
+      // Currency
+      const pricingSettings = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
+      if (pricingSettings.content && pricingSettings.content.simple) {
+        billingSettings.currency = pricingSettings.content.simple.currency;
+      } else if (pricingSettings.content && pricingSettings.content.convergentCharging) {
+        if (pricingSettings.content.convergentCharging['currency']) {
+          billingSettings.currency = pricingSettings.content.convergentCharging['currency'];
+        }
+      } else {
+        billingSettings.currency = 'EUR';
+      }
+      // Billing type
+      if (settings.result[0].content.type === Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE) {
+        billingSettings.stripe = settings.result[0].content.stripe;
+      }
+
+      return billingSettings;
+    }
   }
 
   public static async getSettings(tenantID: string,

@@ -1,7 +1,3 @@
-export interface BillingSettings {
-  currency: string; // Must come from 'pricing' settings!
-}
-
 export interface BillingResponse {
   success: boolean;
   message?: string;

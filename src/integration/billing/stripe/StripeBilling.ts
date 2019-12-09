@@ -366,15 +366,14 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     let description = '';
     const chargeBox = await ChargingStationStorage.getChargingStation(this.tenantId, transaction.chargeBoxID);
     I18nManager.switchLocale(user.locale);
+    const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;
+    const time = transaction.stop.timestamp.toLocaleTimeString(user.locale.replace('_', '-'));
     if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-      description = i18n.t('billing.charging_stop_sitearea');
-      description = description.replace('{{siteArea}}', chargeBox.siteArea.name);
+      description = i18n.t('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
     } else {
-      description = i18n.t('billing.charging_stop_chargebox');
+      description = i18n.t('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
       description = description.replace('{{chargeBox}}', transaction.chargeBoxID);
     }
-    description = description.replace('{{totalConsumption}}', `${Math.round(transaction.stop.totalConsumption / 100) / 10}`);
-    description = description.replace('{{time}}', transaction.stop.timestamp.toLocaleTimeString(user.locale.replace('_', '-')));
 
     let collectionMethod = 'send_invoice';
     let daysUntilDue = 30;
@@ -708,9 +707,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     locale = locale.substr(0, 2).toLocaleLowerCase();
 
     I18nManager.switchLocale(user.locale);
-    let description: string;
-    description = i18n.t('billing.generated_user');
-    description = description.replace('{{email}}', email);
+    const description = i18n.t('billing.generatedUser', { email: email });
 
     let customer;
     if (!user.billingData || !user.billingData.customerID) {
@@ -987,7 +984,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
 
     I18nManager.switchLocale(user.locale);
     let description: string;
-    description = i18n.t('billing.generated_user');
+    description = i18n.t('billing.generatedUser');
     description = description.replace('{{email}}', email);
 
     let customer = await this._getCustomer(user, req);
