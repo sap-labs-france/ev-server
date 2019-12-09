@@ -684,7 +684,7 @@ export default class Authorizations {
       const tag: Tag = {
         id: tagID,
         deleted: false,
-        internal: false,
+        issuer: false,
         userID: user.id
       };
       await UserStorage.saveUserTags(tenantID, user.id, [tag]);

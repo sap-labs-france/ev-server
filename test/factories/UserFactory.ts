@@ -17,7 +17,8 @@ const userFactory = Factory.define('user')
   .attr('locale', 'en_US')
   .attr('tags', () => [
     { id: faker.random.alphaNumeric(8).toUpperCase(),
-      internal: true
+      description: '',
+      issuer: true
     }
   ]);
 
