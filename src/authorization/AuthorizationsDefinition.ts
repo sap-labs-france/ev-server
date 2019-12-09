@@ -51,6 +51,7 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
+      { resource: 'billing', action: ['CheckConnection', 'SynchronizeBilling'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
@@ -58,7 +59,7 @@ const GRANTS = {
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
-        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses'],
+        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens'],
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },

@@ -1,5 +1,4 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import {BillingSettings} from "./Billing";
 
 export enum ComponentType {
   OCPI = 'ocpi',
@@ -121,4 +120,12 @@ export interface ConcurRefundSettings {
   expenseTypeCode: string;
   policyId: string;
   reportName: string;
+}
+
+export interface BillingSettings {
+  id?: string;
+  identifier: ComponentType.BILLING;
+  currency: string; // Must come from 'pricing' settings!
+  sensitiveData: string[];
+  stripe?: StripeBillingSettings;
 }

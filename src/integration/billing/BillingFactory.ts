@@ -20,26 +20,15 @@ export default class BillingFactory {
       Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING)
     ) {
       // Get the billing's settings
-      const settings = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.BILLING);
+      const settings = await SettingStorage.getBillingSettings(tenantID);
       // Check
-      if (settings) {
-        const pricingSettings = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
-        let currency = 'EUR';
-        if (pricingSettings.content && pricingSettings.content.simple) {
-          currency = pricingSettings.content.simple.currency;
-        } else if (pricingSettings.content && pricingSettings.content.convergentCharging) {
-          if (pricingSettings.content.convergentCharging['currency']) {
-            currency = pricingSettings.content.convergentCharging['currency'];
-          }
-        }
-        // Stripe
-        if (settings.content[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE]) {
-          // Return the Stripe implementation
-          return new StripeBilling(tenantID,
-            settings.content[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE], currency);
-        }
+      if (settings && settings[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE]) {
+        // Return the Stripe implementation
+        return new StripeBilling(tenantID,
+          settings[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE], settings.currency);
       }
     }
+
     // Billing is not active
     return null;
   }

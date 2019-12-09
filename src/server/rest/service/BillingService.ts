@@ -1,6 +1,5 @@
 import sanitize from 'mongo-sanitize';
 import { NextFunction, Request, Response } from 'express';
-import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -11,12 +10,38 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import User from '../../../types/User';
-import {BillingUserData} from "../../../types/Billing";
+import { BillingUserData, Tax } from '../../../types/Billing';
+import * as fs from 'fs';
+import { DataResult } from '../../../types/DataResult';
 
 export default class BillingService {
 
   public static async handleGetBillingConnection(action: string, req: Request, res: Response, next: NextFunction) {
+    if (!Authorizations.canCheckConnectionBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        entity: Constants.ENTITY_USER,
+        module: 'BillingService',
+        method: 'handleGetBillingConnection',
+      });
+    }
+
     const tenantID = sanitize(req.user.tenantID);
+    const tenant = await TenantStorage.getTenant(tenantID);
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+      !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Billing or Pricing not active in this Tenant',
+        module: 'BillingService',
+        method: 'handleSynchronizeUsers',
+        action: action,
+        user: req.user
+      });
+    }
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       // Check auth TODO: use another check
@@ -36,38 +61,47 @@ export default class BillingService {
       if (checkResult.success) {
         Logging.logSecurityInfo({
           tenantID: tenantID,
-          user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user,
+          module: 'BillingService',
+          method: 'handleGetBillingConnection',
           message: checkResult.message,
-          action: action, detailedMessages: 'Successfully checking connection to Billing application'
+          action: action,
+          detailedMessages: 'Successfully checking connection to Billing application'
         });
       } else {
         Logging.logSecurityWarning({
           tenantID: tenantID,
-          user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user,
+          module: 'BillingService',
+          method: 'handleGetBillingConnection',
           message: checkResult.message,
-          action: action, detailedMessages: 'Error when checking connection to Billing application'
+          action: action,
+          detailedMessages: 'Error when checking connection to Billing application'
         });
       }
-      res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: checkResult.success }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ connectionIsValid: checkResult.success }, Constants.REST_RESPONSE_SUCCESS));
     } else {
       Logging.logSecurityWarning({
         tenantID: tenantID,
-        user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
+        user: req.user,
+        module: 'BillingService',
+        method: 'handleGetBillingConnection',
         message: 'Billing (or Pricing) not active or Billing not fully implemented',
-        action: action, detailedMessages: 'Error when checking connection to Billing application'
+        action: action,
+        detailedMessages: 'Error when checking connection to Billing application'
       });
-      res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
     next();
   }
 
   public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      if (!Authorizations.isAdmin(req.user)) {
+      if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
         throw new AppAuthError({
           errorCode: Constants.HTTP_AUTH_ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
           entity: Constants.ENTITY_USER,
           module: 'BillingService',
           method: 'handleSynchronizeUsers',
@@ -121,7 +155,8 @@ export default class BillingService {
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_SYNCHRONIZE_BILLING,
-          module: 'BillingService', method: 'handleSynchronizeUsers',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
           message: `${usersNotSynchronized.count} changed active users are going to be synchronized with Billing application`
         });
         for (const user of usersNotSynchronized.result) {
@@ -183,7 +218,8 @@ export default class BillingService {
               tenantID: tenant.id,
               source: Constants.CENTRAL_SERVER,
               action: Constants.ACTION_SYNCHRONIZE_BILLING,
-              module: 'BillingService', method: 'handleSynchronizeUsers',
+              module: 'BillingService',
+              method: 'handleSynchronizeUsers',
               message: `Unable to create billing customer with ID '${userMDB.billingData.customerID}`,
               detailedMessages: `Synchronization failed for customer ID '${userMDB.billingData.customerID}' from database for reason : ${e}`
             });
@@ -198,7 +234,8 @@ export default class BillingService {
           tenantID: tenant.id,
           source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_SYNCHRONIZE_BILLING,
-          module: 'BillingService', method: 'handleSynchronizeUsers',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
           message: `Users are going to be synchronized for ${usersChangedInBilling.length} changed Billing customers`
         });
         for (const changedBillingCustomer of usersChangedInBilling) {
@@ -233,7 +270,8 @@ export default class BillingService {
               tenantID: tenant.id,
               source: Constants.CENTRAL_SERVER,
               action: Constants.ACTION_SYNCHRONIZE_BILLING,
-              module: 'BillingService', method: 'handleSynchronizeUsers',
+              module: 'BillingService',
+              method: 'handleSynchronizeUsers',
               message: `No user exists for billing customer ID '${changedBillingCustomer}`,
               detailedMessages: `Synchronization failed for customer ID '${changedBillingCustomer}' from the Billing application. No user exists for this customer ID`
             });
@@ -245,7 +283,7 @@ export default class BillingService {
       // Final step
       await billingImpl.finalizeSynchronization();
 
-      res.status(HttpStatusCodes.OK).json(Object.assign(actionsDone, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign(actionsDone, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);

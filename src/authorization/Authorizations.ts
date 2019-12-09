@@ -393,6 +393,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_SEND_EVSE_STATUSES);
   }
 
+  public static canSendTokensOcpiEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_SEND_TOKENS);
+  }
+
   public static canRegisterOcpiEndpoint(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_REGISTER);
   }
@@ -532,6 +536,14 @@ export default class Authorizations {
 
   public static canUpdatePricing(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING, Constants.ACTION_UPDATE);
+  }
+
+  public static canCheckConnectionBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_CHECK_CONNECTION_BILLING);
+  }
+
+  public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_SYNCHRONIZE_BILLING);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

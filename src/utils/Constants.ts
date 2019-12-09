@@ -17,7 +17,7 @@ export default class Constants {
   public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
 
   public static readonly CSV_SEPARATOR = '\t';
-  
+
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
@@ -100,6 +100,7 @@ export default class Constants {
   public static readonly ENTITY_LOGGINGS = 'Loggings';
   public static readonly ENTITY_LOGGING = 'Logging';
   public static readonly ENTITY_PRICING = 'Pricing';
+  public static readonly ENTITY_BILLING = 'Billing';
   public static readonly ENTITY_SETTING = 'Setting';
   public static readonly ENTITY_SETTINGS = 'Settings';
   public static readonly ENTITY_TOKENS = 'Tokens';
@@ -156,8 +157,10 @@ export default class Constants {
   public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
   public static readonly ACTION_PING = 'Ping';
   public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
+  public static readonly ACTION_SEND_TOKENS = 'SendTokens';
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
+  public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckConnection';
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
 
   // Password constants
