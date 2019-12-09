@@ -51,7 +51,7 @@ export default class SiteStorage {
       // At least one User
       if (userIDs && userIDs.length > 0) {
         // Execute
-        const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
           'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
           'siteID': Utils.convertToObjectID(siteID)
         });

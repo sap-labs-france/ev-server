@@ -1,4 +1,4 @@
-import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
+import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../types/OCPIEndpoint';
 import { TaskConfig } from '../../types/TaskConfig';
@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
-import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 

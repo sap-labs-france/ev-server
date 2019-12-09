@@ -1,11 +1,12 @@
+import DbParams from '../../types/database/DbParams';
+import global from '../../types/GlobalType';
+import { OCPPBootNotification } from '../../types/ocpp/OCPPBootNotification';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {
@@ -235,7 +236,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID: string, bootNotification) {
+  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveBootNotification');
     // Check Tenant

@@ -4,7 +4,7 @@ import AbstractConnector from '../../../integration/AbstractConnector';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ConcurRefundConnector from '../../../integration/refund/ConcurRefundConnector';
+import ConcurRefundConnector from '../../../integration/refund/concur/ConcurRefundConnector';
 import ConnectionValidator from '../validation/ConnectionValidator';
 import ConnectorSecurity from './security/ConnectorSecurity';
 import Constants from '../../../utils/Constants';

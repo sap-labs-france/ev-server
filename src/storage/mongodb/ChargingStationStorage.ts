@@ -1,18 +1,59 @@
-import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../types/ChargingStation';
-import Connector from '../../types/Connector';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import TenantStorage from './TenantStorage';
-import Utils from '../../utils/Utils';
-import UtilsService from '../../server/rest/service/UtilsService';
-import { DataResult } from '../../types/DataResult';
 import moment from 'moment';
+import BackendError from '../../exception/BackendError';
+import UtilsService from '../../server/rest/service/UtilsService';
+import ChargingStation, { ChargingStationTemplate } from '../../types/ChargingStation';
+import Connector from '../../types/Connector';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 export default class ChargingStationStorage {
+
+  public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationTemplates');
+    // Create Aggregation
+    const aggregation = [];
+    // Add in aggregation
+    if (chargePointVendor) {
+      aggregation.push({
+        $match: {
+          chargePointVendor
+        }
+      });      
+    }
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Query Templates
+    const chargingStationTemplatesMDB =
+      await global.database.getCollection(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
+        .aggregate(aggregation).toArray();
+    // Transfer
+    const chargingStationTemplates = [];
+    for (const chargingStationTemplateMDB of chargingStationTemplatesMDB) {
+      chargingStationTemplates.push(chargingStationTemplateMDB);
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStationTemplates', uniqueTimerID, { chargePointVendor });
+    return chargingStationTemplates;
+  }
+
+  public static async saveChargingStationTemplate(chargingStationTemplate: ChargingStationTemplate): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationTemplate');
+    // Modify and return the modified document
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'chargingstationtemplates').findOneAndReplace(
+      { '_id': chargingStationTemplate.id },
+      chargingStationTemplate,
+      { upsert: true });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationTemplate', uniqueTimerID);
+  }
 
   public static async getChargingStation(tenantID: string, id: string): Promise<ChargingStation> {
     // Debug
@@ -405,6 +446,7 @@ export default class ChargingStationStorage {
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      capabilities: chargingStationToSave.capabilities,
       currentIPAddress: chargingStationToSave.currentIPAddress
     };
     if (!chargingStationMDB.connectors) {
@@ -417,14 +459,6 @@ export default class ChargingStationStorage {
       chargingStationFilter,
       { $set: chargingStationMDB },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'ChargingStationStorage',
-        method: 'saveChargingStation',
-        message: 'Could not update ChargingStation'
-      });
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return chargingStationMDB._id;
@@ -456,14 +490,6 @@ export default class ChargingStationStorage {
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'ChargingStationStorage',
-        method: 'saveChargingStationConnector',
-        message: 'Could not update ChargingStation connector'
-      });
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
@@ -482,14 +508,6 @@ export default class ChargingStationStorage {
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'ChargingStationStorage',
-        method: 'saveChargingStationHeartBeat',
-        message: 'Could not update ChargingStation heartbeat'
-      });
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
   }
