@@ -55,7 +55,6 @@ export default class CleanupAllTransactions extends MigrationTask {
         transactionMDB.stop.extraInactivityComputed = true;
       }
       // Update
-      // Update
       await global.database.getCollection(tenant.id, 'transactions').findOneAndUpdate(
         { '_id': transactionMDB['_id'] },
         { $set: transactionMDB },

@@ -125,7 +125,7 @@ export default class OCPPService {
           }
         }
         // Enrich Charging Station
-        await this.enrichCharingStationWithTemplate(headers.tenantID, chargingStation);
+        await OCPPUtils.enrichCharingStationWithTemplate(chargingStation);
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -205,35 +205,6 @@ export default class OCPPService {
         'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
-    }
-  }
-
-  private async enrichCharingStationWithTemplate(tenantID: string, chargingStation: ChargingStation) {
-    let foundTemplate: ChargingStationTemplate = null;
-    // Get the Templates
-    const chargingStationTemplates: ChargingStationTemplate[] = 
-      await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
-    // Parse Them
-    for (const chargingStationTemplate of chargingStationTemplates) {
-      // Keep it
-      foundTemplate = chargingStationTemplate;
-      // Browse filter for extra matching
-      for (const filter in chargingStationTemplate.extraFilters) {
-        // Check
-        if (chargingStationTemplate.extraFilters.hasOwnProperty(filter)) {
-          const filterValue: string = chargingStationTemplate.extraFilters[filter];
-          if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
-            foundTemplate = null;
-            break;              
-          }
-        }
-      }
-    }
-    // Copy from template
-    if (foundTemplate) {
-      for (const key in foundTemplate.template) {
-        chargingStation[key] = foundTemplate.template[key];
-      }
     }
   }
 
