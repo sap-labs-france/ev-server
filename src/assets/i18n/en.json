@@ -56,7 +56,7 @@
 		}
 	},
   "billing": {
-    "generatedClient": "Generated customer for {{email}}",
+    "generatedUser": "Generated customer for {{email}}",
     "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
     "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
   }
