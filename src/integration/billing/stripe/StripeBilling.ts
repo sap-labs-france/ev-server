@@ -983,9 +983,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     locale = locale.substr(0, 2).toLocaleLowerCase();
 
     I18nManager.switchLocale(user.locale);
-    let description: string;
-    description = i18n.t('billing.generatedUser');
-    description = description.replace('{{email}}', email);
+    const description = i18n.t('billing.generatedUser', { email: email });
 
     let customer = await this._getCustomer(user, req);
     if (!customer['id']) {

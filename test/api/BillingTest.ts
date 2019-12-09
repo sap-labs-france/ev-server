@@ -122,15 +122,6 @@ describe('Billing Service', function() {
       const usersAfter = await billingImpl.getUsers();
       expect(usersAfter.length).to.be.eq(usersBefore.length - 1);
     });
-
-    after(async () => {
-      for (const user of testData.createdUsers) {
-        await testData.userService.deleteEntity(
-          testData.userService.userApi,
-          { id: user.id }
-        );
-      }
-    });
   });
 
   describe('With basic user', () => {
