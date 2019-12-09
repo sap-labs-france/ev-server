@@ -3,7 +3,7 @@ import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import ConcurRefundConnector from './ConcurRefundConnector';
+import ConcurRefundConnector from './concur/ConcurRefundConnector';
 import Logging from '../../utils/Logging';
 import RefundConnector from './RefundConnector';
 

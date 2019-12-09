@@ -1,16 +1,47 @@
-import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
+import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import ChargingStation, { ChargingStationTemplate } from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import OCPPConstants from './OCPPConstants';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import Utils from '../../../utils/Utils';
-import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
+import OCPPConstants from './OCPPConstants';
 
 export default class OCPPUtils {
+  public static async enrichCharingStationWithTemplate(chargingStation: ChargingStation): Promise<boolean> {
+    let foundTemplate: ChargingStationTemplate = null;
+    // Get the Templates
+    const chargingStationTemplates: ChargingStationTemplate[] = 
+      await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
+    // Parse Them
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      // Keep it
+      foundTemplate = chargingStationTemplate;
+      // Browse filter for extra matching
+      for (const filter in chargingStationTemplate.extraFilters) {
+        // Check
+        if (chargingStationTemplate.extraFilters.hasOwnProperty(filter)) {
+          const filterValue: string = chargingStationTemplate.extraFilters[filter];
+          if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
+            foundTemplate = null;
+            break;              
+          }
+        }
+      }
+    }
+    // Copy from template
+    if (foundTemplate) {
+      for (const key in foundTemplate.template) {
+        chargingStation[key] = foundTemplate.template[key];
+      }
+      return true;
+    }
+    return false;
+  }
+
   public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
     let inactive = false;
     // Get Heartbeat Interval from conf

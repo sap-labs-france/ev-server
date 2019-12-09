@@ -19,8 +19,8 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
-    let filteredChargingStation;
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation {
+    let filteredChargingStation: ChargingStation;
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
     }
@@ -48,9 +48,8 @@ export default class ChargingStationSecurity {
       }
     } else {
       // Set only necessary info
-      filteredChargingStation = {};
+      filteredChargingStation = {} as ChargingStation;
       filteredChargingStation.id = chargingStation.id;
-      filteredChargingStation.chargeBoxID = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
@@ -78,6 +77,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
+      filteredChargingStation.chargePointModel = chargingStation.chargePointModel;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
       filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.siteArea) {
@@ -91,7 +91,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
-    const filteredChargingStations = [];
+    const filteredChargingStations: ChargingStation[] = [];
     // Check
     if (!chargingStations.result) {
       return null;
