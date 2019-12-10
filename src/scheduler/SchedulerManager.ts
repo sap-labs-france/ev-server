@@ -6,6 +6,7 @@ import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanup
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeSmartChargingProfilesTask from './tasks/SynchronizeSmartChargingProfilesTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
@@ -57,6 +58,9 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
+            break;
+          case 'SynchronizeSmartChargingProfilesTask':
+            schedulerTask = new SynchronizeSmartChargingProfilesTask();
             break;
           default:
             Logging.logError({
