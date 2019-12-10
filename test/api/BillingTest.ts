@@ -9,7 +9,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { StripeBillingSettings } from '../../src/types/Setting';
+import { BillingSetting, StripeBillingSettings } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
@@ -28,7 +28,7 @@ const billingSettings = {
   periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
 } as StripeBillingSettings;
 
-let billingImpl: Billing<StripeBillingSettings>;
+let billingImpl: Billing<BillingSetting>;
 
 class TestData {
   public tenantContext: TenantContext;
@@ -75,7 +75,7 @@ describe('Billing Service', function() {
         await testData.userService.settingApi.update(componentSetting);
 
         billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-        billingImpl = new StripeBilling(tenant.id, billingSettings, config.get('billing.currency'));
+        billingImpl = new StripeBilling(tenant.id, billingSettings);
         expect(billingImpl).to.not.be.null;
       } else {
         throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
@@ -154,7 +154,7 @@ describe('Billing Service', function() {
         await testData.userService.settingApi.update(componentSetting);
 
         billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-        billingImpl = new StripeBilling(tenant.id, billingSettings, config.get('billing.currency'));
+        billingImpl = new StripeBilling(tenant.id, billingSettings);
         expect(billingImpl).to.not.be.null;
       } else {
         throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);

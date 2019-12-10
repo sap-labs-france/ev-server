@@ -40,9 +40,9 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
   private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
   private stripe: Stripe;
 
-  constructor(tenantId: string, settings: StripeBillingSettings, currency: string) {
+  constructor(tenantId: string, settings: StripeBillingSettings) {
     const stripeSettings: StripeBillingSettings = settings;
-    stripeSettings.currency = currency;
+    stripeSettings.currency = settings.currency;
     super(tenantId, stripeSettings);
     if (this.settings.secretKey) {
       this.settings.secretKey = Cypher.decrypt(stripeSettings.secretKey);
@@ -222,9 +222,9 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
 
   public async finalizeSynchronization(): Promise<void> {
     const newSyncDate = new Date();
-    const billingSettings = await SettingStorage.getSettingByIdentifier(this.tenantId, Constants.COMPONENTS.BILLING);
-    if (billingSettings.content.stripe) {
-      billingSettings.content.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
+    const billingSettings = await SettingStorage.getBillingSettings(this.tenantId);
+    if (billingSettings.stripe) {
+      billingSettings.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       this.settings.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       await SettingStorage.saveSetting(this.tenantId, billingSettings);
     }

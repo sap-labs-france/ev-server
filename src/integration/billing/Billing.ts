@@ -2,9 +2,9 @@ import { Request } from 'express';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../types/Billing';
-import { BillingSettings } from '../../types/Setting';
+import {BillingSetting, BillingSettings} from '../../types/Setting';
 
-export default abstract class Billing<T extends BillingSettings> {
+export default abstract class Billing<T extends BillingSetting> {
 
   // Protected because only used in subclasses at the moment
   protected readonly tenantId: string; // Assuming GUID or other string format ID

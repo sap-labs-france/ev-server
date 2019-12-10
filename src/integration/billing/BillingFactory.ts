@@ -1,3 +1,4 @@
+import { BillingSettingType } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBilling from './stripe/StripeBilling';
@@ -22,10 +23,11 @@ export default class BillingFactory {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       // Check
-      if (settings && settings[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE]) {
-        // Return the Stripe implementation
-        return new StripeBilling(tenantID,
-          settings[Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE], settings.currency);
+      if (settings) {
+        if (settings.type === BillingSettingType.STRIPE) {
+          // Return the Stripe implementation
+          return new StripeBilling(tenantID, settings.stripe);
+        }
       }
     }
 
