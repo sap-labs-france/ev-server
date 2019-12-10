@@ -284,7 +284,7 @@ export default class EMailNotificationTask implements NotificationTask {
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
-            actionOnUser: data.user,
+            actionOnUser: user,
             detailedMessages: [
               {
                 email: {
@@ -313,7 +313,7 @@ export default class EMailNotificationTask implements NotificationTask {
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
-          actionOnUser: data.user,
+          actionOnUser: user,
           message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [
             {
