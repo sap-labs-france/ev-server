@@ -26,9 +26,7 @@ export default class BillingService {
         method: 'handleGetBillingConnection',
       });
     }
-
-    const filteredRequest: HttpBillingRequest = BillingSecurity.filterBillingRequest(req);
-    const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
       !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       throw new AppError({
@@ -41,7 +39,7 @@ export default class BillingService {
         user: req.user
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(filteredRequest.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
       if (!Authorizations.canCheckConnectionBilling(req.user)) {
         throw new AppAuthError({
@@ -53,9 +51,7 @@ export default class BillingService {
           method: 'handleGetBillingConnection',
         });
       }
-
       const checkResult = await billingImpl.checkConnection();
-
       if (checkResult.success) {
         Logging.logSecurityInfo({
           tenantID: tenant.id,
@@ -105,9 +101,7 @@ export default class BillingService {
           method: 'handleSynchronizeUsers',
         });
       }
-
-      const filteredRequest: HttpBillingRequest = BillingSecurity.filterBillingRequest(req);
-      const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
         !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
         throw new AppError({
@@ -120,7 +114,6 @@ export default class BillingService {
           user: req.user
         });
       }
-
       // Get Billing implementation from factory
       const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
       if (!billingImpl) {
@@ -134,16 +127,13 @@ export default class BillingService {
           user: req.user
         });
       }
-
       // Check
       const actionsDone = {
         synchronized: 0,
         error: 0
       };
-
       // First step: Get recently updated customers from Billing application
       let usersChangedInBilling = await billingImpl.getUpdatedUsersInBillingForSynchronization();
-
       // Second step: Treat all not-synchronized users from own database
       const usersNotSynchronized = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
@@ -177,13 +167,11 @@ export default class BillingService {
           }
         }
       }
-
       // Third step : synchronize users with old BillingData from own database
       let usersOldBillingData = await UserStorage.getUsers(tenant.id,
         { 'statuses': [Constants.USER_STATUS_ACTIVE] },
         { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
       const usersInBilling: Partial<User>[] = await billingImpl.getUsers();
-
       for (const userMDB of usersOldBillingData.result) {
         let userInBillingImpl = false;
         for (const userBilling of usersInBilling) {
@@ -192,7 +180,6 @@ export default class BillingService {
             break;
           }
         }
-
         if (!userInBillingImpl) {
           try {
             const createReq = { ...req } as Request;
@@ -226,7 +213,6 @@ export default class BillingService {
           }
         }
       }
-
       // Fourth step: synchronize remaining customers from Billing
       if (usersChangedInBilling && usersChangedInBilling.length > 0) {
         Logging.logInfo({
@@ -278,10 +264,8 @@ export default class BillingService {
           }
         }
       }
-
       // Final step
       await billingImpl.finalizeSynchronization();
-
       res.json(Object.assign(actionsDone, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
