@@ -367,7 +367,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     const chargeBox = await ChargingStationStorage.getChargingStation(this.tenantId, transaction.chargeBoxID);
     I18nManager.switchLocale(user.locale);
     const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;
-    const time = transaction.stop.timestamp.toLocaleTimeString(user.locale.replace('_', '-'));
+    const time = I18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
     if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
       description = i18n.t('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
     } else {
