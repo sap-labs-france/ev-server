@@ -1,4 +1,4 @@
-import Setting, { BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import Setting, { BillingSettingType, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -119,6 +119,7 @@ export default class SettingStorage {
     } as BillingSettings;
 
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const config = settings.result[0].content;
 
     if (settings && settings.count > 0 && settings.result[0].content) {
       // ID
@@ -126,19 +127,31 @@ export default class SettingStorage {
       billingSettings.sensitiveData = settings.result[0].sensitiveData;
 
       // Currency
-      const pricingSettings = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
-      if (pricingSettings.content && pricingSettings.content.simple) {
-        billingSettings.currency = pricingSettings.content.simple.currency;
-      } else if (pricingSettings.content && pricingSettings.content.convergentCharging) {
-        if (pricingSettings.content.convergentCharging['currency']) {
-          billingSettings.currency = pricingSettings.content.convergentCharging['currency'];
+      const pricingSettings = await SettingStorage.getPricingSettings(tenantID);
+      let currency = 'EUR';
+      if (pricingSettings) {
+        if (pricingSettings.simple) {
+          currency = pricingSettings.simple.currency;
+        } else if (pricingSettings.convergentCharging) {
+          if (pricingSettings.convergentCharging['currency']) {
+            currency = pricingSettings.convergentCharging['currency'];
+          }
         }
-      } else {
-        billingSettings.currency = 'EUR';
       }
+
       // Billing type
-      if (settings.result[0].content.type === Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE) {
-        billingSettings.stripe = settings.result[0].content.stripe;
+      if (config.stripe) {
+        billingSettings.type = BillingSettingType.STRIPE;
+        billingSettings.stripe = {
+          url: config.stripe.url ? config.stripe.url : '',
+          publicKey: config.stripe.publicKey ? config.stripe.publicKey : '',
+          secretKey: config.stripe.secretKey ? config.stripe.secretKey : '',
+          currency: currency,
+          noCardAllowed: config.stripe.noCardAllowed ? config.stripe.noCardAllowed : false,
+          advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
+          immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
+          periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
+        };
       }
 
       return billingSettings;
