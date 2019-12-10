@@ -1,18 +1,17 @@
-import sanitize from 'mongo-sanitize';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingSecurity from './security/BillingSecurity';
+import { BillingUserData } from '../../../types/Billing';
 import Constants from '../../../utils/Constants';
+import { HttpBillingRequest } from '../../../types/requests/HttpBillingRequest';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import User from '../../../types/User';
-import { BillingUserData, Tax } from '../../../types/Billing';
-import * as fs from 'fs';
-import { DataResult } from '../../../types/DataResult';
 
 export default class BillingService {
 
@@ -28,8 +27,8 @@ export default class BillingService {
       });
     }
 
-    const tenantID = sanitize(req.user.tenantID);
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const filteredRequest: HttpBillingRequest = BillingSecurity.filterBillingRequest(req);
+    const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
     if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
       !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       throw new AppError({
@@ -42,15 +41,14 @@ export default class BillingService {
         user: req.user
       });
     }
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(filteredRequest.tenantID);
     if (billingImpl) {
-      // Check auth TODO: use another check
-      if (!Authorizations.canUpdateSetting(req.user)) {
+      if (!Authorizations.canCheckConnectionBilling(req.user)) {
         throw new AppAuthError({
           errorCode: Constants.HTTP_AUTH_ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_SETTING,
+          action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+          entity: Constants.ENTITY_BILLING,
           module: 'BillingService',
           method: 'handleGetBillingConnection',
         });
@@ -60,7 +58,7 @@ export default class BillingService {
 
       if (checkResult.success) {
         Logging.logSecurityInfo({
-          tenantID: tenantID,
+          tenantID: tenant.id,
           user: req.user,
           module: 'BillingService',
           method: 'handleGetBillingConnection',
@@ -70,7 +68,7 @@ export default class BillingService {
         });
       } else {
         Logging.logSecurityWarning({
-          tenantID: tenantID,
+          tenantID: tenant.id,
           user: req.user,
           module: 'BillingService',
           method: 'handleGetBillingConnection',
@@ -82,7 +80,7 @@ export default class BillingService {
       res.json(Object.assign({ connectionIsValid: checkResult.success }, Constants.REST_RESPONSE_SUCCESS));
     } else {
       Logging.logSecurityWarning({
-        tenantID: tenantID,
+        tenantID: tenant.id,
         user: req.user,
         module: 'BillingService',
         method: 'handleGetBillingConnection',
@@ -108,7 +106,8 @@ export default class BillingService {
         });
       }
 
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      const filteredRequest: HttpBillingRequest = BillingSecurity.filterBillingRequest(req);
+      const tenant = await TenantStorage.getTenant(filteredRequest.tenantID);
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
         !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
         throw new AppError({
