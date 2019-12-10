@@ -54,5 +54,10 @@
 			"title": "Bornes Hors Ligne",
 			"body": "Au moins une borne est hors ligne dans votre organisation."
 		}
-	}
+	},
+  "billing": {
+    "generatedUser": "Client généré pour {{email}}",
+    "chargingStopSiteArea": "Charger {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
+    "chargingStopChargeBox": "Charger {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+  }
 }

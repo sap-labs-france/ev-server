@@ -538,6 +538,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING, Constants.ACTION_UPDATE);
   }
 
+  public static canCheckConnectionBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_CHECK_CONNECTION_BILLING);
+  }
+
+  public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_SYNCHRONIZE_BILLING);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_SUPER_ADMIN;
   }

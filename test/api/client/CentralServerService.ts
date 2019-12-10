@@ -19,6 +19,7 @@ import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
 import UserApi from './UserApi';
+import BillingApi from './BillingApi';
 
 // Set
 chai.use(chaiSubset);
@@ -42,6 +43,7 @@ export default class CentralServerService {
   public mailApi: MailApi;
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
+  public billingApi: BillingApi;
   public _baseApi: BaseApi;
   private _baseURL: string;
   private _authenticatedUser: any;
@@ -89,6 +91,7 @@ export default class CentralServerService {
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
+    this.billingApi = new BillingApi(this.authenticatedApi);
   }
 
   public static get DefaultInstance(): CentralServerService {

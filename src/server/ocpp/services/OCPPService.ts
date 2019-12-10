@@ -1,8 +1,8 @@
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import { BillingTransactionData } from '../../../integration/billing/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import { BillingTransactionData } from '../../../types/Billing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -385,7 +385,7 @@ export default class OCPPService {
             module: 'OCPPService', method: 'checkStatusNotificationInactivity', action: 'ExtraInactivity',
             message: `Connector '${lastTransaction.connectorId}' > Transaction ID '${lastTransaction.id}' > Extra Inactivity has already been computed`,
             detailedMessages: [statusNotification, lastTransaction]
-          });          
+          });
         }
       }
     // OCPP 1.6: Charging --> Available

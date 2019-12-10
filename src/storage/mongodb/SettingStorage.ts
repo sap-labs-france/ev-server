@@ -1,13 +1,14 @@
-import { ObjectID } from 'mongodb';
+import Setting, { BillingSettingType, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting, { ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<Setting> {
@@ -110,6 +111,51 @@ export default class SettingStorage {
       }
     }
     return pricingSettings;
+  }
+
+  public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
+    const billingSettings = {
+      identifier: ComponentType.BILLING,
+    } as BillingSettings;
+
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const config = settings.result[0].content;
+
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      // ID
+      billingSettings.id = settings.result[0].id;
+      billingSettings.sensitiveData = settings.result[0].sensitiveData;
+
+      // Currency
+      const pricingSettings = await SettingStorage.getPricingSettings(tenantID);
+      let currency = 'EUR';
+      if (pricingSettings) {
+        if (pricingSettings.simple) {
+          currency = pricingSettings.simple.currency;
+        } else if (pricingSettings.convergentCharging) {
+          if (pricingSettings.convergentCharging['currency']) {
+            currency = pricingSettings.convergentCharging['currency'];
+          }
+        }
+      }
+
+      // Billing type
+      if (config.stripe) {
+        billingSettings.type = BillingSettingType.STRIPE;
+        billingSettings.stripe = {
+          url: config.stripe.url ? config.stripe.url : '',
+          publicKey: config.stripe.publicKey ? config.stripe.publicKey : '',
+          secretKey: config.stripe.secretKey ? config.stripe.secretKey : '',
+          currency: currency,
+          noCardAllowed: config.stripe.noCardAllowed ? config.stripe.noCardAllowed : false,
+          advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
+          immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
+          periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
+        };
+      }
+
+      return billingSettings;
+    }
   }
 
   public static async getSettings(tenantID: string,

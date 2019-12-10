@@ -2,7 +2,7 @@ import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
-import { BillingUserData } from '../../integration/billing/Billing';
+import { BillingUserData } from '../../types/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
