@@ -372,7 +372,6 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       description = i18n.t('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
     } else {
       description = i18n.t('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
-      description = description.replace('{{chargeBox}}', transaction.chargeBoxID);
     }
 
     let collectionMethod = 'send_invoice';
