@@ -38,3 +38,11 @@ export interface BillingUserData {
   subscriptionID?: string;
   lastChangedOn?: Date;
 }
+
+export interface Tax {
+  countryCode: string;
+  taxCode: string;
+  standard: number;
+  reduced: number[];
+  allowZero: boolean;
+}

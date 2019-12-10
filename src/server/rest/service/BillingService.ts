@@ -289,4 +289,58 @@ export default class BillingService {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
+
+  public static async handleGetCountryTaxes(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!Authorizations.isAdmin(req.user)) {
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_USER,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+        });
+      }
+
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Billing or Pricing not active in this Tenant',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          action: action,
+          user: req.user
+        });
+      }
+    } catch (error) {
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+
+    // TODO find a better way to store taxes
+    const dataPath = './src/assets/billing/tva.json';
+    let response: DataResult<Tax>;
+    if (fs.existsSync(dataPath)) {
+      const tvaFromFile = JSON.parse(fs.readFileSync(dataPath).toString());
+      const taxes = [] as Tax[];
+      tvaFromFile.taxes.forEach((tax) => taxes.push(tax));
+      taxes.sort((a, b) => (a.countryCode > b.countryCode) ? 1 : (a.countryCode < b.countryCode) ? -1 : 0);
+      response = { result: taxes, count: taxes.length };
+    } else {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unable to find file : ${dataPath}`,
+        module: 'BillingService',
+        method: 'handleGetCountryTaxes',
+        action: action,
+        user: req.user
+      });
+    }
+
+    res.json(Object.assign(response, Constants.REST_RESPONSE_SUCCESS));
+  }
 }
