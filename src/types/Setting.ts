@@ -131,7 +131,7 @@ export interface StripeBillingSettings extends BillingSetting {
   // Default billing plan(s)?
   advanceBillingAllowed: boolean;
   lastSynchronizedOn?: Date;
-  currency?: string;
+  currency: string;
 }
 
 export enum BillingSettingType {
