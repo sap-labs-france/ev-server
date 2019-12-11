@@ -4,7 +4,7 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import BillingSecurity from './security/BillingSecurity';
-import { BillingUserData } from '../../../types/Billing';
+import { BillingUserData, Tax } from '../../../types/Billing';
 import Constants from '../../../utils/Constants';
 import { HttpBillingRequest } from '../../../types/requests/HttpBillingRequest';
 import Logging from '../../../utils/Logging';
@@ -12,6 +12,8 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import { DataResult } from '../../../types/DataResult';
+import * as fs from 'fs';
 
 export default class BillingService {
 
