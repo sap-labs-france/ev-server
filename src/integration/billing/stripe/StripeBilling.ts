@@ -16,7 +16,7 @@ import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../../types/Billing';
 import { Request } from 'express';
-import { StripeBillingSettings } from '../../../types/Setting';
+import Setting, { StripeBillingSettings } from '../../../types/Setting';
 import I18nManager from '../../../utils/I18nManager';
 
 export interface TransactionIdemPotencyKey {
@@ -32,11 +32,10 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSettings) {
-    const stripeSettings: StripeBillingSettings = settings;
-    stripeSettings.currency = settings.currency;
-    super(tenantId, stripeSettings);
+    super(tenantId, settings);
+    this.settings.currency = settings.currency;
     if (this.settings.secretKey) {
-      this.settings.secretKey = Cypher.decrypt(stripeSettings.secretKey);
+      this.settings.secretKey = Cypher.decrypt(settings.secretKey);
     }
     // Currently the public key is not encrypted
     try {
@@ -107,7 +106,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         users.push({
           email: user.email,
           billingData: {
-            customerID: user.customerID
+            customerID: user.id
           }
         });
       }
@@ -209,7 +208,16 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     if (billingSettings.stripe) {
       billingSettings.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       this.settings.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
-      await SettingStorage.saveSetting(this.tenantId, billingSettings);
+      const billingSettingsToSave = {
+        id: billingSettings.id,
+        identifier: billingSettings.identifier,
+        sensitiveData: billingSettings.sensitiveData,
+        content: {
+          type: billingSettings.type,
+          stripe: billingSettings.stripe
+        }
+      } as Setting;
+      await SettingStorage.saveSetting(this.tenantId, billingSettingsToSave);
     }
   }
 
