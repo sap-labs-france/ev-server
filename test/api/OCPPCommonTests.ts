@@ -140,9 +140,9 @@ export default class OCPPCommonTests {
     if (this.createAnyUser) {
       this.anyUser = await this.createUser(Factory.user.build({
         tags: [
-          { id: this.validTag, internal: true, deleted: false },
-          { id: this.invalidTag, internal: true, deleted: false },
-          { id: this.numberTag.toString(), internal: true, deleted: false }
+          { id: this.validTag, issuer: true, deleted: false },
+          { id: this.invalidTag, issuer: true, deleted: false },
+          { id: this.numberTag.toString(), issuer: true, deleted: false }
         ]
       }));
       if (!this.createdUsers) {

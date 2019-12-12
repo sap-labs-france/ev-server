@@ -123,7 +123,7 @@ export default class OCPIMapping {
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { internal: true }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true }, { limit, skip });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {

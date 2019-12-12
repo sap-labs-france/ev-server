@@ -252,7 +252,7 @@ export default class AuthService {
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
       deleted: false,
-      internal: true
+      issuer: true
     };
     await UserStorage.saveUserTags(tenantID, newUser.id, [tag]);
 

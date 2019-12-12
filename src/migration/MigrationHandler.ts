@@ -14,6 +14,7 @@ import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
+import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -43,6 +44,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new CleanupAllTransactions());
       currentMigrationTasks.push(new CleanupMeterValuesTask());
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
+      currentMigrationTasks.push(new RenameTagPropertiesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

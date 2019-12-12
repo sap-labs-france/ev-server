@@ -181,7 +181,7 @@ export default class ContextBuilder {
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
       defaultAdminUser.tags = CONTEXTS.TENANT_USER_LIST[0].tags ? CONTEXTS.TENANT_USER_LIST[0].tags : [
-        { id: faker.random.alphaNumeric(8).toUpperCase(), internal: true, deleted: false }];
+        { id: faker.random.alphaNumeric(8).toUpperCase(), issuer: true, deleted: false }];
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
@@ -238,7 +238,7 @@ export default class ContextBuilder {
         tags: [
           {
             id: `A1234${index}`,
-            internal: false,
+            issuer: false,
             deleted: false
           }
         ]
