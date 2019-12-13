@@ -8,18 +8,19 @@ export enum ComponentType {
   REFUND = 'refund',
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
+  SMART_CHARGING = 'smartCharging'
 }
 
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
   category?: 'business' | 'technical';
-  identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi';
+  identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi' | 'smartCharging';
   sensitiveData: string[];
   content: SettingContent;
 }
 
 export interface SettingContent {
-  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe' | 'notifications';
+  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe' | 'notifications' | 'sapSmartCharging';
   ocpi?: OcpiSettings;
   simple?: SimplePricingSettings;
   convergentCharging?: ConvergentChargingPricingSettings;
@@ -27,6 +28,7 @@ export interface SettingContent {
   sac?: AnalyticsSettings;
   links?: AnalyticsLink[];
   concur?: ConcurRefundSettings;
+  sapSmartCharging?: SapSmartChargingSettings;
   notifications?: NotificationsSettings;
 }
 
@@ -89,6 +91,10 @@ export interface OcpiSettings {
 export interface AnalyticsSettings {
   mainUrl: string;
   timezone: string;
+}
+
+export interface SapSmartChargingSettings {
+  optimizerUrl: string;
 }
 
 export interface AnalyticsLink {

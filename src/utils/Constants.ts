@@ -190,6 +190,7 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_OCPI = 'ocpi';
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
+  public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
 
   public static readonly METER_VALUE_CTX_SAMPLE_PERIODIC = 'Sample.Periodic';
   public static readonly METER_VALUE_CTX_SAMPLE_CLOCK = 'Sample.Clock';
@@ -337,7 +338,8 @@ export default class Constants {
     BILLING: 'billing',
     ORGANIZATION: 'organization',
     STATISTICS: 'statistics',
-    ANALYTICS: 'analytics'
+    ANALYTICS: 'analytics',
+    SMART_CHARGING: 'smartCharging'
   };
 
   // Ocpi Registering status

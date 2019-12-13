@@ -1,3 +1,5 @@
+import AppError from '../../../exception/AppError';
+import Constants from '../../../utils/Constants';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
 import SchemaValidator from './SchemaValidator';
@@ -22,10 +24,26 @@ export default class TenantValidator extends SchemaValidator {
 
 
   public validateTenantCreation(content: any): void {
+    this._validateComponentDependencies(content);
     this.validate(this._tenantCreation, content);
   }
 
   public validateTenantUpdate(content: any): void {
+    this._validateComponentDependencies(content);
     this.validate(this._tenantUpdate, content);
+  }
+
+  private _validateComponentDependencies(content: any) {
+    if (content.components.smartCharging && content.components.organization) {
+      if (content.components.smartCharging.active && !content.components.organization.active) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Organization must be active to use smart charging',
+          module: this.moduleName,
+          method: 'validateTenantUpdate'
+        });
+      }
+    }
   }
 }
