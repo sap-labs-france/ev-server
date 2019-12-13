@@ -133,7 +133,6 @@ export default class BillingService {
     };
     // First step: Get recently updated customers from Billing application
     let usersChangedInBilling = await billingImpl.getUpdatedUsersInBillingForSynchronization();
-
     // Second step: Treat all not-synchronized users from own database
     const usersNotSynchronized = await UserStorage.getUsers(tenant.id,
       { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
@@ -167,48 +166,76 @@ export default class BillingService {
         }
       }
     }
-
     // Third step : synchronize users with old BillingData from own database
     let usersOldBillingData = await UserStorage.getUsers(tenant.id,
       { 'statuses': [Constants.USER_STATUS_ACTIVE] },
       { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
     const usersInBilling: Partial<User>[] = await billingImpl.getUsers();
-    const usersToSynchronize: User[] = [];
+    const usersToCreate: User[] = [];
+    const usersToUpdate: Map<User, Partial<User>> = new Map<User, Partial<User>>();
     for (const userMDB of usersOldBillingData.result) {
       let userInBilling = false;
       for (const userBilling of usersInBilling) {
+        // Check for existing customer_id in Stripe
         if (userMDB.billingData && userMDB.billingData.customerID === userBilling.billingData.customerID) {
+          userInBilling = true;
+          break;
+        }
+        // Check for existing mail in Stripe
+        if (userMDB.email === userBilling.email) {
+          usersToUpdate.set(userMDB, userBilling);
           userInBilling = true;
           break;
         }
       }
       if (!userInBilling) {
-        usersToSynchronize.push(userMDB);
+        usersToCreate.push(userMDB);
       }
     }
-
-    if (usersToSynchronize.length > 0) {
+    if (usersToCreate.length > 0 || usersToUpdate.size > 0) {
       Logging.logInfo({
         tenantID: tenant.id,
         source: Constants.CENTRAL_SERVER,
         action: Constants.ACTION_SYNCHRONIZE_BILLING,
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
-        message: `Users are going to be synchronized for ${usersToSynchronize.length} unexisting Billing customers`
+        message: `Users are going to be synchronized for ${usersToCreate.length + usersToUpdate.size} unexisting Billing customers`
       });
     }
+    usersToUpdate.forEach((userBilling, userMDB) => {
+      try {
+        userMDB.billingData.customerID = userBilling.billingData.customerID;
+        UserStorage.saveUserBillingData(tenant.id, userMDB.id, userMDB.billingData);
+        // Delete duplicate customers
+        if (usersChangedInBilling && usersChangedInBilling.length > 0) {
+          usersChangedInBilling = usersChangedInBilling.filter((id) => id !== userMDB.billingData.customerID);
+        }
+        actionsDone.synchronized++;
+      } catch (e) {
+        Logging.logError({
+          tenantID: tenant.id,
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          message: `Unable to create billing customer with ID '${userMDB.billingData.customerID}`,
+          detailedMessages: `Synchronization failed for customer ID '${userMDB.billingData.customerID}' from database for reason : ${e}`
+        });
+        actionsDone.error++;
+      }
+    });
 
-    for (const userToSynchronize of usersToSynchronize) {
+    for (const userToCreate of usersToCreate) {
       try {
         const createReq = { ...req } as Request;
-        createReq.body = { ...req.body, ...userToSynchronize };
+        createReq.body = { ...req.body, ...userToCreate };
         const newBillingUserData: BillingUserData = await billingImpl.createUser(createReq);
         if (newBillingUserData.customerID) {
           // Keep method found in own database
-          if (userToSynchronize.billingData && userToSynchronize.billingData.method) {
-            newBillingUserData.method = userToSynchronize.billingData.method;
+          if (userToCreate.billingData && userToCreate.billingData.method) {
+            newBillingUserData.method = userToCreate.billingData.method;
           }
-          await UserStorage.saveUserBillingData(tenant.id, userToSynchronize.id, newBillingUserData);
+          await UserStorage.saveUserBillingData(tenant.id, userToCreate.id, newBillingUserData);
           // Delete duplicate customers
           if (usersChangedInBilling && usersChangedInBilling.length > 0) {
             usersChangedInBilling = usersChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
@@ -224,8 +251,8 @@ export default class BillingService {
           action: Constants.ACTION_SYNCHRONIZE_BILLING,
           module: 'BillingService',
           method: 'handleSynchronizeUsers',
-          message: `Unable to create billing customer with ID '${userToSynchronize.billingData.customerID}`,
-          detailedMessages: `Synchronization failed for customer ID '${userToSynchronize.billingData.customerID}' from database for reason : ${e}`
+          message: `Unable to create billing customer with ID '${userToCreate.billingData.customerID}`,
+          detailedMessages: `Synchronization failed for customer ID '${userToCreate.billingData.customerID}' from database for reason : ${e}`
         });
         actionsDone.error++;
       }
