@@ -3,7 +3,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Transaction from '../../types/Transaction';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 import User from '../../types/User';
@@ -212,7 +212,7 @@ export default class TransactionStorage {
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -285,6 +285,21 @@ export default class TransactionStorage {
     // Check stop transaction
     if (params.stop) {
       filterMatch.stop = params.stop;
+    }
+    // Inactivity Status
+    switch (params.inactivityStatus) {
+      case InactivityStatus.WARNING:
+        if (!filterMatch.stop) {
+          filterMatch.stop = {};
+        }
+        filterMatch['stop.inactivityStatus'] = { $in: [InactivityStatus.WARNING, InactivityStatus.ERROR] }
+        break;
+      case InactivityStatus.ERROR:
+        if (!filterMatch.stop) {
+          filterMatch.stop = {};
+        }
+        filterMatch['stop.inactivityStatus'] = InactivityStatus.ERROR;
+        break;
     }
     // Site's area ID
     if (params.siteAreaIDs) {

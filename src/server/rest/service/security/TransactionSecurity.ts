@@ -64,6 +64,7 @@ export default class TransactionSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.InactivityStatus = sanitize(request.InactivityStatus);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     if (request.Statistics) {

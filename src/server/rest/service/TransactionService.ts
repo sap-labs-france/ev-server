@@ -536,7 +536,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-
+    // Check Organization
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
@@ -548,7 +548,6 @@ export default class TransactionService {
         filter.siteAdminIDs = req.user.sitesAdmin;
       }
     }
-
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
     }
@@ -566,6 +565,9 @@ export default class TransactionService {
     }
     if (filteredRequest.Search) {
       filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.InactivityStatus) {
+      filter.inactivityStatus = filteredRequest.InactivityStatus;
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
