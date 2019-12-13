@@ -76,7 +76,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.12';
+    return '1.0';
   }
 
   getName() {
