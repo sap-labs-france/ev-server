@@ -49,12 +49,6 @@ export enum UserNotificationType {
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
 }
 
-export type InactivityStatusLevel =
- 'info' |
- 'warning' |
- 'danger'
-;
-
 export enum NotificationSeverity {
   INFO = '#00376C',
   WARNING = '#FB8C00',

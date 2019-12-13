@@ -4,6 +4,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import ChargingStation, { ChargingStationTemplate } from '../../../types/ChargingStation';
+import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -270,6 +271,7 @@ export default class OCPPUtils {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
       foundConnector.totalInactivitySecs = 0;
+      foundConnector.inactivityStatus = InactivityStatus.INFO;
       foundConnector.currentStateOfCharge = 0;
       foundConnector.activeTransactionID = 0;
       foundConnector.activeTransactionDate = null;

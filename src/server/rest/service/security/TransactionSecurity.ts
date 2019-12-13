@@ -129,10 +129,11 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-        filteredTransaction.currentInactivityStatusLevel =
-          Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
+        filteredTransaction.currentInactivityStatusLevel = Utils.getUIInactivityStatusLevel(transaction.currentInactivityStatus);
+        filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
         filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp)
+            .diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
@@ -162,13 +163,8 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        if (transaction.chargeBox) {
-          filteredTransaction.stop.inactivityStatusLevel =
-          Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
-            filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
-        } else {
-          filteredTransaction.stop.inactivityStatusLevel = 'info';
-        }
+        filteredTransaction.stop.inactivityStatusLevel = Utils.getUIInactivityStatusLevel(transaction.stop.inactivityStatus);
+        filteredTransaction.stop.inactivityStatus = transaction.stop.inactivityStatus;
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         filteredTransaction.stop.signedData = transaction.stop.signedData;

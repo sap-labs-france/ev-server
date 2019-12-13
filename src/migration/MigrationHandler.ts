@@ -15,6 +15,7 @@ import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
+import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -45,6 +46,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new CleanupMeterValuesTask());
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
       currentMigrationTasks.push(new RenameTagPropertiesTask());
+      currentMigrationTasks.push(new AddInactivityStatusInTransactions());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
