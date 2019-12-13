@@ -15,7 +15,7 @@ export default class OCPPUtils {
   public static async enrichCharingStationWithTemplate(chargingStation: ChargingStation): Promise<boolean> {
     let foundTemplate: ChargingStationTemplate = null;
     // Get the Templates
-    const chargingStationTemplates: ChargingStationTemplate[] = 
+    const chargingStationTemplates: ChargingStationTemplate[] =
       await ChargingStationStorage.getChargingStationTemplates(chargingStation.chargePointVendor);
     // Parse Them
     for (const chargingStationTemplate of chargingStationTemplates) {
@@ -28,7 +28,7 @@ export default class OCPPUtils {
           const filterValue: string = chargingStationTemplate.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
             foundTemplate = null;
-            break;              
+            break;
           }
         }
       }

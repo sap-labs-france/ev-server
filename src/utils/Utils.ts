@@ -526,7 +526,7 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string>{
+  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add

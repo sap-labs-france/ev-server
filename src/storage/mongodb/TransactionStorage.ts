@@ -959,9 +959,9 @@ export default class TransactionStorage {
     switch (errorType) {
       case 'long_inactivity':
         return [
-          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } }},
-          { $match: { 'totalInactivity': { $gte: 86400 } }},
-          { $addFields: { 'errorCode': 'long_inactivity' }}
+          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } } },
+          { $match: { 'totalInactivity': { $gte: 86400 } } },
+          { $addFields: { 'errorCode': 'long_inactivity' } }
         ];
       case 'no_consumption':
         return [
