@@ -151,7 +151,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
             {
               created: { gt: createdSince },
               limit: 20,
-              type: 'customer.*',
+              type: 'customer.created',
               starting_after: lastEventID
             }
           );
@@ -160,7 +160,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
             {
               created: { gt: createdSince },
               limit: 20,
-              type: 'customer.*'
+              type: 'customer.created'
             }
           );
         }
