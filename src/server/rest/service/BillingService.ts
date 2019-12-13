@@ -174,21 +174,21 @@ export default class BillingService {
     const usersToCreate: User[] = [];
     const usersToUpdate: Map<User, Partial<User>> = new Map<User, Partial<User>>();
     for (const userMDB of usersOldBillingData.result) {
-      let userInBilling = false;
+      let userInBillingImpl = false;
       for (const userBilling of usersInBilling) {
         // Check for existing customer_id in Stripe
         if (userMDB.billingData && userMDB.billingData.customerID === userBilling.billingData.customerID) {
-          userInBilling = true;
+          userInBillingImpl = true;
           break;
         }
         // Check for existing mail in Stripe
         if (userMDB.email === userBilling.email) {
           usersToUpdate.set(userMDB, userBilling);
-          userInBilling = true;
+          userInBillingImpl = true;
           break;
         }
       }
-      if (!userInBilling) {
+      if (!userInBillingImpl) {
         usersToCreate.push(userMDB);
       }
     }
@@ -202,10 +202,10 @@ export default class BillingService {
         message: `Users are going to be synchronized for ${usersToCreate.length + usersToUpdate.size} unexisting Billing customers`
       });
     }
-    usersToUpdate.forEach((userBilling, userMDB) => {
+    for (const [userMDB, userBilling] of usersToUpdate.entries()) {
       try {
         userMDB.billingData.customerID = userBilling.billingData.customerID;
-        UserStorage.saveUserBillingData(tenant.id, userMDB.id, userMDB.billingData);
+        await UserStorage.saveUserBillingData(tenant.id, userMDB.id, userMDB.billingData);
         // Delete duplicate customers
         if (usersChangedInBilling && usersChangedInBilling.length > 0) {
           usersChangedInBilling = usersChangedInBilling.filter((id) => id !== userMDB.billingData.customerID);
@@ -223,7 +223,7 @@ export default class BillingService {
         });
         actionsDone.error++;
       }
-    });
+    }
 
     for (const userToCreate of usersToCreate) {
       try {
