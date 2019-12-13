@@ -131,8 +131,9 @@ export default class BillingService {
       synchronized: 0,
       error: 0
     };
-      // First step: Get recently updated customers from Billing application
+    // First step: Get recently updated customers from Billing application
     let usersChangedInBilling = await billingImpl.getUpdatedUsersInBillingForSynchronization();
+
     // Second step: Treat all not-synchronized users from own database
     const usersNotSynchronized = await UserStorage.getUsers(tenant.id,
       { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
@@ -166,50 +167,67 @@ export default class BillingService {
         }
       }
     }
+
     // Third step : synchronize users with old BillingData from own database
     let usersOldBillingData = await UserStorage.getUsers(tenant.id,
       { 'statuses': [Constants.USER_STATUS_ACTIVE] },
       { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
     const usersInBilling: Partial<User>[] = await billingImpl.getUsers();
+    const usersToSynchronize: User[] = [];
     for (const userMDB of usersOldBillingData.result) {
-      let userInBillingImpl = false;
+      let userInBilling = false;
       for (const userBilling of usersInBilling) {
         if (userMDB.billingData && userMDB.billingData.customerID === userBilling.billingData.customerID) {
-          userInBillingImpl = true;
+          userInBilling = true;
           break;
         }
       }
-      if (!userInBillingImpl) {
-        try {
-          const createReq = { ...req } as Request;
-          createReq.body = { ...req.body, ...userMDB };
-          const newBillingUserData: BillingUserData = await billingImpl.createUser(createReq);
-          if (newBillingUserData.customerID) {
-            // Keep method found in own database
-            if (userMDB.billingData && userMDB.billingData.method) {
-              newBillingUserData.method = userMDB.billingData.method;
-            }
-            await UserStorage.saveUserBillingData(tenant.id, userMDB.id, newBillingUserData);
-            // Delete duplicate customers
-            if (usersChangedInBilling && usersChangedInBilling.length > 0) {
-              usersChangedInBilling = usersChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
-            }
-            actionsDone.synchronized++;
-          } else {
-            actionsDone.error++;
+      if (!userInBilling) {
+        usersToSynchronize.push(userMDB);
+      }
+    }
+
+    if (usersToSynchronize.length > 0) {
+      Logging.logInfo({
+        tenantID: tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        module: 'BillingService',
+        method: 'handleSynchronizeUsers',
+        message: `Users are going to be synchronized for ${usersToSynchronize.length} unexisting Billing customers`
+      });
+    }
+
+    for (const userToSynchronize of usersToSynchronize) {
+      try {
+        const createReq = { ...req } as Request;
+        createReq.body = { ...req.body, ...userToSynchronize };
+        const newBillingUserData: BillingUserData = await billingImpl.createUser(createReq);
+        if (newBillingUserData.customerID) {
+          // Keep method found in own database
+          if (userToSynchronize.billingData && userToSynchronize.billingData.method) {
+            newBillingUserData.method = userToSynchronize.billingData.method;
           }
-        } catch (e) {
-          Logging.logError({
-            tenantID: tenant.id,
-            source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
-            module: 'BillingService',
-            method: 'handleSynchronizeUsers',
-            message: `Unable to create billing customer with ID '${userMDB.billingData.customerID}`,
-            detailedMessages: `Synchronization failed for customer ID '${userMDB.billingData.customerID}' from database for reason : ${e}`
-          });
+          await UserStorage.saveUserBillingData(tenant.id, userToSynchronize.id, newBillingUserData);
+          // Delete duplicate customers
+          if (usersChangedInBilling && usersChangedInBilling.length > 0) {
+            usersChangedInBilling = usersChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
+          }
+          actionsDone.synchronized++;
+        } else {
           actionsDone.error++;
         }
+      } catch (e) {
+        Logging.logError({
+          tenantID: tenant.id,
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          message: `Unable to create billing customer with ID '${userToSynchronize.billingData.customerID}`,
+          detailedMessages: `Synchronization failed for customer ID '${userToSynchronize.billingData.customerID}' from database for reason : ${e}`
+        });
+        actionsDone.error++;
       }
     }
     // Fourth step: synchronize remaining customers from Billing
@@ -263,6 +281,19 @@ export default class BillingService {
         }
       }
     }
+
+    if (actionsDone.synchronized > 0) {
+      Logging.logInfo({
+        tenantID: tenant.id,
+        source: Constants.CENTRAL_SERVER,
+        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        module: 'BillingService',
+        method: 'handleSynchronizeUsers',
+        message: `Successfully synchronized ${actionsDone.synchronized} user(s)`
+      });
+    }
+
+
     // Final step
     await billingImpl.finalizeSynchronization();
     res.json(Object.assign(actionsDone, Constants.REST_RESPONSE_SUCCESS));
