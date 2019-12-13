@@ -342,7 +342,6 @@ export default class TransactionCommonTests {
       totalDurationSecs: 7200,
       totalPrice: 4,
       totalInactivitySecs: 0,
-      inactivityStatus: InactivityStatus.INFO,
       count: 2
     }
     );

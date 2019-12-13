@@ -46,7 +46,22 @@ describe('Tenant Settings test', function() {
 
   after(async function() {
     // Reset components before leaving
-    testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
+    testData.data = {
+      id: testData.credentials.tenantId,
+      name: "ut-nothing",
+      email: testData.credentials.email,
+      subdomain: "utnothing",
+      components: {
+        ocpi: { active: false, type: null },
+        organization: { active: false, type: null },
+        pricing: { active: false, type: null },
+        refund: { active: false, type: null },
+        billing: { active: false, type: null },
+        smartCharging: { active: false, type: null },
+        statistics: { active: false, type: null },
+        analytics: { active: false, type: null }
+      }
+    };
     const res = await testData.superAdminCentralService.updateEntity(
       testData.centralService.tenantApi, testData.data);
     expect(res.status).to.equal(200);
@@ -59,7 +74,22 @@ describe('Tenant Settings test', function() {
 
     it('OCPI : Check that the setting has been created in the tenant after activation', async function() {
       // Fill in the data
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: true, type: 'gireve' },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
@@ -70,7 +100,22 @@ describe('Tenant Settings test', function() {
 
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {
       // Fill in the data
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: true, type: 'simple' },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
       const res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
@@ -81,24 +126,169 @@ describe('Tenant Settings test', function() {
       expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
     });
 
-    it('Refund : Check that the setting has been created in the tenant after activation', async function() {
+    it('Billing : Check that the setting has been created in the tenant after activation', async function() {
       // Fill in the data
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":true,"type":"concur"},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
-      const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
-      expect(res.status).to.equal(200);
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: true, type: 'stripe' },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      let res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data, false);
+      expect(res.status).to.equal(500);
 
+      // Fill in the data
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: true, type: 'simple' },
+          refund: { active: false, type: null },
+          billing: { active: true, type: 'stripe' },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data);
+      expect(res.status).to.equal(200);
+      const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[0]).to.be.validatedSetting('billing', 'stripe');
+      expect(settings.data.result[1]).to.be.validatedSetting('pricing', 'simple');
+    });
+
+    it('Refund : Check that the setting has been created in the tenant after activation', async function() {
+      // Test only Refund (should fail)
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: true, type: 'concur' },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      let res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data, false);
+      expect(res.status).to.equal(500);
+
+      // Test Refund with Pricing
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: true, type: 'simple' },
+          refund: { active: true, type: 'concur' },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
+      expect(res.status).to.equal(200);
+      const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
+      expect(settings.data.count).to.equal(2);
+      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
+      expect(settings.data.result[1]).to.be.validatedSetting('refund', 'concur');
+    });
+
+    it('SmartCharging : Check that the setting has been created in the tenant after activation', async function() {
+      // Test only Smart Charging (should fail)
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: true, type: 'sapSmartCharging' },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      let res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data, false);
+      expect(res.status).to.equal(500);
+      // Test Smart Charging with Pricing
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: true, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: true, type: 'sapSmartCharging' },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
+      res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
+      expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('refund', 'concur');
+      expect(settings.data.result[0]).to.be.validatedSetting('smartCharging', 'sapSmartCharging');
     });
 
     it('Pricing/Convergent : Check that the setting has been created in the tenant after activation', async function() {
-      // Fill in the data
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
+      // Test SAP CC with Pricing
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: true, type: 'convergentCharging' },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null }
+        }
+      };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
-
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
@@ -107,7 +297,23 @@ describe('Tenant Settings test', function() {
 
     it('Analytics : Check that the setting has been created in the tenant after activation', async function() {
       // Fill in the data
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":true,"type":"sac"}}}`);
+      // Test SAP CC with Pricing
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: true, type: 'sac' }
+        }
+      };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 

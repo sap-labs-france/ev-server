@@ -15,7 +15,6 @@ export enum InactivityStatus {
   ERROR = 'E'
 }
 
-
 export default interface Transaction {
   id: number;
   siteID: string;
