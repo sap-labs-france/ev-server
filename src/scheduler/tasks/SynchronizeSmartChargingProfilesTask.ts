@@ -17,7 +17,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       });
       return;
     }
-    // Get Concur Settings
+    // Get Smart Charging Settings
     const smartChargingConnector = await SmartChargingFactory.getSmartChargingConnector(tenant.id);
     if (!smartChargingConnector) {
       Logging.logDebug({
@@ -27,7 +27,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         message: 'Smart Charging settings are not configured'
       });
     }
-    smartChargingConnector.callOptimizer();
+    smartChargingConnector.callOptimizer(tenant.id);
 
   }
 }

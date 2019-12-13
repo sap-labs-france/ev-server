@@ -1,5 +1,5 @@
 
 
 export default interface SmartChargingConnector {
-  callOptimizer(): Promise<any>;
+  callOptimizer(tenantID: string): Promise<any>;
 }
