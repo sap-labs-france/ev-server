@@ -2,7 +2,7 @@ import { Request } from 'express';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../types/Billing';
-import {BillingSetting, BillingSettings} from '../../types/Setting';
+import { BillingSetting, BillingSettings } from '../../types/Setting';
 
 export default abstract class Billing<T extends BillingSetting> {
 
