@@ -202,6 +202,7 @@ export default class BillingService {
         message: `Users are going to be synchronized for ${usersToCreate.length + usersToUpdate.size} unexisting Billing customers`
       });
     }
+    // Updates existing users's customer_ID according to Billing Impl. users's emails
     for (const [userMDB, userBilling] of usersToUpdate.entries()) {
       try {
         userMDB.billingData.customerID = userBilling.billingData.customerID;
@@ -224,7 +225,7 @@ export default class BillingService {
         actionsDone.error++;
       }
     }
-
+    // Creates new users in Billing Impl.
     for (const userToCreate of usersToCreate) {
       try {
         const createReq = { ...req } as Request;
@@ -319,7 +320,6 @@ export default class BillingService {
         message: `Successfully synchronized ${actionsDone.synchronized} user(s)`
       });
     }
-
 
     // Final step
     await billingImpl.finalizeSynchronization();
