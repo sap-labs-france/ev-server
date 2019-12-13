@@ -5,7 +5,7 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 
-export default class AddTagTypeTask extends MigrationTask {
+export default class RenameTagPropertiesTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -16,34 +16,26 @@ export default class AddTagTypeTask extends MigrationTask {
   async migrateTenant(tenant: Tenant) {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
-      {
-        'internal': { $exists: false }
-      },
-      { $set: { 'internal': false, 'deleted': false } },
+      {},
+      { $rename: { 'internal': 'issuer', 'provider': 'description' } },
       { upsert: false }
     );
     // Log in the default tenant
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'AddTagTypeTask', method: 'migrateTenant',
-        action: 'AddTagTypeTask',
+        module: 'RenameTagPropertiesTask', method: 'migrateTenant',
+        action: 'RenameTagPropertiesTask',
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }
-    // Remove tagIDs from User
-    await global.database.getCollection<any>(tenant.id, 'users').updateMany(
-      { },
-      { $unset: { 'tagIDs': '', 'mobileLastChanged': '', 'lastLogin': '', 'image': '' } },
-      { upsert: false }
-    );
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {
-    return 'AddTagTypeTask';
+    return 'RenameTagPropertiesTask';
   }
 }

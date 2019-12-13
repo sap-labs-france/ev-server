@@ -251,6 +251,48 @@ const config = convict({
       format: Boolean,
       default: false
     }
+  },
+  billing: {
+    currency: {
+      doc: 'billing currency',
+      format: String,
+      default: 'EUR'
+    },
+    url: {
+      doc: 'Billing provider dashboard',
+      format: String,
+      default: 'https://dashboard.stripe.com/b/acct_1FjS6oJ4LznxisWd'
+    },
+    publicKey: {
+      doc: 'Public key',
+      format: String,
+      default: 'pk_test_12bwXoWi4m0xSpEcOWLWc3Cl0051lsWGAq'
+    },
+    secretKey: {
+      doc: 'Secret Key',
+      format: String,
+      default: 'sk_test_1WH6k38wyqaIvKIGfXMt4WhG00n4yGcabq'
+    },
+    noCardAllowed: {
+      doc: 'Allow no card user',
+      format: Boolean,
+      default: true
+    },
+    advanceBillingAllowed: {
+      doc: 'Allow advance billing',
+      format: Boolean,
+      default: true
+    },
+    immediateBillingAllowed: {
+      doc: 'Allow immediate billing',
+      format: Boolean,
+      default: true
+    },
+    periodicBillingAllowed: {
+      doc: 'Allow periodic billing',
+      format: Boolean,
+      default: true
+    }
   }
 });
 

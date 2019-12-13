@@ -65,18 +65,6 @@ export interface ConvergentChargingPricingSettings extends PricingSetting {
   password: string;
 }
 
-export interface StripeBillingSettings {
-  url: string;
-  secretKey: string;
-  publicKey: string;
-  noCardAllowed: boolean;
-  immediateBillingAllowed: boolean;
-  periodicBillingAllowed: boolean;
-  // Default billing plan(s)?
-  advanceBillingAllowed: boolean;
-  lastSynchronizedOn?: Date;
-}
-
 export interface OcpiSettings {
   cpo: {
     countryCode: string;
@@ -126,4 +114,32 @@ export interface ConcurRefundSettings {
   expenseTypeCode: string;
   policyId: string;
   reportName: string;
+}
+
+export interface BillingSettings {
+  id?: string;
+  identifier: ComponentType.BILLING;
+  type: BillingSettingType;
+  sensitiveData: string[];
+  stripe?: StripeBillingSettings;
+}
+
+export interface BillingSetting {
+}
+
+export interface StripeBillingSettings extends BillingSetting {
+  url: string;
+  secretKey: string;
+  publicKey: string;
+  noCardAllowed: boolean;
+  immediateBillingAllowed: boolean;
+  periodicBillingAllowed: boolean;
+  // Default billing plan(s)?
+  advanceBillingAllowed: boolean;
+  lastSynchronizedOn?: Date;
+  currency: string;
+}
+
+export enum BillingSettingType {
+  STRIPE = 'stripe'
 }

@@ -1,4 +1,4 @@
-import { BillingTransactionData } from '../integration/billing/Billing';
+import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';

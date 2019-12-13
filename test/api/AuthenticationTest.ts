@@ -1,12 +1,9 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import faker from 'faker';
-import HttpStatus from 'http-status-codes';
 import jwt from 'jsonwebtoken';
 import CentralServerService from './client/CentralServerService';
 import UserFactory from '../factories/UserFactory';
-import Utils from './Utils';
 
 chai.use(chaiSubset);
 
