@@ -48,7 +48,7 @@ export default class AddInactivityStatusInTransactions extends MigrationTask {
       // Update
       await global.database.getCollection(tenant.id, 'transactions').findOneAndUpdate(
         { '_id': transactionMDB['_id'] },
-        { $set: { "stop.inactivityStatus": transactionMDB.stop.inactivityStatus } },
+        { $set: { 'stop.inactivityStatus': transactionMDB.stop.inactivityStatus } },
         { upsert: true, returnOriginal: false }
       );
       modifiedCount++;
