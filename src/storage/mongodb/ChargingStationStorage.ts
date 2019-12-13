@@ -25,7 +25,7 @@ export default class ChargingStationStorage {
         $match: {
           chargePointVendor
         }
-      });      
+      });
     }
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);

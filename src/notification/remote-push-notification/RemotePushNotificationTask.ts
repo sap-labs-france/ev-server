@@ -63,8 +63,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.preparingSessionNotStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
-        chargeBoxID: data.chargeBoxID,
-        connectorId: data.connectorId
+      chargeBoxID: data.chargeBoxID,
+      connectorId: data.connectorId
     },
     severity
     );
@@ -78,7 +78,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.offlineChargingStation.body');
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, null,
-    severity
+      severity
     );
   }
 

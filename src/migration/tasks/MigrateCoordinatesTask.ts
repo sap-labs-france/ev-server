@@ -28,7 +28,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
           company.address.coordinates = [
             parseFloat(company.address.longitude),
             parseFloat(company.address.latitude)
-          ];          
+          ];
         }
         delete company.address.longitude;
         delete company.address.latitude;

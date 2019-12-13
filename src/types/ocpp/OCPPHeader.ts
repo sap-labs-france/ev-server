@@ -8,5 +8,5 @@ export interface OCPPHeader {
   chargingStationURL?: string;
   From?: {
     Address: string;
-  }
+  };
 }
