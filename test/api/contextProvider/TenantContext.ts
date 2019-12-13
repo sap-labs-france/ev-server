@@ -238,8 +238,7 @@ export default class TenantContext {
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea = null) {
     const ocppService = await this.getOCPPService(ocppVersion);
-    const response = await ocppService.executeBootNotification(
-      chargingStation.id, chargingStation);
+    const response = await ocppService.executeBootNotification(chargingStation.id, chargingStation);
     // Check
     expect(response.data).to.not.be.null;
     expect(response.data.status).to.eql('Accepted');

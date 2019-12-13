@@ -119,6 +119,14 @@ export default class CONTEXTS {
           timezone: 'Europe/Paris'
         }
       },
+      smartCharging: {
+        type: 'sapSmartCharging',
+        content: {
+          optimizerUrl: '',
+          user: '',
+          password: ''
+        }
+      },
       billing: {
         type: 'stripe',
         content: {

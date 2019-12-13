@@ -423,7 +423,7 @@ export default class OCPPService {
       await this.stopOrDeleteActiveTransactions(
         tenantID, chargingStation.id, statusNotification.connectorId);
       // Clean up connector
-      OCPPUtils.checkAndFreeChargingStationConnector(tenantID, chargingStation, statusNotification.connectorId, true);
+      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, statusNotification.connectorId, true);
     }
   }
 
@@ -552,6 +552,9 @@ export default class OCPPService {
         transaction.currentConsumption = 0;
         transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + diffSecs;
       }
+      // Update inactivity status
+      transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
+        transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
     }
     // Compute consumption
     return this.buildConsumptionFromTransactionAndMeterValue(
@@ -1384,8 +1387,7 @@ export default class OCPPService {
         });
       }
       // Check and free the connector
-      OCPPUtils.checkAndFreeChargingStationConnector(
-        headers.tenantID, chargingStation, transaction.connectorId, false);
+      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId, false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save Charger
