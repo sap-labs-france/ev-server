@@ -23,7 +23,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { InactivityStatusLevel, InactivityStatus } from '../types/Transaction';
+import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
 import OCPIEndpoint from '../types/OCPIEndpoint';
 import Tag from '../types/Tag';
 
