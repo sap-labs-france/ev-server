@@ -23,7 +23,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { InactivityStatusLevel } from '../types/UserNotifications';
+import { InactivityStatusLevel, InactivityStatus } from '../types/Transaction';
 import OCPIEndpoint from '../types/OCPIEndpoint';
 import Tag from '../types/Tag';
 
@@ -53,19 +53,31 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
+  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatus {
     if (!inactivitySecs) {
-      return 'info';
+      return InactivityStatus.INFO;
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
-      return 'info';
+      return InactivityStatus.INFO;
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
-      return 'warning';
+      return InactivityStatus.WARNING;
     }
-    return 'danger';
+    return InactivityStatus.ERROR;
+  }
+
+  public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
+    switch (inactivityStatus) {
+      case InactivityStatus.INFO:
+        return 'info';
+      case InactivityStatus.WARNING:
+        return 'warning';
+      case InactivityStatus.ERROR:
+        return 'danger';
+    }
+    return 'info';
 
   }
 

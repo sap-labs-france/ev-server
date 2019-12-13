@@ -60,6 +60,7 @@ export default class TransactionStorage {
       currentSignedData: transactionToSave.currentSignedData,
       lastMeterValue: transactionToSave.lastMeterValue,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
+      currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       currentConsumption: Utils.convertToFloat(transactionToSave.currentConsumption),
       currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
@@ -72,6 +73,7 @@ export default class TransactionStorage {
       delete transactionMDB.currentStateOfCharge;
       delete transactionMDB.currentTotalConsumption;
       delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.currentInactivityStatus;
       delete transactionMDB.lastMeterValue;
       delete transactionMDB.numberOfMeterValues;
       // Add stop
@@ -87,6 +89,7 @@ export default class TransactionStorage {
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
         extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
+        inactivityStatus: transactionToSave.stop.inactivityStatus,
         totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
@@ -899,6 +902,16 @@ export default class TransactionStorage {
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
     aggregation.push({ $limit: 1 });
+    // Add Charge Box
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      localField: 'chargeBoxID',
+      foreignField: '_id',
+      asField: 'chargeBox',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
