@@ -13,7 +13,6 @@ import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
-import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
 
@@ -44,9 +43,9 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddTagTypeTask());
       currentMigrationTasks.push(new CleanupAllTransactions());
       currentMigrationTasks.push(new CleanupMeterValuesTask());
-      currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
       currentMigrationTasks.push(new RenameTagPropertiesTask());
       currentMigrationTasks.push(new AddInactivityStatusInTransactions());
+      // currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
