@@ -2,7 +2,7 @@ import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
-import { BillingUserData } from '../../integration/billing/Billing';
+import { BillingUserData } from '../../types/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -311,7 +311,8 @@ export default class UserStorage {
           const tagMDB = {
             _id: tag.id,
             userID: Utils.convertToObjectID(userID),
-            internal: tag.internal,
+            issuer: tag.issuer,
+            description: tag.description,
             deleted: tag.deleted
           };
           // Check Created/Last Changed By
@@ -700,7 +701,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { internal?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -712,8 +713,8 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
-    if (params && params.hasOwnProperty('internal')) {
-      aggregation.push({ $match: { 'internal': params.internal } });
+    if (params && params.hasOwnProperty('issuer')) {
+      aggregation.push({ $match: { 'issuer': params.issuer } });
     }
 
     // Limit records?

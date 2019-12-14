@@ -2,8 +2,8 @@ import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
 import BackendError from '../../exception/BackendError';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
 import User from '../../types/User';
 import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
@@ -12,7 +12,6 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
 
 export default class EMailNotificationTask implements NotificationTask {
   private server: any;
@@ -285,7 +284,7 @@ export default class EMailNotificationTask implements NotificationTask {
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
-            actionOnUser: data.user,
+            actionOnUser: user,
             detailedMessages: [
               {
                 email: {
@@ -314,7 +313,7 @@ export default class EMailNotificationTask implements NotificationTask {
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
-          actionOnUser: data.user,
+          actionOnUser: user,
           message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [
             {

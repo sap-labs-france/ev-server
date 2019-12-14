@@ -237,8 +237,8 @@ export default class UserSecurity {
     if (tag) {
       filteredTag = {
         id: sanitize(tag.id),
-        internal: UtilsSecurity.filterBoolean(tag.internal),
-        provider: sanitize(tag.provider),
+        issuer: UtilsSecurity.filterBoolean(tag.issuer),
+        description: sanitize(tag.description),
         deleted: false
       };
     }

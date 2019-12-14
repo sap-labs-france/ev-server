@@ -11,7 +11,8 @@ export default class CONTEXTS {
     TENANT_SIMPLE_PRICING: 'ut-pricing', // Only pricing component is active
     TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
-    TENANT_FUNDING: 'ut-refund' // Only organization component is active
+    TENANT_FUNDING: 'ut-refund', // Only refund component is active
+    TENANT_BILLING: 'ut-billing' // Only billing and pricing component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -117,6 +118,29 @@ export default class CONTEXTS {
           mainUrl: '',
           timezone: 'Europe/Paris'
         }
+      },
+      smartCharging: {
+        type: 'sapSmartCharging',
+        content: {
+          optimizerUrl: '',
+          user: '',
+          password: ''
+        }
+      },
+      billing: {
+        type: 'stripe',
+        content: {
+          stripe: {
+            currency: 'EUR',
+            url: '',
+            secretKey: '',
+            publicKey: '',
+            noCardAllowed: true,
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            advanceBillingAllowed: true,
+          }
+        }
       }
     },
   },
@@ -212,6 +236,38 @@ export default class CONTEXTS {
         }
       }
     }
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa8',
+    subdomain: 'utbilling',
+    componentSettings: {
+      pricing: {
+        type: 'simple',
+        content: {
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
+        }
+      },
+      billing: {
+        type: 'stripe',
+        content: {
+          stripe: {
+            currency: 'EUR',
+            url: '',
+            secretKey: '',
+            publicKey: '',
+            noCardAllowed: true,
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            advanceBillingAllowed: true,
+          }
+        }
+      }
+    },
   }];
 
   // List of users created in a tenant
@@ -230,7 +286,7 @@ export default class CONTEXTS {
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
       tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -248,7 +304,7 @@ export default class CONTEXTS {
       emailPrefix: 'a-unassigned-',
       tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -266,7 +322,7 @@ export default class CONTEXTS {
       emailPrefix: 'basic-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -284,7 +340,7 @@ export default class CONTEXTS {
       emailPrefix: 'demo-',
       tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -302,7 +358,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-unassigned-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -320,7 +376,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-pending-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -338,7 +394,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-locked-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -356,7 +412,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-notTag',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     }

@@ -75,7 +75,14 @@
                       "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              }
+              },
+              "smartCharging": {
+                "type": "object",
+                "properties": {
+                    "active": { "type": "boolean" },
+                      "type": { "type": "string" }
+                  }
+            }
           }
       }
   },

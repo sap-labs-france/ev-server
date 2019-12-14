@@ -1,18 +1,20 @@
 import cluster from 'cluster';
 import moment from 'moment';
-import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
-import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
-import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
-import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
+import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
+import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
-import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import CleanupAllTransactions from './tasks/CleanupAllTransactions';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
+import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
+import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
+import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -41,6 +43,9 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddTagTypeTask());
       currentMigrationTasks.push(new CleanupAllTransactions());
       currentMigrationTasks.push(new CleanupMeterValuesTask());
+      currentMigrationTasks.push(new RenameTagPropertiesTask());
+      currentMigrationTasks.push(new AddInactivityStatusInTransactions());
+      // currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

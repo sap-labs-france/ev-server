@@ -1,53 +1,10 @@
 import { Request } from 'express';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../types/Billing';
+import { BillingSetting, BillingSettings } from '../../types/Setting';
 
-export interface BillingSettings {
-  currency: string; // Must come from 'pricing' settings!
-}
-
-export interface BillingResponse {
-  success: boolean;
-  message?: string;
-}
-
-export interface BillingTransactionData {
-  status?: string;
-  errorCode?: string;
-  errorCodeDesc?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
-  lastUpdate?: Date;
-}
-
-export interface BillingDataStart {
-  errorCode?: string;
-  errorCodeDesc?: string;
-}
-
-export interface BillingDataUpdate {
-  errorCode?: string;
-  errorCodeDesc?: string;
-  stopTransaction?: boolean;
-}
-
-export interface BillingDataStop {
-  status?: string;
-  errorCode?: string;
-  errorCodeDesc?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
-}
-
-export interface BillingUserData {
-  customerID?: string;
-  method?: string;
-  cardID?: string;
-  subscriptionID?: string;
-  lastChangedOn?: Date;
-}
-
-export default abstract class Billing<T extends BillingSettings> {
+export default abstract class Billing<T extends BillingSetting> {
 
   // Protected because only used in subclasses at the moment
   protected readonly tenantId: string; // Assuming GUID or other string format ID
@@ -66,7 +23,7 @@ export default abstract class Billing<T extends BillingSettings> {
   async abstract checkConnection(key?: string): Promise<BillingResponse>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract getUpdatedCustomersForSynchronization(): Promise<string[]>;
+  async abstract getUpdatedUsersInBillingForSynchronization(): Promise<string[]>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract synchronizeUser(user: User): Promise<BillingUserData>;
@@ -91,6 +48,8 @@ export default abstract class Billing<T extends BillingSettings> {
 
   // eslint-disable-next-line no-unused-vars
   async abstract checkIfUserCanBeDeleted(user: User, req: Request): Promise<void>;
+
+  async abstract getUsers(): Promise<Partial<User>[]>;
 
   async abstract createUser(req: Request): Promise<BillingUserData>;
 

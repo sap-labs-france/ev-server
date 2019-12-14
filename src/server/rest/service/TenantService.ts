@@ -176,7 +176,7 @@ export default class TenantService {
     // Save
     filteredRequest.id = await TenantStorage.saveTenant(filteredRequest);
     // Update with components
-    await TenantService._updateSettingsWithComponents(filteredRequest, req);
+    await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
     await TenantStorage.createTenantDB(filteredRequest.id);
     // Create Admin user in tenant
@@ -251,7 +251,7 @@ export default class TenantService {
     // Update Tenant
     await TenantStorage.saveTenant(tenantUpdate);
     // Update with components
-    await TenantService._updateSettingsWithComponents(tenantUpdate, req);
+    await TenantService.updateSettingsWithComponents(tenantUpdate, req);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -265,7 +265,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
+  private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings

@@ -100,6 +100,7 @@ export default class Constants {
   public static readonly ENTITY_LOGGINGS = 'Loggings';
   public static readonly ENTITY_LOGGING = 'Logging';
   public static readonly ENTITY_PRICING = 'Pricing';
+  public static readonly ENTITY_BILLING = 'Billing';
   public static readonly ENTITY_SETTING = 'Setting';
   public static readonly ENTITY_SETTINGS = 'Settings';
   public static readonly ENTITY_TOKENS = 'Tokens';
@@ -159,6 +160,7 @@ export default class Constants {
   public static readonly ACTION_SEND_TOKENS = 'SendTokens';
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
+  public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckConnection';
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
 
   // Password constants
@@ -188,6 +190,7 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_OCPI = 'ocpi';
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
+  public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
 
   public static readonly METER_VALUE_CTX_SAMPLE_PERIODIC = 'Sample.Periodic';
   public static readonly METER_VALUE_CTX_SAMPLE_CLOCK = 'Sample.Clock';
@@ -335,7 +338,8 @@ export default class Constants {
     BILLING: 'billing',
     ORGANIZATION: 'organization',
     STATISTICS: 'statistics',
-    ANALYTICS: 'analytics'
+    ANALYTICS: 'analytics',
+    SMART_CHARGING: 'smartCharging'
   };
 
   // Ocpi Registering status

@@ -1,4 +1,4 @@
-export interface StatusNotification {
+export interface OCPPStatusNotification {
   connectorId: string;
   errorCode: string;
   info: string;
@@ -8,7 +8,7 @@ export interface StatusNotification {
   vendorErrorCode: string;
 }
 
-export interface DBStatusNotification extends StatusNotification {
+export interface DBOCPPStatusNotification extends OCPPStatusNotification {
   chargeBoxID: string;
   timestamp: Date;
   timezone: string;

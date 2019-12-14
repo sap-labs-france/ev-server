@@ -7,7 +7,7 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import Pricing from './Pricing';
-import { PricingSetting } from '../../types/Setting';
+import { PricingSetting, PricingSettingsType } from '../../types/Setting';
 
 export default class PricingFactory {
   static async getPricingImpl(tenantID: string, transaction: Transaction): Promise<Pricing<PricingSetting>> {
@@ -16,18 +16,17 @@ export default class PricingFactory {
     // Check if the pricing is active
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       // Get the pricing's settings
-      const setting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
+      const pricingSetting = await SettingStorage.getPricingSettings(tenantID);
       // Check
-      if (setting) {
+      if (pricingSetting) {
         // SAP Convergent Charging
-        if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING]) {
+        if (pricingSetting.type === PricingSettingsType.CONVERGENT_CHARGING) {
           // Return the CC implementation
-          return new ConvergentChargingPricing(tenantID,
-            setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING], transaction);
+          return new ConvergentChargingPricing(tenantID, pricingSetting.convergentCharging, transaction);
         // Simple Pricing
-        } else if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE]) {
+        } else if (pricingSetting.type === PricingSettingsType.SIMPLE) {
           // Return the Simple Pricing implementation
-          return new SimplePricing(tenantID, setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE], transaction);
+          return new SimplePricing(tenantID, pricingSetting.simple, transaction);
         }
       }
     }

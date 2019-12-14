@@ -54,5 +54,10 @@
 			"title": "Offline Charging Stations",
 			"body": "At least one charging station is offline in your organization."
 		}
-	}
+	},
+  "billing": {
+    "generatedUser": "Generated customer for {{email}}",
+    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
+    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+  }
 }
