@@ -567,7 +567,7 @@ export default class TransactionService {
       filter.search = filteredRequest.Search;
     }
     if (filteredRequest.InactivityStatus) {
-      filter.inactivityStatus = filteredRequest.InactivityStatus;
+      filter.inactivityStatus = filteredRequest.InactivityStatus.split('|');
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }

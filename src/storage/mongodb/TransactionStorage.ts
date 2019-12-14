@@ -212,7 +212,7 @@ export default class TransactionStorage {
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -287,30 +287,19 @@ export default class TransactionStorage {
       filterMatch.stop = params.stop;
     }
     // Inactivity Status
-    switch (params.inactivityStatus) {
-      case InactivityStatus.WARNING:
-        if (!filterMatch.stop) {
-          filterMatch.stop = {};
-        }
-        filterMatch['stop.inactivityStatus'] = { $in: [InactivityStatus.WARNING, InactivityStatus.ERROR] }
-        break;
-      case InactivityStatus.ERROR:
-        if (!filterMatch.stop) {
-          filterMatch.stop = {};
-        }
-        filterMatch['stop.inactivityStatus'] = InactivityStatus.ERROR;
-        break;
+    if (params.inactivityStatus) {
+      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus }
     }
     // Site's area ID
     if (params.siteAreaIDs) {
       filterMatch.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Site ID
     if (params.siteID) {
       filterMatch.siteID = {
-        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteID.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Refund status
