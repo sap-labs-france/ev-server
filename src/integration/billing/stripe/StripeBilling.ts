@@ -692,18 +692,14 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
             name: fullName,
             preferred_locales: [locale]
           });
+          user.billingData.customerID = customer.id;
         } catch (e) {
           return {
             success: false,
-            message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
-              `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe and was not bale to be created`
+            message: `Customer cannot be updated in Stripe for user ${fullName}. ` +
+              `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe and was not able to be created`
           };
         }
-        return {
-          success: false,
-          message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
-            `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe`
-        };
       }
     }
     let paymentMethod = req.body.paymentToken ? sanitize(req.body.paymentToken) : null;
