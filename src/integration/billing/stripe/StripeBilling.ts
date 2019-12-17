@@ -119,7 +119,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     this.checkStripeIsInit();
     // Get customer
     const customer = await this.getCustomerByID(id);
-    if (customer) {
+    if (customer && customer.email) {
       return {
         email: customer.email,
         billingData: {

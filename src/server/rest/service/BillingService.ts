@@ -197,23 +197,35 @@ export default class BillingService {
       for (const userIDChangedInBilling of userIDsChangedInBilling) {
         // Get Billing User
         const billingUser = await billingImpl.getUser(userIDChangedInBilling);
-        // Get e-Mobility User
-        const user = await UserStorage.getUserByEmail(tenant.id, billingUser.email);
-        if (user) {
-          // Update & Save
-          user.billingData.customerID = billingUser.billingData.customerID;
-          user.billingData.lastChangedOn = new Date();
-          await UserStorage.saveUser(tenant.id, user, false);
-          actionsDone.synchronized++;
-          // Log
-          Logging.logInfo({
-            tenantID: tenant.id,
-            user: user,
-            source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
-            module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: `User have been synchronized successfully`
-          });          
+        if (billingUser) {
+          // Get e-Mobility User
+          const user = await UserStorage.getUserByEmail(tenant.id, billingUser.email);
+          if (user) {
+            // Update & Save
+            user.billingData.customerID = billingUser.billingData.customerID;
+            user.billingData.lastChangedOn = new Date();
+            await UserStorage.saveUser(tenant.id, user, false);
+            actionsDone.synchronized++;
+            // Log
+            Logging.logInfo({
+              tenantID: tenant.id,
+              user: user,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              module: 'BillingService', method: 'handleSynchronizeUsers',
+              message: `User have been synchronized successfully`
+            });
+          } else {
+            actionsDone.error++;
+            // Log
+            Logging.logError({
+              tenantID: tenant.id,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              module: 'BillingService', method: 'handleSynchronizeUsers',
+              message: `Billing user with ID '${userIDChangedInBilling}' and email '${billingUser.email}' does not exist in e-Mobility`
+            });
+          }
         } else {
           actionsDone.error++;
           // Log
@@ -222,7 +234,7 @@ export default class BillingService {
             source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_SYNCHRONIZE_BILLING,
             module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: `Billing user with ID '${userIDChangedInBilling}' and email '${billingUser.email}' does not exist in e-Mobility`
+            message: `Billing user with ID '${userIDChangedInBilling}' does not exist`
           });
         }
       }
