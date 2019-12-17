@@ -83,7 +83,7 @@ describe('Billing Service', function() {
     });
 
     it('Should connect to Billing Provider', async () => {
-      const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+      const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
       expect(response.data).containSubset({ connectionIsValid: true });
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
     });
@@ -161,7 +161,7 @@ describe('Billing Service', function() {
       });
 
       it('Should not be able to test connection to Billing Provider', async () => {
-        const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
         expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
       });
 

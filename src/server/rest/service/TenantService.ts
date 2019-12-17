@@ -294,13 +294,13 @@ export default class TenantService {
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, newSetting);
+          await SettingStorage.saveSettings(tenant.id, newSetting);
         } else {
           currentSetting.content = newSettingContent;
           currentSetting.lastChangedOn = new Date();
           currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, currentSetting);
+          await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
       }
     }

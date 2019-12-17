@@ -116,8 +116,6 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
         status: transactionToSave.billingData.status,
-        errorCode: transactionToSave.billingData.errorCode,
-        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),

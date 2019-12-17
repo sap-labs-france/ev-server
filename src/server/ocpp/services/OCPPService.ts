@@ -736,7 +736,7 @@ export default class OCPPService {
     }
   }
 
-  private async handleBillingForTransaction(tenantID: string, transaction: Transaction, action: string, user?: User) {
+  private async handleBillingForTransaction(tenantID: string, transaction: Transaction, action: string) {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
 
     switch (action) {
@@ -744,12 +744,10 @@ export default class OCPPService {
       case 'start':
         // Active?
         if (billingImpl) {
-          const billingDataStart = await billingImpl.startTransaction(user, transaction);
+          await billingImpl.startTransaction(transaction);
           if (!transaction.billingData) {
             transaction.billingData = {} as BillingTransactionData;
           }
-          transaction.billingData.errorCode = billingDataStart.errorCode;
-          transaction.billingData.errorCodeDesc = billingDataStart.errorCodeDesc;
           transaction.billingData.lastUpdate = new Date();
         }
         break;
@@ -758,8 +756,6 @@ export default class OCPPService {
         // Active?
         if (billingImpl) {
           const billingDataUpdate = await billingImpl.updateTransaction(transaction);
-          transaction.billingData.errorCode = billingDataUpdate.errorCode;
-          transaction.billingData.errorCodeDesc = billingDataUpdate.errorCodeDesc;
           transaction.billingData.lastUpdate = new Date();
           if (billingDataUpdate.stopTransaction) {
             // Unclear how to do this...
@@ -772,8 +768,6 @@ export default class OCPPService {
         if (billingImpl) {
           const billingDataStop = await billingImpl.stopTransaction(transaction);
           transaction.billingData.status = billingDataStop.status;
-          transaction.billingData.errorCode = billingDataStop.errorCode;
-          transaction.billingData.errorCodeDesc = billingDataStop.errorCodeDesc;
           transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
           transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
           transaction.billingData.lastUpdate = new Date();
@@ -1180,7 +1174,7 @@ export default class OCPPService {
       // Price it
       await this.priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'start');
       // Billing
-      await this.handleBillingForTransaction(headers.tenantID, transaction, 'start', user);
+      await this.handleBillingForTransaction(headers.tenantID, transaction, 'start');
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charger's connector transaction info

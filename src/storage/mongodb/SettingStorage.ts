@@ -26,8 +26,8 @@ export default class SettingStorage {
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingResult.count > 0 ? settingResult.result[0] : null;
   }
-
-  public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
+  
+  public static async saveSettings(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'saveSetting');
     // Check Tenant
@@ -111,6 +111,22 @@ export default class SettingStorage {
       }
     }
     return pricingSettings;
+  }
+
+  public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
+    // Build internal structure
+    const settingsToSave = {
+      id: billingSettingsToSave.id,
+      identifier: billingSettingsToSave.identifier,
+      sensitiveData: billingSettingsToSave.sensitiveData,
+      lastChangedOn: new Date(),
+      content: {
+        type: billingSettingsToSave.type,
+        stripe: billingSettingsToSave.stripe
+      },
+    } as Setting;
+    // Save
+    return this.saveSettings(tenantID, settingsToSave);
   }
 
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
