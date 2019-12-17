@@ -39,8 +39,8 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   validateStatusNotification(statusNotification) {
-    // Check non mandatory timestamp
-    if (!statusNotification.timestamp) {
+    // Check non mandatory or wrong timestamp
+    if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
       statusNotification.timestamp = new Date().toISOString();
     }
     this.validate(this._statusNotificationRequest, statusNotification);
