@@ -125,11 +125,11 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         billingData: {
           customerID: customer.id
         }
-      }
+      };
     }
   }
 
-  public async getUserbyEmail(email: string): Promise<BillingPartialUser> {
+  public async getUserByEmail(email: string): Promise<BillingPartialUser> {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Get customer
@@ -140,7 +140,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         billingData: {
           customerID: request.id
         }
-      }
+      };
     }
   }
 
@@ -191,7 +191,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
             if (!skipCustomer) {
               collectedCustomerIDs.push(lastCustomerID);
             }
-          };
+          }
           stillData = events.data.length <= 20;
         } else {
           stillData = false;
@@ -218,21 +218,21 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       // Check User
       if (!transaction.userID || !transaction.user) {
         throw new BackendError({
-          message: `User is not provided`
+          message: 'User is not provided'
         });
       }
       // Get User
       const billingUser = transaction.user;
       if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
         throw new BackendError({
-          message: `Transaction user has no billing method or no customer in Stripe`
+          message: 'Transaction user has no billing method or no customer in Stripe'
         });
       }
       if (billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE &&
           billingUser.billingData.method !== Constants.BILLING_METHOD_PERIODIC &&
           billingUser.billingData.method !== Constants.BILLING_METHOD_ADVANCE) {
         throw new BackendError({
-          message: `Transaction user is assigned to unknown billing method`
+          message: 'Transaction user is assigned to unknown billing method'
         });
       }
       if (billingUser.billingData.method === Constants.BILLING_METHOD_ADVANCE) {
@@ -243,7 +243,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       if (!billingUser.billingData.subscriptionID &&
         billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE) {
         throw new BackendError({
-          message: `Transaction user is not subscribed to Stripe billing plan`
+          message: 'Transaction user is not subscribed to Stripe billing plan'
         });
       }
       if (billingUser.billingData.subscriptionID &&
@@ -284,7 +284,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       // Check User
       if (!transaction.userID || !transaction.user) {
         throw new BackendError({
-          message: `User is not provided`
+          message: 'User is not provided'
         });
       }
       // Only relevant for Advance Billing to stop the running transaction, if the credit amount is no more sufficient
@@ -312,14 +312,14 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       // Check User
       if (!transaction.userID || !transaction.user) {
         throw new BackendError({
-          message: `User is not provided`
+          message: 'User is not provided'
         });
       }
       const billingUser = transaction.user;
       // Check Charging Station
       if (!transaction.chargeBox) {
         throw new BackendError({
-          message: `Charging Station is not provided`
+          message: 'Charging Station is not provided'
         });
       }
       const chargeBox = transaction.chargeBox;
@@ -555,7 +555,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         message: `Customer cannot be created/updated in Stripe: ${error.message}`,
         detailedMessages: error
       });
-      return false;      
+      return false;
     }
   }
 
@@ -617,7 +617,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         message: `Billing error in Stop Transaction: ${error.message}`,
         detailedMessages: error
       });
-      return false;      
+      return false;
     }
   }
 
@@ -688,6 +688,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
       }
     }
   }
+
   private async getCustomerByID(id: string): Promise<Stripe.customers.ICustomer> {
     // Get customer
     return await this.stripe.customers.retrieve(id);
@@ -765,7 +766,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
           module: 'StripeBilling', method: 'modifyUser',
           action: Constants.ACTION_CREATE,
           user: user,
-          message: `Impossible to create a Stripe customer`,
+          message: 'Impossible to create a Stripe customer',
           detailedMessages: error
         });
       }

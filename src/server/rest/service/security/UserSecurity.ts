@@ -169,6 +169,7 @@ export default class UserSecurity {
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         filteredUser.errorCode = user.errorCode;
+        filteredUser.billingData = user.billingData;
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }

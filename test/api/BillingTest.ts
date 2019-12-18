@@ -14,6 +14,7 @@ import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import UserStorage from "../../src/storage/mongodb/UserStorage";
 
 chai.use(chaiSubset);
 
@@ -82,7 +83,7 @@ describe('Billing Service', function() {
       }
     });
 
-    it('Should connect to Billing Provider', async () => {
+    it('Should successfully test connection to Billing Provider', async () => {
       const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
       expect(response.data).containSubset({ connectionIsValid: true });
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
@@ -121,6 +122,37 @@ describe('Billing Service', function() {
 
       const usersAfter = await billingImpl.getUsers();
       expect(usersAfter.length).to.be.eq(usersBefore.length - 1);
+    });
+
+    it('Should synchronize a new user with old billing data', async () => {
+      const fakeUser = {
+        ...Factory.user.build(),
+      } as User;
+
+      const usersInBillingBeforeCreate = await billingImpl.getUsers();
+      // Create user in e-Mobility + Billing provider
+      const createdUser = await testData.userService.createEntity(
+        testData.userService.userApi,
+        fakeUser
+      );
+      const usersInBillingAfterCreate = await billingImpl.getUsers();
+      expect(usersInBillingAfterCreate.length).to.be.eq(usersInBillingBeforeCreate.length + 1);
+
+      const userID = createdUser.id;
+      const userResponse = await testData.userService.getEntityById(
+        testData.userService.userApi,
+        { id: userID }
+      );
+
+      // Delete user only from Billing provider
+      await billingImpl.deleteUser(userResponse);
+      const usersInBillingAfterDelete = await billingImpl.getUsers();
+      expect(usersInBillingAfterDelete.length).to.be.eq(usersInBillingAfterCreate.length - 1);
+
+      // Synchronize e-Mobility users with Billing provider
+      await testData.userService.billingApi.synchronizeUsers(); // Can be very slow
+      const usersInBillingAfterSynchronize = await billingImpl.getUsers();
+      expect(usersInBillingAfterSynchronize.length).to.be.eq(usersInBillingAfterDelete.length + 1);
     });
 
     describe('With basic user', () => {

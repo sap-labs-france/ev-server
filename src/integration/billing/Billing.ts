@@ -37,7 +37,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getUser(id: string): Promise<BillingPartialUser>;
 
-  async abstract getUserbyEmail(email: string): Promise<BillingPartialUser>;
+  async abstract getUserByEmail(email: string): Promise<BillingPartialUser>;
 
   async abstract getUsers(): Promise<BillingPartialUser[]>;
 
