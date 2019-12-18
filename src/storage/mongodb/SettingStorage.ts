@@ -26,7 +26,7 @@ export default class SettingStorage {
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingResult.count > 0 ? settingResult.result[0] : null;
   }
-  
+
   public static async saveSettings(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'saveSetting');

@@ -41,7 +41,7 @@ export default class TenantValidator extends SchemaValidator {
   private validateComponentDependencies(tenant: Tenant) {
     if (tenant.components) {
       // Smart Charging active: Organization must be active
-      if (tenant.components.smartCharging && tenant.components.organization && 
+      if (tenant.components.smartCharging && tenant.components.organization &&
           tenant.components.smartCharging.active && !tenant.components.organization.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -51,7 +51,7 @@ export default class TenantValidator extends SchemaValidator {
         });
       }
       // Billing active: Pricing must be active
-      if (tenant.components.billing && tenant.components.pricing && 
+      if (tenant.components.billing && tenant.components.pricing &&
           tenant.components.billing.active && !tenant.components.pricing.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -61,7 +61,7 @@ export default class TenantValidator extends SchemaValidator {
         });
       }
       // Refund active: Pricing must be active
-      if (tenant.components.refund && tenant.components.pricing && 
+      if (tenant.components.refund && tenant.components.pricing &&
           tenant.components.refund.active && !tenant.components.pricing.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,

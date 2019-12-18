@@ -157,7 +157,7 @@ export default class BillingService {
             source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_SYNCHRONIZE_BILLING,
             module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: `User have been synchronized successfully`
+            message: 'User have been synchronized successfully'
           });
           // Delete duplicate customers
           if (userIDsChangedInBilling && userIDsChangedInBilling.length > 0) {
@@ -213,7 +213,7 @@ export default class BillingService {
               source: Constants.CENTRAL_SERVER,
               action: Constants.ACTION_SYNCHRONIZE_BILLING,
               module: 'BillingService', method: 'handleSynchronizeUsers',
-              message: `User have been synchronized successfully`
+              message: 'User have been synchronized successfully'
             });
           } else {
             actionsDone.error++;
