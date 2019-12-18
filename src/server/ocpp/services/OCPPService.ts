@@ -748,7 +748,7 @@ export default class OCPPService {
         // Update
         transaction.billingData = {
           lastUpdate: new Date()
-        }
+        };
         // Cancel?
         if (billingDataStart.cancelTransaction) {
         }

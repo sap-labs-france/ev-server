@@ -286,7 +286,7 @@ export default class TransactionStorage {
     }
     // Inactivity Status
     if (params.inactivityStatus) {
-      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus }
+      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus };
     }
     // Site's area ID
     if (params.siteAreaIDs) {
