@@ -39,10 +39,10 @@ export interface BillingUserData {
   lastChangedOn?: Date;
 }
 
-export interface Tax {
-  countryCode: string;
-  taxCode: string;
-  standard: number;
-  reduced: number[];
-  allowZero: boolean;
+export interface PartialBillingTax {
+  id: string;
+  description: string;
+  displayName: string;
+  jurisdiction: string;
+  percentage: number;
 }

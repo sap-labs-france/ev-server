@@ -1,7 +1,14 @@
 import { Request } from 'express';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../types/Billing';
+import {
+  BillingDataStart,
+  BillingDataStop,
+  BillingDataUpdate,
+  BillingResponse,
+  BillingUserData,
+  PartialBillingTax
+} from '../../types/Billing';
 import {BillingSetting, BillingSettings} from '../../types/Setting';
 
 export default abstract class Billing<T extends BillingSetting> {
@@ -58,5 +65,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   // eslint-disable-next-line no-unused-vars
   async abstract deleteUser(user: User, req: Request): Promise<void>;
+
+  async abstract getTaxes(): Promise<PartialBillingTax[]>;
 
 }

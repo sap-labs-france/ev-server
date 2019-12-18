@@ -14,10 +14,18 @@ import Utils from '../../../utils/Utils';
 import i18n from 'i18n-js';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingUserData } from '../../../types/Billing';
+import {
+  BillingDataStart,
+  BillingDataStop,
+  BillingDataUpdate,
+  BillingResponse,
+  BillingUserData,
+  PartialBillingTax
+} from '../../../types/Billing';
 import { Request } from 'express';
 import { StripeBillingSettings } from '../../../types/Setting';
 import I18nManager from '../../../utils/I18nManager';
+import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -28,7 +36,7 @@ export interface TransactionIdemPotencyKey {
 
 export default class StripeBilling extends Billing<StripeBillingSettings> {
   private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
-  private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
+  private static readonly STRIPE_MAX_LIST = 100;
   private stripe: Stripe;
 
   constructor(tenantId: string, settings: StripeBillingSettings) {
@@ -100,7 +108,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
   public async getUsers(): Promise<Partial<User>[]> {
     const users = [] as Partial<User>[];
     let request;
-    const requestParams = { limit: StripeBilling.STRIPE_MAX_CUSTOMER_LIST } as ICustomerListOptions;
+    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ICustomerListOptions;
     do {
       request = await this.stripe.customers.list(requestParams);
       for (const user of request.data) {
@@ -112,7 +120,7 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
         });
       }
       if (request.has_more) {
-        requestParams.starting_after = users[users.length - 1].id;
+        requestParams.starting_after = users[users.length - 1].billingData.customerID;
       }
     } while (request.has_more);
     return users;
@@ -135,6 +143,28 @@ export default class StripeBilling extends Billing<StripeBillingSettings> {
     }
     const fullReq = buildReq as Request;
     return await this.updateUser(user, fullReq);
+  }
+
+  public async getTaxes(): Promise<PartialBillingTax[]> {
+    const taxes = [] as PartialBillingTax[];
+    let request;
+    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ItaxRateSearchOptions;
+    do {
+      request = await this.stripe.taxRates.list(requestParams);
+      for (const tax of request.data) {
+        taxes.push({
+          id: tax.id,
+          description: tax.description,
+          displayName: tax.display_name,
+          jurisdiction: tax.jurisdiction,
+          percentage: tax.percentage
+        });
+      }
+      if (request.has_more) {
+        requestParams.starting_after = taxes[taxes.length - 1].id;
+      }
+    } while (request.has_more);
+    return taxes;
   }
 
   public async getUpdatedUsersInBillingForSynchronization(): Promise<string[]> {

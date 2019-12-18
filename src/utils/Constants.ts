@@ -162,6 +162,7 @@ export default class Constants {
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
   public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckConnection';
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
+  public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;

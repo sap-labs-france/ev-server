@@ -546,6 +546,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_SYNCHRONIZE_BILLING);
   }
 
+  public static canReadBillingTaxes(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_READ_BILLING_TAXES);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_SUPER_ADMIN;
   }
