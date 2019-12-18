@@ -364,25 +364,24 @@ export default class OCPIMapping {
     const credential: any = {};
 
     // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
+    const roamingSetting = await SettingStorage.getRoamingSettings(tenantID);
 
     // Define version url
     credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
-    if (ocpiSetting && ocpiSetting.content) {
-      const configuration = ocpiSetting.content.ocpi;
+    if (roamingSetting) {
       credential.token = token;
 
       if (role === Constants.OCPI_ROLE.EMSP) {
-        credential.country_code = configuration.emsp.countryCode;
-        credential.party_id = configuration.emsp.partyID;
+        credential.country_code = roamingSetting.ocpi.emsp.countryCode;
+        credential.party_id = roamingSetting.ocpi.emsp.partyID;
       } else {
-        credential.country_code = configuration.cpo.countryCode;
-        credential.party_id = configuration.cpo.partyID;
+        credential.country_code = roamingSetting.ocpi.cpo.countryCode;
+        credential.party_id = roamingSetting.ocpi.cpo.partyID;
       }
 
-      credential.business_details = configuration.businessDetails;
+      credential.business_details = roamingSetting.ocpi.businessDetails;
     }
 
     // Return credential object

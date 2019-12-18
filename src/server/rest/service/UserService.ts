@@ -865,8 +865,8 @@ export default class UserService {
       });
     }
     // Get the settings
-    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
-    const settingInner = setting.content.convergentCharging;
+    const setting = await SettingStorage.getPricingSettings(req.user.tenantID);
+    const settingInner = setting.convergentCharging;
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
 

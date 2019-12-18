@@ -8,7 +8,8 @@ export enum ComponentType {
   REFUND = 'refund',
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
-  SMART_CHARGING = 'smartCharging'
+  SMART_CHARGING = 'smartCharging',
+  ROAMING = 'roaming'
 }
 
 export default interface Setting extends CreatedUpdatedProps {
@@ -36,6 +37,9 @@ export interface NotificationsSettings {
   userInactivity?: boolean;
 }
 
+export interface PricingSetting {
+}
+
 export enum PricingSettingsType {
   SIMPLE = 'simple',
   CONVERGENT_CHARGING = 'convergentCharging',
@@ -50,9 +54,6 @@ export interface PricingSettings {
   convergentCharging: ConvergentChargingPricingSettings;
 }
 
-export interface PricingSetting {
-}
-
 export interface SimplePricingSettings extends PricingSetting {
   price: number;
   currency: string;
@@ -63,6 +64,18 @@ export interface ConvergentChargingPricingSettings extends PricingSetting {
   chargeableItemName: string;
   user: string;
   password: string;
+}
+
+export enum RoamingSettingsType {
+  OCPI = 'ocpi'
+}
+
+export interface RoamingSettings {
+  id?: string;
+  identifier: ComponentType.ROAMING;
+  sensitiveData: string[];
+  type: RoamingSettingsType;
+  ocpi: OcpiSettings;
 }
 
 export interface OcpiSettings {
@@ -105,6 +118,18 @@ export interface AnalyticsLink {
   url: string;
 }
 
+export enum RefundSettingType {
+  CONCUR = 'concur'
+}
+
+export interface RefundSettings {
+  id?: string;
+  identifier: ComponentType.REFUND;
+  sensitiveData: string[];
+  type: RefundSettingType;
+  concur: ConcurRefundSettings;
+}
+
 export interface ConcurRefundSettings {
   authenticationUrl: string;
   apiUrl: string;
@@ -116,15 +141,19 @@ export interface ConcurRefundSettings {
   reportName: string;
 }
 
+export enum BillingSettingType {
+  STRIPE = 'stripe'
+}
+
+export interface BillingSetting {
+}
+
 export interface BillingSettings {
   id?: string;
   identifier: ComponentType.BILLING;
   type: BillingSettingType;
   sensitiveData: string[];
   stripe?: StripeBillingSettings;
-}
-
-export interface BillingSetting {
 }
 
 export interface StripeBillingSettings extends BillingSetting {
@@ -140,6 +169,4 @@ export interface StripeBillingSettings extends BillingSetting {
   currency: string;
 }
 
-export enum BillingSettingType {
-  STRIPE = 'stripe'
-}
+

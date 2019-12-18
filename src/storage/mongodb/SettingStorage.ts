@@ -1,4 +1,4 @@
-import Setting, { BillingSettingType, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import Setting, { AnalyticsSettings, BillingSettingType, BillingSettings, ComponentType, PricingSettings, PricingSettingsType, RefundSettingType, RefundSettings, RoamingSettings, RoamingSettingsType } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -58,7 +58,7 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
+    await global.database.getCollection<Setting>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnOriginal: false });
@@ -68,15 +68,70 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getOCPISettings(tenantID: string): Promise<OcpiSettings> {
+  public static async getRoamingSettings(tenantID: string): Promise<RoamingSettings> {
+    const roamingSettings = {
+      identifier: ComponentType.ROAMING
+    } as RoamingSettings;
+
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
-    // Get the currency
+
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
+      roamingSettings.id = settings.result[0].id;
+      roamingSettings.sensitiveData = settings.result[0].sensitiveData;
       if (config.ocpi) {
-        return config.ocpi;
+        roamingSettings.type = RoamingSettingsType.OCPI;
+        roamingSettings.ocpi = {
+          cpo: config.ocpi.cpo ? config.ocpi.cpo : { countryCode: '', partyID: '' },
+          emsp: config.ocpi.emsp ? config.ocpi.emsp : { countryCode: '', partyID: '' },
+          businessDetails: config.ocpi.businessDetails ? config.ocpi.businessDetails : {
+            name: '',
+            website: '',
+            logo: { url: '', thumbnail: '', category: '', type: '', width: '', height: '' }
+          }
+        };
       }
     }
+    return roamingSettings;
+  }
+
+  public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.ANALYTICS }, Constants.DB_PARAMS_MAX_LIMIT);
+
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+
+      if (config.sac) {
+        return config.sac;
+      }
+    }
+  }
+
+  public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
+    const refundSettings = {
+      identifier: ComponentType.REFUND
+    } as RefundSettings;
+
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      refundSettings.id = settings.result[0].id;
+      refundSettings.sensitiveData = settings.result[0].sensitiveData;
+      if (config.concur) {
+        refundSettings.type = RefundSettingType.CONCUR;
+        refundSettings.concur = {
+          authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
+          apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
+          clientId: config.concur.clientId ? config.concur.clientId : '',
+          clientSecret: config.concur.clientSecret ? config.concur.clientSecret : '',
+          paymentTypeId: config.concur.paymentTypeId ? config.concur.paymentTypeId : '',
+          expenseTypeCode: config.concur.expenseTypeCode ? config.concur.expenseTypeCode : '',
+          policyId: config.concur.policyId ? config.concur.policyId : '',
+          reportName: config.concur.reportName ? config.concur.reportName : '',
+        };
+      }
+    }
+    return refundSettings;
   }
 
   public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
