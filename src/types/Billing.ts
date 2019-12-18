@@ -6,10 +6,11 @@ export interface BillingTransactionData {
 }
 
 export interface BillingDataStart {
+  cancelTransaction?: boolean;
 }
 
 export interface BillingDataUpdate {
-  stopTransaction?: boolean;
+  cancelTransaction?: boolean;
 }
 
 export interface BillingDataStop {
