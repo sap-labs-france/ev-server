@@ -1,12 +1,12 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
 import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import Tag from '../../../../types/Tag';
 import User from '../../../../types/User';
+import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
-import UserNotifications from '../../../../types/UserNotifications';
-import Tag from '../../../../types/Tag';
+import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 
@@ -261,6 +261,7 @@ export default class UserSecurity {
       filtered.sendSmtpAuthError = UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError);
       filtered.sendOfflineChargingStations = UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations);
       filtered.sendPreparingSessionNotStarted = UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted);
+      filtered.sendBillingSynchronizationFailed = UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed);
     }
     return filtered;
   }

@@ -1,38 +1,15 @@
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
+import UserNotifications, { BillingSynchronizationFailed, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
-import User from '../types/User';
-import UserNotifications, {
-  BillingSynchronizationFailed,
-  ChargingStationRegisteredNotification,
-  ChargingStationStatusErrorNotification,
-  EndOfChargeNotification,
-  EndOfSessionNotification,
-  EndOfSignedSessionNotification,
-  NewRegisteredUserNotification,
-  Notification,
-  NotificationSeverity,
-  NotificationSource,
-  OCPIPatchChargingStationsStatusesErrorNotification,
-  OfflineChargingStationNotification,
-  OptimalChargeReachedNotification,
-  PreparingSessionNotStartedNotification,
-  RequestPasswordNotification,
-  SmtpAuthErrorNotification,
-  TransactionStartedNotification,
-  UnknownUserBadgedNotification,
-  UserAccountInactivityNotification,
-  UserAccountStatusChangedNotification,
-  UserNotificationKeys,
-  VerificationEmailNotification
-} from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
+import Logging from '../utils/Logging';
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Utils from '../utils/Utils';
 import moment = require('moment');
 
 export default class NotificationHandler {

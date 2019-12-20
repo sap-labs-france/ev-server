@@ -1,9 +1,9 @@
 {
-  "subject": "Synchronization avec le service de Billing échouée",
+  "subject": "Synchronisation avec le service de Billing échouée",
   "tenant": "<%- tenantID %>",
   "body": {
     "header": {
-      "title": "Synchronization avec le service de Billing échouée",
+      "title": "Synchronisation avec le service de Billing échouée",
       "image": {
         "left": {
           "height": 60,
