@@ -151,6 +151,10 @@ export default class UserStorage {
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
+    // Check
+    if (!email) {
+      return null;
+    }
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user

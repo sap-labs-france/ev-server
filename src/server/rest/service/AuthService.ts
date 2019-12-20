@@ -654,7 +654,7 @@ export default class AuthService {
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user, req);
+      const billingData = await billingImpl.updateUser(user);
       await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
     }
     // Save User Verification Account

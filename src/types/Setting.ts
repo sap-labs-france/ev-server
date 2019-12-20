@@ -132,15 +132,16 @@ export enum BillingSettingType {
   STRIPE = 'stripe'
 }
 
-export interface BillingSetting {
-}
-
 export interface BillingSettings {
   id?: string;
   identifier: ComponentType.BILLING;
   type: BillingSettingType;
   sensitiveData: string[];
   stripe?: StripeBillingSettings;
+}
+
+export interface BillingSetting {
+  lastSynchronizedOn?: Date;
 }
 
 export interface StripeBillingSettings extends BillingSetting {
@@ -150,8 +151,6 @@ export interface StripeBillingSettings extends BillingSetting {
   noCardAllowed: boolean;
   immediateBillingAllowed: boolean;
   periodicBillingAllowed: boolean;
-  // Default billing plan(s)?
   advanceBillingAllowed: boolean;
-  lastSynchronizedOn?: Date;
   currency: string;
 }

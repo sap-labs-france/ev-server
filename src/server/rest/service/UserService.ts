@@ -18,6 +18,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import UserNotifications from '../../../types/UserNotifications';
+import User from '../../../types/User';
 
 export default class UserService {
 
@@ -185,7 +186,7 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      await billingImpl.checkIfUserCanBeDeleted(user, req);
+      await billingImpl.checkIfUserCanBeDeleted(user);
     }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
@@ -198,7 +199,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     if (billingImpl) {
-      await billingImpl.deleteUser(user, req);
+      await billingImpl.deleteUser(user);
     }
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
@@ -304,7 +305,7 @@ export default class UserService {
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user, req);
+      const billingData = await billingImpl.updateUser(user);
       await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
     }
     // Save User password
@@ -723,7 +724,6 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
-
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
     // Get the email
@@ -746,14 +746,8 @@ export default class UserService {
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
-    if (billingImpl) {
-      const billingData = await billingImpl.createUser(req);
-      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
-    }
     // Save password
     if (filteredRequest.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
@@ -798,6 +792,13 @@ export default class UserService {
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
       }
+    }
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (billingImpl) {
+      const user = await UserStorage.getUser(req.user.tenantID, newUserID);
+      const billingData = await billingImpl.createUser(user);
+      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
     }
     // Log
     Logging.logSecurityInfo({
