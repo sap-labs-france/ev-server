@@ -243,7 +243,7 @@ export default class TransactionService {
       UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
       const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
       if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-        OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.connectorId);
+        OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
         await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
       }
     }
@@ -536,7 +536,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-
+    // Check Organization
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
@@ -548,7 +548,6 @@ export default class TransactionService {
         filter.siteAdminIDs = req.user.sitesAdmin;
       }
     }
-
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
     }
@@ -566,6 +565,9 @@ export default class TransactionService {
     }
     if (filteredRequest.Search) {
       filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.InactivityStatus) {
+      filter.inactivityStatus = filteredRequest.InactivityStatus.split('|');
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
@@ -900,14 +902,17 @@ export default class TransactionService {
 
   public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
     I18nManager.switchLanguage(loggedUser.language);
-    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    // Headers
+    let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
+    // Content
     for (const transaction of transactions) {
       csv += `${transaction.id}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.chargeBoxID}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(transaction.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${I18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}`: ''}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${I18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}` : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumption ? transaction.stop.totalConsumption / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;

@@ -119,6 +119,14 @@ export default class CONTEXTS {
           timezone: 'Europe/Paris'
         }
       },
+      smartCharging: {
+        type: 'sapSmartCharging',
+        content: {
+          optimizerUrl: '',
+          user: '',
+          password: ''
+        }
+      },
       billing: {
         type: 'stripe',
         content: {
@@ -278,7 +286,7 @@ export default class CONTEXTS {
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
       tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -296,7 +304,7 @@ export default class CONTEXTS {
       emailPrefix: 'a-unassigned-',
       tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -314,7 +322,7 @@ export default class CONTEXTS {
       emailPrefix: 'basic-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -332,7 +340,7 @@ export default class CONTEXTS {
       emailPrefix: 'demo-',
       tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -350,7 +358,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-unassigned-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -368,7 +376,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-pending-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -386,7 +394,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-locked-',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     },
@@ -404,7 +412,7 @@ export default class CONTEXTS {
       emailPrefix: 'b-notTag',
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
-        internal: false,
+        issuer: false,
         deleted: false
       }] : null)
     }

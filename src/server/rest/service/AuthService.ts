@@ -252,7 +252,7 @@ export default class AuthService {
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
       deleted: false,
-      internal: true
+      issuer: true
     };
     await UserStorage.saveUserTags(tenantID, newUser.id, [tag]);
 
@@ -654,7 +654,7 @@ export default class AuthService {
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user, req);
+      const billingData = await billingImpl.updateUser(user);
       await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
     }
     // Save User Verification Account

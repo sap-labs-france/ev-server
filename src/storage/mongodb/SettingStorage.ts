@@ -27,7 +27,7 @@ export default class SettingStorage {
     return settingResult.count > 0 ? settingResult.result[0] : null;
   }
 
-  public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
+  public static async saveSettings(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'saveSetting');
     // Check Tenant
@@ -113,6 +113,22 @@ export default class SettingStorage {
     return pricingSettings;
   }
 
+  public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
+    // Build internal structure
+    const settingsToSave = {
+      id: billingSettingsToSave.id,
+      identifier: billingSettingsToSave.identifier,
+      sensitiveData: billingSettingsToSave.sensitiveData,
+      lastChangedOn: new Date(),
+      content: {
+        type: billingSettingsToSave.type,
+        stripe: billingSettingsToSave.stripe
+      },
+    } as Setting;
+    // Save
+    return this.saveSettings(tenantID, settingsToSave);
+  }
+
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
     const billingSettings = {
       identifier: ComponentType.BILLING,
@@ -151,6 +167,7 @@ export default class SettingStorage {
           advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
           immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
+          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0)
         };
       }
 

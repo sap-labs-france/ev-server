@@ -28,6 +28,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   Search?: string;
   ErrorType?: string;
   RefundStatus?: string;
+  InactivityStatus?: string;
   MinimalPrice?: boolean;
   Statistics?: 'refund'|'history';
   ReportIDs?: string;

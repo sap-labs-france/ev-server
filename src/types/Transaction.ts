@@ -2,7 +2,18 @@ import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
-import { InactivityStatusLevel } from './UserNotifications';
+
+export type InactivityStatusLevel =
+ 'info' |
+ 'warning' |
+ 'danger'
+;
+
+export enum InactivityStatus {
+  INFO = 'I',
+  WARNING = 'W',
+  ERROR = 'E'
+}
 
 export default interface Transaction {
   id: number;
@@ -29,8 +40,8 @@ export default interface Transaction {
     extraInactivityComputed: boolean;
     totalConsumption: number;
     totalDurationSecs: number;
-    currentTotalDurationSecs: number;
-    inactivityStatusLevel: InactivityStatusLevel;
+    inactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+    inactivityStatus?: InactivityStatus;
     timestamp: Date;
     transactionData?: any;
     signedData?: any;
@@ -62,7 +73,8 @@ export default interface Transaction {
   timezone: string;
   lastUpdate?: Date;
   currentTotalInactivitySecs: number;
-  currentInactivityStatusLevel: InactivityStatusLevel;
+  currentInactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+  currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   numberOfMeterValues: number;
   currentConsumption: number;

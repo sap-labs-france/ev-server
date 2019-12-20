@@ -45,7 +45,7 @@ export interface ChargingStationTemplate {
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
-  }
+  };
   template: Partial<ChargingStation>;
 }
 

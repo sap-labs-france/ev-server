@@ -307,7 +307,7 @@ export default class ChargingStationService {
             user: req.user
           });
         } else {
-          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, connector.connectorId);
+          OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, connector.connectorId);
         }
       }
     }

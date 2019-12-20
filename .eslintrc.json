@@ -31,13 +31,24 @@
       "error",
       "always"
     ],
+    "@typescript-eslint/no-empty-function": [
+      "warn",
+      {
+        "allow": [
+          "arrowFunctions",
+          "methods"
+        ]
+      }
+    ],
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-member-accessibility": "off",
     "@typescript-eslint/member-ordering": "error",
     "@typescript-eslint/await-thenable": "error",
-    "@typescript-eslint/require-await": "error",
+    "require-await": "off",
+    "@typescript-eslint/require-await": "off",
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/promise-function-async": "error",
+    "@typescript-eslint/no-misused-promises": "error",
     "curly": "error",
     "brace-style": "error",
     "eqeqeq": [
@@ -96,7 +107,13 @@
     "max-len": [
       "warn",
       {
-        "code": 140
+        "code": 180,
+        "ignoreComments": true,
+        "ignoreUrls": true,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true,
+        "ignorePattern": "(^(import|export)|(public|private))\\s.+;"
       }
     ],
     "no-lonely-if": "error",

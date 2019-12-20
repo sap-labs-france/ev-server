@@ -24,7 +24,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     let updated = 0;
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(tenant.id, 'chargingstations').find(
-      { 'capabilities': { $exists: false }}).toArray();
+      { 'capabilities': { $exists: false } }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
@@ -76,7 +76,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.12';
+    return '1.0';
   }
 
   getName() {

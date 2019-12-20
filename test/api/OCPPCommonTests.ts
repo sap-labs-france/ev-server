@@ -1,14 +1,14 @@
+import { fail } from 'assert';
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import User from '../../src/types/User';
+import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
+import { InactivityStatus } from '../../src/types/Transaction';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
-import Factory from '../factories/Factory';
-import User from '../../src/types/User';
-import { fail } from 'assert';
-import Tag from '../../src/types/Tag';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -140,9 +140,9 @@ export default class OCPPCommonTests {
     if (this.createAnyUser) {
       this.anyUser = await this.createUser(Factory.user.build({
         tags: [
-          { id: this.validTag, internal: true, deleted: false },
-          { id: this.invalidTag, internal: true, deleted: false },
-          { id: this.numberTag.toString(), internal: true, deleted: false }
+          { id: this.validTag, issuer: true, deleted: false },
+          { id: this.invalidTag, issuer: true, deleted: false },
+          { id: this.numberTag.toString(), issuer: true, deleted: false }
         ]
       }));
       if (!this.createdUsers) {
@@ -446,6 +446,7 @@ export default class OCPPCommonTests {
         'meterStop': this.transactionEndMeterValue,
         'totalConsumption': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
+        'inactivityStatus': InactivityStatus.INFO,
         'totalDurationSecs': moment.duration(moment(this.transactionCurrentTime).diff(this.newTransaction.timestamp)).asSeconds(),
         'price': this.totalPrice,
         'priceUnit': 'EUR',
@@ -480,6 +481,7 @@ export default class OCPPCommonTests {
         'tagID': this.transactionStopUser.tags[0].id,
         'totalConsumption': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
+        'inactivityStatus': InactivityStatus.INFO,
         'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
         'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'user': {
@@ -991,7 +993,8 @@ export default class OCPPCommonTests {
       meterStart: meterStart,
       stop: {
         totalConsumption: meterValue - meterStart,
-        totalInactivitySecs: 60
+        totalInactivitySecs: 60,
+        inactivityStatus: InactivityStatus.INFO
       }
     });
   }
@@ -1027,6 +1030,7 @@ export default class OCPPCommonTests {
       currentStateOfCharge: 0,
       currentTotalConsumption: 0,
       currentTotalInactivitySecs: 0,
+      currentInactivityStatus: InactivityStatus.INFO,
       isLoading: false,
       price: 0,
       roundedPrice: 0,
