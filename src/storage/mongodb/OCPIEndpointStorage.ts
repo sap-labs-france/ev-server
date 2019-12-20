@@ -5,7 +5,7 @@ import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 

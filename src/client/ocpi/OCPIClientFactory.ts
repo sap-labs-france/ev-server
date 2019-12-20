@@ -5,7 +5,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import CpoOCPIClient from './CpoOCPIClient';
 
 export default class OCPIClientFactory {

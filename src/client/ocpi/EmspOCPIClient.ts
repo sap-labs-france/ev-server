@@ -1,6 +1,6 @@
 import OCPIClient from './OCPIClient';
 import Tenant from '../../types/Tenant';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import Constants from '../../utils/Constants';
 import { OcpiSettings } from '../../types/Setting';
 import Logging from '../../utils/Logging';

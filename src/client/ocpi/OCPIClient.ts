@@ -1,6 +1,6 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
