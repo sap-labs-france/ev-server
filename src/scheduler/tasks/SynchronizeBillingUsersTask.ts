@@ -8,16 +8,18 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeBillingUsersTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
-    const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
-    if (synchronizeAction.error > 0) {
-      await NotificationHandler.sendBillingSynchronizationFailed(
-        tenant.id,
-        {
-          error: synchronizeAction.error,
-          evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
-          evseDashnoardBillingURL: await Utils.buildEvseBillingSettingsURL(tenant.id)
-        }
-      );
+    if (billingImpl) {
+      const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
+      if (synchronizeAction.error > 0) {
+        await NotificationHandler.sendBillingSynchronizationFailed(
+          tenant.id,
+          {
+            error: synchronizeAction.error,
+            evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
+            evseDashnoardBillingURL: await Utils.buildEvseBillingSettingsURL(tenant.id)
+          }
+        );
+      }
     }
   }
 }
