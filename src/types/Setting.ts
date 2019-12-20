@@ -8,8 +8,7 @@ export enum ComponentType {
   REFUND = 'refund',
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
-  SMART_CHARGING = 'smartCharging',
-  ROAMING = 'roaming'
+  SMART_CHARGING = 'smartCharging'
 }
 
 export default interface Setting extends CreatedUpdatedProps {
@@ -37,9 +36,6 @@ export interface NotificationsSettings {
   userInactivity?: boolean;
 }
 
-export interface PricingSetting {
-}
-
 export enum PricingSettingsType {
   SIMPLE = 'simple',
   CONVERGENT_CHARGING = 'convergentCharging',
@@ -54,6 +50,9 @@ export interface PricingSettings {
   convergentCharging: ConvergentChargingPricingSettings;
 }
 
+export interface PricingSetting {
+}
+
 export interface SimplePricingSettings extends PricingSetting {
   price: number;
   currency: string;
@@ -64,18 +63,6 @@ export interface ConvergentChargingPricingSettings extends PricingSetting {
   chargeableItemName: string;
   user: string;
   password: string;
-}
-
-export enum RoamingSettingsType {
-  OCPI = 'ocpi'
-}
-
-export interface RoamingSettings {
-  id?: string;
-  identifier: ComponentType.ROAMING;
-  sensitiveData: string[];
-  type: RoamingSettingsType;
-  ocpi: OcpiSettings;
 }
 
 export interface OcpiSettings {
@@ -168,5 +155,3 @@ export interface StripeBillingSettings extends BillingSetting {
   lastSynchronizedOn?: Date;
   currency: string;
 }
-
-

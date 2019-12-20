@@ -13,9 +13,9 @@ export default class OCPIClientFactory {
     // Check if OCPI component is active
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)
     ) {
-      const roamingSettings = await SettingStorage.getRoamingSettings(tenant.id);
+      const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
-      if (!roamingSettings) {
+      if (!ocpiSettings) {
         Logging.logError({
           tenantID: tenant.id,
           module: 'OCPIClientFactory',
@@ -25,9 +25,9 @@ export default class OCPIClientFactory {
       }
       switch (ocpiEndpoint.role) {
         case Constants.OCPI_ROLE.CPO:
-          return new CpoOCPIClient(tenant, roamingSettings.ocpi, ocpiEndpoint);
+          return new CpoOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
         case Constants.OCPI_ROLE.EMSP:
-          return new EmspOCPIClient(tenant, roamingSettings.ocpi, ocpiEndpoint);
+          return new EmspOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
       }
     }
   }

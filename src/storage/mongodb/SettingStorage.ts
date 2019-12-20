@@ -1,4 +1,4 @@
-import Setting, { AnalyticsSettings, BillingSettingType, BillingSettings, ComponentType, PricingSettings, PricingSettingsType, RefundSettingType, RefundSettings, RoamingSettings, RoamingSettingsType } from '../../types/Setting';
+import Setting, { AnalyticsSettings, BillingSettingType, BillingSettings, ComponentType, PricingSettings, PricingSettingsType, RefundSettingType, RefundSettings, OcpiSettings } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -68,39 +68,21 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getRoamingSettings(tenantID: string): Promise<RoamingSettings> {
-    const roamingSettings = {
-      identifier: ComponentType.ROAMING
-    } as RoamingSettings;
-
+  public static async getOCPISettings(tenantID: string): Promise<OcpiSettings> {
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
-
+    // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
-      roamingSettings.id = settings.result[0].id;
-      roamingSettings.sensitiveData = settings.result[0].sensitiveData;
       if (config.ocpi) {
-        roamingSettings.type = RoamingSettingsType.OCPI;
-        roamingSettings.ocpi = {
-          cpo: config.ocpi.cpo ? config.ocpi.cpo : { countryCode: '', partyID: '' },
-          emsp: config.ocpi.emsp ? config.ocpi.emsp : { countryCode: '', partyID: '' },
-          businessDetails: config.ocpi.businessDetails ? config.ocpi.businessDetails : {
-            name: '',
-            website: '',
-            logo: { url: '', thumbnail: '', category: '', type: '', width: '', height: '' }
-          }
-        };
+        return config.ocpi;
       }
     }
-    return roamingSettings;
   }
 
   public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.ANALYTICS }, Constants.DB_PARAMS_MAX_LIMIT);
-
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
-
       if (config.sac) {
         return config.sac;
       }
