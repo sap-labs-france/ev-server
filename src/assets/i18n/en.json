@@ -53,7 +53,11 @@
 		"offlineChargingStation": {
 			"title": "Offline Charging Stations",
 			"body": "At least one charging station is offline in your organization."
-		}
+		},
+    "billingSynchronizationFailed": {
+      "title": "Synchronization failed",
+      "body": "Unable to synchronize {{nbUsers}} with Billing Service provider"
+    }
 	},
   "billing": {
     "generatedUser": "Generated customer for {{email}}",

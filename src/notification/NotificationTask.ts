@@ -1,6 +1,26 @@
 import Tenant from '../types/Tenant';
 import User from '../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../types/UserNotifications';
+import {
+  BillingSynchronizationFailed,
+  ChargingStationRegisteredNotification,
+  ChargingStationStatusErrorNotification,
+  EndOfChargeNotification,
+  EndOfSessionNotification,
+  EndOfSignedSessionNotification,
+  NewRegisteredUserNotification,
+  NotificationSeverity,
+  OCPIPatchChargingStationsStatusesErrorNotification,
+  OfflineChargingStationNotification,
+  OptimalChargeReachedNotification,
+  PreparingSessionNotStartedNotification,
+  RequestPasswordNotification,
+  SmtpAuthErrorNotification,
+  TransactionStartedNotification,
+  UnknownUserBadgedNotification,
+  UserAccountInactivityNotification,
+  UserAccountStatusChangedNotification,
+  VerificationEmailNotification
+} from '../types/UserNotifications';
 
 export default interface NotificationTask {
   sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
@@ -20,4 +40,5 @@ export default interface NotificationTask {
   sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
   sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
+  sendBillingSynchronizationFailed(data: BillingSynchronizationFailed, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
 }

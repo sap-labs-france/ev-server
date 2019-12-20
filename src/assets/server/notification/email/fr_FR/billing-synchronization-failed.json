@@ -1,0 +1,34 @@
+{
+  "subject": "Synchronization avec le service de Billing échouée",
+  "tenant": "<%- tenantID %>",
+  "body": {
+    "header": {
+      "title": "Synchronization avec le service de Billing échouée",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "La synchronisation des utilisateurs avec le service de Billing à échouée pour <b><%- error %></b> utilisateur(s)."
+    ],
+    "action": {
+      "title": "Relancer une synchronization",
+      "url": "<%- evseDashboardBillingURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

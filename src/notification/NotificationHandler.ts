@@ -3,7 +3,30 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, {
+  BillingSynchronizationFailed,
+  ChargingStationRegisteredNotification,
+  ChargingStationStatusErrorNotification,
+  EndOfChargeNotification,
+  EndOfSessionNotification,
+  EndOfSignedSessionNotification,
+  NewRegisteredUserNotification,
+  Notification,
+  NotificationSeverity,
+  NotificationSource,
+  OCPIPatchChargingStationsStatusesErrorNotification,
+  OfflineChargingStationNotification,
+  OptimalChargeReachedNotification,
+  PreparingSessionNotStartedNotification,
+  RequestPasswordNotification,
+  SmtpAuthErrorNotification,
+  TransactionStartedNotification,
+  UnknownUserBadgedNotification,
+  UserAccountInactivityNotification,
+  UserAccountStatusChangedNotification,
+  UserNotificationKeys,
+  VerificationEmailNotification
+} from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -661,6 +684,42 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OFFLINE_CHARGING_STATIONS, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendBillingSynchronizationFailed(tenantID: string, sourceData: BillingSynchronizationFailed): Promise<void> {
+    // Get the Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenantID, notificationSource.channel, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED);
+            // Notified?
+            if (!hasBeenNotified) {
+              // Save
+              await NotificationHandler.saveNotification(
+                tenantID, notificationSource.channel, null, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
+                  await notificationSource.notificationTask.sendBillingSynchronizationFailed(
+                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED, error);
           }
         }
       }

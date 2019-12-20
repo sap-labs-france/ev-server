@@ -53,7 +53,11 @@
 		"offlineChargingStation": {
 			"title": "Bornes Hors Ligne",
 			"body": "Au moins une borne est hors ligne dans votre organisation."
-		}
+		},
+    "billingSynchronizationFailed": {
+      "title": "Erreur de synchronization",
+      "body": "Impossible de synchronizer {{nbUsers}} avec le service de Billing."
+    }
 	},
   "billing": {
     "generatedUser": "Client généré pour {{email}}",

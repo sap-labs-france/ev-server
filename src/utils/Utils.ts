@@ -545,6 +545,12 @@ export default class Utils {
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
 
+  public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
+    return _evseBaseURL + '/settings#billing';
+  }
+
   public static isServerInProductionMode(): boolean {
     const env = process.env.NODE_ENV || 'dev';
     return (env === 'production');

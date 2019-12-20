@@ -1,0 +1,34 @@
+{
+  "subject": "Synchronization with Billing provider failed",
+  "tenant": "<%- tenantID %>",
+  "body": {
+    "header": {
+      "title": "Synchronization with Billing provider failed",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Administrator,",
+      "",
+      "The synchronization of E-Mobility users with Billing provider failed for <b><%- error %></b> user(s)."
+    ],
+    "action": {
+      "title": "Restart synchronization",
+      "url": "<%- evseDashboardBillingURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

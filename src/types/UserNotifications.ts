@@ -15,6 +15,7 @@ export default interface UserNotifications {
   sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
   sendOfflineChargingStations?: boolean;
+  sendBillingSynchronizationFailed?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -30,7 +31,8 @@ export type UserNotificationKeys =
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStations'
+ 'sendOfflineChargingStations' |
+ 'sendBillingSynchronizationFailed'
 ;
 
 export enum UserNotificationType {
@@ -46,7 +48,8 @@ export enum UserNotificationType {
   SMTP_AUTH_ERROR = 'SmtpAuthError',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
-  OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
+  OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
+  BILLING_SYNCHRONIZATION_FAILED = 'BillingSynchronizationFailed'
 }
 
 export enum NotificationSeverity {
@@ -196,6 +199,12 @@ export interface PreparingSessionNotStartedNotification extends BaseNotification
 export interface OfflineChargingStationNotification extends BaseNotification {
   chargeBoxIDs: string;
   evseDashboardURL: string;
+}
+
+export interface BillingSynchronizationFailed {
+  error: number;
+  evseDashboardURL: string;
+  evseDashnoardBillingURL: string;
 }
 
 export interface NotificationSource {
