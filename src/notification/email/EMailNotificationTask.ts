@@ -1,37 +1,17 @@
-import ejs from 'ejs';
-import email from 'emailjs';
-import fs from 'fs';
+import { BillingSynchronizationFailed, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import BackendError from '../../exception/BackendError';
-import global from '../../types/GlobalType';
-import Tenant from '../../types/Tenant';
-import User from '../../types/User';
-import {
-  BillingSynchronizationFailed,
-  ChargingStationRegisteredNotification,
-  ChargingStationStatusErrorNotification,
-  EndOfChargeNotification,
-  EndOfSessionNotification,
-  EndOfSignedSessionNotification,
-  NewRegisteredUserNotification,
-  NotificationSeverity,
-  OCPIPatchChargingStationsStatusesErrorNotification,
-  OfflineChargingStationNotification,
-  OptimalChargeReachedNotification,
-  PreparingSessionNotStartedNotification,
-  RequestPasswordNotification,
-  SmtpAuthErrorNotification,
-  TransactionStartedNotification,
-  UnknownUserBadgedNotification,
-  UserAccountInactivityNotification,
-  UserAccountStatusChangedNotification,
-  VerificationEmailNotification
-} from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
+import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import Utils from '../../utils/Utils';
+import ejs from 'ejs';
+import email from 'emailjs';
+import fs from 'fs';
+import global from '../../types/GlobalType';
 
 export default class EMailNotificationTask implements NotificationTask {
   private server: any;

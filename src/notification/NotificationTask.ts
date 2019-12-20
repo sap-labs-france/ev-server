@@ -1,26 +1,6 @@
+import { BillingSynchronizationFailed, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../types/UserNotifications';
 import Tenant from '../types/Tenant';
 import User from '../types/User';
-import {
-  BillingSynchronizationFailed,
-  ChargingStationRegisteredNotification,
-  ChargingStationStatusErrorNotification,
-  EndOfChargeNotification,
-  EndOfSessionNotification,
-  EndOfSignedSessionNotification,
-  NewRegisteredUserNotification,
-  NotificationSeverity,
-  OCPIPatchChargingStationsStatusesErrorNotification,
-  OfflineChargingStationNotification,
-  OptimalChargeReachedNotification,
-  PreparingSessionNotStartedNotification,
-  RequestPasswordNotification,
-  SmtpAuthErrorNotification,
-  TransactionStartedNotification,
-  UnknownUserBadgedNotification,
-  UserAccountInactivityNotification,
-  UserAccountStatusChangedNotification,
-  VerificationEmailNotification
-} from '../types/UserNotifications';
 
 export default interface NotificationTask {
   sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void>;
