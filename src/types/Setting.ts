@@ -128,6 +128,13 @@ export interface SettingLink {
   url: string;
 }
 
+export interface RefundSettingSettings {
+  id?: string;
+  identifier: ComponentType.REFUND;
+  sensitiveData: string[];
+  concur?: ConcurRefundSetting;
+}
+
 export interface ConcurRefundSetting {
   authenticationUrl: string;
   apiUrl: string;
