@@ -1,13 +1,13 @@
-import Setting, { BillingSettingType, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
-import Utils from '../../utils/Utils';
+import BackendError from '../../exception/BackendError';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import Setting, { BillingSettings, BillingSettingType, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 
 export default class SettingStorage {
@@ -69,14 +69,23 @@ export default class SettingStorage {
   }
 
   public static async getOCPISettings(tenantID: string): Promise<OcpiSettings> {
+    const ocpiSettings = {
+      identifier: ComponentType.OCPI,
+    } as OcpiSettings;
+    // Get the Ocpi settings
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
     // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
+      // ID
+      ocpiSettings.id = settings.result[0].id;
+      ocpiSettings.sensitiveData = settings.result[0].sensitiveData;
+      // OCPI
       if (config.ocpi) {
-        return config.ocpi;
+        ocpiSettings.ocpi = config.ocpi;
       }
     }
+    return ocpiSettings;
   }
 
   public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {

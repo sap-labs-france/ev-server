@@ -11,11 +11,10 @@ import CpoOCPIClient from './CpoOCPIClient';
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
     // Check if OCPI component is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)
-    ) {
+    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
-      if (!ocpiSettings) {
+      if (!ocpiSettings && ocpiSettings.ocpi) {
         Logging.logError({
           tenantID: tenant.id,
           module: 'OCPIClientFactory',
@@ -25,9 +24,9 @@ export default class OCPIClientFactory {
       }
       switch (ocpiEndpoint.role) {
         case Constants.OCPI_ROLE.CPO:
-          return new CpoOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
+          return new CpoOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
         case Constants.OCPI_ROLE.EMSP:
-          return new EmspOCPIClient(tenant, ocpiSettings, ocpiEndpoint);
+          return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
       }
     }
   }
