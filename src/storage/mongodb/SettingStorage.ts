@@ -142,7 +142,6 @@ export default class SettingStorage {
     const billingSettings = {
       identifier: ComponentType.BILLING,
     } as BillingSettings;
-
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
     const config = settings.result[0].content;
 
@@ -150,7 +149,6 @@ export default class SettingStorage {
       // ID
       billingSettings.id = settings.result[0].id;
       billingSettings.sensitiveData = settings.result[0].sensitiveData;
-
       // Currency
       const pricingSettings = await SettingStorage.getPricingSettings(tenantID);
       let currency = 'EUR';
