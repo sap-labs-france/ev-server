@@ -27,8 +27,8 @@ export interface SettingContent {
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
   stripe?: StripeBillingSetting;
-  sac?: AnalyticsSetting;
-  links?: AnalyticsLink[];
+  sac?: SacAnalyticsSetting;
+  links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
   notifications?: NotificationsSettings;
@@ -97,7 +97,14 @@ export interface OcpiSetting {
   };
 }
 
-export interface AnalyticsSetting {
+export interface AnalyticsSettings {
+  id?: string;
+  identifier: ComponentType.ANALYTICS;
+  sensitiveData: string[];
+  sac?: SacAnalyticsSetting;
+}
+
+export interface SacAnalyticsSetting {
   mainUrl: string;
   timezone: string;
 }
@@ -106,7 +113,14 @@ export interface SapSmartChargingSetting {
   optimizerUrl: string;
 }
 
-export interface AnalyticsLink {
+export interface OcpiSettings {
+  id?: string;
+  identifier: ComponentType.OCPI;
+  sensitiveData: string[];
+  ocpi?: OcpiSetting;
+}
+
+export interface SettingLink {
   id: string;
   name: string;
   description: string;
