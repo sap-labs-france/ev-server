@@ -1,4 +1,3 @@
-import auth from 'basic-auth';
 import CentralServiceApi from './client/CentralServiceApi';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -6,14 +5,15 @@ import ODataBootNotifications from './odata-entities/ODataBootNotifications';
 import ODataChargingStations from './odata-entities/ODataChargingStations';
 import ODataCompanies from './odata-entities/ODataCompanies';
 import ODataModel from './odata-model/ODataModel';
-import ODataSites from './odata-entities/ODataSites';
 import ODataSiteAreas from './odata-entities/ODataSiteAreas';
+import ODataSites from './odata-entities/ODataSites';
 import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import auth from 'basic-auth';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {

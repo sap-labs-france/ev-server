@@ -1,5 +1,11 @@
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
+import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
 import ChargingStation from '../../../../types/ChargingStation';
+import Connector from '../../../../types/Connector';
 import Constants from '../../../../utils/Constants';
+import { DataResult } from '../../../../types/DataResult';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -7,12 +13,6 @@ import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import { DataResult } from '../../../../types/DataResult';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
-import Connector from '../../../../types/Connector';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
