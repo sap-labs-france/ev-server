@@ -2,7 +2,6 @@ import ConcurRefundConnector from './concur/ConcurRefundConnector';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import RefundConnector from './RefundConnector';
-import { RefundSettingType } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -18,7 +17,7 @@ export default class RefundFactory {
       const setting = await SettingStorage.getRefundSettings(tenantID);
       // Check
       if (setting) {
-        if (setting.type === RefundSettingType.CONCUR) {
+        if (setting.concur) {
           return new ConcurRefundConnector(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
         }
       }

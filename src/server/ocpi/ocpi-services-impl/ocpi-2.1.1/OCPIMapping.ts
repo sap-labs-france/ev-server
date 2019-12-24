@@ -374,14 +374,14 @@ export default class OCPIMapping {
       credential.token = token;
 
       if (role === Constants.OCPI_ROLE.EMSP) {
-        credential.country_code = ocpiSetting.emsp.countryCode;
-        credential.party_id = ocpiSetting.emsp.partyID;
+        credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
+        credential.party_id = ocpiSetting.ocpi.emsp.partyID;
       } else {
-        credential.country_code = ocpiSetting.cpo.countryCode;
-        credential.party_id = ocpiSetting.cpo.partyID;
+        credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
+        credential.party_id = ocpiSetting.ocpi.cpo.partyID;
       }
 
-      credential.business_details = ocpiSetting.businessDetails;
+      credential.business_details = ocpiSetting.ocpi.businessDetails;
     }
 
     // Return credential object

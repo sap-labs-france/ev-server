@@ -51,8 +51,8 @@ export default class ODataRestAdapter {
       // Get settings
       const sacSetting = await SettingStorage.getAnalyticsSettings(tenant.id);
       if (sacSetting) {
-        if (sacSetting.timezone) {
-          req.timezone = sacSetting.timezone;
+        if (sacSetting.sac.timezone) {
+          req.timezone = sacSetting.sac.timezone;
         }
       }
 

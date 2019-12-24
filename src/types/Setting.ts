@@ -113,13 +113,6 @@ export interface SapSmartChargingSetting {
   optimizerUrl: string;
 }
 
-export interface OcpiSettings {
-  id?: string;
-  identifier: ComponentType.OCPI;
-  sensitiveData: string[];
-  ocpi?: OcpiSetting;
-}
-
 export interface SettingLink {
   id: string;
   name: string;
@@ -149,7 +142,6 @@ export interface ConcurRefundSetting {
 export interface BillingSettings {
   id?: string;
   identifier: ComponentType.BILLING;
-  type: BillingSettingType;
   sensitiveData: string[];
   stripe?: StripeBillingSetting;
 }
@@ -167,8 +159,4 @@ export interface StripeBillingSetting extends BillingSetting {
   periodicBillingAllowed: boolean;
   advanceBillingAllowed: boolean;
   currency: string;
-}
-
-export enum BillingSettingType {
-  STRIPE = 'stripe'
 }

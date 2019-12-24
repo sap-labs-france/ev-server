@@ -1,14 +1,13 @@
-import { ObjectID } from 'mongodb';
+import Setting, { AnalyticsSettings, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType, RefundSettingSettings } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
-import Setting, { BillingSettings, BillingSettingType, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
-
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<Setting> {
@@ -74,7 +73,6 @@ export default class SettingStorage {
     } as OcpiSettings;
     // Get the Ocpi settings
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
-    // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       // ID
@@ -88,42 +86,52 @@ export default class SettingStorage {
     return ocpiSettings;
   }
 
-  public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSetting> {
+  public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
+    const analyticsSettings = {
+      identifier: ComponentType.ANALYTICS,
+    } as AnalyticsSettings;
+    // Get the analytics settings
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.ANALYTICS }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
+      analyticsSettings.id = settings.result[0].id;
+      analyticsSettings.sensitiveData = settings.result[0].sensitiveData;
+      // SAP Analytics
       if (config.sac) {
-        return config.sac;
+        analyticsSettings.sac = {
+          timezone: config.sac.timezone ? config.sac.timezone : '',
+          mainUrl: config.sac.mainUrl ? config.sac.mainUrl : '',
+        };
       }
     }
+    return analyticsSettings;
   }
 
-  // public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
-  //   const refundSettings = {
-  //     identifier: ComponentType.REFUND
-  //   } as RefundSettings;
-  //
-  //   const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
-  //   if (settings && settings.count > 0 && settings.result[0].content) {
-  //     const config = settings.result[0].content;
-  //     refundSettings.id = settings.result[0].id;
-  //     refundSettings.sensitiveData = settings.result[0].sensitiveData;
-  //     if (config.concur) {
-  //       refundSettings.type = RefundSettingType.CONCUR;
-  //       refundSettings.concur = {
-  //         authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
-  //         apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
-  //         clientId: config.concur.clientId ? config.concur.clientId : '',
-  //         clientSecret: config.concur.clientSecret ? config.concur.clientSecret : '',
-  //         paymentTypeId: config.concur.paymentTypeId ? config.concur.paymentTypeId : '',
-  //         expenseTypeCode: config.concur.expenseTypeCode ? config.concur.expenseTypeCode : '',
-  //         policyId: config.concur.policyId ? config.concur.policyId : '',
-  //         reportName: config.concur.reportName ? config.concur.reportName : '',
-  //       };
-  //     }
-  //   }
-  //   return refundSettings;
-  // }
+  public static async getRefundSettings(tenantID: string): Promise<RefundSettingSettings> {
+    const refundSettings = {
+      identifier: ComponentType.REFUND
+    } as RefundSettingSettings;
+
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      refundSettings.id = settings.result[0].id;
+      refundSettings.sensitiveData = settings.result[0].sensitiveData;
+      if (config.concur) {
+        refundSettings.concur = {
+          authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
+          apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
+          clientId: config.concur.clientId ? config.concur.clientId : '',
+          clientSecret: config.concur.clientSecret ? config.concur.clientSecret : '',
+          paymentTypeId: config.concur.paymentTypeId ? config.concur.paymentTypeId : '',
+          expenseTypeCode: config.concur.expenseTypeCode ? config.concur.expenseTypeCode : '',
+          policyId: config.concur.policyId ? config.concur.policyId : '',
+          reportName: config.concur.reportName ? config.concur.reportName : '',
+        };
+      }
+    }
+    return refundSettings;
+  }
 
   public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
     const pricingSettings = {
@@ -167,7 +175,6 @@ export default class SettingStorage {
       sensitiveData: billingSettingsToSave.sensitiveData,
       lastChangedOn: new Date(),
       content: {
-        type: billingSettingsToSave.type,
         stripe: billingSettingsToSave.stripe
       },
     } as Setting;
@@ -201,7 +208,6 @@ export default class SettingStorage {
 
       // Billing type
       if (config.stripe) {
-        billingSettings.type = BillingSettingType.STRIPE;
         billingSettings.stripe = {
           url: config.stripe.url ? config.stripe.url : '',
           publicKey: config.stripe.publicKey ? config.stripe.publicKey : '',
@@ -214,7 +220,6 @@ export default class SettingStorage {
           lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0)
         };
       }
-
       return billingSettings;
     }
   }
