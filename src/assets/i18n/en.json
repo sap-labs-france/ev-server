@@ -54,13 +54,13 @@
 			"title": "Offline Charging Stations",
 			"body": "At least one charging station is offline in your organization."
 		},
-    "billingSynchronizationFailed": {
-      "title": "Synchronization failed",
-      "body": "Unable to synchronize {{nbUsers}} with Billing Service provider"
+    "billingUserSynchronizationFailed": {
+      "title": "User Synchro Failed",
+      "body": "Unable to synchronize {{nbrUsersInError}} with Billing Service provider"
     }
 	},
   "billing": {
-    "generatedUser": "Generated customer for {{email}}",
+    "generatedUser": "Generated user for {{email}}",
     "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
     "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
   }

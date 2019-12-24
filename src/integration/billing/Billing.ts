@@ -1,25 +1,13 @@
-import {
-  BillingDataStart,
-  BillingDataStop,
-  BillingDataUpdate,
-  BillingPartialUser,
-  BillingSynchronizeAction,
-  BillingUserData
-} from '../../types/Billing';
-import AppAuthError from '../../exception/AppAuthError';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingSynchronizeAction, BillingUserData } from '../../types/Billing';
 import AppError from '../../exception/AppError';
-import Authorizations from '../../authorization/Authorizations';
 import BillingFactory from './BillingFactory';
 import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import UserToken from '../../types/UserToken';
-import Utils from '../../utils/Utils';
 
 export default abstract class Billing<T extends BillingSetting> {
 

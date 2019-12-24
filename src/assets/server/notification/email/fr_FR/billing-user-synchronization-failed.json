@@ -1,9 +1,9 @@
 {
-  "subject": "Synchronization with Billing provider failed",
+  "subject": "Facturation - Synchronisation des Utilisateurs a échoué",
   "tenant": "<%- tenantID %>",
   "body": {
     "header": {
-      "title": "Synchronization with Billing provider failed",
+      "title": "Facturation - Synchronisation des Utilisateurs a échoué",
       "image": {
         "left": {
           "height": 60,
@@ -16,16 +16,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Cher Administrateur,",
       "",
-      "The synchronization of E-Mobility users with Billing provider failed for <b><%- error %></b> user(s)."
+      "Impossible de synchroniser <%- nbrUsersInError %> utilisateur(s) avec le système de facturation."
     ],
     "action": {
-      "title": "Restart synchronization",
+      "title": "Voir Réglages",
       "url": "<%- evseDashboardBillingURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

@@ -54,13 +54,13 @@
 			"title": "Bornes Hors Ligne",
 			"body": "Au moins une borne est hors ligne dans votre organisation."
 		},
-    "billingSynchronizationFailed": {
-      "title": "Erreur de synchronization",
-      "body": "Impossible de synchronizer {{nbUsers}} avec le service de Billing."
+    "billingUserSynchronizationFailed": {
+      "title": "Erreur Synchro Utilisateurs",
+      "body": "Impossible de synchronizer {{nbrUsersInError}} avec le service de Facturation."
     }
 	},
   "billing": {
-    "generatedUser": "Client généré pour {{email}}",
+    "generatedUser": "Utilisateur généré pour {{email}}",
     "chargingStopSiteArea": "Charger {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
     "chargingStopChargeBox": "Charger {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
   }

@@ -1,4 +1,4 @@
-import UserNotifications, { BillingSynchronizationFailed, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -667,7 +667,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendBillingSynchronizationFailed(tenantID: string, sourceData: BillingSynchronizationFailed): Promise<void> {
+  static async sendBillingUserSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // Enrich with admins
@@ -680,23 +680,23 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
-              tenantID, notificationSource.channel, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED);
+              tenantID, notificationSource.channel, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
             // Notified?
             if (!hasBeenNotified) {
               // Save
               await NotificationHandler.saveNotification(
-                tenantID, notificationSource.channel, null, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED);
+                tenantID, notificationSource.channel, null, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
                 if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
-                  await notificationSource.notificationTask.sendBillingSynchronizationFailed(
+                  await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
                     sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_BILLING_SYNCHRONIZATION_FAILED, error);
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED, error);
           }
         }
       }

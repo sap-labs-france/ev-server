@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { BillingSynchronizationFailed, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
@@ -40,7 +40,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
   }
 
-  public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -55,7 +55,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -70,7 +70,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -82,17 +82,17 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }
 
-  public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }
 
-  public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -110,7 +110,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -128,7 +128,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -146,12 +146,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }
 
-  public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -168,7 +168,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -182,7 +182,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     const status = user.status === Constants.USER_STATUS_ACTIVE ?
@@ -199,7 +199,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -214,7 +214,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -230,12 +230,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }
 
-  public async sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -245,7 +245,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SMTP_AUTH_ERROR, title, body, user, null, severity);
   }
 
-  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
@@ -255,15 +255,15 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OCPI_PATCH_STATUS_ERROR, title, body, user, null, severity);
   }
 
-  public async sendBillingSynchronizationFailed(data: BillingSynchronizationFailed, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
-    const title = i18n.t('notifications.billingSynchronizationFailed.title') + ' - ' + tenant.name;
-    const body = i18n.t('notifications.billingSynchronizationFailed.body', { nbUsers: data.error });
+    const title = i18n.t('notifications.billingUserSynchronizationFailed.title') + ' - ' + tenant.name;
+    const body = i18n.t('notifications.billingUserSynchronizationFailed.body', { nbUsers: data.nbrUsersInError });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_SYNCHRONIZATION_FAILED, title, body, user, {
-      'error': data.error + '',
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED, title, body, user, {
+      'error': data.nbrUsersInError + '',
     },
     severity
     );

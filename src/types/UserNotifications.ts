@@ -49,7 +49,7 @@ export enum UserNotificationType {
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
-  BILLING_SYNCHRONIZATION_FAILED = 'BillingSynchronizationFailed'
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed'
 }
 
 export enum NotificationSeverity {
@@ -201,8 +201,8 @@ export interface OfflineChargingStationNotification extends BaseNotification {
   evseDashboardURL: string;
 }
 
-export interface BillingSynchronizationFailed {
-  error: number;
+export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
+  nbrUsersInError: number;
   evseDashboardURL: string;
   evseDashnoardBillingURL: string;
 }
