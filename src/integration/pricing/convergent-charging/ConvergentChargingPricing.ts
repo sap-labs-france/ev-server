@@ -12,14 +12,14 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 import Transaction from '../../../types/Transaction';
 import Consumption from '../../../types/Consumption';
-import { ConvergentChargingPricingSettings } from '../../../types/Setting';
+import { ConvergentChargingPricingSetting } from '../../../types/Setting';
 import { PricedConsumption } from '../../../types/Pricing';
 import Constants from '../../../utils/Constants';
 
-export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSettings> {
+export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
 
-  constructor(tenantId: string, setting: ConvergentChargingPricingSettings, transaction: Transaction) {
+  constructor(tenantId: string, setting: ConvergentChargingPricingSetting, transaction: Transaction) {
     super(tenantId, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
   }

@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
-import OCPIEndpoint from '../../../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { HttpOCPIEndpointsRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 import { DataResult } from '../../../../types/DataResult';
 
