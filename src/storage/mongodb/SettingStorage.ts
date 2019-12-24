@@ -112,7 +112,7 @@ export default class SettingStorage {
     }
     return pricingSettings;
   }
-
+  // TODO handle 'none' value
   public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
     // Build internal structure
     const settingsToSave = {
@@ -129,6 +129,7 @@ export default class SettingStorage {
     return this.saveSettings(tenantID, settingsToSave);
   }
 
+  // TODO handle 'none' value
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
     const billingSettings = {
       identifier: ComponentType.BILLING,
@@ -167,7 +168,8 @@ export default class SettingStorage {
           advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
           immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
-          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0)
+          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0),
+          tax: config.stripe.tax ? (config.stripe.tax !== 'none' ? config.stripe.tax : null) : null,
         };
       }
 
