@@ -162,7 +162,7 @@ export default class Constants {
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
   public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
-  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
+  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
 
   // Password constants

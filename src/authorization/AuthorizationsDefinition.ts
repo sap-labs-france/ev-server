@@ -51,7 +51,7 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
-      { resource: 'Billing', action: ['CheckBillingConnection', 'SynchronizeBilling'] },
+      { resource: 'Billing', action: ['CheckBillingConnection', 'SynchronizeUsersBilling'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
