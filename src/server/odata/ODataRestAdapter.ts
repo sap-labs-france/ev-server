@@ -50,10 +50,8 @@ export default class ODataRestAdapter {
       req.timezone = 'UTC';
       // Get settings
       const sacSetting = await SettingStorage.getAnalyticsSettings(tenant.id);
-      if (sacSetting) {
-        if (sacSetting.sac.timezone) {
-          req.timezone = sacSetting.sac.timezone;
-        }
+      if (sacSetting && sacSetting.sac && sacSetting.sac.timezone) {
+        req.timezone = sacSetting.sac.timezone;
       }
 
       // Build AuthenticatedApi

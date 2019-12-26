@@ -370,7 +370,7 @@ export default class OCPIMapping {
     credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
-    if (ocpiSetting) {
+    if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
 
       if (role === Constants.OCPI_ROLE.EMSP) {

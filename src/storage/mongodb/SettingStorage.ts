@@ -1,16 +1,16 @@
-import Setting, { AnalyticsSettings, BillingSettings, ComponentType, OcpiSettings, PricingSettings, PricingSettingsType, RefundSettingSettings } from '../../types/Setting';
+import {AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, RoamingSettings, PricingSettings, PricingSettingsType, RefundSettings, SettingDB} from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
+import {DataResult} from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
+import {ObjectID} from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 export default class SettingStorage {
-  public static async getSetting(tenantID: string, id: string): Promise<Setting> {
+  public static async getSetting(tenantID: string, id: string): Promise<SettingDB> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
     // Delegate querying
@@ -20,13 +20,13 @@ export default class SettingStorage {
     return settingMDB.count > 0 ? settingMDB.result[0] : null;
   }
 
-  public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
+  public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<SettingDB> {
     const settingResult = await SettingStorage.getSettings(
       tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingResult.count > 0 ? settingResult.result[0] : null;
   }
 
-  public static async saveSettings(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
+  public static async saveSettings(tenantID: string, settingToSave: Partial<SettingDB>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'saveSetting');
     // Check Tenant
@@ -57,7 +57,7 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    await global.database.getCollection<Setting>(tenantID, 'settings').findOneAndUpdate(
+    await global.database.getCollection<SettingDB>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnOriginal: false });
@@ -67,10 +67,10 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getOCPISettings(tenantID: string): Promise<OcpiSettings> {
+  public static async getOCPISettings(tenantID: string): Promise<RoamingSettings> {
     const ocpiSettings = {
       identifier: ComponentType.OCPI,
-    } as OcpiSettings;
+    } as RoamingSettings;
     // Get the Ocpi settings
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -107,10 +107,10 @@ export default class SettingStorage {
     return analyticsSettings;
   }
 
-  public static async getRefundSettings(tenantID: string): Promise<RefundSettingSettings> {
+  public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
     const refundSettings = {
       identifier: ComponentType.REFUND
-    } as RefundSettingSettings;
+    } as RefundSettings;
 
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
@@ -177,7 +177,7 @@ export default class SettingStorage {
       content: {
         stripe: billingSettingsToSave.stripe
       },
-    } as Setting;
+    } as SettingDB;
     // Save
     return this.saveSettings(tenantID, settingsToSave);
   }
@@ -208,6 +208,7 @@ export default class SettingStorage {
 
       // Billing type
       if (config.stripe) {
+        billingSettings.type = BillingSettingsType.STRIPE;
         billingSettings.stripe = {
           url: config.stripe.url ? config.stripe.url : '',
           publicKey: config.stripe.publicKey ? config.stripe.publicKey : '',
@@ -226,7 +227,7 @@ export default class SettingStorage {
 
   public static async getSettings(tenantID: string,
     params: {identifier?: string; settingID?: string},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Setting>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SettingDB>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant
@@ -284,7 +285,7 @@ export default class SettingStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const settingsMDB = await global.database.getCollection<Setting>(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<SettingDB>(tenantID, 'settings')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug

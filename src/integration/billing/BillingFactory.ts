@@ -1,6 +1,7 @@
+import { BillingSetting, BillingSettingsType } from '../../types/Setting';
 import Billing from './Billing';
-import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBilling from './stripe/StripeBilling';
 import Tenant from '../../types/Tenant';
@@ -21,11 +22,19 @@ export default class BillingFactory {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       if (settings) {
-        if (settings.stripe) {
-          // Return the Stripe implementation
-          return new StripeBilling(tenantID, settings.stripe);
+        switch (settings.type) {
+          case BillingSettingsType.STRIPE:
+            return new StripeBilling(tenantID, settings.stripe);
+          default:
+            break;
         }
       }
+      Logging.logDebug({
+        tenantID: tenant.id,
+        module: 'BillingFactory',
+        method: 'getBillingImpl',
+        message: 'Billing settings are not configured'
+      });
     }
     return null;
   }
