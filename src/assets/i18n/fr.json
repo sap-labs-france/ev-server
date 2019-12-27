@@ -56,11 +56,11 @@
 		},
     "billingUserSynchronizationFailed": {
       "title": "Erreur Synchro Utilisateurs",
-      "body": "Impossible de synchronizer {{nbrUsersInError}} avec le service de Facturation."
+      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation."
     }
 	},
   "billing": {
-    "generatedUser": "Utilisateur généré pour {{email}}",
+    "generatedUser": "Utilisateur généré pour '{{email}}'",
     "chargingStopSiteArea": "Charger {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
     "chargingStopChargeBox": "Charger {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
   }

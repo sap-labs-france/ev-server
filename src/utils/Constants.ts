@@ -15,7 +15,7 @@ export default class Constants {
   public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
   public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
   public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
-  public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingSynchronizationFailed';
+  public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed';
 
   public static readonly CSV_SEPARATOR = '\t';
 

@@ -34,7 +34,7 @@ export interface BillingPartialUser {
   };
 }
 
-export interface BillingSynchronizeAction {
+export interface BillingUserSynchronizeAction {
   synchronized: number;
   error: number;
 }

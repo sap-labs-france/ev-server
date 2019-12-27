@@ -15,7 +15,7 @@ export default interface UserNotifications {
   sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
   sendOfflineChargingStations?: boolean;
-  sendBillingSynchronizationFailed?: boolean;
+  sendBillingUserSynchronizationFailed?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -32,7 +32,7 @@ export type UserNotificationKeys =
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
- 'sendBillingSynchronizationFailed'
+ 'sendBillingUserSynchronizationFailed'
 ;
 
 export enum UserNotificationType {

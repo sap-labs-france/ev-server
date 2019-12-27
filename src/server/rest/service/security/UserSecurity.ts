@@ -261,7 +261,7 @@ export default class UserSecurity {
       filtered.sendSmtpAuthError = UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError);
       filtered.sendOfflineChargingStations = UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations);
       filtered.sendPreparingSessionNotStarted = UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted);
-      filtered.sendBillingSynchronizationFailed = UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed);
+      filtered.sendBillingUserSynchronizationFailed = UtilsSecurity.filterBoolean(notifications.sendBillingSynchronizationFailed);
     }
     return filtered;
   }

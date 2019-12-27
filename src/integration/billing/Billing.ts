@@ -1,4 +1,4 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingSynchronizeAction, BillingUserData } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserSynchronizeAction, BillingUserData } from '../../types/Billing';
 import AppError from '../../exception/AppError';
 import BillingFactory from './BillingFactory';
 import { BillingSetting } from '../../types/Setting';
@@ -24,7 +24,7 @@ export default abstract class Billing<T extends BillingSetting> {
     return this.settings;
   }
 
-  public async synchronizeUsers(tenantID): Promise<BillingSynchronizeAction> {
+  public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
@@ -41,7 +41,7 @@ export default abstract class Billing<T extends BillingSetting> {
     const actionsDone = {
       synchronized: 0,
       error: 0
-    } as BillingSynchronizeAction;
+    } as BillingUserSynchronizeAction;
     // Get recently updated customers from Billing application
     let userIDsChangedInBilling = await billingImpl.getUpdatedUserIDsInBilling();
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync

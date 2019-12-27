@@ -689,7 +689,7 @@ export default class NotificationHandler {
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
-                if (adminUser.notificationsActive && adminUser.notifications.sendBillingSynchronizationFailed) {
+                if (adminUser.notificationsActive && adminUser.notifications.sendBillingUserSynchronizationFailed) {
                   await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
                     sourceData, adminUser, tenant, NotificationSeverity.ERROR);
                 }
