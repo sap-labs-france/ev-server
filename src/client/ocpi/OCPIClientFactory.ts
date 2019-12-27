@@ -1,12 +1,12 @@
 import Constants from '../../utils/Constants';
+import CpoOCPIClient from './CpoOCPIClient';
+import EmspOCPIClient from './EmspOCPIClient';
+import Logging from '../../utils/Logging';
+import OCPIClient from './OCPIClient';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import Logging from '../../utils/Logging';
-import OCPIClient from './OCPIClient';
-import EmspOCPIClient from './EmspOCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import CpoOCPIClient from './CpoOCPIClient';
 
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
