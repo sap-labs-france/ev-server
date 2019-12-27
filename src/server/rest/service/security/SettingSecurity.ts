@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
-import Setting from '../../../../types/Setting';
+import { SettingDB } from '../../../../types/Setting';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -29,17 +29,17 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  public static filterSettingUpdateRequest(request: any): Partial<Setting> {
+  public static filterSettingUpdateRequest(request: any): Partial<SettingDB> {
     const filteredRequest = SettingSecurity._filterSettingRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterSettingCreateRequest(request: any): Partial<Setting> {
+  public static filterSettingCreateRequest(request: any): Partial<SettingDB> {
     return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static _filterSettingRequest(request: any): Partial<Setting> {
+  public static _filterSettingRequest(request: any): Partial<SettingDB> {
     return {
       identifier: sanitize(request.identifier),
       content: sanitize(request.content),
@@ -47,7 +47,7 @@ export default class SettingSecurity {
     };
   }
 
-  public static filterSettingResponse(setting: Setting, loggedUser: UserToken, contentFilter = false) {
+  public static filterSettingResponse(setting: SettingDB, loggedUser: UserToken, contentFilter = false) {
     let filteredSetting;
 
     if (!setting) {
@@ -87,7 +87,7 @@ export default class SettingSecurity {
     return filteredSettings;
   }
 
-  private static _filterAuthorizedSettingContent(loggedUser: UserToken, setting: Setting) {
+  private static _filterAuthorizedSettingContent(loggedUser: UserToken, setting: SettingDB) {
     if (!setting.content) {
       return null;
     }

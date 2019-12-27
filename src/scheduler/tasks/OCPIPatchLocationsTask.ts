@@ -1,6 +1,6 @@
 import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
