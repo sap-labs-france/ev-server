@@ -19,7 +19,7 @@ export default abstract class Billing<T extends BillingSetting> {
     return this.settings;
   }
 
-  async abstract checkConnection();
+  async abstract checkConnection(): Promise<boolean>;
 
   async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
 

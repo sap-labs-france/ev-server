@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
 import Logging from '../../../utils/Logging';
@@ -12,13 +12,12 @@ import RatingService from '../../../integration/pricing/convergent-charging/Rati
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import UserNotifications from '../../../types/UserNotifications';
-import User from '../../../types/User';
+import fs from 'fs';
 
 export default class UserService {
 
@@ -186,7 +185,18 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      await billingImpl.checkIfUserCanBeDeleted(user);
+      try {
+        await billingImpl.checkIfUserCanBeDeleted(user);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleDeleteUser',
+          action: 'CheckIfUserCanBeDeleted',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
@@ -199,7 +209,18 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     if (billingImpl) {
-      await billingImpl.deleteUser(user);
+      try {
+        await billingImpl.deleteUser(user);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleDeleteUser',
+          action: 'UserDelete',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
@@ -227,7 +248,7 @@ export default class UserService {
         errorCode: Constants.HTTP_GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
-        method: 'handleDeleteUser',
+        method: 'handleUpdateUser',
         user: req.user,
         action: action
       });
@@ -305,8 +326,19 @@ export default class UserService {
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user);
-      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      try {
+        const billingData = await billingImpl.updateUser(user);
+        await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     // Save User password
     if (filteredRequest.password) {
@@ -797,8 +829,19 @@ export default class UserService {
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
       const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-      const billingData = await billingImpl.createUser(user);
-      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      try {
+        const billingData = await billingImpl.createUser(user);
+        await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserCreate',
+          message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     // Log
     Logging.logSecurityInfo({

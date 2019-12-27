@@ -1,19 +1,17 @@
-import i18n from 'i18n-js';
-import moment from 'moment';
-import Stripe from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData } from '../../../types/Billing';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import BackendError from '../../../exception/BackendError';
+import Billing from '../Billing';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import Stripe from 'stripe';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
-import Billing from '../Billing';
+import i18n from 'i18n-js';
+import moment from 'moment';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 
 export interface TransactionIdemPotencyKey {
@@ -48,7 +46,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async checkConnection() {
+  public async checkConnection(): Promise<boolean> {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Check Key
@@ -89,6 +87,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Error occured when connecting to Stripe: Invalid key'
       });
     }
+    return true;
   }
 
   public async getUsers(): Promise<BillingPartialUser[]> {
@@ -480,6 +479,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     try {
       // Check Stripe
       this.checkIfStripeIsInitialized();
+      // Check connection
+      if (!(await this.checkConnection())) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
+          action: Constants.ACTION_DELETE,
+          user: user,
+          message: 'Cannot delete the user in Stripe'
+        });
+      }
       // Get locale
       let locale = user.locale;
       if (user.locale) {
@@ -563,6 +572,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     try {
       // Check Stripe
       this.checkIfStripeIsInitialized();
+      // Check connection
+      if (!(await this.checkConnection())) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
+          action: Constants.ACTION_DELETE,
+          user: user,
+          message: 'Cannot delete the user in Stripe'
+        });
+      }
       // No billing in progress
       if (!user.billingData || !user.billingData.customerID) {
         return true;
