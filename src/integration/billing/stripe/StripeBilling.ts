@@ -483,10 +483,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       if (!(await this.checkConnection())) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-          action: Constants.ACTION_DELETE,
+          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
+          action: Constants.ACTION_UPDATE,
           user: user,
-          message: 'Cannot delete the user in Stripe'
+          message: 'Cannot update the user in Stripe'
         });
       }
       // Get locale
