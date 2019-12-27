@@ -572,6 +572,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     try {
       // Check Stripe
       this.checkIfStripeIsInitialized();
+      // No billing in progress
+      if (!user.billingData || !user.billingData.customerID) {
+        return true;
+      }
       // Check connection
       if (!(await this.checkConnection())) {
         throw new BackendError({
@@ -581,10 +585,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           user: user,
           message: 'Cannot delete the user in Stripe'
         });
-      }
-      // No billing in progress
-      if (!user.billingData || !user.billingData.customerID) {
-        return true;
       }
       if (this.checkIfTestMode()) {
         const customer = await this.getCustomerByEmail(user.email);
