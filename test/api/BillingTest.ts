@@ -1,5 +1,7 @@
+import { BillingSetting, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { expect } from 'chai';
 import Billing from '../../src/integration/billing/Billing';
+import { BillingPartialUser } from '../../src/types/Billing';
 import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
@@ -9,12 +11,10 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, StripeBillingSetting } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
 import config from '../config';
-import UserStorage from "../../src/storage/mongodb/UserStorage";
 
 chai.use(chaiSubset);
 
@@ -96,145 +96,98 @@ describe('Billing Service', function() {
           method: 'immediate'
         }
       } as User;
-
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
-
       await testData.userService.createEntity(
         testData.userService.userApi,
         fakeUser
       );
       testData.createdUsers.push(fakeUser);
-
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length + 1);
+      const response: BillingPartialUser = await billingImpl.getUserByEmail(fakeUser.email);
+      expect(response).to.not.be.null;
+      expect(response.email).to.be.eq(fakeUser.email);
     });
 
     it('Should delete a user', async () => {
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
-
+      const userToDelete = testData.createdUsers[0];
       await testData.userService.deleteEntity(
         testData.userService.userApi,
-        { id: testData.createdUsers[0].id }
+        { id: userToDelete.id }
       );
       testData.createdUsers.pop();
+      const user: BillingPartialUser = await billingImpl.getUserByEmail(userToDelete.email);
+      // eslint-disable-next-line no-undefined
+      expect(user).to.be.eq(undefined);
+    });
+  });
 
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length - 1);
+  describe('With basic user', () => {
+    before(async () => {
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+      testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+      expect(testData.userContext).to.not.be.null;
+      testData.centralUserService = new CentralServerService(
+        testData.tenantContext.getTenant().subdomain,
+        testData.centralUserContext
+      );
+      if (testData.userContext === testData.centralUserContext) {
+        // Reuse the central user service (to avoid double login)
+        testData.userService = testData.centralUserService;
+      } else {
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+      }
+      expect(testData.userService).to.not.be.null;
+      const tenant = testData.tenantContext.getTenant();
+      if (tenant.id) {
+        const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+        expect(tenantBillingSettings.data.count).to.be.eq(1);
+        const componentSetting = tenantBillingSettings.data.result[0];
+        componentSetting.content.stripe = { ...billingSettings };
+        componentSetting.sensitiveData = ['content.stripe.secretKey'];
+        await testData.userService.settingApi.update(componentSetting);
+
+        billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
+        billingImpl = new StripeBilling(tenant.id, billingSettings);
+        expect(billingImpl).to.not.be.null;
+      } else {
+        throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
+      }
     });
 
-    it('Should synchronize a new user with old billing data', async () => {
+    it('Should not be able to test connection to Billing Provider', async () => {
+      const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+    });
+
+    it('Should not be able to create a user', async () => {
       const fakeUser = {
         ...Factory.user.build(),
+        billingData: {
+          method: 'immediate'
+        }
       } as User;
-
-      const usersInBillingBeforeCreate = await billingImpl.getUsers();
-      // Create user in e-Mobility + Billing provider
-      const createdUser = await testData.userService.createEntity(
+      const response = await testData.userService.createEntity(
         testData.userService.userApi,
-        fakeUser
+        fakeUser,
+        false
       );
-      const usersInBillingAfterCreate = await billingImpl.getUsers();
-      expect(usersInBillingAfterCreate.length).to.be.eq(usersInBillingBeforeCreate.length + 1);
-
-      const userID = createdUser.id;
-      const userResponse = await testData.userService.getEntityById(
-        testData.userService.userApi,
-        { id: userID }
-      );
-
-      // Delete user only from Billing provider
-      await billingImpl.deleteUser(userResponse);
-      const usersInBillingAfterDelete = await billingImpl.getUsers();
-      expect(usersInBillingAfterDelete.length).to.be.eq(usersInBillingAfterCreate.length - 1);
-
-      // Synchronize e-Mobility users with Billing provider
-      await testData.userService.billingApi.synchronizeUsers(); // Can be very slow
-      const usersInBillingAfterSynchronize = await billingImpl.getUsers();
-      expect(usersInBillingAfterSynchronize.length).to.be.eq(usersInBillingAfterDelete.length + 1);
+      testData.createdUsers.push(fakeUser);
+      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+      const user: BillingPartialUser = await billingImpl.getUserByEmail(fakeUser.email);
+      // eslint-disable-next-line no-undefined
+      expect(user).to.be.eq(undefined);
     });
 
-    describe('With basic user', () => {
-      before(async () => {
-        testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
-        testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-        expect(testData.userContext).to.not.be.null;
-        testData.centralUserService = new CentralServerService(
-          testData.tenantContext.getTenant().subdomain,
-          testData.centralUserContext
-        );
-        if (testData.userContext === testData.centralUserContext) {
-          // Reuse the central user service (to avoid double login)
-          testData.userService = testData.centralUserService;
-        } else {
-          testData.userService = new CentralServerService(
-            testData.tenantContext.getTenant().subdomain,
-            testData.userContext
-          );
-        }
-        expect(testData.userService).to.not.be.null;
-        const tenant = testData.tenantContext.getTenant();
-        if (tenant.id) {
-          const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-          expect(tenantBillingSettings.data.count).to.be.eq(1);
-          const componentSetting = tenantBillingSettings.data.result[0];
-          componentSetting.content.stripe = { ...billingSettings };
-          componentSetting.sensitiveData = ['content.stripe.secretKey'];
-          await testData.userService.settingApi.update(componentSetting);
-
-          billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-          billingImpl = new StripeBilling(tenant.id, billingSettings);
-          expect(billingImpl).to.not.be.null;
-        } else {
-          throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
-        }
-      });
-
-      it('Should not be able to test connection to Billing Provider', async () => {
-        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
-      });
-
-      it('Should not be able to create a user', async () => {
-        const fakeUser = {
-          ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
-        } as User;
-
-        const usersBefore = await billingImpl.getUsers();
-        expect(usersBefore).to.not.be.null;
-
-        const response = await testData.userService.createEntity(
-          testData.userService.userApi,
-          fakeUser,
-          false
-        );
-        testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
-
-        const usersAfter = await billingImpl.getUsers();
-        expect(usersAfter.length).to.be.eq(usersBefore.length);
-      });
-
-      it('Should not be able to delete a user', async () => {
-        const usersBefore = await billingImpl.getUsers();
-        expect(usersBefore).to.not.be.null;
-
-        const response = await testData.userService.deleteEntity(
-          testData.userService.userApi,
-          { id: 0 },
-          false
-        );
-        testData.createdUsers.pop();
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
-
-        const usersAfter = await billingImpl.getUsers();
-        expect(usersAfter.length).to.be.eq(usersBefore.length);
-      });
+    it('Should not be able to delete a user', async () => {
+      const response = await testData.userService.deleteEntity(
+        testData.userService.userApi,
+        { id: 0 },
+        false
+      );
+      testData.createdUsers.pop();
+      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
     });
   });
 });
