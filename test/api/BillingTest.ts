@@ -9,7 +9,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, StripeBillingSettings } from '../../src/types/Setting';
+import { BillingSetting, StripeBillingSetting } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
@@ -27,7 +27,7 @@ const billingSettings = {
   currency: config.get('billing.currency'),
   immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
   periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-} as StripeBillingSettings;
+} as StripeBillingSetting;
 
 let billingImpl: Billing<BillingSetting>;
 

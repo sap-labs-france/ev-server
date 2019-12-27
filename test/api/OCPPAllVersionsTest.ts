@@ -796,7 +796,7 @@ describe('OCPP tests (all versions)', function() {
             await testData.ocppCommonTests.testStartTransaction();
           });
 
-          it('Start user should be able to start a second time a new transaction', async () => {
+          it('User should be able to start a second time a new transaction', async () => {
             await testData.ocppCommonTests.testStartSecondTransaction();
           });
 

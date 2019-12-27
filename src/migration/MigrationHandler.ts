@@ -45,7 +45,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new CleanupMeterValuesTask());
       currentMigrationTasks.push(new RenameTagPropertiesTask());
       currentMigrationTasks.push(new AddInactivityStatusInTransactions());
-      // currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
+      // pragma currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

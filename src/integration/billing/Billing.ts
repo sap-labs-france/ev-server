@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingUserData, BillingPartialUser } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData } from '../../types/Billing';
 import { BillingSetting } from '../../types/Setting';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';

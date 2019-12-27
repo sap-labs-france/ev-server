@@ -5,7 +5,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData } from '../../../types/Billing';
-import { StripeBillingSettings } from '../../../types/Setting';
+import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
@@ -23,12 +23,12 @@ export interface TransactionIdemPotencyKey {
   timestamp: number;
 }
 
-export default class StripeBilling extends Billing<StripeBillingSettings> {
+export default class StripeBilling extends Billing<StripeBillingSetting> {
   private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
   private static readonly STRIPE_MAX_CUSTOMER_LIST = 100;
   private stripe: Stripe;
 
-  constructor(tenantId: string, settings: StripeBillingSettings) {
+  constructor(tenantId: string, settings: StripeBillingSetting) {
     super(tenantId, settings);
     this.settings.currency = settings.currency;
     if (this.settings.secretKey) {

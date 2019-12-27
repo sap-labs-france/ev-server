@@ -46,9 +46,9 @@ describe('Tenant Settings test', function() {
     // Reset components before leaving
     testData.data = {
       id: testData.credentials.tenantId,
-      name: "ut-nothing",
+      name: 'ut-nothing',
       email: testData.credentials.email,
-      subdomain: "utnothing",
+      subdomain: 'utnothing',
       components: {
         ocpi: { active: false, type: null },
         organization: { active: false, type: null },
