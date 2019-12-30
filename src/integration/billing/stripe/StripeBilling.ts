@@ -129,7 +129,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserbyEmail(email: string): Promise<BillingPartialUser> {
+  public async getUserByEmail(email: string): Promise<BillingPartialUser> {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Get customer

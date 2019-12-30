@@ -1,15 +1,15 @@
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
-import User from '../types/User';
-import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
+import Logging from '../utils/Logging';
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Utils from '../utils/Utils';
 import moment = require('moment');
 
 export default class NotificationHandler {
@@ -661,6 +661,42 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OFFLINE_CHARGING_STATIONS, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendBillingUserSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
+    // Get the Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenantID, notificationSource.channel, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
+            // Notified?
+            if (!hasBeenNotified) {
+              // Save
+              await NotificationHandler.saveNotification(
+                tenantID, notificationSource.channel, null, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendBillingUserSynchronizationFailed) {
+                  await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
+                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED, error);
           }
         }
       }

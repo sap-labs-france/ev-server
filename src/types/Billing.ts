@@ -33,3 +33,8 @@ export interface BillingPartialUser {
     customerID: string;
   };
 }
+
+export interface BillingUserSynchronizeAction {
+  synchronized: number;
+  error: number;
+}

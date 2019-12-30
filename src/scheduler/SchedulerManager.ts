@@ -1,14 +1,15 @@
-import cron from 'node-cron';
+import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
+import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
-import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
-import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import cron from 'node-cron';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -58,6 +59,9 @@ export default class SchedulerManager {
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
             break;
+          case 'SynchronizeBillingUsersTask':
+            schedulerTask = new SynchronizeBillingUsersTask();
+            break;
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
@@ -87,4 +91,3 @@ export default class SchedulerManager {
     }
   }
 }
-
