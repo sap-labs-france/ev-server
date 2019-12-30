@@ -46,7 +46,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async checkConnection(): Promise<boolean> {
+  public async checkConnection() {
     // Check Stripe
     this.checkIfStripeIsInitialized();
     // Check Key
@@ -87,7 +87,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Error occured when connecting to Stripe: Invalid key'
       });
     }
-    return true;
   }
 
   public async getUsers(): Promise<BillingPartialUser[]> {
@@ -480,15 +479,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       // Check Stripe
       this.checkIfStripeIsInitialized();
       // Check connection
-      if (!(await this.checkConnection())) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
-          action: Constants.ACTION_UPDATE,
-          user: user,
-          message: 'Cannot update the user in Stripe'
-        });
-      }
+      await this.checkConnection();
+
       // Get locale
       let locale = user.locale;
       if (user.locale) {
@@ -577,15 +569,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         return true;
       }
       // Check connection
-      if (!(await this.checkConnection())) {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-          action: Constants.ACTION_DELETE,
-          user: user,
-          message: 'Cannot delete the user in Stripe'
-        });
-      }
+      await this.checkConnection();
+
       if (this.checkIfTestMode()) {
         const customer = await this.getCustomerByEmail(user.email);
         if (customer && !customer['livemode']) {
