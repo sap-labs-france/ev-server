@@ -1,13 +1,13 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserSynchronizeAction, BillingUserData } from '../../types/Billing';
-import AppError from '../../exception/AppError';
-import BillingFactory from './BillingFactory';
-import { BillingSetting } from '../../types/Setting';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
+import BackendError from '../../exception/BackendError';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingSetting } from '../../types/Setting';
 import Transaction from '../../types/Transaction';
 import User from '../../types/User';
-import UserStorage from '../../storage/mongodb/UserStorage';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import BillingFactory from './BillingFactory';
 
 export default abstract class Billing<T extends BillingSetting> {
 
@@ -28,9 +28,8 @@ export default abstract class Billing<T extends BillingSetting> {
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
         message: 'Billing settings are not configured',
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
