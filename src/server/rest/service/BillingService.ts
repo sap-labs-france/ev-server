@@ -1,14 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { BillingUserData, PartialBillingTax } from '../../../types/Billing';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
 
 export default class BillingService {

@@ -1,14 +1,13 @@
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, BillingUserSynchronizeAction, PartialBillingTax } from '../../types/Billing';
 import BackendError from '../../exception/BackendError';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import BillingFactory from './BillingFactory';
 import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
-import User from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import BillingFactory from './BillingFactory';
-import { PartialBillingTax } from '../../types/Billing';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import User from '../../types/User';
+import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
 
@@ -208,5 +207,4 @@ export default abstract class Billing<T extends BillingSetting> {
   async abstract userExists(user: User): Promise<boolean>;
 
   async abstract getTaxes(): Promise<PartialBillingTax[]>;
-
 }

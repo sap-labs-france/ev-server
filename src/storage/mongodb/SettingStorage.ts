@@ -166,7 +166,7 @@ export default class SettingStorage {
     }
     return pricingSettings;
   }
-  // TODO handle 'none' value
+
   public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
     // Build internal structure
     const settingsToSave = {
@@ -182,7 +182,6 @@ export default class SettingStorage {
     return this.saveSettings(tenantID, settingsToSave);
   }
 
-  // TODO handle 'none' value
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
     const billingSettings = {
       identifier: ComponentType.BILLING,

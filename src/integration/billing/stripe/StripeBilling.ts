@@ -1,8 +1,4 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData } from '../../../types/Billing';
-import Stripe from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, PartialBillingTax } from '../../../types/Billing';
 import BackendError from '../../../exception/BackendError';
 import Billing from '../Billing';
 import Constants from '../../../utils/Constants';
@@ -14,14 +10,9 @@ import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
-import i18n from 'i18n-js';
-import moment from 'moment';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import i18n from 'i18n-js';
 import moment from 'moment';
-import sanitize from 'mongo-sanitize';
-import { PartialBillingTax } from '../../../types/Billing';
-import { Request } from 'express';
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 
 export interface TransactionIdemPotencyKey {
