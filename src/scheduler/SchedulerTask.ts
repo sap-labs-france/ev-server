@@ -18,23 +18,33 @@ export default abstract class SchedulerTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
     for (const tenant of tenants.result) {
-      const startMigrationTimeInTenant = moment();
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'SchedulerTask', method: 'run',
-        action: 'Scheduler',
-        message: `The task '${name}' is running...`
-      });
-      // Process
-      await this.processTenant(tenant, config);
-      // Log Total Processing Time in Tenant
-      const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
-      Logging.logInfo({
-        tenantID: tenant.id,
-        module: 'SchedulerTask', method: 'run',
-        action: 'Scheduler',
-        message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
-      });
+      try {
+        const startMigrationTimeInTenant = moment();
+        Logging.logInfo({
+          tenantID: tenant.id,
+          module: 'SchedulerTask', method: 'run',
+          action: 'Scheduler',
+          message: `The task '${name}' is running...`
+        });
+        // Process
+        await this.processTenant(tenant, config);
+        // Log Total Processing Time in Tenant
+        const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
+        Logging.logInfo({
+          tenantID: tenant.id,
+          module: 'SchedulerTask', method: 'run',
+          action: 'Scheduler',
+          message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
+        });          
+      } catch (error) {
+        Logging.logError({
+          tenantID: tenant.id,
+          module: 'SchedulerTask', method: 'run',
+          action: 'Scheduler',
+          message: `Error while running the task '${name}': ${error.message}`,
+          detailedMessages: error
+        });                  
+      }
     }
     // Log Total Processing Time
     const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
@@ -42,7 +52,7 @@ export default abstract class SchedulerTask {
       tenantID: Constants.DEFAULT_TENANT,
       module: 'SchedulerTask', method: 'run',
       action: 'Scheduler',
-      message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecs} secs`
+      message: `The task '${name}' has been run in ${totalMigrationTimeSecs} secs over ${tenants.count} tenant(s)`
     });
   }
 
