@@ -1,11 +1,11 @@
-import {AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, RoamingSettings, PricingSettings, PricingSettingsType, RefundSettings, SettingDB} from '../../types/Setting';
+import { AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RoamingSettings, SettingDB } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import {DataResult} from '../../types/DataResult';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import {ObjectID} from 'mongodb';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
