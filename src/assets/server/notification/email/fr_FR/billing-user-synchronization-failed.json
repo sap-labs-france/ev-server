@@ -1,0 +1,34 @@
+{
+  "subject": "Facturation - Synchronisation des Utilisateurs a échoué",
+  "tenant": "<%- tenantID %>",
+  "body": {
+    "header": {
+      "title": "Facturation - Synchronisation des Utilisateurs a échoué",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "Impossible de synchroniser <%- nbrUsersInError %> utilisateur(s) avec le système de facturation."
+    ],
+    "action": {
+      "title": "Voir Réglages",
+      "url": "<%- evseDashboardBillingURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
