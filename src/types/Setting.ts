@@ -12,25 +12,34 @@ export enum ComponentType {
   SMART_CHARGING = 'smartCharging'
 }
 
-export default interface Setting extends CreatedUpdatedProps {
+export interface Setting {
   id?: string;
-  category?: 'business' | 'technical';
-  identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi' | 'smartCharging';
+  identifier: ComponentType;
   sensitiveData: string[];
-  content: SettingContent;
 }
 
-export interface SettingContent {
-  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe' | 'notifications' | 'sapSmartCharging';
-  ocpi?: OcpiSettings;
-  simple?: SimplePricingSettings;
-  convergentCharging?: ConvergentChargingPricingSettings;
-  stripe?: StripeBillingSettings;
-  sac?: AnalyticsSettings;
-  links?: AnalyticsLink[];
-  concur?: ConcurRefundSettings;
-  sapSmartCharging?: SapSmartChargingSettings;
+// Database Settings interface
+export interface SettingDB extends CreatedUpdatedProps, Setting {
+  category?: 'business' | 'technical';
+  content: SettingDBContent;
+}
+
+// Database Settings Content interface
+export interface SettingDBContent {
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | NotificationsSettingsType | SmartChagingSettingsType;
+  ocpi?: OcpiSetting;
+  simple?: SimplePricingSetting;
+  convergentCharging?: ConvergentChargingPricingSetting;
+  stripe?: StripeBillingSetting;
+  sac?: SacAnalyticsSetting;
+  links?: SettingLink[];
+  concur?: ConcurRefundSetting;
+  sapSmartCharging?: SapSmartChargingSetting;
   notifications?: NotificationsSettings;
+}
+
+export enum NotificationsSettingsType {
+  NOTIFICATIONS = 'notifications'
 }
 
 export interface NotificationsSettings {
@@ -42,31 +51,38 @@ export enum PricingSettingsType {
   CONVERGENT_CHARGING = 'convergentCharging',
 }
 
-export interface PricingSettings {
-  id?: string;
+export interface PricingSettings extends Setting {
   identifier: ComponentType.PRICING;
-  sensitiveData: string[];
   type: PricingSettingsType;
-  simple: SimplePricingSettings;
-  convergentCharging: ConvergentChargingPricingSettings;
+  simple?: SimplePricingSetting;
+  convergentCharging?: ConvergentChargingPricingSetting;
 }
 
 export interface PricingSetting {
 }
 
-export interface SimplePricingSettings extends PricingSetting {
+export interface SimplePricingSetting extends PricingSetting {
   price: number;
   currency: string;
 }
 
-export interface ConvergentChargingPricingSettings extends PricingSetting {
+export interface ConvergentChargingPricingSetting extends PricingSetting {
   url: string;
   chargeableItemName: string;
   user: string;
   password: string;
 }
 
-export interface OcpiSettings {
+export enum RoamingSettingsType {
+  GIREVE = 'gireve'
+}
+
+export interface RoamingSettings extends Setting {
+  identifier: ComponentType.OCPI;
+  ocpi?: OcpiSetting;
+}
+
+export interface OcpiSetting {
   cpo: {
     countryCode: string;
     partyID: string;
@@ -89,16 +105,29 @@ export interface OcpiSettings {
   };
 }
 
-export interface AnalyticsSettings {
+export enum AnalyticsSettingsType {
+  SAC = 'sac'
+}
+
+export interface AnalyticsSettings extends Setting {
+  identifier: ComponentType.ANALYTICS;
+  sac?: SacAnalyticsSetting;
+}
+
+export interface SacAnalyticsSetting {
   mainUrl: string;
   timezone: string;
 }
 
-export interface SapSmartChargingSettings {
+export enum SmartChagingSettingsType {
+  SAP_SMART_CHARGING = 'sapSmartCharging'
+}
+
+export interface SapSmartChargingSetting {
   optimizerUrl: string;
 }
 
-export interface AnalyticsLink {
+export interface SettingLink {
   id: string;
   name: string;
   description: string;
@@ -106,7 +135,17 @@ export interface AnalyticsLink {
   url: string;
 }
 
-export interface ConcurRefundSettings {
+export enum RefundSettingsType {
+  CONCUR = 'concur',
+}
+
+export interface RefundSettings extends Setting {
+  identifier: ComponentType.REFUND;
+  type: RefundSettingsType;
+  concur?: ConcurRefundSetting;
+}
+
+export interface ConcurRefundSetting {
   authenticationUrl: string;
   apiUrl: string;
   clientId: string;
@@ -117,19 +156,17 @@ export interface ConcurRefundSettings {
   reportName: string;
 }
 
-export interface BillingSettings {
-  id?: string;
+export interface BillingSettings extends Setting{
   identifier: ComponentType.BILLING;
-  type: BillingSettingType;
-  sensitiveData: string[];
-  stripe?: StripeBillingSettings;
+  type: BillingSettingsType;
+  stripe?: StripeBillingSetting;
 }
 
 export interface BillingSetting {
   lastSynchronizedOn?: Date;
 }
 
-export interface StripeBillingSettings extends BillingSetting {
+export interface StripeBillingSetting extends BillingSetting {
   url: string;
   secretKey: string;
   publicKey: string;
@@ -141,6 +178,6 @@ export interface StripeBillingSettings extends BillingSetting {
   tax: PartialBillingTax | 'none';
 }
 
-export enum BillingSettingType {
+export enum BillingSettingsType {
   STRIPE = 'stripe'
 }

@@ -56,3 +56,51 @@ export interface ChargingStationCapabilities {
   supportTxDefaultProfile: boolean;
   supportTxProfile: boolean;
 }
+
+export interface ChargingProfile {
+  chargingProfileId: Number;
+  transactionId?: Number;
+  stackLevel: Number;
+  chargingProfilePurpose: ChargingProfilePurposeType;
+  chargingProfileKind: ChargingProfileKindType;
+  recurrencyKind: RecurrencyKindType;
+  validFrom?: Date;
+  validTo?: Date;
+  chargingSchedule: ChargingSchedule
+}
+ 
+export interface ChargingSchedule {
+  duration?: Number;
+  startSchedule?: Date;
+  chargingRateUnit: ChargingRateUnitType;
+  chargingSchedulePeriod: ChargingSchedulePeriod[]
+  minChargeRate?: Number;
+}
+ 
+export interface ChargingSchedulePeriod {
+  startPeriod: Number;
+  limit: Number;
+  numberPhases?: Number;
+}
+ 
+export enum ChargingRateUnitType {
+  WATT = 'W',
+  AMPERE = 'A'
+}
+
+export enum ChargingProfileKindType{
+  ABSOLUTE = 'Absolute',
+  RECURRING = 'Recurring',
+  RELATIVE = 'Relative'
+}
+ 
+export enum ChargingProfilePurposeType {
+  CHARGE_POINT_MAX_PROFILE = 'ChargePointMaxProfile',
+  TX_DEFAULT_PROFILE = 'TxDefaultProfile',
+  TX_PROFILE = 'TxProfile'
+}
+ 
+export enum RecurrencyKindType {
+  DAILY = 'Daily',
+  WEEKLY = 'Weekly'
+}

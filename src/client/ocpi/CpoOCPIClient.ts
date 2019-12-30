@@ -1,6 +1,6 @@
 import OCPIClient from './OCPIClient';
 import Tenant from '../../types/Tenant';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import axios from 'axios';
@@ -11,10 +11,10 @@ import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
 
 export default class CpoOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
+  constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
 
     if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {

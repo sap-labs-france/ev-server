@@ -1,8 +1,8 @@
 import OCPIClient from './OCPIClient';
 import Tenant from '../../types/Tenant';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import Constants from '../../utils/Constants';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
 import Logging from '../../utils/Logging';
 import axios from 'axios';
 import _ from 'lodash';
@@ -11,7 +11,7 @@ import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 
 export default class EmspOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
+  constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.EMSP);
 
     if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {

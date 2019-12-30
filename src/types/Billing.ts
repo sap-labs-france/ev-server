@@ -34,6 +34,11 @@ export interface BillingPartialUser {
   };
 }
 
+export interface BillingUserSynchronizeAction {
+  synchronized: number;
+  error: number;
+}
+
 export interface PartialBillingTax {
   id: string;
   description: string;

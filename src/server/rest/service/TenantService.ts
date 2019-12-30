@@ -6,7 +6,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting, { SettingContent } from '../../../types/Setting';
+import { SettingDB, SettingDBContent } from '../../../types/Setting';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
@@ -279,7 +279,7 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
+      const newSettingContent: SettingDBContent = Utils.createDefaultSettingContent(
         {
           ...tenant.components[componentName],
           name: componentName
@@ -287,10 +287,10 @@ export default class TenantService {
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: Setting = {
+          const newSetting: SettingDB = {
             identifier: componentName,
             content: newSettingContent
-          } as Setting;
+          } as SettingDB;
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
