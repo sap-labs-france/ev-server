@@ -43,6 +43,5 @@ export interface PartialBillingTax {
   id: string;
   description: string;
   displayName: string;
-  jurisdiction: string;
   percentage: number;
 }
