@@ -1,19 +1,17 @@
-import i18n from 'i18n-js';
-import moment from 'moment';
-import Stripe from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData } from '../../../types/Billing';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import BackendError from '../../../exception/BackendError';
+import Billing from '../Billing';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import Stripe from 'stripe';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
-import Billing from '../Billing';
+import i18n from 'i18n-js';
+import moment from 'moment';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 
 export interface TransactionIdemPotencyKey {
@@ -477,86 +475,76 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   }
 
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
-    try {
-      // Check Stripe
-      this.checkIfStripeIsInitialized();
-      // Get locale
-      let locale = user.locale;
-      if (user.locale) {
-        locale = locale.substr(0, 2).toLocaleLowerCase();
+    // Check Stripe
+    this.checkIfStripeIsInitialized();
+    // Check connection
+    await this.checkConnection();
+
+    // Get locale
+    let locale = user.locale;
+    if (user.locale) {
+      locale = locale.substr(0, 2).toLocaleLowerCase();
+    }
+    I18nManager.switchLocale(user.locale);
+    let customer = null;
+    if (user.billingData && user.billingData.customerID) {
+      customer = await this.getCustomerByEmail(user.email);
+      if (customer && customer['email']) {
+        // Currently it is allowed to re-use an existing customer in Stripe, if the email address is matching!
       }
-      I18nManager.switchLocale(user.locale);
-      let customer = null;
-      if (user.billingData && user.billingData.customerID) {
-        customer = await this.getCustomerByEmail(user.email);
-        if (customer && customer['email']) {
-          // Currently it is allowed to re-use an existing customer in Stripe, if the email address is matching!
-        }
-      }
-      // Check
-      if (!customer) {
-        // User does not exist
-        return true;
-      }
-      // Check more details
-      let paymentMethod = null;
-      if (!paymentMethod && customer['default_source']) {
-        paymentMethod = customer['default_source'];
-      }
-      if (!paymentMethod && !this.settings.noCardAllowed) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
-        });
-      }
-      const billingMethod = this.retrieveBillingMethod(user);
-      if (!billingMethod) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
-        });
-      }
-      if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
+    }
+    // Check
+    if (!customer) {
+      // User does not exist
+      return true;
+    }
+    // Check more details
+    let paymentMethod = null;
+    if (!paymentMethod && customer['default_source']) {
+      paymentMethod = customer['default_source'];
+    }
+    if (!paymentMethod && !this.settings.noCardAllowed) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
+      });
+    }
+    const billingMethod = this.retrieveBillingMethod(user);
+    if (!billingMethod) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
+      });
+    }
+    if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
-        });
-      }
-      const subscription = (customer['subscriptions'] && customer['subscriptions']['data'] && customer['subscriptions']['data'].length > 0)
-        ? customer['subscriptions']['data'][0] : null;
-      let billingPlan = null;
-      if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-        billingPlan = await this.retrieveBillingPlan();
-      }
-      if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
-        });
-      }
-      if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-        const plan = await this.getBillingPlan(billingPlan);
-        if (!plan || !plan['id'] || plan['id'] !== billingPlan) {
-          throw new BackendError({
-            message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
-          });
-        } else if (plan['currency'].toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
-          throw new BackendError({
-            message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan['currency']}`
-          });
-        }
-      }
-      return true;
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        user: user,
-        source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_CREATE,
-        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
-        message: `Customer cannot be created/updated in Stripe: ${error.message}`,
-        detailedMessages: error
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
       });
-      return false;
     }
+    const subscription = (customer['subscriptions'] && customer['subscriptions']['data'] && customer['subscriptions']['data'].length > 0)
+      ? customer['subscriptions']['data'][0] : null;
+    let billingPlan = null;
+    if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      billingPlan = await this.retrieveBillingPlan();
+    }
+    if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
+      });
+    }
+    if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      const plan = await this.getBillingPlan(billingPlan);
+      if (!plan || !plan['id'] || plan['id'] !== billingPlan) {
+        throw new BackendError({
+          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
+        });
+      } else if (plan['currency'].toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
+        throw new BackendError({
+          message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan['currency']}`
+        });
+      }
+    }
+    return true;
   }
 
   public async checkIfUserCanBeDeleted(user: User): Promise<boolean> {
@@ -567,6 +555,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       if (!user.billingData || !user.billingData.customerID) {
         return true;
       }
+      // Check connection
+      await this.checkConnection();
+
       if (this.checkIfTestMode()) {
         const customer = await this.getCustomerByEmail(user.email);
         if (customer && !customer['livemode']) {
