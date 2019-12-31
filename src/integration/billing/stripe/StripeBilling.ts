@@ -376,7 +376,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         daysUntilDue = 0;
       }
       const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
-      const billingTax = await this.getTax(billingSettings.stripe.taxID);
+      const taxRates: ITaxRate[] = [];
+      if (billingSettings.stripe.taxID) {
+        taxRates.push(billingSettings.stripe.taxID);
+      }
       let invoiceStatus: string;
       let invoiceItem: string;
       let newInvoiceItem: Stripe.invoiceItems.InvoiceItem;
@@ -409,7 +412,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            tax_rates: [billingTax.id],
+            tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -447,7 +450,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            tax_rates: [billingTax.id],
+            tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
