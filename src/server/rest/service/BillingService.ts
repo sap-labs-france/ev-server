@@ -7,6 +7,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import BillingSecurity from "./security/BillingSecurity";
 
 export default class BillingService {
 
@@ -147,7 +148,8 @@ export default class BillingService {
         user: req.user
       });
     }
-    const taxes = await billingImpl.getTaxes();
+    let taxes = await billingImpl.getTaxes();
+    taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
   }
 }

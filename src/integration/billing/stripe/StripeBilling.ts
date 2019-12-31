@@ -363,7 +363,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
       let collectionMethod = 'send_invoice';
       let daysUntilDue = 30;
-      if (billingUser.billingData && billingUser.billingData.cardID) {
+      if (billingUser.billingData.cardID) {
         collectionMethod = 'charge_automatically';
         daysUntilDue = 0;
       }
