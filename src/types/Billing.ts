@@ -39,7 +39,7 @@ export interface BillingUserSynchronizeAction {
   error: number;
 }
 
-export interface PartialBillingTax {
+export interface BillingPartialTax {
   id: string;
   description: string;
   displayName: string;

@@ -1,5 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { PartialBillingTax } from './Billing';
+import { BillingPartialTax } from './Billing';
 
 export enum ComponentType {
   OCPI = 'ocpi',
@@ -175,7 +175,7 @@ export interface StripeBillingSetting extends BillingSetting {
   periodicBillingAllowed: boolean;
   advanceBillingAllowed: boolean;
   currency: string;
-  tax: PartialBillingTax | 'none';
+  taxID: string;
 }
 
 export enum BillingSettingsType {

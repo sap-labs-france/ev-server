@@ -1,4 +1,5 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, PartialBillingTax } from '../../../types/Billing';
+/* eslint-disable @typescript-eslint/camelcase */
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialTax, BillingPartialUser, BillingUserData } from '../../../types/Billing';
 import BackendError from '../../../exception/BackendError';
 import Billing from '../Billing';
 import Constants from '../../../utils/Constants';
@@ -14,6 +15,8 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import i18n from 'i18n-js';
 import moment from 'moment';
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import ITaxRate = Stripe.taxRates.ITaxRate;
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -143,8 +146,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getTaxes(): Promise<PartialBillingTax[]> {
-    const taxes = [] as PartialBillingTax[];
+  public async getTaxes(): Promise<BillingPartialTax[]> {
+    const taxes = [] as BillingPartialTax[];
     let request;
     const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ItaxRateSearchOptions;
     do {
@@ -154,7 +157,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           id: tax.id,
           description: tax.description,
           displayName: tax.display_name,
-          jurisdiction: tax.jurisdiction,
           percentage: tax.percentage
         });
       }
@@ -163,6 +165,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
     } while (request.has_more);
     return taxes;
+  }
+
+  public async getTax(id: string): Promise<ITaxRate> {
+    return await this.stripe.taxRates.retrieve(id);
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
@@ -336,11 +342,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           message: 'User is not provided'
         });
       }
-      const billingUser = transaction.user;
       // Check Charging Station
       if (!transaction.chargeBox) {
         throw new BackendError({
           message: 'Charging Station is not provided'
+        });
+      }
+      const billingUser = transaction.user;
+      if (!billingUser.billingData) {
+        throw new BackendError({
+          message: 'User has no Billing Data'
         });
       }
       const chargeBox = transaction.chargeBox;
@@ -360,10 +371,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
       let collectionMethod = 'send_invoice';
       let daysUntilDue = 30;
-      if (billingUser.billingData.cardID) {
+      if (billingUser.billingData && billingUser.billingData.cardID) {
         collectionMethod = 'charge_automatically';
         daysUntilDue = 0;
       }
+      const billingSettings = await SettingStorage.getBillingSettings(this.tenantID);
+      const billingTax = await this.getTax(billingSettings.stripe.taxID);
       let invoiceStatus: string;
       let invoiceItem: string;
       let newInvoiceItem: Stripe.invoiceItems.InvoiceItem;
@@ -396,7 +409,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            // pragma tax_rates: ['txr_1FOLcGBqHnn8lLLlcCNRYYi3'],
+            tax_rates: [billingTax.id],
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -404,7 +417,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           if (collectionMethod === 'send_invoice') {
             newInvoice = await this.stripe.invoices.create({
               customer: billingUser.billingData.customerID,
-              billing: 'send_invoice',
+              collection_method: 'send_invoice',
               days_until_due: daysUntilDue,
               auto_advance: true
             }, {
@@ -414,7 +427,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           } else {
             newInvoice = await this.stripe.invoices.create({
               customer: billingUser.billingData.customerID,
-              billing: 'charge_automatically',
+              collection_method: 'charge_automatically',
               auto_advance: true
             }, {
               idempotency_key: idemPotencyKey.keyNewInvoice
@@ -433,7 +446,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             subscription: billingUser.billingData.subscriptionID,
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
-            description: description
+            description: description,
+            tax_rates: [billingTax.id],
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -494,7 +508,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     this.checkIfStripeIsInitialized();
     // Get customer
     const customer = await this.getCustomerByEmail(user.email);
-    return customer ? true : false;
+    return !!customer;
   }
 
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
@@ -503,11 +517,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     // Check connection
     await this.checkConnection();
 
-    // Get locale
-    let locale = user.locale;
-    if (user.locale) {
-      locale = locale.substr(0, 2).toLocaleLowerCase();
-    }
+
     I18nManager.switchLocale(user.locale);
     let customer = null;
     if (user.billingData && user.billingData.customerID) {
@@ -523,7 +533,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     // Check more details
     let paymentMethod = null;
-    if (!paymentMethod && customer['default_source']) {
+    if (customer['default_source']) {
       paymentMethod = customer['default_source'];
     }
     if (!paymentMethod && !this.settings.noCardAllowed) {
@@ -547,7 +557,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     const subscription = (customer['subscriptions'] && customer['subscriptions']['data'] && customer['subscriptions']['data'].length > 0)
       ? customer['subscriptions']['data'][0] : null;
     let billingPlan = null;
-    if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       billingPlan = await this.retrieveBillingPlan();
     }
     if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
@@ -751,10 +761,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   }
 
   private checkIfTestMode(): boolean {
-    if (this.settings.secretKey.substr(0, 7) === 'sk_test') {
-      return true;
-    }
-    return false;
+    return this.settings.secretKey.substr(0, 7) === 'sk_test';
   }
 
   private async modifyUser(user: User): Promise<BillingUserData> {
@@ -850,7 +857,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     // No billing plan
     let billingPlan = null;
     // Only overwrite existing subscription with new billing plan, if billing plan is received from HTTP request
-    if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       billingPlan = await this.retrieveBillingPlan();
     }
     if (subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {

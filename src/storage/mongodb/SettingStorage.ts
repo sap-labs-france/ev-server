@@ -219,7 +219,7 @@ export default class SettingStorage {
           immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
           lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0),
-          tax: config.stripe.tax ? (config.stripe.tax !== 'none' ? config.stripe.tax : null) : null,
+          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null,
         };
       }
       return billingSettings;

@@ -147,9 +147,7 @@ export default class BillingService {
         user: req.user
       });
     }
-
     const taxes = await billingImpl.getTaxes();
-
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
   }
 }
