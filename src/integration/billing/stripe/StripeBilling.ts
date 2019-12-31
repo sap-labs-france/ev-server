@@ -6,6 +6,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Stripe from 'stripe';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -15,7 +16,6 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import i18n from 'i18n-js';
 import moment from 'moment';
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import ITaxRate = Stripe.taxRates.ITaxRate;
 
 export interface TransactionIdemPotencyKey {
@@ -165,10 +165,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
     } while (request.has_more);
     return taxes;
-  }
-
-  public async getTax(id: string): Promise<ITaxRate> {
-    return await this.stripe.taxRates.retrieve(id);
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
@@ -356,10 +352,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
       const chargeBox = transaction.chargeBox;
       // Create or update invoice in Stripe
-      let locale = billingUser.locale;
-      if (locale) {
-        locale = locale.substr(0, 2).toLocaleLowerCase();
-      }
       let description = '';
       I18nManager.switchLocale(transaction.user.locale);
       const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;

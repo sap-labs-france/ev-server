@@ -1,4 +1,4 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingUserData, BillingUserSynchronizeAction, BillingPartialTax } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialTax, BillingPartialUser, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import BackendError from '../../exception/BackendError';
 import BillingFactory from './BillingFactory';
 import { BillingSetting } from '../../types/Setting';
