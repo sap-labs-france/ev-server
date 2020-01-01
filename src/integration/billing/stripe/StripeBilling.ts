@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingTax, BillingPartialUser, BillingUserData } from '../../../types/Billing';
+import i18n from 'i18n-js';
+import moment from 'moment';
+import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
-import Billing from '../Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Stripe from 'stripe';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
+import Billing from '../Billing';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
-import i18n from 'i18n-js';
-import moment from 'moment';
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
 
@@ -202,8 +201,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           for (const evt of events.data) {
             skipCustomer = false;
             lastEventID = evt.id;
-            lastCustomerID = evt.data.object['customer'] ? evt.data.object['customer'] :
-              ((evt.data.object['object'] === 'customer') ? evt.data.object['id'] : null);
+            lastCustomerID = evt.data.object.customer ? evt.data.object.customer :
+              ((evt.data.object.object === 'customer') ? evt.data.object.id : null);
             if (!lastCustomerID) {
               skipCustomer = true;
             }
