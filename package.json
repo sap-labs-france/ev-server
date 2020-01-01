@@ -89,6 +89,7 @@
     "@types/node": "^12.7.2",
     "@types/passport-jwt": "^3.0.1",
     "@types/socket.io": "^2.1.2",
+    "@types/stripe": "^7.13.19",
     "@types/urlencode": "^1.1.1",
     "@types/uuid": "^3.4.5",
     "@types/ws": "^6.0.2",

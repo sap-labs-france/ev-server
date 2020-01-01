@@ -1,9 +1,9 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingPartialTax } from '../../../../types/Billing';
+import { BillingTax } from '../../../../types/Billing';
 import UserToken from '../../../../types/UserToken';
 
 export default class BillingSecurity {
-  static filterTaxesResponse(taxes: BillingPartialTax[], loggedUser: UserToken): BillingPartialTax[] {
+  static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
     const filteredTaxes = [];
     if (!taxes) {
       return null;
@@ -18,8 +18,8 @@ export default class BillingSecurity {
     return filteredTaxes;
   }
 
-  static filterTaxResponse(tax: BillingPartialTax, loggedUser: UserToken): BillingPartialTax {
-    const filteredTax: BillingPartialTax = {} as BillingPartialTax;
+  static filterTaxResponse(tax: BillingTax, loggedUser: UserToken): BillingTax {
+    const filteredTax: BillingTax = {} as BillingTax;
     if (!tax) {
       return null;
     }

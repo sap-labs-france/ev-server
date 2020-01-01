@@ -1,5 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { BillingPartialTax } from './Billing';
+import { BillingTax } from './Billing';
 
 export enum ComponentType {
   OCPI = 'ocpi',
