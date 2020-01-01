@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import Constants from '../utils/Constants';
 import BackendError from '../exception/BackendError';
+import Constants from '../utils/Constants';
 
 const GRANTS = {
   superAdmin: {
@@ -51,7 +51,7 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
-      { resource: 'Billing', action: ['CheckBillingConnection', 'SynchronizeUsersBilling'] },
+      { resource: 'Billing', action: ['CheckBillingConnection', 'SynchronizeUsersBilling', 'ReadBillingTaxes'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },

@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import BillingSecurity from "./security/BillingSecurity";
 
 export default class BillingService {
 
@@ -108,5 +107,49 @@ export default class BillingService {
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
+  }
+
+  public static async handleGetBillingTaxes(action: string, req: Request, res: Response, next: NextFunction) {
+    if (!Authorizations.canReadBillingTaxes(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ_BILLING_TAXES,
+        entity: Constants.ENTITY_USER,
+        module: 'BillingService',
+        method: 'handleGetBillingTaxes',
+      });
+    }
+
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Billing or Pricing not active in this Tenant',
+        module: 'BillingService',
+        method: 'handleSynchronizeUsers',
+        action: action,
+        user: req.user
+      });
+    }
+
+    // Get Billing implementation from factory
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Billing settings are not configured',
+        module: 'BillingService',
+        method: 'handleGetBillingTaxes',
+        action: action,
+        user: req.user
+      });
+    }
+    let taxes = await billingImpl.getTaxes();
+    taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
+    res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
   }
 }

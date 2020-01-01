@@ -164,6 +164,7 @@ export default class Constants {
   public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
+  public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
