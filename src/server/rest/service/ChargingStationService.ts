@@ -251,6 +251,19 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGetChargingProfile(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const chargingProfile = await ChargingStationStorage.getChargingProfile();
+    res.json(chargingProfile);
+    next();
+  }
+
+  public static async handleGetChargingProfileSchedule(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    const chargingProfile = await ChargingStationStorage.getChargingProfileSchedule();
+    res.json(chargingProfile);
+    next();
+  }
+
+
   public static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);

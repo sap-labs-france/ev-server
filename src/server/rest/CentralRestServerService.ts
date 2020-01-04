@@ -104,6 +104,8 @@ class RequestMapper {
       case 'GET':
         // Register REST actions
         this.registerJsonActionsPaths({
+          ChargingProfile: ChargingStationService.handleGetChargingProfile.bind(this),
+          ChargingProfileSchedule: ChargingStationService.handleGetChargingProfileSchedule.bind(this),
           Pricing: PricingService.handleGetPricing.bind(this),
           Loggings: LoggingService.handleGetLoggings.bind(this),
           Logging: LoggingService.handleGetLogging.bind(this),

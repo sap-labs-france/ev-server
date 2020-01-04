@@ -25,7 +25,7 @@ export default class ChargingStationStorage {
         $match: {
           chargePointVendor
         }
-      });      
+      });
     }
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
@@ -65,6 +65,15 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID, { id });
     return chargingStationsMDB.result[0];
   }
+
+  public static async getChargingProfile(): Promise<any> {
+    return {"chargingProfileId":3,"stackLevel":3,"chargingProfilePurpose":"TxDefaultProfile","chargingProfileKind":"Absolute","chargingSchedule": { "startSchedule":"2019-12-20T10:46:00.000Z","chargingRateUnit":"A","chargingSchedulePeriod": [ { "startPeriod":0,"limit":32 }, { "startPeriod":3600,"limit":32 }] } };
+  }
+
+  public static async getChargingProfileSchedule(): Promise<any> {
+    return [ { "startPeriod":0,"limit":32 }, { "startPeriod":3600,"limit":32 } ];
+  }
+
 
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;

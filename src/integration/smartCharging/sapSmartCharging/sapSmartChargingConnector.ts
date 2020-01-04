@@ -31,22 +31,22 @@ export default class SapSmartChargingConnector extends AbstractConnector impleme
         module: MODULE_NAME,
         method: 'callOptimizer',
         action: 'smartCharging'
-      })
+      });
     }
 
     // Build URL
     const url = this.getOptimizerUrl();
     const user = this.getUser();
     const password = this.getPassword();
-    const requestUrl = url.slice(0, 8) + user + ":" + password + '@' + url.slice(8);
+    const requestUrl = url.slice(0, 8) + user + ':' + password + '@' + url.slice(8);
 
     // Get site area limit
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID,{},
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {},
       { limit: 10, skip: 0 },
       ['id', 'name', 'siteID', 'maximumPower']
-    )
+    );
 
-    siteAreas.result.forEach(async siteArea =>{
+    for(let i = 0; i<siteAreas.result.length; i++) {
       try {
         const response = await axios.post(requestUrl, {
           "event": {
@@ -75,9 +75,9 @@ export default class SapSmartChargingConnector extends AbstractConnector impleme
               "rootFuse": {
                 "@type": "Fuse",
                 "id": 0,
-                "fusePhase1": siteArea.maximumPower/400,
-                "fusePhase2": siteArea.maximumPower/400,
-                "fusePhase3": siteArea.maximumPower/400,
+                "fusePhase1": siteAreas.result[i].maximumPower / 400,
+                "fusePhase2": siteAreas.result[i].maximumPower / 400,
+                "fusePhase3": siteAreas.result[i].maximumPower / 400,
                 "children": [
                   {
                     "@type": "Fuse",
@@ -128,8 +128,8 @@ export default class SapSmartChargingConnector extends AbstractConnector impleme
           action: 'smartCharging',
           detailedMessages: error
         });
-      }})
-
+      }
+    }
   }
 
   getSettings() {
