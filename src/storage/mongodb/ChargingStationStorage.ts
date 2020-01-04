@@ -11,8 +11,28 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+import fs from 'fs';
 
 export default class ChargingStationStorage {
+
+  public static async updateChargingStationTemplatesFromFile() {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'updateChargingStationTemplatesFromFile');
+    // Read File
+    const chargingStationTemplates =
+      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/templates/charging-stations.json`, 'utf8'));
+    // Update Templates
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      try {
+        // Save
+        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
+      } catch (error) {
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'updateChargingStationTemplatesFromFile', error);
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'updateChargingStationTemplatesFromFile', uniqueTimerID);
+  }
 
   public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
     // Debug
@@ -345,7 +365,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
       aggregation.push({ $unwind: '$chargersInError' });
       aggregation.push({ $replaceRoot: { newRoot: '$chargersInError' } });
-      // Add a unique identifier as we may have the same charger several time
+      // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
     // Count Records
@@ -529,7 +549,7 @@ export default class ChargingStationStorage {
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
-    // Delete Charger
+    // Delete Charging Station
     await global.database.getCollection<any>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (bootnotif, authorize...)

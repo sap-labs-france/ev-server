@@ -6,7 +6,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting, { SettingContent } from '../../../types/Setting';
+import { SettingDB, SettingDBContent } from '../../../types/Setting';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
@@ -176,7 +176,7 @@ export default class TenantService {
     // Save
     filteredRequest.id = await TenantStorage.saveTenant(filteredRequest);
     // Update with components
-    await TenantService._updateSettingsWithComponents(filteredRequest, req);
+    await TenantService.updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
     await TenantStorage.createTenantDB(filteredRequest.id);
     // Create Admin user in tenant
@@ -251,7 +251,7 @@ export default class TenantService {
     // Update Tenant
     await TenantStorage.saveTenant(tenantUpdate);
     // Update with components
-    await TenantService._updateSettingsWithComponents(tenantUpdate, req);
+    await TenantService.updateSettingsWithComponents(tenantUpdate, req);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -265,7 +265,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
+  private static async updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -279,7 +279,7 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
+      const newSettingContent: SettingDBContent = Utils.createDefaultSettingContent(
         {
           ...tenant.components[componentName],
           name: componentName
@@ -287,20 +287,20 @@ export default class TenantService {
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: Setting = {
+          const newSetting: SettingDB = {
             identifier: componentName,
             content: newSettingContent
-          } as Setting;
+          } as SettingDB;
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, newSetting);
+          await SettingStorage.saveSettings(tenant.id, newSetting);
         } else {
           currentSetting.content = newSettingContent;
           currentSetting.lastChangedOn = new Date();
           currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, currentSetting);
+          await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
       }
     }

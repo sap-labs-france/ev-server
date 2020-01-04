@@ -39,7 +39,7 @@ export default class CleanupAllTransactions extends MigrationTask {
           connectorId: transactionMDB.connectorId,
           timestamp: { $gt: new Date(new Date(transactionMDB.stop.timestamp).getTime() - 1000) }
         }
-      ).sort({timestamp: 1}).limit(2).toArray();
+      ).sort({ timestamp: 1 }).limit(2).toArray();
       // Check for Extra Inactivity
       if (statusNotificationsMDB.length === 2 &&
           new Date(statusNotificationsMDB[0].timestamp).getTime() - new Date(transactionMDB.stop.timestamp).getTime() < 5000 &&

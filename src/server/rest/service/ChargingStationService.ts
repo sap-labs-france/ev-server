@@ -163,7 +163,7 @@ export default class ChargingStationService {
     // Update Connectors
     if (filteredRequest.connectors) {
       const chargerConnectors = chargingStation.connectors;
-      // Assign to Charger's connector
+      // Assign to Charging Station's connector
       for (const connector of filteredRequest.connectors) {
         // Set
         chargerConnectors[connector.connectorId - 1].power = connector.power;
@@ -320,7 +320,7 @@ export default class ChargingStationService {
             user: req.user
           });
         } else {
-          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, connector.connectorId);
+          OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, connector.connectorId);
         }
       }
     }
@@ -795,9 +795,9 @@ export default class ChargingStationService {
             filteredRequest, chargingStation, parseInt(filteredRequest.Arg2), req.user);
         }
         break;
-      // Action on connectors of a charger
+      // Action on connectors of a Charging Station
       case 'ConnectorsAction':
-        // Arg1 contains the charger ID
+        // Arg1 contains the Charging Station ID
         // Check
         if (!filteredRequest.Arg1) {
           throw new AppError({

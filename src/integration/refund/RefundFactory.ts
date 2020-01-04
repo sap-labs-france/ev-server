@@ -1,11 +1,12 @@
+import ConcurRefundConnector from './concur/ConcurRefundConnector';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import RefundConnector from './RefundConnector';
+import { RefundSettingsType } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import ConcurRefundConnector from './concur/ConcurRefundConnector';
-import Logging from '../../utils/Logging';
-import RefundConnector from './RefundConnector';
 
 export default class RefundFactory {
   static async getRefundConnector(tenantID: string): Promise<RefundConnector> {
@@ -14,10 +15,15 @@ export default class RefundFactory {
     // Check if refund component is active
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)
     ) {
-      const setting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.REFUND);
+      const setting = await SettingStorage.getRefundSettings(tenantID);
       // Check
-      if (setting && setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
-        return new ConcurRefundConnector(tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+      if (setting) {
+        switch (setting.type) {
+          case RefundSettingsType.CONCUR:
+            return new ConcurRefundConnector(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+          default:
+            break;
+        }
       }
       Logging.logDebug({
         tenantID: tenant.id,
@@ -25,7 +31,6 @@ export default class RefundFactory {
         method: 'getRefundConnector',
         message: 'Refund settings are not configured'
       });
-
     }
     // Refund is not active
     return null;

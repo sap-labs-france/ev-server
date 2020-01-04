@@ -2,11 +2,12 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import User from '../../src/types/User';
+import { InactivityStatus } from '../../src/types/Transaction';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import TenantContext from './contextProvider/TenantContext';
-import User from '../../src/types/User';
 import Utils from './Utils';
 
 chai.use(chaiSubset);
@@ -121,6 +122,7 @@ export default class TransactionCommonTests {
       currentConsumption: 0,
       currentTotalConsumption: 0,
       currentTotalInactivitySecs: 0,
+      currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
     });
     if (response.data.user) {
@@ -155,6 +157,7 @@ export default class TransactionCommonTests {
       currentConsumption: load,
       currentTotalConsumption: load,
       currentTotalInactivitySecs: 0,
+      currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
     });
     if (response.data.user) {
@@ -194,6 +197,7 @@ export default class TransactionCommonTests {
       currentConsumption: load,
       currentTotalConsumption: cumulated - meterStart,
       currentTotalInactivitySecs: 0,
+      currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart,
     });
   }
@@ -217,6 +221,7 @@ export default class TransactionCommonTests {
       stop: {
         meterStop: meterStop,
         totalInactivitySecs: 3600,
+        inactivityStatus: InactivityStatus.ERROR,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
       }
@@ -244,6 +249,7 @@ export default class TransactionCommonTests {
         meterStop: meterStop,
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
       }
@@ -289,6 +295,7 @@ export default class TransactionCommonTests {
       stop: {
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
@@ -300,6 +307,7 @@ export default class TransactionCommonTests {
         meterStop: meterStop,
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
       }
@@ -343,6 +351,7 @@ export default class TransactionCommonTests {
       stop: {
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
@@ -354,6 +363,7 @@ export default class TransactionCommonTests {
         meterStop: meterStop,
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
       }
@@ -401,6 +411,7 @@ export default class TransactionCommonTests {
       stop: {
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
@@ -412,6 +423,7 @@ export default class TransactionCommonTests {
         meterStop: meterStop,
         totalConsumption: 1000,
         totalInactivitySecs: 0,
+        inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
       }
@@ -456,6 +468,7 @@ export default class TransactionCommonTests {
       stop: {
         totalConsumption: 0,
         totalInactivitySecs: 3600,
+        inactivityStatus: InactivityStatus.ERROR,
         meterStop: meterStart,
         timestamp: stopDate.toISOString(),
         tagID: tagId,
@@ -955,6 +968,7 @@ export default class TransactionCommonTests {
       stop: {
         totalDurationSecs: 7 * 3600,
         totalInactivitySecs: 5 * 3600,
+        inactivityStatus: InactivityStatus.ERROR,
         price: 0.3,
         roundedPrice: 0.3
       }
@@ -1010,7 +1024,8 @@ export default class TransactionCommonTests {
       id: transactionId,
       stop: {
         totalDurationSecs: 7 * 3600,
-        totalInactivitySecs: 5 * 3600
+        totalInactivitySecs: 5 * 3600,
+        inactivityStatus: InactivityStatus.ERROR
       }
     });
 

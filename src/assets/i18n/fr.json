@@ -53,6 +53,15 @@
 		"offlineChargingStation": {
 			"title": "Bornes Hors Ligne",
 			"body": "Au moins une borne est hors ligne dans votre organisation."
-		}
-	}
+		},
+    "billingUserSynchronizationFailed": {
+      "title": "Erreur Synchro Utilisateurs",
+      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation."
+    }
+	},
+  "billing": {
+    "generatedUser": "Utilisateur généré pour '{{email}}'",
+    "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
+    "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+  }
 }

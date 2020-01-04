@@ -2,7 +2,7 @@ import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
-import { BillingUserData } from '../../integration/billing/Billing';
+import { BillingUserData } from '../../types/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -24,10 +24,10 @@ import moment from 'moment';
 
 export default class UserStorage {
 
-  public static getLatestEndUserLicenseAgreement(language = 'en'): string {
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
     const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
     let eulaText = null;
     try {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
@@ -45,7 +45,7 @@ export default class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, { language });
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
     return eulaText;
   }
 
@@ -67,7 +67,7 @@ export default class UserStorage {
       language = 'en';
     }
     // Get current eula
-    const currentEula = UserStorage.getLatestEndUserLicenseAgreement(language);
+    const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
     // Read DB
     const eulasMDB = await global.database.getCollection<Eula>(tenantID, 'eulas')
       .find({ 'language': language })
@@ -151,6 +151,10 @@ export default class UserStorage {
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
+    // Check
+    if (!email) {
+      return null;
+    }
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
@@ -311,7 +315,8 @@ export default class UserStorage {
           const tagMDB = {
             _id: tag.id,
             userID: Utils.convertToObjectID(userID),
-            internal: tag.internal,
+            issuer: tag.issuer,
+            description: tag.description,
             deleted: tag.deleted
           };
           // Check Created/Last Changed By
@@ -700,7 +705,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { internal?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -712,8 +717,8 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
-    if (params && params.hasOwnProperty('internal')) {
-      aggregation.push({ $match: { 'internal': params.internal } });
+    if (params && params.hasOwnProperty('issuer')) {
+      aggregation.push({ $match: { 'issuer': params.issuer } });
     }
 
     // Limit records?

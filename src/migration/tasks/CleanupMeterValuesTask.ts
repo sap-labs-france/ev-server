@@ -25,7 +25,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     this.startTime = moment();
     // Create Aggregation
     const aggregation = [];
-    // Add Charger
+    // Add Charging Station
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenant.id, 'transactions'),

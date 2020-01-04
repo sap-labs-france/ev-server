@@ -15,7 +15,7 @@ export default class AddTagTypeTask extends MigrationTask {
 
   async migrateTenant(tenant: Tenant) {
     // Add the status property to the refunded transactions
-    let result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
+    const result = await global.database.getCollection<any>(tenant.id, 'tags').updateMany(
       {
         'internal': { $exists: false }
       },

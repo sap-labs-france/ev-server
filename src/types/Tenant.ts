@@ -33,5 +33,9 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    smartCharging?: {
+      active: boolean;
+      type: string;
+    };
   };
 }

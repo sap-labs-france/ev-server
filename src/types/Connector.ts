@@ -1,4 +1,4 @@
-import { InactivityStatusLevel } from './UserNotifications';
+import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 
 export default interface Connector {
   connectorId: number;
@@ -18,5 +18,6 @@ export default interface Connector {
   activeTransactionDate: Date;
   activeTagID: string;
   statusLastChangedOn?: Date;
-  inactivityStatusLevel?: InactivityStatusLevel;
+  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+  inactivityStatus?: InactivityStatus;
 }

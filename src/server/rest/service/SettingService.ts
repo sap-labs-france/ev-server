@@ -126,7 +126,7 @@ export default class SettingService {
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
     // Save Setting
-    filteredRequest.id = await SettingStorage.saveSetting(req.user.tenantID, filteredRequest);
+    filteredRequest.id = await SettingStorage.saveSettings(req.user.tenantID, filteredRequest);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -201,7 +201,7 @@ export default class SettingService {
     setting.lastChangedBy = { 'id': req.user.id };
     setting.lastChangedOn = new Date();
     // Update Setting
-    settingUpdate.id = await SettingStorage.saveSetting(req.user.tenantID, settingUpdate);
+    settingUpdate.id = await SettingStorage.saveSettings(req.user.tenantID, settingUpdate);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

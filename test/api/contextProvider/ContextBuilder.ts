@@ -1,26 +1,25 @@
 import { expect } from 'chai';
-import config from '../../config';
-import faker from 'faker';
 import moment from 'moment';
-import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Constants from '../../../src/utils/Constants';
-import CONTEXTS from './ContextConstants';
-import Factory from '../../factories/Factory';
-import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
-import Site from '../../../src/types/Site';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
-import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import global from '../../../src/types/GlobalType';
+import Site from '../../../src/types/Site';
+import User from '../../../src/types/User';
+import Constants from '../../../src/utils/Constants';
+import Utils from '../../../src/utils/Utils';
+import config from '../../config';
+import Factory from '../../factories/Factory';
+import TenantFactory from '../../factories/TenantFactory';
+import UserFactory from '../../factories/UserFactory';
+import CentralServerService from '../client/CentralServerService';
+import CONTEXTS from './ContextConstants';
+import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
-import TenantFactory from '../../factories/TenantFactory';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
-import User from '../../../src/types/User';
-import UserFactory from '../../factories/UserFactory';
-import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import Utils from '../../../src/utils/Utils';
 
 export default class ContextBuilder {
 
@@ -40,7 +39,7 @@ export default class ContextBuilder {
     this.initialized = false;
   }
 
-  async _init() {
+  async init() {
     if (!this.initialized) {
       // Connect to the the DB
       await global.database.start();
@@ -73,13 +72,13 @@ export default class ContextBuilder {
    * @memberof ContextBuilder
    */
   async prepareContexts() {
-    await this._init();
+    await this.init();
     await this.destroy();
     // Prepare list of tenants to create
     const tenantContexts = CONTEXTS.TENANT_CONTEXT_LIST;
     // Build each tenant context
     for (const tenantContextDef of tenantContexts) {
-      await this._buildTenantContext(tenantContextDef);
+      await this.buildTenantContext(tenantContextDef);
     }
   }
 
@@ -92,7 +91,7 @@ export default class ContextBuilder {
    * @returns
    * @memberof ContextBuilder
    */
-  async _buildTenantContext(tenantContextDef: any) {
+  async buildTenantContext(tenantContextDef: any) {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {

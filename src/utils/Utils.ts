@@ -15,7 +15,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
-import { SettingContent } from '../types/Setting';
+import { SettingDBContent } from '../types/Setting';
 import Tenant from '../types/Tenant';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -23,8 +23,8 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { InactivityStatusLevel } from '../types/UserNotifications';
-import OCPIEndpoint from '../types/OCPIEndpoint';
+import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import Tag from '../types/Tag';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -53,19 +53,31 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
+  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatus {
     if (!inactivitySecs) {
-      return 'info';
+      return InactivityStatus.INFO;
     }
     // Get Notification Interval
     const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
-      return 'info';
+      return InactivityStatus.INFO;
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
-      return 'warning';
+      return InactivityStatus.WARNING;
     }
-    return 'danger';
+    return InactivityStatus.ERROR;
+  }
+
+  public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
+    switch (inactivityStatus) {
+      case InactivityStatus.INFO:
+        return 'info';
+      case InactivityStatus.WARNING:
+        return 'warning';
+      case InactivityStatus.ERROR:
+        return 'danger';
+    }
+    return 'info';
 
   }
 
@@ -514,7 +526,7 @@ export default class Utils {
     }
   }
 
-  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string>{
+  public static async buildEvseUserURL(tenantID: string, user: User, hash = ''): Promise<string> {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
@@ -531,6 +543,12 @@ export default class Utils {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
+  }
+
+  public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
+    return _evseBaseURL + '/settings#billing';
   }
 
   public static isServerInProductionMode(): boolean {
@@ -1153,7 +1171,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingContent {
+  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
@@ -1164,13 +1182,13 @@ export default class Utils {
             return {
               'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
               'simple': {}
-            } as SettingContent;
+            } as SettingDBContent;
           } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
             // SAP CC
             return {
               'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
               'convergentCharging': {}
-            } as SettingContent;
+            } as SettingDBContent;
           }
         }
         break;
@@ -1182,7 +1200,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE,
             'stripe': {}
-          } as SettingContent;
+          } as SettingDBContent;
         }
         break;
 
@@ -1193,7 +1211,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
             'concur': {}
-          } as SettingContent;
+          } as SettingDBContent;
         }
         break;
 
@@ -1204,7 +1222,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
             'ocpi': {}
-          } as SettingContent;
+          } as SettingDBContent;
         }
         break;
 
@@ -1215,7 +1233,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
             'sac': {}
-          } as SettingContent;
+          } as SettingDBContent;
         }
         break;
 
@@ -1226,7 +1244,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
             'sapSmartCharging': {}
-          } as SettingContent;
+          } as SettingDBContent;
         }
         break;
     }

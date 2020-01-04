@@ -1,18 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import OCPIClient from '../../../client/ocpi/OCPIClient';
-import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
-import UtilsService from './UtilsService';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import AppAuthError from '../../../exception/AppAuthError';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import OCPIUtils from '../../ocpi/OCPIUtils';
-import OCPIEndpoint from '../../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import OCPIUtils from '../../ocpi/OCPIUtils';
+import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
+import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'OCPIEndpointService';
 

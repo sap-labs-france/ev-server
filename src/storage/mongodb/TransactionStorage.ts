@@ -3,7 +3,7 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Transaction from '../../types/Transaction';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 import User from '../../types/User';
@@ -60,6 +60,7 @@ export default class TransactionStorage {
       currentSignedData: transactionToSave.currentSignedData,
       lastMeterValue: transactionToSave.lastMeterValue,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
+      currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       currentConsumption: Utils.convertToFloat(transactionToSave.currentConsumption),
       currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
@@ -72,6 +73,7 @@ export default class TransactionStorage {
       delete transactionMDB.currentStateOfCharge;
       delete transactionMDB.currentTotalConsumption;
       delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.currentInactivityStatus;
       delete transactionMDB.lastMeterValue;
       delete transactionMDB.numberOfMeterValues;
       // Add stop
@@ -87,6 +89,7 @@ export default class TransactionStorage {
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
         extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
+        inactivityStatus: transactionToSave.stop.inactivityStatus,
         totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
         price: Utils.convertToFloat(transactionToSave.stop.price),
         roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
@@ -113,8 +116,6 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
         status: transactionToSave.billingData.status,
-        errorCode: transactionToSave.billingData.errorCode,
-        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
@@ -209,7 +210,7 @@ export default class TransactionStorage {
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -283,16 +284,20 @@ export default class TransactionStorage {
     if (params.stop) {
       filterMatch.stop = params.stop;
     }
+    // Inactivity Status
+    if (params.inactivityStatus) {
+      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus };
+    }
     // Site's area ID
     if (params.siteAreaIDs) {
       filterMatch.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
+        $in: params.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Site ID
     if (params.siteID) {
       filterMatch.siteID = {
-        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteID.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Refund status
@@ -708,7 +713,7 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charger?
+    // Charging Station?
     if (params.withChargeBoxes) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation(
@@ -761,7 +766,7 @@ export default class TransactionStorage {
       aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
       aggregation.push({ $unwind: { 'path': '$allItems' } });
       aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-      // Add a unique identifier as we may have the same charger several time
+      // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
     aggregation = aggregation.concat(toSubRequests);
@@ -899,6 +904,16 @@ export default class TransactionStorage {
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
     aggregation.push({ $limit: 1 });
+    // Add Charge Box
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      localField: 'chargeBoxID',
+      foreignField: '_id',
+      asField: 'chargeBox',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -946,9 +961,9 @@ export default class TransactionStorage {
     switch (errorType) {
       case 'long_inactivity':
         return [
-          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } }},
-          { $match: { 'totalInactivity': { $gte: 86400 } }},
-          { $addFields: { 'errorCode': 'long_inactivity' }}
+          { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } } },
+          { $match: { 'totalInactivity': { $gte: 86400 } } },
+          { $addFields: { 'errorCode': 'long_inactivity' } }
         ];
       case 'no_consumption':
         return [

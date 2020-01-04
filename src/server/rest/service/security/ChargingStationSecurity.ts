@@ -1,14 +1,15 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStation from '../../../../types/ChargingStation';
-import Constants from '../../../../utils/Constants';
+import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
+import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class ChargingStationSecurity {
 
@@ -40,10 +41,10 @@ export default class ChargingStationSecurity {
           connector.currentConsumption = 0;
           connector.totalConsumption = 0;
           connector.totalInactivitySecs = 0;
+          connector.inactivityStatus = InactivityStatus.INFO;
           connector.currentStateOfCharge = 0;
         } else {
-          connector.inactivityStatusLevel =
-            Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs);
+          connector.inactivityStatusLevel = Utils.getUIInactivityStatusLevel(connector.inactivityStatus);
         }
       }
     } else {
@@ -62,8 +63,8 @@ export default class ChargingStationSecurity {
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          'inactivityStatusLevel': (filteredChargingStation.inactive ? null :
-            Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs)),
+          'inactivityStatusLevel': Utils.getUIInactivityStatusLevel(connector.inactivityStatus),
+          'inactivityStatus': connector.inactivityStatus,
           'activeTransactionID': connector.activeTransactionID,
           'activeTransactionDate': connector.activeTransactionDate,
           'activeTagID': connector.activeTagID,

@@ -1,15 +1,19 @@
-import cron from 'node-cron';
+import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
+import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import SynchronizeSmartChargingProfilesTask from './tasks/SynchronizeSmartChargingProfilesTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import cron from 'node-cron';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -61,6 +65,8 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeSmartChargingProfilesTask':
             schedulerTask = new SynchronizeSmartChargingProfilesTask();
+          case 'SynchronizeBillingUsersTask':
+            schedulerTask = new SynchronizeBillingUsersTask();
             break;
           default:
             Logging.logError({
@@ -91,4 +97,3 @@ export default class SchedulerManager {
     }
   }
 }
-

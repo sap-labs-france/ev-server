@@ -1,15 +1,15 @@
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
-import User from '../types/User';
-import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
+import Logging from '../utils/Logging';
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Utils from '../utils/Utils';
 import moment = require('moment');
 
 export default class NotificationHandler {
@@ -28,7 +28,7 @@ export default class NotificationHandler {
   ];
 
   static async saveNotification(tenantID: string, channel: string, notificationID: string,
-      sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
+    sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
@@ -84,13 +84,13 @@ export default class NotificationHandler {
           sourceDescr
         };
         if (interval.intervalKey) {
-          params.data = interval.intervalKey
+          params.data = interval.intervalKey;
         }
         if (chargeBoxID) {
-          params.chargeBoxID = chargeBoxID
+          params.chargeBoxID = chargeBoxID;
         }
         if (userID) {
-          params.userID = userID
+          params.userID = userID;
         }
         // Save it
         const notifications = await NotificationStorage.getNotifications(
@@ -136,7 +136,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfCharge(tenantID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfChargeNotification): Promise<void> {
+    sourceData: EndOfChargeNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -174,7 +174,7 @@ export default class NotificationHandler {
   }
 
   static async sendOptimalChargeReached(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: OptimalChargeReachedNotification): Promise<void> {
+    sourceData: OptimalChargeReachedNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -207,7 +207,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfSessionNotification): Promise<void> {
+    sourceData: EndOfSessionNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -240,7 +240,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfSignedSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfSignedSessionNotification): Promise<void> {
+    sourceData: EndOfSignedSessionNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -273,7 +273,7 @@ export default class NotificationHandler {
   }
 
   static async sendRequestPassword(tenantID: string, notificationID: string, user: User,
-      sourceData: RequestPasswordNotification): Promise<void> {
+    sourceData: RequestPasswordNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -295,7 +295,7 @@ export default class NotificationHandler {
   }
 
   static async sendUserAccountStatusChanged(tenantID: string, notificationID: string, user: User,
-      sourceData: UserAccountStatusChangedNotification): Promise<void> {
+    sourceData: UserAccountStatusChangedNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -322,7 +322,7 @@ export default class NotificationHandler {
   }
 
   static async sendNewRegisteredUser(tenantID: string, notificationID: string, user: User,
-      sourceData: NewRegisteredUserNotification): Promise<void> {
+    sourceData: NewRegisteredUserNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -345,7 +345,7 @@ export default class NotificationHandler {
   }
 
   static async sendVerificationEmail(tenantID: string, notificationID: string, user: User,
-      sourceData: VerificationEmailNotification): Promise<void> {
+    sourceData: VerificationEmailNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -368,7 +368,7 @@ export default class NotificationHandler {
   }
 
   static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: ChargingStationStatusErrorNotification): Promise<void> {
+    sourceData: ChargingStationStatusErrorNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // Enrich with admins
@@ -401,7 +401,7 @@ export default class NotificationHandler {
   }
 
   static async sendChargingStationRegistered(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: ChargingStationRegisteredNotification): Promise<void> {
+    sourceData: ChargingStationRegisteredNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // Enrich with admins
@@ -430,7 +430,7 @@ export default class NotificationHandler {
   }
 
   static async sendUnknownUserBadged(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: UnknownUserBadgedNotification): Promise<void> {
+    sourceData: UnknownUserBadgedNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // Enrich with admins
@@ -460,7 +460,7 @@ export default class NotificationHandler {
   }
 
   static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: TransactionStartedNotification): Promise<void> {
+    sourceData: TransactionStartedNotification): Promise<void> {
     // Get the Tenant
     const tenant = await TenantStorage.getTenant(tenantID);
     // For each Sources
@@ -661,6 +661,42 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OFFLINE_CHARGING_STATIONS, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendBillingUserSynchronizationFailed(tenantID: string, sourceData: BillingUserSynchronizationFailedNotification): Promise<void> {
+    // Get the Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              tenantID, notificationSource.channel, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
+            // Notified?
+            if (!hasBeenNotified) {
+              // Save
+              await NotificationHandler.saveNotification(
+                tenantID, notificationSource.channel, null, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendBillingUserSynchronizationFailed) {
+                  await notificationSource.notificationTask.sendBillingUserSynchronizationFailed(
+                    sourceData, adminUser, tenant, NotificationSeverity.ERROR);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED, error);
           }
         }
       }
