@@ -52,9 +52,7 @@ export interface ChargingStationTemplate {
 export interface ChargingStationCapabilities {
   supportStaticLimitationForChargingStation: boolean;
   supportStaticLimitationPerConnector: boolean;
-  supportChargePointMaxProfile: boolean;
-  supportTxDefaultProfile: boolean;
-  supportTxProfile: boolean;
+  supportChargingProfiles: boolean;
 }
 
 export interface ChargingProfile {

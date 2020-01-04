@@ -61,7 +61,7 @@
 	},
   "billing": {
     "generatedUser": "Utilisateur généré pour '{{email}}'",
-    "chargingStopSiteArea": "Charger {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
-    "chargingStopChargeBox": "Charger {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
+    "chargingStopSiteArea": "Charging Station {{totalConsumption}} kWh à la borne {{siteArea}} (terminé à {{time}})",
+    "chargingStopChargeBox": "Charging Station {{totalConsumption}} kWh à {{chargeBox}} (terminé à {{time}})"
   }
 }

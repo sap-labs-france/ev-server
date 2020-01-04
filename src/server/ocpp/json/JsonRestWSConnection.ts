@@ -81,7 +81,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         module: 'JsonRestWSConnection',
         method: 'handleRequest',
-        message: 'Charger is not connected to the backend',
+        message: 'Charging Station is not connected to the backend',
         action: commandName
       });
     }

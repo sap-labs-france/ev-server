@@ -1,4 +1,3 @@
-import fs from 'fs';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -50,26 +49,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   private async updateChargingStationTemplate() {
-    // Update current Chargers
     try {
-      // Read File
-      const chargingStationTemplates =
-        JSON.parse(fs.readFileSync(`${global.appRoot}/assets/templates/charging-stations.json`, 'utf8'));
-      // Update Templates
-      for (const chargingStationTemplate of chargingStationTemplates) {
-        try {
-          // Save
-          await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
-        } catch (error) {
-          Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'UpdateChargingStationTemplatesTask', error);
-        }
-      }
-      Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: 'UpdateChargingStationTemplatesTask',
-        module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationTemplate',
-        message: `Tenant ${Constants.DEFAULT_TENANT}: ${chargingStationTemplates.length} Charging Station templates have been updated`
-      });
+      // Update current Chargers
+      ChargingStationStorage.updateChargingStationTemplatesFromFile();
     } catch (error) {
       Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'UpdateChargingStationTemplatesTask', error);
     }

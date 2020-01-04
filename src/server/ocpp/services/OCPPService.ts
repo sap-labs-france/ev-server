@@ -133,7 +133,7 @@ export default class OCPPService {
           // Double check on Serial Number
           if (!chargingStation.chargePointSerialNumber || !bootNotification.chargePointSerialNumber ||
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber) {
-            // Not the same charger!
+            // Not the same Charging Station!
             throw new BackendError({
               source: chargingStation.id,
               module: 'OCPPService',
@@ -154,7 +154,7 @@ export default class OCPPService {
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
-      // Set the charger URL?
+      // Set the Charging Station URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
       }
@@ -252,7 +252,7 @@ export default class OCPPService {
       statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
       if (statusNotification.connectorId === 0) {
-        // Ignore EBEE charger
+        // Ignore EBEE Charging Station
         if (chargingStation.chargePointVendor !== Constants.CHARGER_VENDOR_EBEE) {
           // Log
           Logging.logInfo({
@@ -459,7 +459,7 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateMeterValues(headers.tenantID, chargingStation, meterValues);
       // Normalize Meter Values
       const newMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
-      // Handle charger's specificities
+      // Handle Charging Station's specificities
       this.filterMeterValuesOnCharger(headers.tenantID, chargingStation, newMeterValues);
       // No Values?
       if (newMeterValues.values.length === 0) {
@@ -1057,7 +1057,7 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
-      // Set the charger ID
+      // Set the Charging Station ID
       diagnosticsStatusNotification.chargeBoxID = chargingStation.id;
       diagnosticsStatusNotification.timestamp = new Date();
       diagnosticsStatusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
@@ -1087,7 +1087,7 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
-      // Set the charger ID
+      // Set the Charging Station ID
       firmwareStatusNotification.chargeBoxID = chargingStation.id;
       firmwareStatusNotification.timestamp = new Date();
       firmwareStatusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
@@ -1178,7 +1178,7 @@ export default class OCPPService {
       await this.billTransaction(headers.tenantID, transaction, 'start');
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
-      // Clean up Charger's connector transaction info
+      // Clean up Charging Station's connector transaction info
       const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === transaction.connectorId);
       if (foundConnector) {
@@ -1317,7 +1317,7 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateDataTransfer(chargingStation, dataTransfer);
-      // Set the charger ID
+      // Set the Charging Station ID
       dataTransfer.chargeBoxID = chargingStation.id;
       dataTransfer.timestamp = new Date();
       dataTransfer.timezone = Utils.getTimezone(chargingStation.coordinates);
@@ -1385,7 +1385,7 @@ export default class OCPPService {
       OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId, false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
-      // Save Charger
+      // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Soft Stop?
       if (isSoftStop) {
