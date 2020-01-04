@@ -1,5 +1,4 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { BillingTax } from './Billing';
 
 export enum ComponentType {
   OCPI = 'ocpi',
@@ -18,6 +17,14 @@ export interface Setting {
   sensitiveData: string[];
 }
 
+export interface SettingLink {
+  id: string;
+  name: string;
+  description: string;
+  role: string;
+  url: string;
+}
+
 // Database Settings interface
 export interface SettingDB extends CreatedUpdatedProps, Setting {
   category?: 'business' | 'technical';
@@ -26,7 +33,7 @@ export interface SettingDB extends CreatedUpdatedProps, Setting {
 
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | NotificationsSettingsType | SmartChagingSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | NotificationsSettingsType | SmartChargingSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -79,6 +86,7 @@ export enum RoamingSettingsType {
 
 export interface RoamingSettings extends Setting {
   identifier: ComponentType.OCPI;
+  type: RoamingSettingsType;
   ocpi?: OcpiSetting;
 }
 
@@ -111,7 +119,9 @@ export enum AnalyticsSettingsType {
 
 export interface AnalyticsSettings extends Setting {
   identifier: ComponentType.ANALYTICS;
+  type: AnalyticsSettingsType;
   sac?: SacAnalyticsSetting;
+  links: SettingLink[];
 }
 
 export interface SacAnalyticsSetting {
@@ -119,20 +129,18 @@ export interface SacAnalyticsSetting {
   timezone: string;
 }
 
-export enum SmartChagingSettingsType {
+export enum SmartChargingSettingsType {
   SAP_SMART_CHARGING = 'sapSmartCharging'
+}
+
+export interface SmartChargingSettings extends Setting {
+  identifier: ComponentType.SMART_CHARGING;
+  type: SmartChargingSettingsType;
+  sapSmartCharging?: SapSmartChargingSetting;
 }
 
 export interface SapSmartChargingSetting {
   optimizerUrl: string;
-}
-
-export interface SettingLink {
-  id: string;
-  name: string;
-  description: string;
-  role: string;
-  url: string;
 }
 
 export enum RefundSettingsType {
@@ -156,6 +164,10 @@ export interface ConcurRefundSetting {
   reportName: string;
 }
 
+export enum BillingSettingsType {
+  STRIPE = 'stripe'
+}
+
 export interface BillingSettings extends Setting{
   identifier: ComponentType.BILLING;
   type: BillingSettingsType;
@@ -176,8 +188,4 @@ export interface StripeBillingSetting extends BillingSetting {
   advanceBillingAllowed: boolean;
   currency: string;
   taxID: string;
-}
-
-export enum BillingSettingsType {
-  STRIPE = 'stripe'
 }
