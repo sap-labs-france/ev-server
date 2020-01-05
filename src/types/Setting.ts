@@ -141,6 +141,8 @@ export interface SmartChargingSettings extends Setting {
 
 export interface SapSmartChargingSetting {
   optimizerUrl: string;
+  user: string;
+  password: string;
 }
 
 export enum RefundSettingsType {
