@@ -71,6 +71,8 @@ export default class ChargingStationSecurity {
           'errorCode': connector.errorCode,
           'type': connector.type,
           'power': connector.power,
+          'numberOfConnectedPhase': connector.numberOfConnectedPhase,
+          'currentType' : connector.currentType,
           'voltage': connector.voltage,
           'amperage': connector.amperage
         };
@@ -166,9 +168,6 @@ export default class ChargingStationSecurity {
     if (request.hasOwnProperty('chargingStationURL')) {
       filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
     }
-    if (request.hasOwnProperty('numberOfConnectedPhase')) {
-      filteredRequest.numberOfConnectedPhase = sanitize(request.numberOfConnectedPhase);
-    }
     if (request.hasOwnProperty('maximumPower')) {
       filteredRequest.maximumPower = sanitize(request.maximumPower);
     }
@@ -180,6 +179,9 @@ export default class ChargingStationSecurity {
     }
     if (request.hasOwnProperty('powerLimitUnit')) {
       filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
+    }
+    if (request.hasOwnProperty('currentType')) {
+      filteredRequest.currentType = sanitize(request.currentType);
     }
     if (request.coordinates && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
@@ -198,7 +200,9 @@ export default class ChargingStationSecurity {
           power: sanitize(connector.power),
           type: sanitize(connector.type),
           voltage: sanitize(connector.voltage),
-          amperage: sanitize(connector.amperage)
+          amperage: sanitize(connector.amperage),
+          currentType: sanitize(connector.currentType),
+          numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase)
         };
       });
     }

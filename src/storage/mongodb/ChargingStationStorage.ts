@@ -224,7 +224,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsMDB);
+    this.cleanAndUpdateConnectors(chargingStationsMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -399,7 +399,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsFacetMDB);
+    this.cleanAndUpdateConnectors(chargingStationsFacetMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -432,6 +432,7 @@ export default class ChargingStationStorage {
           connector.power = Utils.convertToInt(connector.power);
           connector.voltage = Utils.convertToInt(connector.voltage);
           connector.amperage = Utils.convertToInt(connector.amperage);
+          connector.numberOfConnectedPhase = Utils.convertToInt(connector.numberOfConnectedPhase);
           connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
           connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
         }
@@ -456,17 +457,19 @@ export default class ChargingStationStorage {
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
       lastHeartBeat: chargingStationToSave.lastHeartBeat,
       deleted: chargingStationToSave.deleted,
-      inactive: chargingStationToSave.inactive,
       lastReboot: chargingStationToSave.lastReboot,
       chargingStationURL: chargingStationToSave.chargingStationURL,
-      numberOfConnectedPhase: chargingStationToSave.numberOfConnectedPhase,
       maximumPower: chargingStationToSave.maximumPower,
       cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      currentType: chargingStationToSave.currentType,
+      currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
-      currentIPAddress: chargingStationToSave.currentIPAddress
+      ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
+      ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
+      ocppVendorParameters: chargingStationToSave.ocppVendorParameters
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
@@ -696,7 +699,7 @@ export default class ChargingStationStorage {
     }
   }
 
-  private static _cleanConnectors(chargingStationsMDB: ChargingStation[]) {
+  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[]) {
     if (chargingStationsMDB.length > 0) {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {

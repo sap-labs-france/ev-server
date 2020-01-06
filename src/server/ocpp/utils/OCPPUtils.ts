@@ -12,6 +12,7 @@ import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
 
 export default class OCPPUtils {
+
   public static async enrichCharingStationWithTemplate(chargingStation: ChargingStation): Promise<boolean> {
     let foundTemplate: ChargingStationTemplate = null;
     // Get the Templates
@@ -32,11 +33,115 @@ export default class OCPPUtils {
           }
         }
       }
+      // Found?
+      if (foundTemplate) {
+        break;
+      }
     }
     // Copy from template
     if (foundTemplate) {
-      for (const key in foundTemplate.template) {
-        chargingStation[key] = foundTemplate.template[key];
+      // Assign props
+      if (foundTemplate.template.hasOwnProperty('cannotChargeInParallel')) {
+        chargingStation.cannotChargeInParallel = foundTemplate.template.cannotChargeInParallel;
+      }
+      if (foundTemplate.template.hasOwnProperty('currentType')) {
+        chargingStation.currentType = foundTemplate.template.currentType;
+      }
+      if (foundTemplate.template.hasOwnProperty('connectors')) {
+        chargingStation.connectors = foundTemplate.template.connectors;
+      }
+      // Handle capabilities
+      chargingStation.capabilities = {};
+      if (foundTemplate.template.hasOwnProperty('capabilities')) {
+        let matchFirmware = true;
+        let matchOcpp = true;
+        // Search Firmware/Ocpp match
+        for (const capabilities of foundTemplate.template.capabilities) {
+          // Check Firmware version
+          if (capabilities.supportedFirmwareVersions) {
+            matchFirmware = capabilities.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+          }
+          // Check Ocpp version
+          if (capabilities.supportedOcppVersions) {
+            matchOcpp = capabilities.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+          }
+          // Found?
+          if (matchFirmware && matchOcpp) {
+            chargingStation.capabilities = capabilities.capabilities;
+            break;
+          }
+        }
+      }
+      // Handle OCPP Advanced Commands
+      chargingStation.ocppAdvancedCommands = [];
+      if (foundTemplate.template.hasOwnProperty('ocppAdvancedCommands')) {
+        let matchFirmware = true;
+        let matchOcpp = true;
+        // Search Firmware/Ocpp match
+        for (const ocppAdvancedCommands of foundTemplate.template.ocppAdvancedCommands) {
+          // Check Firmware version
+          if (ocppAdvancedCommands.supportedFirmwareVersions) {
+            matchFirmware = ocppAdvancedCommands.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+          }
+          // Check Ocpp version
+          if (ocppAdvancedCommands.supportedOcppVersions) {
+            matchOcpp = ocppAdvancedCommands.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+          }
+          // Found?
+          if (matchFirmware && matchOcpp) {
+            chargingStation.ocppAdvancedCommands = ocppAdvancedCommands.commands;
+            break;
+          }
+        }
+      }
+      // Handle OCPP Standard Parameters
+      chargingStation.ocppStandardParameters = [];
+      if (foundTemplate.template.hasOwnProperty('ocppStandardParameters')) {
+        let matchOcpp = true;
+        // Search Firmware/Ocpp match
+        for (const ocppStandardParameters of foundTemplate.template.ocppStandardParameters) {
+          // Check Ocpp version
+          if (ocppStandardParameters.supportedOcppVersions) {
+            matchOcpp = ocppStandardParameters.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+          }
+          // Found?
+          if (matchOcpp) {
+            for (const parameter in ocppStandardParameters.parameters) {
+              chargingStation.ocppStandardParameters.push({
+                key: parameter,
+                value: ocppStandardParameters.parameters[parameter]
+              });
+            }
+            break;
+          }
+        }
+      }
+      // Handle OCPP Vendor Parameters
+      chargingStation.ocppVendorParameters = [];
+      if (foundTemplate.template.hasOwnProperty('ocppVendorParameters')) {
+        let matchFirmware = true;
+        let matchOcpp = true;
+        // Search Firmware/Ocpp match
+        for (const ocppVendorParameters of foundTemplate.template.ocppVendorParameters) {
+          // Check Firmware version
+          if (ocppVendorParameters.supportedFirmwareVersions) {
+            matchFirmware = ocppVendorParameters.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+          }
+          // Check Ocpp version
+          if (ocppVendorParameters.supportedOcppVersions) {
+            matchOcpp = ocppVendorParameters.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+          }
+          // Found?
+          if (matchFirmware && matchOcpp) {
+            for (const parameter in ocppVendorParameters.parameters) {
+              chargingStation.ocppVendorParameters.push({
+                key: parameter,
+                value: ocppVendorParameters.parameters[parameter]
+              });
+            }
+            break;
+          }
+        }
       }
       return true;
     }
@@ -104,69 +209,6 @@ export default class OCPPUtils {
       });
     }
     return chargingStation;
-  }
-
-  static async updateConnectorsPower(tenantID: string, chargingStation: ChargingStation) {
-    let voltageRerefence = 0;
-    let current = 0;
-    let nbPhase = 0;
-    let power = 0;
-    let totalPower = 0;
-
-    // Only for Schneider
-    if (chargingStation.chargePointVendor === Constants.VENDOR_SCHNEIDER) {
-      // Get the configuration
-      const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
-      // Config Provided?
-      if (configuration && configuration.configuration) {
-        // Search for params
-        for (let i = 0; i < configuration.configuration.length; i++) {
-          // Check
-          switch (configuration.configuration[i].key) {
-            // Voltage
-            case 'voltagererefence':
-              // Get the meter interval
-              voltageRerefence = parseInt(configuration.configuration[i].value);
-              break;
-            // Current
-            case 'currentpb1':
-              // Get the meter interval
-              current = parseInt(configuration.configuration[i].value);
-              break;
-            // Nb Phase
-            case 'nbphase':
-              // Get the meter interval
-              nbPhase = parseInt(configuration.configuration[i].value);
-              break;
-          }
-        }
-        // Override?
-        if (chargingStation.numberOfConnectedPhase) {
-          // Yes
-          nbPhase = chargingStation.numberOfConnectedPhase;
-        }
-        // Compute it
-        if (voltageRerefence && current && nbPhase) {
-          // One Phase?
-          if (nbPhase === 1) {
-            power = Math.floor(230 * current);
-          } else {
-            power = Math.floor(400 * current * Math.sqrt(nbPhase));
-          }
-        }
-      }
-      // Set Power
-      for (const connector of chargingStation.connectors) {
-        if (connector) {
-          connector.power = power;
-          totalPower += power;
-        }
-      }
-      // Set total power
-      if (totalPower && !chargingStation.maximumPower) {
-        chargingStation.maximumPower = totalPower;
-      }
-    }
   }
 
   public static getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
@@ -237,8 +279,6 @@ export default class OCPPUtils {
       configuration.timestamp = new Date();
       // Save config
       await OCPPStorage.saveConfiguration(tenantID, configuration);
-      // Update connector power
-      await OCPPUtils.updateConnectorsPower(tenantID, chargingStation);
       // Ok
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
