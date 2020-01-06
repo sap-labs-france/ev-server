@@ -51,7 +51,7 @@ export default class OCPPStorage {
       filters.timestamp = {};
       filters.timestamp.$gte = new Date(params.dateFrom);
     }
-    // Charger
+    // Charging Station
     if (params.chargeBoxID) {
       filters.chargeBoxID = params.chargeBoxID;
     }
@@ -130,7 +130,7 @@ export default class OCPPStorage {
       filters.timestamp = {};
       filters.timestamp.$lte = new Date(params.dateBefore);
     }
-    // Charger
+    // Charging Station
     if (params.chargeBoxID) {
       filters.chargeBoxID = params.chargeBoxID;
     }
@@ -279,7 +279,7 @@ export default class OCPPStorage {
       }]
     };
 
-    // Charger ID
+    // Charging Station ID
     if (params.chargeBoxID) {
       filters.$and.push({
         '_id': params.chargeBoxID

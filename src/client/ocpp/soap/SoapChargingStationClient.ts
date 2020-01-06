@@ -26,7 +26,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   private constructor(tenantID: string, chargingStation: ChargingStation) {
     super();
-    // Keep the charger
+    // Keep the Charging Station
     this.chargingStation = chargingStation;
     this.tenantID = tenantID;
   }

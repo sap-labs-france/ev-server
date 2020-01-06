@@ -1,10 +1,9 @@
 {
-  "subject": "'<%- chargeBoxID %>' just Connected",
-  "tenant": "",
-  "baseURL": "<%- evseDashboardURL %>",
+  "subject": "Facturation - Synchronisation des Utilisateurs a échoué",
+  "tenant": "<%- tenantID %>",
   "body": {
     "header": {
-      "title": "Charging Station Connected",
+      "title": "Facturation - Synchronisation des Utilisateurs a échoué",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +16,16 @@
       }
     },
     "beforeActionLines": [
-      "Dear Administrator,",
+      "Cher Administrateur,",
       "",
-      "The charging station <b>'<%- chargeBoxID %>'</b> just got connected to the central server."
+      "Impossible de synchroniser <%- nbrUsersInError %> utilisateur(s) avec le système de facturation."
     ],
     "action": {
-      "title": "View <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
+      "title": "Voir Réglages",
+      "url": "<%- evseDashboardBillingURL %>"
     },
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

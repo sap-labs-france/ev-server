@@ -171,6 +171,7 @@ class RequestMapper {
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),
+          BillingTaxes: BillingService.handleGetBillingTaxes.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),

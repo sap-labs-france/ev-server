@@ -4,7 +4,7 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
 
@@ -12,9 +12,9 @@ export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
   protected role: string;
-  protected settings: OcpiSettings;
+  protected settings: OcpiSetting;
 
-  protected constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint, role: string) {
+  protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
     if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }

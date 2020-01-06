@@ -15,6 +15,7 @@ export default class Constants {
   public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
   public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
   public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
+  public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed';
 
   public static readonly CSV_SEPARATOR = '\t';
 
@@ -161,8 +162,9 @@ export default class Constants {
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
   public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
-  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
+  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
+  public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;

@@ -232,7 +232,7 @@ export default class OCPPUtils {
           configuration = existingConfiguration;
         }
       }
-      // Set the charger ID
+      // Set the Charging Station ID
       configuration.chargeBoxID = chargingStation.id;
       configuration.timestamp = new Date();
       // Save config
