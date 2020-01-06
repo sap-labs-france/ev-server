@@ -1,6 +1,6 @@
-import Connector from './Connector';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
+import { InactivityStatusLevel, InactivityStatus } from './Transaction';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -35,6 +35,28 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   capabilities?: ChargingStationCapabilities;
 }
 
+export interface Connector {
+  connectorId: number;
+  currentConsumption: number;
+  currentStateOfCharge?: number;
+  totalInactivitySecs?: number;
+  totalConsumption?: number;
+  status: string;
+  errorCode?: string;
+  info?: string;
+  vendorErrorCode?: string;
+  power: number;
+  type: string;
+  voltage?: number;
+  amperage?: number;
+  activeTransactionID: number;
+  activeTransactionDate: Date;
+  activeTagID: string;
+  statusLastChangedOn?: Date;
+  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+  inactivityStatus?: InactivityStatus;
+}
+
 export enum PowerLimitUnits {
   WATT = 'W',
   AMPERE = 'A'
@@ -52,9 +74,7 @@ export interface ChargingStationTemplate {
 export interface ChargingStationCapabilities {
   supportStaticLimitationForChargingStation: boolean;
   supportStaticLimitationPerConnector: boolean;
-  supportChargePointMaxProfile: boolean;
-  supportTxDefaultProfile: boolean;
-  supportTxProfile: boolean;
+  supportChargingProfiles: boolean;
 }
 
 export interface ChargingProfile {

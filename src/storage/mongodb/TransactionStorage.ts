@@ -713,7 +713,7 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charger?
+    // Charging Station?
     if (params.withChargeBoxes) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation(
@@ -766,7 +766,7 @@ export default class TransactionStorage {
       aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
       aggregation.push({ $unwind: { 'path': '$allItems' } });
       aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-      // Add a unique identifier as we may have the same charger several time
+      // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
     aggregation = aggregation.concat(toSubRequests);

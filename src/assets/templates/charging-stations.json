@@ -1,46 +1,268 @@
 [
-  {
-    "id": "Schneider~EV2S22P44",
-    "chargePointVendor": "Schneider Electric",
-    "extraFilters": {
-      "chargeBoxSerialNumber": "EV.2S22P44"
-    },
-    "template": {
-      "maximumPower": 44340,
-      "numberOfConnectedPhase": 3,
-      "cannotChargeInParallel": false,
-      "powerLimitUnit": "A",
-      "connectors": [
-        {
-          "connectorId": 1,
-          "status": "Unavailable",
-          "errorCode": "NoError",
-          "info": "",
-          "vendorErrorCode": "",
-          "power": 22170,
-          "type": "T2",
-          "voltage": 400,
-          "amperage": 32
-        },
-        {
-          "connectorId": 2,
-          "status": "Unavailable",
-          "errorCode": "NoError",
-          "info": "",
-          "vendorErrorCode": "",
-          "power": 22170,
-          "type": "T2",
-          "voltage": 400,
-          "amperage": 32
-        }
-      ],
-      "capabilities": {
-        "supportStaticLimitationForChargingStation": true,
-        "supportStaticLimitationPerConnector": false,
-        "supportChargePointMaxProfile": false,
-        "supportTxDefaultProfile": true,
-        "supportTxProfile": true
-      }
-    }
-  }
+	{
+		"id": "Schneider~EV2S22P44",
+		"chargePointVendor": "Schneider Electric",
+		"extraFilters": {
+			"chargeBoxSerialNumber": "EV.2S22P44"
+		},
+		"template": {
+			"cannotChargeInParallel": false,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"status": "Unavailable",
+					"errorCode": "NoError",
+					"info": "",
+					"vendorErrorCode": "",
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				},
+				{
+					"connectorId": 2,
+					"status": "Unavailable",
+					"errorCode": "NoError",
+					"info": "",
+					"vendorErrorCode": "",
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": true,
+						"supportStaticLimitationPerConnector": false,
+						"supportChargingProfiles": true
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+						"ReserveNow",
+						"CancelReservation",
+						"UpdateFirmware",
+						"FirmwareStatusNotification",
+						"GetDiagnostics",
+						"DiagnosticsStatusNotification",
+						{
+							"command": "SetChargingProfile",
+							"parameters": [
+								"TxProfile",
+								"TxDefaultProfile"
+							]
+						},
+						"GetCompositeSchedule",
+						"ClearChargingProfile"
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"AllowOfflineTxForUnknownId": true,
+						"AuthorizationCacheEnabled": true,
+						"HeartBeatInterval": 60
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"ocppconnecttimeout": 60,
+						"clockaligneddatainterval": 0,
+						"metervaluessampleddata": "Energy.Active.Import.Register",
+						"metervaluesampleinterval": 60,
+						"emsetting": 3,
+						"maxintensitysocket": 32,
+						"enableevdetection": true,
+						"useautotimemanagment": true,
+						"timeservername": "pool.ntp.org",
+						"timezone": "UTC"
+					}
+				},
+				{
+					"supportedFirmwareVersions": [
+						"3.3.0.7",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"ocppconnecttimeout": 60,
+						"clockaligneddatainterval": 0,
+						"metervaluessampleddata": "Energy.Active.Import.Register",
+						"metervaluesampleinterval": 60,
+						"emsetting": 3,
+						"maxintensitysocket": 32,
+						"enableevdetection": true,
+						"useautotimemanagment": true,
+						"timeservername": "pool.ntp.org",
+						"timezone": "UTC",
+						"websocketpinginterval": 120
+					}
+				}
+			]
+		}
+	},
+	{
+		"id": "Schneider~EVB1A22P4",
+		"chargePointVendor": "Schneider Electric",
+		"extraFilters": {
+			"chargeBoxSerialNumber": "EVB1A22P4"
+		},
+		"template": {
+			"cannotChargeInParallel": true,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"status": "Unavailable",
+					"errorCode": "NoError",
+					"info": "",
+					"vendorErrorCode": "",
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.7",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": true,
+						"supportStaticLimitationPerConnector": false
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.7",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+						"ReserveNow",
+						"CancelReservation",
+						"UpdateFirmware",
+						"FirmwareStatusNotification",
+						"GetDiagnostics",
+						"DiagnosticsStatusNotification",
+						{
+							"command": "SetChargingProfile",
+							"parameters": [
+								"TxProfile",
+								"TxDefaultProfile"
+							]
+						},
+						"GetCompositeSchedule",
+						"ClearChargingProfile"
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"AllowOfflineTxForUnknownId": true,
+						"AuthorizationCacheEnabled": true,
+						"HeartBeatInterval": 60
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"ocppconnecttimeout": 60,
+						"clockaligneddatainterval": 0,
+						"metervaluessampleddata": "Energy.Active.Import.Register",
+						"metervaluesampleinterval": 60,
+						"emsetting": 2,
+						"maxintensitysocket": 32,
+						"enableevdetection": true,
+						"useautotimemanagment": true,
+						"timeservername": "pool.ntp.org",
+						"timezone": "UTC",
+						"controlchargebyremotecommand": true
+					}
+				},
+				{
+					"supportedFirmwareVersions": [
+						"3.3.0.7",
+						"3.3.0.10"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"ocppconnecttimeout": 60,
+						"clockaligneddatainterval": 0,
+						"metervaluessampleddata": "Energy.Active.Import.Register",
+						"metervaluesampleinterval": 60,
+						"emsetting": 2,
+						"maxintensitysocket": 32,
+						"enableevdetection": true,
+						"useautotimemanagment": true,
+						"timeservername": "pool.ntp.org",
+						"timezone": "UTC",
+						"websocketpinginterval": 120,
+						"controlchargebyremotecommand": true
+					}
+				}
+			]
+		}
+	}
 ]

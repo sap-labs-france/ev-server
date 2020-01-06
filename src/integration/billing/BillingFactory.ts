@@ -1,11 +1,12 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { BillingSetting, BillingSettingType } from '../../types/Setting';
-import Tenant from '../../types/Tenant';
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
+import { BillingSetting, BillingSettingsType } from '../../types/Setting';
 import Billing from './Billing';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBilling from './stripe/StripeBilling';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 export default class BillingFactory {
   static async getBillingImpl(tenantID: string): Promise<Billing<BillingSetting>> {
@@ -21,11 +22,19 @@ export default class BillingFactory {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       if (settings) {
-        if (settings.type === BillingSettingType.STRIPE) {
-          // Return the Stripe implementation
-          return new StripeBilling(tenantID, settings.stripe);
+        switch (settings.type) {
+          case BillingSettingsType.STRIPE:
+            return new StripeBilling(tenantID, settings.stripe);
+          default:
+            break;
         }
       }
+      Logging.logDebug({
+        tenantID: tenant.id,
+        module: 'BillingFactory',
+        method: 'getBillingImpl',
+        message: 'Billing settings are not configured'
+      });
     }
     return null;
   }

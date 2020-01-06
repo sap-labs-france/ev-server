@@ -674,7 +674,7 @@ export default class StatisticService {
         }
       }
       if (dataCategory === 'C') {
-        // Sort by charger and month
+        // Sort by Charging Station and month
         transactions.sort((rec1, rec2) => {
           if (rec1._id.chargeBox > rec2._id.chargeBox) {
             return 1;
@@ -682,7 +682,7 @@ export default class StatisticService {
           if (rec1._id.chargeBox < rec2._id.chargeBox) {
             return -1;
           }
-          // Charger is the same, now compare month
+          // Charging Station is the same, now compare month
           if (rec1._id.month > rec2._id.month) {
             return 1;
           }

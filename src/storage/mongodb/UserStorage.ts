@@ -24,10 +24,10 @@ import moment from 'moment';
 
 export default class UserStorage {
 
-  public static getLatestEndUserLicenseAgreement(language = 'en'): string {
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
     const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
     let eulaText = null;
     try {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
@@ -45,7 +45,7 @@ export default class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, { language });
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
     return eulaText;
   }
 
@@ -67,7 +67,7 @@ export default class UserStorage {
       language = 'en';
     }
     // Get current eula
-    const currentEula = UserStorage.getLatestEndUserLicenseAgreement(language);
+    const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
     // Read DB
     const eulasMDB = await global.database.getCollection<Eula>(tenantID, 'eulas')
       .find({ 'language': language })

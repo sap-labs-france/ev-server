@@ -546,6 +546,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_SYNCHRONIZE_BILLING);
   }
 
+  public static canReadBillingTaxes(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_BILLING, Constants.ACTION_READ_BILLING_TAXES);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_SUPER_ADMIN;
   }
@@ -570,7 +574,8 @@ export default class Authorizations {
     return user.role === Constants.ROLE_DEMO;
   }
 
-  private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagID: string, action: string): Promise<User> {
+  private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
+      transaction: Transaction, tagID: string, action: string): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
