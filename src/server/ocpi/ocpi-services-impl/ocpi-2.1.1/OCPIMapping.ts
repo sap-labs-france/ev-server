@@ -1,8 +1,7 @@
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import ChargingStation from '../../../../types/ChargingStation';
-import Connector from '../../../../types/Connector';
+import ChargingStation, { Connector } from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
