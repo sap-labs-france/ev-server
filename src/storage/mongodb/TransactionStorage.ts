@@ -759,7 +759,7 @@ export default class TransactionStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = this._buildTransactionsInErrorFacet(type);
+        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -957,7 +957,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
-  private static _buildTransactionsInErrorFacet(errorType: string) {
+  private static getTransactionsInErrorFacet(errorType: string) {
     switch (errorType) {
       case 'long_inactivity':
         return [

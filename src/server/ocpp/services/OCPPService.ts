@@ -47,6 +47,7 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotification) {
+    let newChargingStation = false;
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -124,6 +125,8 @@ export default class OCPPService {
         }
         // Enrich Charging Station
         await OCPPUtils.enrichCharingStationWithTemplate(chargingStation);
+        // Set
+        newChargingStation = true;
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -185,7 +188,7 @@ export default class OCPPService {
       // Handle the get of configuration later on
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationConfiguration(headers.tenantID, chargingStation);
+        await OCPPUtils.requestAndSaveChargingStationConfiguration(headers.tenantID, chargingStation, newChargingStation);
       }, 3000);
       // Return the result
       return {

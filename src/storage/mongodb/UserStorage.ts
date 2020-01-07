@@ -828,27 +828,18 @@ export default class UserStorage {
     // are not assigned yet to at least one site.
     // If the organization component is not active then the system just looks for non active users.
     const facets: any = { $facet: {} };
-    if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
-      const array = [];
-      params.errorTypes.forEach((type) => {
-        array.push(`$${type}`);
-        facets.$facet[type] = UserStorage._buildUserInErrorFacet(tenantID, type);
-      });
-      aggregation.push(facets);
-      // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { usersInError: { $setUnion: array } } });
-    } else {
-      aggregation.push({
-        '$facet': {
-          'unactive_user': [
-            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields: { 'errorCode': 'unactive_user' } },
-          ]
-        }
-      });
-      // Take out the facet name from the result
-      aggregation.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
+    const array = [];
+    const tenant = await TenantStorage.getTenant(tenantID);
+    for (const type of params.errorTypes) {
+      if (type === 'unassigned_user' && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
+        continue;
+      }
+      array.push(`$${type}`);
+      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
+    aggregation.push(facets);
+    // Manipulate the results to convert it to an array of document on root level
+    aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     // Finish the preparation of the result
     aggregation.push({ $unwind: '$usersInError' });
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
@@ -1081,12 +1072,12 @@ export default class UserStorage {
     };
   }
 
-  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
+  private static getUserInErrorFacet(tenantID: string, errorType: string) {
     switch (errorType) {
-      case 'unactive_user':
+      case 'inactive_user':
         return [
-          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-          { $addFields: { 'errorCode': 'unactive_user' } }
+          { $match: { status: { $ne: Constants.USER_STATUS_ACTIVE } } },
+          { $addFields: { 'errorCode': 'inactive_user' } }
         ];
       case 'unassigned_user': {
         return [

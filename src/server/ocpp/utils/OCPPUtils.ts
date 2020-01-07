@@ -3,13 +3,14 @@ import buildChargingStationClient from '../../../client/ocpp/ChargingStationClie
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import ChargingStation, { ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationTemplate, ChargingStationConfiguration } from '../../../types/ChargingStation';
 import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
+import { OCPPConfiguration } from '../../../types/ocpp/OCPPConfiguration';
 
 export default class OCPPUtils {
 
@@ -247,38 +248,38 @@ export default class OCPPUtils {
     }
   }
 
-  public static async requestAndSaveChargingStationConfiguration(tenantID: string, chargingStation: ChargingStation) {
-    let configuration = null;
+  public static async requestAndSaveChargingStationConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation: boolean = false) {
     try {
       // In case of error. the boot should no be denied
-      configuration = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getConfiguration', {});
+      const ocppConfiguration: OCPPConfiguration = await OCPPUtils.requestExecuteChargingStationCommand(
+        tenantID, chargingStation, 'getConfiguration', {});
       // Log
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'ChargingStationService',
         method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: 'Command sent with success', detailedMessages: configuration
+        message: 'Command sent with success', detailedMessages: ocppConfiguration
       });
-      // Override with Conf
-      configuration = {
-        'configuration': configuration.configurationKey
+      // Create Conf
+      const chargingStationConfiguration: ChargingStationConfiguration = {
+        id: chargingStation.id,
+        configuration: ocppConfiguration.configurationKey,
+        timestamp: new Date()
       };
       // Set default?
-      if (!configuration) {
-        // Check if there is an already existing config
+      if (!chargingStationConfiguration.configuration) {
+        // Check if there is an already existing config in DB
         const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
         if (!existingConfiguration) {
           // No config at all: Set default OCPP configuration
-          configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
-        } else {
-          // Set default
-          configuration = existingConfiguration;
+          chargingStationConfiguration.configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
         }
       }
-      // Set the Charging Station ID
-      configuration.chargeBoxID = chargingStation.id;
-      configuration.timestamp = new Date();
       // Save config
-      await OCPPStorage.saveConfiguration(tenantID, configuration);
+      await ChargingStationStorage.saveConfiguration(tenantID, chargingStationConfiguration);
+      // Check OCPP Configuration
+      if (newChargingStation) {
+        this.checkAndUpdateChargingStationOcppParameters(chargingStation, chargingStationConfiguration);
+      }
       // Ok
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
@@ -291,6 +292,8 @@ export default class OCPPUtils {
       Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
       return { status: 'Rejected' };
     }
+  }
+  public static checkAndUpdateChargingStationOcppParameters(chargingStation: ChargingStation, currentConfiguration: ChargingStationConfiguration) {
   }
 
   public static async requestChangeChargingStationConfiguration(tenantID: string, chargingStation: ChargingStation, params) {

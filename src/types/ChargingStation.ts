@@ -173,3 +173,9 @@ export enum RecurrencyKindType {
   DAILY = 'Daily',
   WEEKLY = 'Weekly'
 }
+
+export interface ChargingStationConfiguration {
+  id: string;
+  timestamp: Date;
+  configuration: KeyValue[];
+}
