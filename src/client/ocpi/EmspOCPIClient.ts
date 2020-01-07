@@ -9,6 +9,9 @@ import _ from 'lodash';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { OCPILocation } from '../../types/ocpi/OCPILocation';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -115,7 +118,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OCPIPullLocations',
+      action: 'OcpiGetLocations',
       message: `Retrieve locations at ${locationsUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -133,20 +136,65 @@ export default class EmspOCPIClient extends OCPIClient {
       });
 
     // Check response
-    if (!response.data) {
-      throw new Error('Invalid response from Get locations');
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Get locations`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
     }
 
-    for (const location of response.data) {
-      Logging.logDebug({
-        tenantID: this.tenant.id,
-        action: 'OCPIPullLocations',
-        message: `Found location ${location.name}`,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'patchEVSEStatus',
-        detailedMessage: location
-      });
+    for (const location of response.data.data) {
+      await this.processLocation(location);
+    }
+  }
+
+  async processLocation(location: OCPILocation) {
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: 'OcpiGetLocations',
+      message: `Found location ${location.name} with id ${location.id}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'processLocation',
+      detailedMessage: location
+    });
+    if (location.evses && location.evses.length > 0) {
+      for (const evse of location.evses) {
+        if (!evse.evse_id) {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: 'OcpiGetLocations',
+            message: `Missing evse id of location ${location.name}`,
+            source: 'OCPI Client',
+            module: 'OCPIClient',
+            method: 'processLocation',
+            detailedMessage: location
+          });
+        } else if (evse.status === OCPIEvseStatus.REMOVED) {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: 'OcpiGetLocations',
+            message: `Delete removed evse ${evse.evse_id} of location ${location.name}`,
+            source: 'OCPI Client',
+            module: 'OCPIClient',
+            method: 'processLocation',
+            detailedMessage: location
+          });
+          await ChargingStationStorage.deleteChargingStation(this.tenant.id, evse.evse_id);
+        } else {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: 'OcpiGetLocations',
+            message: `Update evse ${evse.evse_id} of location ${location.name}`,
+            source: 'OCPI Client',
+            module: 'OCPIClient',
+            method: 'processLocation',
+            detailedMessage: location
+          });
+          const chargingStation = OCPIMapping.convertEvseToChargingStation(evse, location);
+          await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+        }
+      }
     }
   }
 

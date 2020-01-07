@@ -5,7 +5,8 @@ import { KeyValue } from './GlobalType';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
-  siteAreaID: string;
+  issuer: boolean;
+  siteAreaID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
   chargeBoxSerialNumber: string;
@@ -60,6 +61,7 @@ export enum PowerLimitUnits {
 }
 
 export interface Connector {
+  name: string;
   connectorId: number;
   currentConsumption: number;
   currentStateOfCharge?: number;
@@ -73,9 +75,9 @@ export interface Connector {
   type: string;
   voltage?: number;
   amperage?: number;
-  activeTransactionID: number;
-  activeTransactionDate: Date;
-  activeTagID: string;
+  activeTransactionID?: number;
+  activeTransactionDate?: Date;
+  activeTagID?: string;
   statusLastChangedOn?: Date;
   inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;
@@ -137,7 +139,7 @@ export interface ChargingProfile {
   validTo?: Date;
   chargingSchedule: ChargingSchedule
 }
- 
+
 export interface ChargingSchedule {
   duration?: Number;
   startSchedule?: Date;
@@ -145,13 +147,13 @@ export interface ChargingSchedule {
   chargingSchedulePeriod: ChargingSchedulePeriod[]
   minChargeRate?: Number;
 }
- 
+
 export interface ChargingSchedulePeriod {
   startPeriod: Number;
   limit: Number;
   numberPhases?: Number;
 }
- 
+
 export enum ChargingRateUnitType {
   WATT = 'W',
   AMPERE = 'A'
@@ -162,13 +164,13 @@ export enum ChargingProfileKindType{
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'
 }
- 
+
 export enum ChargingProfilePurposeType {
   CHARGE_POINT_MAX_PROFILE = 'ChargePointMaxProfile',
   TX_DEFAULT_PROFILE = 'TxDefaultProfile',
   TX_PROFILE = 'TxProfile'
 }
- 
+
 export enum RecurrencyKindType {
   DAILY = 'Daily',
   WEEKLY = 'Weekly'

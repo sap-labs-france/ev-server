@@ -169,6 +169,18 @@
         "config": {}
       },
       {
+        "name": "OCPIGetLocationsTask",
+        "active": true,
+        "periodicity": "0 1 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetTokensTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
         "name": "SynchronizeRefundTransactionsTask",
         "active": true,
         "periodicity": "0 * * * *",

@@ -101,8 +101,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success(
-      {}));
+    res.json(OCPIUtils.success({}));
   }
 
   /**
@@ -130,8 +129,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    res.json(OCPIUtils.success(
-      {}));
+    res.json(OCPIUtils.success({}));
   }
 }
 

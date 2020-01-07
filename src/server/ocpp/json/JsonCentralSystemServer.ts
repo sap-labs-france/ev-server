@@ -68,6 +68,13 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } else if (protocols === 'rest') {
         return protocols;
       }
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: this._MODULE_NAME,
+        method: 'handleProtocols',
+        action: 'WSVerifyClient',
+        message: `Invalid protocol ${protocols}`
+      });
       return false;
     };
 

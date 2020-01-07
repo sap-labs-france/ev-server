@@ -441,6 +441,7 @@ export default class ChargingStationStorage {
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
+      issuer: chargingStationToSave.issuer,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
