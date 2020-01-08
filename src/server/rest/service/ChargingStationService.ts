@@ -131,13 +131,13 @@ export default class ChargingStationService {
     if (filteredRequest.chargingStationURL) {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
-    // Update Nb Phase
-    if (filteredRequest.hasOwnProperty('numberOfConnectedPhase')) {
-      chargingStation.numberOfConnectedPhase = filteredRequest.numberOfConnectedPhase;
-    }
     // Update Power Max
     if (filteredRequest.hasOwnProperty('maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
+    }
+    // Update Current Type
+    if (filteredRequest.hasOwnProperty('currentType')) {
+      chargingStation.currentType = filteredRequest.currentType;
     }
     // Update Cannot Charge in Parallel
     if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
@@ -170,6 +170,8 @@ export default class ChargingStationService {
         chargerConnectors[connector.connectorId - 1].type = connector.type;
         chargerConnectors[connector.connectorId - 1].voltage = connector.voltage;
         chargerConnectors[connector.connectorId - 1].amperage = connector.amperage;
+        chargerConnectors[connector.connectorId - 1].currentType = connector.currentType;
+        chargerConnectors[connector.connectorId - 1].numberOfConnectedPhase = connector.numberOfConnectedPhase;
       }
     }
     // Update timestamp
@@ -180,12 +182,11 @@ export default class ChargingStationService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      source: chargingStation.id,
+      source: chargingStation.id, action: action,
       user: req.user, module: 'ChargingStationService',
       method: 'handleUpdateChargingStationParams',
       message: 'Parameters have been updated successfully',
-      action: action, detailedMessages: {
-        'numberOfConnectedPhase': chargingStation.numberOfConnectedPhase,
+      detailedMessages: {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
@@ -971,7 +972,7 @@ export default class ChargingStationService {
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
     I18nManager.switchLanguage(loggedUser.language);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Number of Phases${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${I18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
@@ -992,7 +993,6 @@ export default class ChargingStationService {
       csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${I18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${chargingStation.numberOfConnectedPhase}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
       csv += (!chargingStation.cannotChargeInParallel ? 'yes' : 'no') + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.powerLimitUnit}\r\n`;

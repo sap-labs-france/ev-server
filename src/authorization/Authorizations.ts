@@ -575,7 +575,7 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-      transaction: Transaction, tagID: string, action: string): Promise<User> {
+    transaction: Transaction, tagID: string, action: string): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);

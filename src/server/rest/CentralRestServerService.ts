@@ -302,7 +302,6 @@ export default {
       // Execute
       await handleRequest(action, req, res, next);
     } catch (error) {
-      // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

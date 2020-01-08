@@ -286,7 +286,7 @@ export default class OCPIMapping {
       'format': OCPIConnectorFormat.CABLE,
       'voltage': connector.voltage,
       'amperage': connector.amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(chargingStation.numberOfConnectedPhase),
+      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(connector.numberOfConnectedPhase),
       'last_updated': chargingStation.lastHeartBeat
     };
   }

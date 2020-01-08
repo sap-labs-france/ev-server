@@ -15,15 +15,18 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Update Charging Stations
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
-      await this.updateChargingStations(tenant);
+      // Update current Charging Station with Template
+      await this.updateChargingStationsWithTemplate(tenant);
+      // Remove unused props
+      await this.removeChargingStationUnusedProps(tenant);
     }
   }
 
-  private async updateChargingStations(tenant: Tenant) {
+  private async updateChargingStationsWithTemplate(tenant: Tenant) {
     let updated = 0;
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(tenant.id, 'chargingstations').find(
-      { 'capabilities': { $exists: false } }).toArray();
+      { 'currentType2': { $exists: false } }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
@@ -42,8 +45,29 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: 'UpdateChargingStationTemplatesTask',
-        module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStations',
-        message: `${updated} Charging Stations' capabilities have been updated in Tenant '${tenant.name}'`
+        module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsWithTemplate',
+        message: `${updated} Charging Stations' have been updated with Template in Tenant '${tenant.name}'`
+      });
+    }
+  }
+
+  private async removeChargingStationUnusedProps(tenant: Tenant) {
+    const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
+      { 'inactive': { $exists: true } },
+      {
+        $unset: {
+          'numberOfConnectedPhase': '',
+          'inactive': ''
+        }
+      },
+      { upsert: false }
+    );
+    if (result.modifiedCount > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'UpdateChargingStationTemplatesTask',
+        module: 'UpdateChargingStationTemplatesTask', method: 'removeChargingStationUnusedProps',
+        message: `${result.modifiedCount} Charging Stations' unused properties have been removed in Tenant '${tenant.name}'`
       });
     }
   }

@@ -5,6 +5,13 @@ import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
 
+export interface KeyValue {
+  key: string;
+  value: string;
+  objectRef?: any;
+  readonly?: boolean;
+}
+
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;

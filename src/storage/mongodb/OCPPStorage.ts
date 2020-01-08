@@ -192,27 +192,6 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveConfiguration(tenantID: string, configuration) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveConfiguration');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Modify
-    await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
-      '_id': configuration.chargeBoxID
-    }, {
-      $set: {
-        configuration: configuration.configuration,
-        timestamp: Utils.convertToDate(configuration.timestamp)
-      }
-    }, {
-      upsert: true,
-      returnOriginal: false
-    });
-    // Debug
-    Logging.traceEnd('OCPPStorage', 'saveConfiguration', uniqueTimerID);
-  }
-
   static async saveDataTransfer(tenantID: string, dataTransfer) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDataTransfer');

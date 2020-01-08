@@ -1,7 +1,7 @@
 import moment from 'moment';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -224,7 +224,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsMDB);
+    this.cleanAndUpdateConnectors(chargingStationsMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -348,7 +348,7 @@ export default class ChargingStationStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = ChargingStationStorage._buildChargerInErrorFacet(type);
+        facets.$facet[type] = ChargingStationStorage.getChargerInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -399,7 +399,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsFacetMDB);
+    this.cleanAndUpdateConnectors(chargingStationsFacetMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -432,6 +432,7 @@ export default class ChargingStationStorage {
           connector.power = Utils.convertToInt(connector.power);
           connector.voltage = Utils.convertToInt(connector.voltage);
           connector.amperage = Utils.convertToInt(connector.amperage);
+          connector.numberOfConnectedPhase = Utils.convertToInt(connector.numberOfConnectedPhase);
           connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
           connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
         }
@@ -456,17 +457,19 @@ export default class ChargingStationStorage {
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
       lastHeartBeat: chargingStationToSave.lastHeartBeat,
       deleted: chargingStationToSave.deleted,
-      inactive: chargingStationToSave.inactive,
       lastReboot: chargingStationToSave.lastReboot,
       chargingStationURL: chargingStationToSave.chargingStationURL,
-      numberOfConnectedPhase: chargingStationToSave.numberOfConnectedPhase,
       maximumPower: chargingStationToSave.maximumPower,
       cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      currentType: chargingStationToSave.currentType,
+      currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
-      currentIPAddress: chargingStationToSave.currentIPAddress
+      ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
+      ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
+      ocppVendorParameters: chargingStationToSave.ocppVendorParameters
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
@@ -571,7 +574,28 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  public static async getConfiguration(tenantID: string, chargeBoxID: string): Promise<{id: string; timestamp: Date; configuration: any}> {
+  static async saveConfiguration(tenantID: string, configuration: ChargingStationConfiguration) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify
+    await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
+      '_id': configuration.id
+    }, {
+      $set: {
+        configuration: configuration.configuration,
+        timestamp: Utils.convertToDate(configuration.timestamp)
+      }
+    }, {
+      upsert: true,
+      returnOriginal: false
+    });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
+  }
+
+  public static async getConfiguration(tenantID: string, id: string): Promise<ChargingStationConfiguration> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
@@ -579,7 +603,7 @@ export default class ChargingStationStorage {
     // Read DB
     const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
       .findOne({
-        '_id': chargeBoxID
+        '_id': id
       });
     // Found?
     let configuration = null;
@@ -654,7 +678,7 @@ export default class ChargingStationStorage {
     });
   }
 
-  private static _buildChargerInErrorFacet(errorType: string) {
+  private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
       case 'missingSettings':
         return [{
@@ -696,7 +720,7 @@ export default class ChargingStationStorage {
     }
   }
 
-  private static _cleanConnectors(chargingStationsMDB: ChargingStation[]) {
+  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[]) {
     if (chargingStationsMDB.length > 0) {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {
