@@ -189,9 +189,9 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     let found = false;
     if (chargingStation.connectors && chargingStation.connectors.length > 0) {
       for (const connector of chargingStation.connectors) {
-        if (connector.name === connectorId) {
+        if (connector.id === connectorId) {
           if (ocpiConnector.id) {
-            connector.name = ocpiConnector.id;
+            connector.id = ocpiConnector.id;
           }
           if (ocpiConnector.amperage) {
             connector.amperage = ocpiConnector.amperage;
@@ -264,8 +264,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     } else {
       let found = false;
       for (const connector of chargingStation.connectors) {
-        if (connector.name === connectorId) {
-          connector.name = ocpiConnector.id;
+        if (connector.id === connectorId) {
+          connector.id = ocpiConnector.id;
           connector.amperage = ocpiConnector.amperage;
           connector.voltage = ocpiConnector.voltage;
           connector.power = ocpiConnector.amperage * ocpiConnector.voltage;
@@ -276,7 +276,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       }
       if (!found) {
         chargingStation.connectors.push({
-          name: connectorId,
+          id: connectorId,
           status: Constants.CONN_STATUS_AVAILABLE,
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,

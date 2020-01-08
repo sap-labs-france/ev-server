@@ -69,7 +69,7 @@ export default class OCPIMapping {
       let connectorId = 1;
       for (const ocpiConnector of evse.connectors) {
         const connector: Connector = {
-          name: ocpiConnector.id,
+          id: ocpiConnector.id,
           status: OCPIMapping.convertOCPIStatus2Status(evse.status),
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,

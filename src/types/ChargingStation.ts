@@ -61,7 +61,7 @@ export enum PowerLimitUnits {
 }
 
 export interface Connector {
-  name: string;
+  id?: string;
   connectorId: number;
   currentConsumption: number;
   currentStateOfCharge?: number;
