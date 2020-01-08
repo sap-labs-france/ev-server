@@ -12,7 +12,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { PowerLimitUnits, Connector } from '../../../types/ChargingStation';
+import ChargingStation, { Connector, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPBootNotification } from '../../../types/ocpp/OCPPBootNotification';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';

@@ -1,6 +1,6 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
-import { InactivityStatusLevel, InactivityStatus } from './Transaction';
+import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
@@ -46,8 +46,8 @@ export enum ChargingStationCurrentType {
 }
 
 export interface OcppCommand {
-  command: string,
-  parameters: string[]
+  command: string;
+  parameters: string[];
 }
 
 export interface OcppAdvancedCommands {
@@ -102,56 +102,56 @@ export interface ChargingStationTemplate {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];
       capabilities: ChargingStationCapabilities;
-    }[]
+    }[];
     ocppAdvancedCommands: {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];
       commands: OcppAdvancedCommands[];
-    }[]
+    }[];
     ocppStandardParameters: {
       supportedOcppVersions: string[];
       parameters: object;
-    }[]
+    }[];
     ocppVendorParameters: {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];
       parameters: object;
-    }[]
+    }[];
   };
 }
 
 export interface ChargingStationCapabilities {
-  supportStaticLimitationForChargingStation?: boolean;
-  supportStaticLimitationPerConnector?: boolean;
-  supportChargingProfiles?: boolean;
+  supportStaticLimitationForChargingStation: boolean;
+  supportStaticLimitationPerConnector: boolean;
+  supportChargingProfiles: boolean;
 }
 
 export interface ChargingProfile {
-  chargingProfileId: Number;
-  transactionId?: Number;
-  stackLevel: Number;
+  chargingProfileId: number;
+  transactionId?: number;
+  stackLevel: number;
   chargingProfilePurpose: ChargingProfilePurposeType;
   chargingProfileKind: ChargingProfileKindType;
   recurrencyKind: RecurrencyKindType;
   validFrom?: Date;
   validTo?: Date;
-  chargingSchedule: ChargingSchedule
+  chargingSchedule: ChargingSchedule;
 }
- 
+
 export interface ChargingSchedule {
-  duration?: Number;
+  duration?: number;
   startSchedule?: Date;
   chargingRateUnit: ChargingRateUnitType;
-  chargingSchedulePeriod: ChargingSchedulePeriod[]
-  minChargeRate?: Number;
+  chargingSchedulePeriod: ChargingSchedulePeriod[];
+  minChargeRate?: number;
 }
- 
+
 export interface ChargingSchedulePeriod {
-  startPeriod: Number;
-  limit: Number;
-  numberPhases?: Number;
+  startPeriod: number;
+  limit: number;
+  numberPhases?: number;
 }
- 
+
 export enum ChargingRateUnitType {
   WATT = 'W',
   AMPERE = 'A'
@@ -162,13 +162,13 @@ export enum ChargingProfileKindType{
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'
 }
- 
+
 export enum ChargingProfilePurposeType {
   CHARGE_POINT_MAX_PROFILE = 'ChargePointMaxProfile',
   TX_DEFAULT_PROFILE = 'TxDefaultProfile',
   TX_PROFILE = 'TxProfile'
 }
- 
+
 export enum RecurrencyKindType {
   DAILY = 'Daily',
   WEEKLY = 'Weekly'

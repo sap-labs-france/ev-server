@@ -1,4 +1,4 @@
-import { KeyValue } from "../GlobalType";
+import { KeyValue } from '../GlobalType';
 
 export interface OCPPConfiguration {
   configurationKey: KeyValue[];

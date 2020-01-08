@@ -3,7 +3,7 @@ import buildChargingStationClient from '../../../client/ocpp/ChargingStationClie
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import ChargingStation, { ChargingStationTemplate, ChargingStationConfiguration } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -60,11 +60,11 @@ export default class OCPPUtils {
         for (const capabilities of foundTemplate.template.capabilities) {
           // Check Firmware version
           if (capabilities.supportedFirmwareVersions) {
-            matchFirmware = capabilities.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+            matchFirmware = capabilities.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
           }
           // Check Ocpp version
           if (capabilities.supportedOcppVersions) {
-            matchOcpp = capabilities.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+            matchOcpp = capabilities.supportedOcppVersions.includes(chargingStation.ocppVersion);
           }
           // Found?
           if (matchFirmware && matchOcpp) {
@@ -82,11 +82,11 @@ export default class OCPPUtils {
         for (const ocppAdvancedCommands of foundTemplate.template.ocppAdvancedCommands) {
           // Check Firmware version
           if (ocppAdvancedCommands.supportedFirmwareVersions) {
-            matchFirmware = ocppAdvancedCommands.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+            matchFirmware = ocppAdvancedCommands.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
           }
           // Check Ocpp version
           if (ocppAdvancedCommands.supportedOcppVersions) {
-            matchOcpp = ocppAdvancedCommands.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+            matchOcpp = ocppAdvancedCommands.supportedOcppVersions.includes(chargingStation.ocppVersion);
           }
           // Found?
           if (matchFirmware && matchOcpp) {
@@ -103,7 +103,7 @@ export default class OCPPUtils {
         for (const ocppStandardParameters of foundTemplate.template.ocppStandardParameters) {
           // Check Ocpp version
           if (ocppStandardParameters.supportedOcppVersions) {
-            matchOcpp = ocppStandardParameters.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+            matchOcpp = ocppStandardParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
           }
           // Found?
           if (matchOcpp) {
@@ -126,11 +126,11 @@ export default class OCPPUtils {
         for (const ocppVendorParameters of foundTemplate.template.ocppVendorParameters) {
           // Check Firmware version
           if (ocppVendorParameters.supportedFirmwareVersions) {
-            matchFirmware = ocppVendorParameters.supportedFirmwareVersions.indexOf(chargingStation.firmwareVersion) !== -1;
+            matchFirmware = ocppVendorParameters.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
           }
           // Check Ocpp version
           if (ocppVendorParameters.supportedOcppVersions) {
-            matchOcpp = ocppVendorParameters.supportedOcppVersions.indexOf(chargingStation.ocppVersion) !== -1;
+            matchOcpp = ocppVendorParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
           }
           // Found?
           if (matchFirmware && matchOcpp) {
@@ -248,7 +248,7 @@ export default class OCPPUtils {
     }
   }
 
-  public static async requestAndSaveChargingStationConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation: boolean = false) {
+  public static async requestAndSaveChargingStationConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation = false) {
     try {
       // In case of error. the boot should no be denied
       const ocppConfiguration: OCPPConfiguration = await OCPPUtils.requestExecuteChargingStationCommand(
@@ -293,6 +293,7 @@ export default class OCPPUtils {
       return { status: 'Rejected' };
     }
   }
+
   public static checkAndUpdateChargingStationOcppParameters(chargingStation: ChargingStation, currentConfiguration: ChargingStationConfiguration) {
   }
 
