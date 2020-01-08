@@ -52,7 +52,6 @@ export default class OCPPUtils {
         chargingStation.connectors = foundTemplate.template.connectors;
       }
       // Handle capabilities
-      chargingStation.capabilities = {};
       if (foundTemplate.template.hasOwnProperty('capabilities')) {
         let matchFirmware = true;
         let matchOcpp = true;
