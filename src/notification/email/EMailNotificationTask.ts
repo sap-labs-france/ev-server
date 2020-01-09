@@ -244,7 +244,7 @@ export default class EMailNotificationTask implements NotificationTask {
       }, data, tenant, user, severity, retry);
     } catch (error) {
       Logging.logError({
-        tenantID: tenant, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+        tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
         message: 'Error in preparing email for user',

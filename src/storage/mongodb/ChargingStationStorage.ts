@@ -410,7 +410,7 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(tenantID: string, chargingStationToSave: Partial<ChargingStation>): Promise<string> {
+  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant

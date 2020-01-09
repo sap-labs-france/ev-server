@@ -29,16 +29,16 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionRequestByID(request: any): number {
-    return parseInt(sanitize(request.ID));
+    return Utils.convertToInt(sanitize(request.ID));
   }
 
   public static filterTransactionSoftStop(request: any): number {
-    return parseInt(sanitize(request.ID));
+    return Utils.convertToInt(sanitize(request.ID));
   }
 
   public static filterTransactionRequest(request: any): HttpTransactionRequest {
     return {
-      ID: parseInt(sanitize(request.ID))
+      ID: Utils.convertToInt(sanitize(request.ID))
     };
   }
 
@@ -267,7 +267,7 @@ export default class TransactionSecurity {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
     if (request.hasOwnProperty('TransactionId')) {
-      filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
+      filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
     }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);

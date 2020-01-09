@@ -1,11 +1,11 @@
-import Constants from '../../utils/Constants';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import { ChargePointStatus, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Transaction from '../../types/Transaction';
-import { DBOCPPStatusNotification } from '../../types/ocpp/OCPPStatusNotification';
 
 export default class CleanupAllTransactions extends MigrationTask {
   async migrate() {
@@ -33,7 +33,7 @@ export default class CleanupAllTransactions extends MigrationTask {
     ).toArray();
     for (const transactionMDB of transactionsMDB) {
       // Get the two last Status
-      const statusNotificationsMDB: DBOCPPStatusNotification[] = await global.database.getCollection<any>(tenant.id, 'statusnotifications').find(
+      const statusNotificationsMDB: OCPPStatusNotificationRequestExtended[] = await global.database.getCollection<any>(tenant.id, 'statusnotifications').find(
         {
           chargeBoxID: transactionMDB.chargeBoxID,
           connectorId: transactionMDB.connectorId,
@@ -43,8 +43,8 @@ export default class CleanupAllTransactions extends MigrationTask {
       // Check for Extra Inactivity
       if (statusNotificationsMDB.length === 2 &&
           new Date(statusNotificationsMDB[0].timestamp).getTime() - new Date(transactionMDB.stop.timestamp).getTime() < 5000 &&
-          statusNotificationsMDB[0].status === Constants.CONN_STATUS_FINISHING &&
-          statusNotificationsMDB[1].status === Constants.CONN_STATUS_AVAILABLE) {
+          statusNotificationsMDB[0].status === ChargePointStatus.FINISHING &&
+          statusNotificationsMDB[1].status === ChargePointStatus.AVAILABLE) {
         // Init extra inactivity
         transactionMDB.stop.extraInactivitySecs = Math.floor(
           (new Date(statusNotificationsMDB[1].timestamp).getTime() - new Date(transactionMDB.stop.timestamp).getTime()) / 1000);

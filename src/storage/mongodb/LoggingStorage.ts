@@ -4,9 +4,15 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Utils from '../../utils/Utils';
+import { Log, LogLevel, LogType } from '../../types/Log';
+import Configuration from '../../utils/Configuration';
+import cfenv from 'cfenv';
+import cluster from 'cluster';
+import os from 'os';
+import Logging from '../../utils/Logging';
 
 export default class LoggingStorage {
-  public static async deleteLogs(tenantID, deleteUpToDate) {
+  public static async deleteLogs(tenantID, deleteUpToDate: Date) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -17,7 +23,7 @@ export default class LoggingStorage {
     // Date provided?
     if (deleteUpToDate) {
       filters.timestamp = {};
-      filters.timestamp.$lte = new Date(deleteUpToDate);
+      filters.timestamp.$lte = Utils.convertToDate(deleteUpToDate);
     } else {
       return;
     }
@@ -39,7 +45,7 @@ export default class LoggingStorage {
     // Date provided?
     if (deleteUpToDate) {
       filters.timestamp = {};
-      filters.timestamp.$lte = new Date(deleteUpToDate);
+      filters.timestamp.$lte = Utils.convertToDate(deleteUpToDate);
     } else {
       return;
     }
@@ -50,42 +56,45 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  public static async saveLog(tenantID, logToSave) {
+  public static async saveLog(tenantID, logToSave: Log) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check User
-    if ('user' in logToSave) {
-      logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
-    }
-    if ('actionOnUser' in logToSave) {
-      logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
-    }
-    // Transfer
-    const log: any = {};
-    Database.updateLogging(logToSave, log, false);
-    // Insert
-    await global.database.getCollection<any>(tenantID, 'logs').insertOne(log);
-  }
-
-  public static async getLog(tenantID, id) {
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const loggingMDB = await global.database.getCollection<any>(tenantID, 'logs')
-      .find({ _id: Utils.convertToObjectID(id) })
-      .limit(1)
-      .toArray();
-    let logging = null;
     // Set
-    if (loggingMDB && loggingMDB.length > 0) {
-      // Set
-      logging = {};
-      Database.updateLogging(loggingMDB[0], logging);
-    }
-    return logging;
+    const logMDB: any = {
+      userID: logToSave.user ? Utils.convertUserToObjectID(logToSave.user) : null,
+      actionOnUserID: Utils.convertUserToObjectID(logToSave.actionOnUser),
+      level: logToSave.level,
+      source: logToSave.source,
+      host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
+      process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'),
+      type: logToSave.type,
+      timestamp: logToSave.timestamp,
+      module: logToSave.module,
+      method: logToSave.method,
+      action: logToSave.action,
+      message: logToSave.message,
+      detailedMessages: logToSave.detailedMessages
+    };
+    // Insert
+    await global.database.getCollection<any>(tenantID, 'logs').insertOne(logMDB);
   }
 
-  public static async getLogs(tenantID, params: any = {}, dbParams: DbParams) {
+  public static async getLog(tenantID: string, id: string): Promise<Log> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('LoggingStorage', 'getLog');
+    // Query single Site
+    const logsMDB = await LoggingStorage.getLogs(tenantID,
+      { logID: id },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('LoggingStorage', 'getLog', uniqueTimerID, { id });
+    return logsMDB.count > 0 ? logsMDB.result[0] : null;
+  }
+
+  public static async getLogs(tenantID: string, params: {
+        dateFrom?: Date; dateUntil?: Date; level?: LogLevel; sources?: string[]; type?: LogType; actions?: string[];
+        host?: string; userIDs?: string[]; search?: string; logID?: string;
+      } = {}, dbParams: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -134,7 +143,9 @@ export default class LoggingStorage {
       ];
     }
     // Search
-    if (params.search) {
+    if (params.logID) {
+      filters._id = Utils.convertToObjectID(params.logID);
+    } else if (params.search) {
       // Set
       const searchArray = [
         { 'source': { $regex: params.search, $options: 'i' } },
@@ -204,31 +215,24 @@ export default class LoggingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // User
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
+    // Add Users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
     });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
-    });
-    // Action on User
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'actionOnUserID',
-        foreignField: '_id',
-        as: 'actionOnUser'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'actionOnUser',
+      localField: 'actionOnUserID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
     });
     // Read DB
     const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
@@ -236,9 +240,23 @@ export default class LoggingStorage {
       .toArray();
     const loggings = [];
     for (const loggingMDB of loggingsMDB) {
-      const logging: any = {};
-      // Set
-      Database.updateLogging(loggingMDB, logging);
+      const logging: Log = {
+        tenantID: tenantID,
+        id: loggingMDB._id.toString(),
+        level: loggingMDB.level,
+        source: loggingMDB.source,
+        host: loggingMDB.host,
+        process: loggingMDB.process,
+        module: loggingMDB.module,
+        method: loggingMDB.method,
+        timestamp: loggingMDB.timestamp,
+        action: loggingMDB.action,
+        type: loggingMDB.type,
+        message: loggingMDB.message,
+        user: loggingMDB.user,
+        actionOnUser: loggingMDB.actionOnUser,
+        detailedMessages: loggingMDB.detailedMessages
+      };
       // Set the model
       loggings.push(logging);
     }

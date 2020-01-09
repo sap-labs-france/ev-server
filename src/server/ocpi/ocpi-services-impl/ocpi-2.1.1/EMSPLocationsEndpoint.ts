@@ -1,17 +1,18 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
-import AbstractOCPIService from '../../AbstractOCPIService';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import Logging from '../../../../utils/Logging';
-import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import ChargingStation from '../../../../types/ChargingStation';
+import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
+import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -217,7 +218,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'patchConnector',
-        detailedMessage: location
+        detailedMessages: location
       });
     }
   }
@@ -259,7 +260,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'updateLocation',
-        detailedMessage: location
+        detailedMessages: location
       });
     } else {
       let found = false;
@@ -277,7 +278,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       if (!found) {
         chargingStation.connectors.push({
           id: connectorId,
-          status: Constants.CONN_STATUS_AVAILABLE,
+          status: ChargePointStatus.AVAILABLE,
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: chargingStation.connectors.length,

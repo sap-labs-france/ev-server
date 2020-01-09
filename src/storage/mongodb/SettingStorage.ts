@@ -149,7 +149,7 @@ export default class SettingStorage {
       if (config.simple) {
         pricingSettings.type = PricingSettingsType.SIMPLE;
         pricingSettings.simple = {
-          price: config.simple.price ? parseFloat(config.simple.price + '') : 0,
+          price: config.simple.price ? Utils.convertToFloat(config.simple.price + '') : 0,
           currency: config.simple.currency ? config.simple.currency : '',
         };
       }

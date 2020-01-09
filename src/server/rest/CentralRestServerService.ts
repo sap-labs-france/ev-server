@@ -20,6 +20,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
+import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -51,8 +52,10 @@ class RequestMapper {
             if (action === 'StopTransaction') {
               action = 'RemoteStopTransaction';
             }
+            // Type it
+            const chargingStationCommand: OCPPChargingStationCommand = action as OCPPChargingStationCommand;
             // Delegate
-            await ChargingStationService.handleAction(action, req, res, next);
+            await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
           'ChargingStationClearCache',
           'ChargingStationGetConfiguration',

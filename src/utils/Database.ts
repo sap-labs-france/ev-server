@@ -123,42 +123,4 @@ export default class Database {
     }
     dest.data = src.data;
   }
-
-  public static updateLogging(src, dest, forFrontEnd = true): void {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.userID = Database.validateId(src.userID);
-      dest.actionOnUserID = Database.validateId(src.actionOnUserID);
-    } else {
-      dest.userID = Utils.convertToObjectID(src.userID);
-      dest.actionOnUserID = Utils.convertToObjectID(src.actionOnUserID);
-    }
-    dest.level = src.level;
-    dest.source = src.source;
-    if (src.hasOwnProperty('host')) {
-      dest.host = src.host;
-    } else {
-      dest.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
-    }
-    if (src.hasOwnProperty('process')) {
-      dest.process = src.process;
-    } else {
-      dest.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
-    }
-    dest.type = src.type;
-    dest.module = src.module;
-    dest.method = src.method;
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.action = src.action;
-    dest.message = src.message;
-    dest.detailedMessages = src.detailedMessages;
-    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
-      dest.user = {};
-      src.user, dest.user;
-    }
-    if (forFrontEnd && !Utils.isEmptyJSon(src.actionOnUser)) {
-      dest.actionOnUser = {};
-      src.actionOnUser, dest.actionOnUser;
-    }
-  }
 }

@@ -2,6 +2,7 @@ import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
+import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
 
 export type InactivityStatusLevel =
  'info' |
@@ -15,8 +16,14 @@ export enum InactivityStatus {
   ERROR = 'E'
 }
 
+export enum TransactionAction {
+  START = 'start',
+  UPDATE = 'update',
+  STOP = 'stop'
+}
+
 export default interface Transaction {
-  id: number;
+  id?: number;
   siteID: string;
   siteAreaID: string;
   connectorId: number;
@@ -58,30 +65,27 @@ export default interface Transaction {
     reportId?: string;
     status?: any;
   };
-  lastMeterValue?: {
-    value: number;
-    timestamp: Date;
-  };
+  lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
-  price: number;
-  roundedPrice: number;
-  priceUnit: string;
-  pricingSource: string;
+  price?: number;
+  roundedPrice?: number;
+  priceUnit?: string;
+  pricingSource?: string;
   stateOfCharge: number;
   timezone: string;
   lastUpdate?: Date;
   currentTotalInactivitySecs: number;
-  currentInactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+  currentInactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   numberOfMeterValues: number;
   currentConsumption: number;
   currentConsumptionWh?: number;
-  currentCumulatedPrice: number;
+  currentCumulatedPrice?: number;
   currentTotalConsumption: number;
-  currentSignedData?: number;
+  currentSignedData?: string;
   uniqueId?: string;
   errorCode?: number;
   values?: Consumption[];

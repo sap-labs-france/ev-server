@@ -846,7 +846,7 @@ export default class UserService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: filteredRequest,
+      user: req.user, actionOnUser: req.user,
       module: 'UserService', method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
@@ -911,7 +911,9 @@ export default class UserService {
     // Get the settings
     const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
     if (!pricingSetting || !pricingSetting.convergentCharging) {
-      Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
+      Logging.logException(
+        new Error('Convergent Charging setting is missing'),
+        'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

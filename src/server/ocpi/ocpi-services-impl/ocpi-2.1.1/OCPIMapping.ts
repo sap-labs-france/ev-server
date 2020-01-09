@@ -1,17 +1,18 @@
-import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import ChargingStation, { Connector } from '../../../../types/ChargingStation';
-import Constants from '../../../../utils/Constants';
-import { DataResult } from '../../../../types/DataResult';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import Tenant from '../../../../types/Tenant';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import ChargingStation, { Connector } from '../../../../types/ChargingStation';
+import { DataResult } from '../../../../types/DataResult';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -44,14 +45,14 @@ export default class OCPIMapping {
     };
   }
 
-  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): Partial<ChargingStation> {
-    const chargingStation: Partial<ChargingStation> = {
+  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+    const chargingStation: ChargingStation = {
       id: evse.evse_id,
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
       connectors: []
-    };
+    } as ChargingStation;
 
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
@@ -285,7 +286,7 @@ export default class OCPIMapping {
    */
   static aggregateConnectorsStatus(connectors: Connector[]) {
     // Build array with charging station ordered by priority
-    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED, Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
+    const statusesOrdered: string[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
 
     let aggregatedConnectorStatusIndex = 0;
 
@@ -401,18 +402,18 @@ export default class OCPIMapping {
    */
   static convertStatus2OCPIStatus(status: string): OCPIEvseStatus {
     switch (status) {
-      case Constants.CONN_STATUS_AVAILABLE:
+      case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
-      case Constants.CONN_STATUS_OCCUPIED:
+      case ChargePointStatus.OCCUPIED:
         return OCPIEvseStatus.BLOCKED;
-      case Constants.CONN_STATUS_CHARGING:
+      case ChargePointStatus.CHARGING:
         return OCPIEvseStatus.CHARGING;
-      case Constants.CONN_STATUS_FAULTED:
+      case ChargePointStatus.FAULTED:
         return OCPIEvseStatus.INOPERATIVE;
-      case Constants.CONN_STATUS_PREPARING:
-      case Constants.CONN_STATUS_SUSPENDED_EV:
-      case Constants.CONN_STATUS_SUSPENDED_EVSE:
-      case Constants.CONN_STATUS_FINISHING:
+      case ChargePointStatus.PREPARING:
+      case ChargePointStatus.SUSPENDED_EV:
+      case ChargePointStatus.SUSPENDED_EVSE:
+      case ChargePointStatus.FINISHING:
         return OCPIEvseStatus.BLOCKED;
       case 'Reserved':
         return OCPIEvseStatus.RESERVED;
@@ -428,19 +429,19 @@ export default class OCPIMapping {
   static convertOCPIStatus2Status(status: OCPIEvseStatus): string {
     switch (status) {
       case OCPIEvseStatus.AVAILABLE:
-        return Constants.CONN_STATUS_AVAILABLE;
+        return ChargePointStatus.AVAILABLE;
       case OCPIEvseStatus.BLOCKED:
-        return Constants.CONN_STATUS_OCCUPIED;
+        return ChargePointStatus.OCCUPIED;
       case OCPIEvseStatus.CHARGING:
-        return Constants.CONN_STATUS_CHARGING;
+        return ChargePointStatus.CHARGING;
       case OCPIEvseStatus.INOPERATIVE:
       case OCPIEvseStatus.OUTOFORDER:
-        return Constants.CONN_STATUS_FAULTED;
+        return ChargePointStatus.FAULTED;
       case OCPIEvseStatus.PLANNED:
       case OCPIEvseStatus.RESERVED:
-        return Constants.CONN_STATUS_RESERVED;
+        return ChargePointStatus.RESERVED;
       default:
-        return Constants.CONN_STATUS_UNAVAILABLE;
+        return ChargePointStatus.UNAVAILABLE;
     }
   }
 

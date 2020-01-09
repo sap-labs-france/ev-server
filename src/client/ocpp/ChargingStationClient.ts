@@ -1,108 +1,31 @@
 import BackendError from '../../exception/BackendError';
+import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChargingStationCommand, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam, OCPPChangeConfigurationCommandResult, OCPPRemoteStartTransactionCommandResult, OCPPGetConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPResetCommandResult } from '../../types/ocpp/OCPPClient';
 import Constants from '../../utils/Constants';
 
 export default abstract class ChargingStationClient {
+  public abstract reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult>;
 
-  reset(params) {
-  }
+  public abstract clearCache(): Promise<OCPPClearCacheCommandResult>;
 
-  clearCache() {
-  }
+  public abstract getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult>;
 
-  getConfiguration(params) {
-  }
+  public abstract changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult>;
 
-  changeConfiguration(params) {
-  }
+  public abstract remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult>;
 
-  remoteStartTransaction(params) {
-  }
+  public abstract remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult>;
 
-  remoteStopTransaction(params) {
-  }
+  public abstract unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult>;
 
-  unlockConnector(params) {
-  }
+  public abstract setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult>;
 
-  setChargingProfile(params) {
-  }
+  public abstract getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult>;
 
-  getCompositeSchedule(params) {
-  }
+  public abstract clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult>;
 
-  clearChargingProfile(params) {
-  }
+  public abstract changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult>;
 
-  changeAvailability(params) {
-  }
+  public abstract getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult>;
 
-  getDiagnostics(params) {
-  }
-
-  updateFirmware(params) {
-  }
-
-  sendCommand(commandName: string, params: any) {
-    try {
-      // Handle Requests
-      switch (commandName) {
-        // Reset
-        case 'Reset':
-          return this.reset(params);
-        // Clear cache
-        case 'ClearCache':
-          return this.clearCache();
-        // Get Configuration
-        case 'GetConfiguration':
-          return this.getConfiguration(params);
-        // Set Configuration
-        case 'ChangeConfiguration':
-          // Change the config
-          return this.changeConfiguration(params);
-        // Unlock Connector
-        case 'UnlockConnector':
-          return this.unlockConnector(params);
-        // Start Transaction
-        case 'RemoteStartTransaction':
-          return this.remoteStartTransaction(params);
-        // Stop Transaction
-        case 'RemoteStopTransaction':
-          return this.remoteStopTransaction(params);
-        // Set Charging Profile
-        case 'SetChargingProfile':
-          return this.setChargingProfile(params);
-        // Get Composite Schedule (power limits)
-        case 'GetCompositeSchedule':
-          return this.getCompositeSchedule(params);
-        // Clear charging profiles
-        case 'ClearChargingProfile':
-          return this.clearChargingProfile(params);
-        // Change availability
-        case 'ChangeAvailability':
-          return this.changeAvailability(params);
-        // Get diagnostic
-        case 'GetDiagnostics':
-          return this.getDiagnostics(params);
-        // Update Firmware
-        case 'UpdateFirmware':
-          return this.updateFirmware(params);
-        default:
-          // Throw error
-          throw new BackendError({
-            source: Constants.CENTRAL_SERVER,
-            module: 'ChargingStationClient',
-            method: 'sendCommand',
-            message: `OCPP Command ${commandName} not supported in backend`
-          });
-      }
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'ChargingStationClient',
-        method: 'sendCommand',
-        message: `OCPP Command ${commandName} error ${JSON.stringify(error, null, ' ')}`,
-        detailedMessages: error
-      });
-    }
-  }
+  public abstract updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void>;
 }

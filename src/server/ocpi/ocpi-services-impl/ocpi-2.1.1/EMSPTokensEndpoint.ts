@@ -8,6 +8,7 @@ import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import uuid = require('uuid');
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -51,8 +52,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     urlSegment.shift();
 
     // Get query parameters
-    const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
-    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
+    const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
+    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
 
     // Get all tokens
     const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset);
