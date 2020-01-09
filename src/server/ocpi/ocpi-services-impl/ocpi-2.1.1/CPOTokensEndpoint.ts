@@ -1,13 +1,9 @@
 import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
-import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
 import Logging from '../../../../utils/Logging';
 
 const EP_IDENTIFIER = 'tokens';
@@ -17,7 +13,7 @@ const RECORDS_LIMIT = 100;
 /**
  * EMSP Tokens Endpoint
  */
-export default class EMSPTokensEndpoint extends AbstractEndpoint {
+export default class CPOTokensEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);

@@ -36,12 +36,54 @@ export default class OCPIMapping {
       'postal_code': site.address.postalCode,
       'country': site.address.country,
       'coordinates': {
-        'latitude': site.address.coordinates[1],
-        'longitude': site.address.coordinates[0]
+        'latitude': site.address.coordinates[1].toString(),
+        'longitude': site.address.coordinates[0].toString()
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
       'last_updated': site.lastChangedOn
     };
+  }
+
+  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): Partial<ChargingStation> {
+    const chargingStation: Partial<ChargingStation> = {
+      id: evse.evse_id,
+      maximumPower: 0,
+      cannotChargeInParallel: true,
+      issuer: false,
+      connectors: []
+    };
+
+    if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
+      chargingStation.coordinates = [
+        Number.parseFloat(evse.coordinates.longitude),
+        Number.parseFloat(evse.coordinates.latitude)
+      ];
+    } else if (location && location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+      chargingStation.coordinates = [
+        Number.parseFloat(location.coordinates.longitude),
+        Number.parseFloat(location.coordinates.latitude)
+      ];
+    }
+
+    if (evse.connectors && evse.connectors.length > 0) {
+      let connectorId = 1;
+      for (const ocpiConnector of evse.connectors) {
+        const connector: Connector = {
+          id: ocpiConnector.id,
+          status: OCPIMapping.convertOCPIStatus2Status(evse.status),
+          amperage: ocpiConnector.amperage,
+          voltage: ocpiConnector.voltage,
+          connectorId: connectorId,
+          currentConsumption: 0,
+          power: ocpiConnector.amperage * ocpiConnector.voltage,
+          type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
+        };
+        chargingStation.maximumPower = Math.max(chargingStation.maximumPower, connector.power);
+        chargingStation.connectors.push(connector);
+        connectorId++;
+      }
+    }
+    return chargingStation;
   }
 
   /**
@@ -77,7 +119,8 @@ export default class OCPIMapping {
     // Build evses array
     const evses = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
-      { withChargeBoxes: true,
+      {
+        withChargeBoxes: true,
         siteIDs: [site.id]
       },
       Constants.DB_PARAMS_MAX_LIMIT);
@@ -283,12 +326,49 @@ export default class OCPIMapping {
     return {
       'id': `${evseID}*${connector.connectorId}`,
       'standard': type,
-      'format': OCPIConnectorFormat.CABLE,
+      'format': format,
       'voltage': connector.voltage,
       'amperage': connector.amperage,
       'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(connector.numberOfConnectedPhase),
       'last_updated': chargingStation.lastHeartBeat
     };
+  }
+
+  /**
+   * Convert OCPI Connector type to connector type
+   * @param {OCPIConnectorType} ocpi connector type
+   */
+  static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): string {
+    switch (ocpiConnectorType) {
+      case OCPIConnectorType.CHADEMO:
+        return Constants.CONNECTOR_TYPES.CHADEMO;
+      case OCPIConnectorType.IEC_62196_T2:
+        return Constants.CONNECTOR_TYPES.IEC_62196_T2;
+      case OCPIConnectorType.IEC_62196_T2_COMBO:
+        return Constants.CONNECTOR_TYPES.IEC_62196_T2_COMBO;
+      case OCPIConnectorType.IEC_62196_T3:
+      case OCPIConnectorType.IEC_62196_T3A:
+        return Constants.CONNECTOR_TYPES.TYPE_3C;
+      case OCPIConnectorType.IEC_62196_T1:
+        return Constants.CONNECTOR_TYPES.TYPE_1;
+      case OCPIConnectorType.IEC_62196_T1_COMBO:
+        return Constants.CONNECTOR_TYPES.TYPE_1_CCS;
+      case OCPIConnectorType.DOMESTIC_A:
+      case OCPIConnectorType.DOMESTIC_B:
+      case OCPIConnectorType.DOMESTIC_C:
+      case OCPIConnectorType.DOMESTIC_D:
+      case OCPIConnectorType.DOMESTIC_E:
+      case OCPIConnectorType.DOMESTIC_F:
+      case OCPIConnectorType.DOMESTIC_G:
+      case OCPIConnectorType.DOMESTIC_H:
+      case OCPIConnectorType.DOMESTIC_I:
+      case OCPIConnectorType.DOMESTIC_J:
+      case OCPIConnectorType.DOMESTIC_K:
+      case OCPIConnectorType.DOMESTIC_L:
+        return Constants.CONNECTOR_TYPES.DOMESTIC;
+      default:
+        return Constants.CONNECTOR_TYPES.UNKNOWN;
+    }
   }
 
   /**
@@ -329,15 +409,38 @@ export default class OCPIMapping {
         return OCPIEvseStatus.CHARGING;
       case Constants.CONN_STATUS_FAULTED:
         return OCPIEvseStatus.INOPERATIVE;
-      case 'Preparing':
-      case 'SuspendedEV':
-      case 'SuspendedEVSE':
-      case 'Finishing':
+      case Constants.CONN_STATUS_PREPARING:
+      case Constants.CONN_STATUS_SUSPENDED_EV:
+      case Constants.CONN_STATUS_SUSPENDED_EVSE:
+      case Constants.CONN_STATUS_FINISHING:
         return OCPIEvseStatus.BLOCKED;
       case 'Reserved':
         return OCPIEvseStatus.RESERVED;
       default:
         return OCPIEvseStatus.UNKNOWN;
+    }
+  }
+
+  /**
+   * Convert internal status to OCPI Status
+   * @param {*} status
+   */
+  static convertOCPIStatus2Status(status: OCPIEvseStatus): string {
+    switch (status) {
+      case OCPIEvseStatus.AVAILABLE:
+        return Constants.CONN_STATUS_AVAILABLE;
+      case OCPIEvseStatus.BLOCKED:
+        return Constants.CONN_STATUS_OCCUPIED;
+      case OCPIEvseStatus.CHARGING:
+        return Constants.CONN_STATUS_CHARGING;
+      case OCPIEvseStatus.INOPERATIVE:
+      case OCPIEvseStatus.OUTOFORDER:
+        return Constants.CONN_STATUS_FAULTED;
+      case OCPIEvseStatus.PLANNED:
+      case OCPIEvseStatus.RESERVED:
+        return Constants.CONN_STATUS_RESERVED;
+      default:
+        return Constants.CONN_STATUS_UNAVAILABLE;
     }
   }
 

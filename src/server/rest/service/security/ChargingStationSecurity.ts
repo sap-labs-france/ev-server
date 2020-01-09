@@ -57,6 +57,7 @@ export default class ChargingStationSecurity {
           return connector;
         }
         return {
+          'id': connector.id,
           'connectorId': connector.connectorId,
           'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
           'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),

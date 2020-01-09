@@ -5,7 +5,8 @@ import { KeyValue } from './GlobalType';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
-  siteAreaID: string;
+  issuer: boolean;
+  siteAreaID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
   chargeBoxSerialNumber: string;
@@ -60,6 +61,7 @@ export enum PowerLimitUnits {
 }
 
 export interface Connector {
+  id?: string;
   connectorId: number;
   currentConsumption: number;
   currentStateOfCharge?: number;
@@ -73,9 +75,9 @@ export interface Connector {
   type: string;
   voltage?: number;
   amperage?: number;
-  activeTransactionID: number;
-  activeTransactionDate: Date;
-  activeTagID: string;
+  activeTransactionID?: number;
+  activeTransactionDate?: Date;
+  activeTagID?: string;
   statusLastChangedOn?: Date;
   inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;

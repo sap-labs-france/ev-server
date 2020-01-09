@@ -9,8 +9,8 @@ export interface OCPILocation {
   postal_code: string;
   country: string;
   coordinates: {
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
   };
   evses: OCPIEvse[];
   last_updated: Date;

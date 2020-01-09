@@ -111,6 +111,7 @@ export default class OCPPService {
         }
         // Update props
         chargingStation.createdOn = new Date();
+        chargingStation.issuer = true;
         chargingStation.powerLimitUnit = PowerLimitUnits.AMPERE;
         // Assign to Site Area
         if (token.siteAreaID) {

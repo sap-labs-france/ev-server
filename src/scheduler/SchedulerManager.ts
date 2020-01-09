@@ -5,11 +5,13 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
-import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
+import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import cron from 'node-cron';
+import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
+import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -55,6 +57,12 @@ export default class SchedulerManager {
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
+            break;
+          case 'OCPIGetLocationsTask':
+            schedulerTask = new OCPIGetLocationsTask();
+            break;
+          case 'OCPIGetTokensTask':
+            schedulerTask = new OCPIGetTokensTask();
             break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
