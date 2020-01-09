@@ -1,6 +1,11 @@
+import * as HttpStatus from 'http-status-codes';
+import { NextFunction, Request, Response } from 'express';
+import CFLog from 'cf-nodejs-logging-support';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
-import CFLog from 'cf-nodejs-logging-support';
 import cluster from 'cluster';
 import cors from 'cors';
 import express from 'express';
@@ -10,9 +15,6 @@ import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 
 bodyParserXml(bodyParser);
 
@@ -35,6 +37,10 @@ export default class ExpressTools {
     app.use(bodyParser['xml']({
       limit: bodyLimit
     }));
+    // Health Check Handling
+    if (Configuration.getHealthCheckConfig().enabled) {
+      app.use('/health-check', ExpressTools.healthCheckService);
+    }
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
     // Check Cloud Foundry
@@ -112,5 +118,9 @@ export default class ExpressTools {
       // eslint-disable-next-line no-console
       console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}, missing required port configuration`);
     }
+  }
+
+  public static async healthCheckService(req: Request, res: Response, next: NextFunction) {
+    res.sendStatus(HttpStatus.OK);
   }
 }

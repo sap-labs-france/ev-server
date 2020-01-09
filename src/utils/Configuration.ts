@@ -25,6 +25,7 @@ import LocalesConfiguration from '../types/configuration/LocalesConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
+import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -270,5 +271,16 @@ export default class Configuration {
       Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;
+  }
+
+  static getHealthCheckConfig(): HealthCheckConfiguration {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().HealthCheck) {
+      Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
+    }
+    if (!Configuration.getConfig().HealthCheck.enabled) {
+      Configuration.getConfig().HealthCheck.enabled = true;
+    }
+    return Configuration.getConfig().HealthCheck;
   }
 }
