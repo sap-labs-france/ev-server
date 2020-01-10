@@ -1,29 +1,31 @@
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
+import { GridFSBucket } from 'mongodb';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
+import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation from '../../../types/ChargingStation';
-import { DataResult } from '../../../types/DataResult';
-import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import fs from 'fs';
+import global from '../../../types/GlobalType';
+import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationService {
 
@@ -35,7 +37,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingSTationsToSiteArea', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -134,15 +136,15 @@ export default class ChargingStationService {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
     // Update Power Max
-    if (filteredRequest.hasOwnProperty('maximumPower')) {
+    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     // Update Current Type
-    if (filteredRequest.hasOwnProperty('currentType')) {
+    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'currentType')) {
       chargingStation.currentType = filteredRequest.currentType;
     }
     // Update Cannot Charge in Parallel
-    if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
+    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'cannotChargeInParallel')) {
       chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
     // Update Site Area
@@ -153,7 +155,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = null;
     }
     // Update Site Area
-    if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
+    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'powerLimitUnit')) {
       chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
@@ -506,11 +508,23 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGetFirmwareFile(action: string, req: Request, res: Response, next: NextFunction) {
+    // TODO: Check Auth
+    // TODO: Filter
+    // Open a download stream and pipe it in the response
+    const bucket = global.database.createGridFSBucket('default.firmwareFiles');
+    if (req.body.fileName) {
+      res.attachment(req.body.fileName);
+      bucket.openDownloadStreamByName(req.body.fileName).pipe(res);
+    }
+    next();
+  }
+
   public static async handleAction(command: OCPPChargingStationCommand, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = 
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
@@ -595,7 +609,7 @@ export default class ChargingStationService {
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      if (req.body.hasOwnProperty('loadAllConnectors')) {
+      if (Object.prototype.hasOwnProperty.call(req.body, 'loadAllConnectors')) {
         filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
@@ -696,7 +710,7 @@ export default class ChargingStationService {
         method: 'handleActionSetMaxIntensitySocket',
         action: action,
         source: chargingStation.id,
-        message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
+        message: `Max Intensity Socket has been set to '${filteredRequest.maxIntensity}'`
       });
       // Change the config
       result = await OCPPUtils.requestChangeChargingStationConfiguration(req.user.tenantID, chargingStation,
@@ -978,7 +992,7 @@ export default class ChargingStationService {
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
     I18nManager.switchLanguage(loggedUser.language);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${I18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
@@ -1007,7 +1021,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-      command: OCPPChargingStationCommand, params: any): Promise<any> {
+    command: OCPPChargingStationCommand, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -1111,19 +1125,18 @@ export default class ChargingStationService {
           message: `OCPP Command '${command}' has been executed`,
           detailedMessages: result
         });
-        return result;        
-      } else {
-        // Throw error
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: command,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `Unknown OCPP command '${command}'`,
-          module: 'ChargingStationService',
-          method: 'handleChargingStationCommand',
-          user: user,
-        });
+        return result;
       }
+      // Throw error
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: command,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unknown OCPP command '${command}'`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationCommand',
+        user: user,
+      });
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
