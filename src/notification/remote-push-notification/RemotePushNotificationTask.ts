@@ -75,7 +75,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     I18nManager.switchLocale(user.locale);
     // Get Message Text
     const title = i18n.t('notifications.offlineChargingStation.title') + ' - ' + tenant.name;
-    const body = i18n.t('notifications.offlineChargingStation.body');
+    const body = i18n.t('notifications.offlineChargingStation.body', { chargeBoxIDs: data.chargeBoxIDs });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, null,
       severity

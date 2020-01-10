@@ -52,7 +52,7 @@
 		},
 		"offlineChargingStation": {
 			"title": "Bornes Hors Ligne",
-			"body": "Au moins une borne est hors ligne dans votre organisation."
+			"body": "Les bornes suivantes sont hors ligne dans votre organisation: '{{chargeBoxIDs}}'"
 		},
     "billingUserSynchronizationFailed": {
       "title": "Erreur Synchro Utilisateurs",
