@@ -30,7 +30,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
-      const chargingStationUpdated = await OCPPUtils.enrichCharingStationWithTemplate(chargingStationMDB);
+      const chargingStationUpdated = await OCPPUtils.enrichCharingStationWithTemplate(tenant.id, chargingStationMDB);
       // Save
       if (chargingStationUpdated) {
         await global.database.getCollection(tenant.id, 'chargingstations').findOneAndUpdate(

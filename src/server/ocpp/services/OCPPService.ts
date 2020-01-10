@@ -125,7 +125,7 @@ export default class OCPPService {
           }
         }
         // Enrich Charging Station
-        await OCPPUtils.enrichCharingStationWithTemplate(chargingStation);
+        await OCPPUtils.enrichCharingStationWithTemplate(headers.tenantID, chargingStation);
         newChargingStation = true;
       } else {
         // Existing Charging Station: Update
@@ -314,6 +314,8 @@ export default class OCPPService {
         type: Constants.CONNECTOR_TYPES.UNKNOWN
       };
       chargingStation.connectors.push(foundConnector);
+      // Enrich Charging Station's Connector
+      await OCPPUtils.enrichCharingStationConnectorWithTemplate(tenantID, chargingStation, statusNotification.connectorId);
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&

@@ -11,10 +11,6 @@
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",
@@ -24,10 +20,6 @@
 				},
 				{
 					"connectorId": 2,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",
@@ -150,10 +142,6 @@
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 7360,
 					"type": "T2",
 					"currentType": "AC",
@@ -163,10 +151,6 @@
 				},
 				{
 					"connectorId": 2,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 7360,
 					"type": "T2",
 					"currentType": "AC",
@@ -289,10 +273,6 @@
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",

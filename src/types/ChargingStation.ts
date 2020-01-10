@@ -99,7 +99,15 @@ export interface ChargingStationTemplate {
   template: {
     cannotChargeInParallel: boolean;
     currentType: ChargingStationCurrentType;
-    connectors: Connector[];
+    connectors: {
+      connectorId: number;
+      power: number;
+      type: ConnectorType,
+      currentType: ConnectorCurrentType,
+      numberOfConnectedPhase: number;
+      voltage: number;
+      amperage: number;
+    }[]
     capabilities: {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];
@@ -120,6 +128,16 @@ export interface ChargingStationTemplate {
       parameters: object;
     }[];
   };
+}
+
+export enum ConnectorType {
+  TYPE_2 = 'T2',
+  COMBO_CCS = 'CCS',
+  CHADEMO = 'C',
+  TYPE_1 = 'T1',
+  TYPE_1_CCS = 'T1CCS',
+  DOMESTIC = 'D',
+  UNKNOWN = 'U'
 }
 
 export interface ChargingStationCapabilities {

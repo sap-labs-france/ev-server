@@ -4,7 +4,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
+import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -42,7 +42,7 @@ export default class OCPPUtils {
     return foundTemplate;
   }
 
-  public static async enrichCharingStationWithTemplate(chargingStation: ChargingStation): Promise<boolean> {
+  public static async enrichCharingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<boolean> {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
     // Copy from template
@@ -53,9 +53,6 @@ export default class OCPPUtils {
       }
       if (chargingStationTemplate.template.hasOwnProperty('currentType')) {
         chargingStation.currentType = chargingStationTemplate.template.currentType;
-      }
-      if (chargingStationTemplate.template.hasOwnProperty('connectors')) {
-        chargingStation.connectors = chargingStationTemplate.template.connectors;
       }
       // Handle capabilities
       chargingStation.capabilities = {} as ChargingStationCapabilities;
@@ -150,8 +147,79 @@ export default class OCPPUtils {
           }
         }
       }
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: 'OCPPUtils', method: 'enrichCharingStationWithTemplate',
+        action: 'ChargingStationTemplate',
+        message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
+        detailedMessages: chargingStationTemplate
+      });
       return true;
     }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichCharingStationWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: `No Template has been found for '${chargingStation.chargePointVendor}'`
+    });
+    return false;
+  }
+
+  public static async enrichCharingStationConnectorWithTemplate(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<boolean> {
+    // Get Template
+    const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
+    // Copy from template
+    if (chargingStationTemplate) {
+      // Handle connector
+      if (chargingStationTemplate.template.hasOwnProperty('connectors')) {
+        // Find the connector in the template
+        const templateConnector = chargingStationTemplate.template.connectors.find(
+          (connector) => connector.connectorId === connectorID);
+        if (!templateConnector) {
+          // Log
+          Logging.logWarning({
+            tenantID: tenantID, source: chargingStation.id,
+            module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+            action: 'ChargingStationTemplate',
+            message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
+          });
+          return false;
+        }
+        // Force Update
+        for (const connector of chargingStation.connectors) {
+          // Set
+          if (connector.connectorId === connectorID) {
+            connector.power = templateConnector.power;
+            connector.type = templateConnector.type;
+            connector.currentType = templateConnector.currentType;
+            connector.numberOfConnectedPhase = templateConnector.numberOfConnectedPhase;
+            connector.voltage = templateConnector.voltage;
+            connector.amperage = templateConnector.amperage;
+            break;
+          }
+        }
+      }
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: chargingStation.id,
+        module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+        action: 'ChargingStationTemplate',
+        message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
+        detailedMessages: chargingStationTemplate
+      });
+      return true;
+    }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID, source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
+    });
     return false;
   }
 
