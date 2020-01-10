@@ -1017,12 +1017,15 @@ export default class ChargingStationService {
         // Reset
         case OCPPChargingStationCommand.RESET:
           result = await chargingStationClient.reset({ type: params.type });
+          break;
         // Clear cache
         case OCPPChargingStationCommand.CLEAR_CACHE:
           result = await chargingStationClient.clearCache();
+          break;
         // Get Configuration
         case OCPPChargingStationCommand.GET_CONFIGURATION:
           result = await chargingStationClient.getConfiguration({ key: params.key });
+          break;
         // Set Configuration
         case OCPPChargingStationCommand.CHANGE_CONFIGURATION:
           // Change the config
@@ -1030,26 +1033,31 @@ export default class ChargingStationService {
             key: params.key,
             value: params.value
           });
+          break;
         // Unlock Connector
         case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
-          // return chargingStationClient.unlockConnector({ connectorId: params.connectorId });
+          result = await chargingStationClient.unlockConnector({ connectorId: params.connectorId });
+          break;
         // Start Transaction
         case OCPPChargingStationCommand.REMOTE_START_TRANSACTION:
           result = await chargingStationClient.remoteStartTransaction({
             connectorId: params.connectorID,
             idTag: params.tagID
           });
+          break;
         // Stop Transaction
         case OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION:
           result = await chargingStationClient.remoteStopTransaction({
             transactionId: params.transactionId
           });
+          break;
         // Set Charging Profile
         case OCPPChargingStationCommand.SET_CHARGING_PROFILE:
           result = await chargingStationClient.setChargingProfile({
             connectorId: params.connectorID,
             csChargingProfiles: params.csChargingProfiles
           });
+          break;
         // Get Composite Schedule (power limits)
         case OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE:
           result = await chargingStationClient.getCompositeSchedule({
@@ -1057,6 +1065,7 @@ export default class ChargingStationService {
             duration: params.duration,
             chargingRateUnit: params.chargingRateUnit
           });
+          break;
         // Clear charging profiles
         case OCPPChargingStationCommand.CLEAR_CHARGING_PROFILE:
           result = await chargingStationClient.clearChargingProfile({
@@ -1065,12 +1074,14 @@ export default class ChargingStationService {
             chargingProfilePurpose: params.chargingProfilePurpose,
             stackLevel: params.stackLevel
           });
+          break;
         // Change availability
         case OCPPChargingStationCommand.CHANGE_AVAILABILITY:
           result = await chargingStationClient.changeAvailability({
             connectorId: params.connectorId,
             type: params.type
           });
+          break;
         // Get diagnostic
         case OCPPChargingStationCommand.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
@@ -1080,6 +1091,7 @@ export default class ChargingStationService {
             startTime: params.startTime,
             stopTime: params.stopTime
           });
+          break;
         // Update Firmware
         case OCPPChargingStationCommand.UPDATE_FIRMWARE:
           result = await chargingStationClient.updateFirmware({
@@ -1088,9 +1100,10 @@ export default class ChargingStationService {
             retrieveDate: params.retrieveDate,
             retryInterval: params.retryInterval
           });
+          break;
       }
+      // Ok?
       if (result) {
-        // Log
         Logging.logInfo({
           tenantID: tenantID, source: chargingStation.id, user: user,
           module: 'ChargingStationService', method: 'handleChargingStationCommand',
