@@ -1033,6 +1033,8 @@ export default class ChargingStationService {
             key: params.key,
             value: params.value
           });
+          // Refresh Configuration
+          await chargingStationClient.getConfiguration({});
           break;
         // Unlock Connector
         case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
@@ -1109,7 +1111,7 @@ export default class ChargingStationService {
           module: 'ChargingStationService', method: 'handleChargingStationCommand',
           action: command,
           message: `OCPP Command '${command}' has been executed`,
-          detailedMessages: result
+          detailedMessages: { params, result }
         });
         return result;        
       } else {
@@ -1133,7 +1135,7 @@ export default class ChargingStationService {
         module: 'ChargingStationService',
         method: 'handleChargingStationCommand',
         user: user,
-        detailedMessages: error
+        detailedMessages: { params, error }
       });
     }
   }
