@@ -21,33 +21,9 @@ import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
 import moment from 'moment';
 
-
 export default class UserStorage {
 
-  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
-    let eulaText = null;
-    try {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
-    } catch (e) {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
-    }
-    // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
-    // Parse the auth and replace values
-    eulaText = Mustache.render(
-      eulaText,
-      {
-        'chargeAngelsURL': frontEndURL
-      }
-    );
-    // Debug
-    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
-    return eulaText;
-  }
+
 
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
@@ -784,7 +760,7 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: { search?: string; roles?: string[]; errorTypes?: string[] },
+    params: { search?: string; roles?: string[]; errorTypes?: string[]; userAccountInactivityMonths?: number },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -835,7 +811,7 @@ export default class UserStorage {
         continue;
       }
       array.push(`$${type}`);
-      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
+      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type, params.userAccountInactivityMonths);
     }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
@@ -1072,7 +1048,7 @@ export default class UserStorage {
     };
   }
 
-  private static getUserInErrorFacet(tenantID: string, errorType: string) {
+  private static getUserInErrorFacet(tenantID: string, errorType: string, userAccountInactivityMonths?: number) {
     switch (errorType) {
       case 'inactive_user':
         return [
@@ -1093,8 +1069,57 @@ export default class UserStorage {
           { $addFields: { 'errorCode': 'unassigned_user' } }
         ];
       }
+      case 'snoozed_user': {
+        if (!userAccountInactivityMonths || userAccountInactivityMonths <= 0) {
+          userAccountInactivityMonths = 6;
+        }
+        const someMonthsAgo = moment().subtract(userAccountInactivityMonths, 'months').toDate();
+        if (moment(someMonthsAgo).isValid()) {
+          return [
+            {
+              $match: {
+                $and: [
+                  { eulaAcceptedOn: { $lte: someMonthsAgo } },
+                  { role: 'B' }]
+              }
+
+            },
+            {
+              $addFields: { 'errorCode': 'snoozed_user' }
+            }
+          ];
+        }
+
+        return [];
+
+      }
       default:
         return [];
     }
+  }
+
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
+    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
+    let eulaText = null;
+    try {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
+    } catch (e) {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
+    }
+    // Build Front End URL
+    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+    // Parse the auth and replace values
+    eulaText = Mustache.render(
+      eulaText,
+      {
+        'chargeAngelsURL': frontEndURL
+      }
+    );
+    // Debug
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
+    return eulaText;
   }
 }
