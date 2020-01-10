@@ -377,7 +377,7 @@ export default class OCPPUtils {
         // Execute update command
         const result = await chargingStationClient.changeConfiguration({
           key: ocppParameter.key,
-          value: ocppParameter.value + ''
+          value: ocppParameter.value
         });
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
           // Ok
