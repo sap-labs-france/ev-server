@@ -99,6 +99,7 @@ export interface ChargingStationTemplate {
   template: {
     cannotChargeInParallel: boolean;
     currentType: ChargingStationCurrentType;
+    maximumPower: number;
     connectors: {
       connectorId: number;
       power: number;
