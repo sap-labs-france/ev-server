@@ -24,6 +24,7 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import OCPPService from '../../ocpp/services/OCPPService';
 
 export default class ChargingStationService {
 
@@ -1034,7 +1035,7 @@ export default class ChargingStationService {
             value: params.value
           });
           // Refresh Configuration
-          await chargingStationClient.getConfiguration({});
+          await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
           break;
         // Unlock Connector
         case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
