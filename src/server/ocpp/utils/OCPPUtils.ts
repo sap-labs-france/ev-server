@@ -352,10 +352,10 @@ export default class OCPPUtils {
     const ocppParameters = chargingStation.ocppStandardParameters.concat(chargingStation.ocppVendorParameters);
     // Check Standard OCPP Params
     for (const ocppParameter of ocppParameters) {
+      // Find OCPP Param
+      const currentOcppParam: KeyValue =  currentConfiguration.configuration.find(
+        (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
-        // Find OCPP Param
-        const currentOcppParam: KeyValue =  currentConfiguration.configuration.find(
-          (ocppParam) => ocppParam.key === ocppParameter.key);
         if (!currentOcppParam) {
           // Not Found in Charging Station!
           Logging.logError({
@@ -386,20 +386,20 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
             method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-            message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set to '${currentOcppParam.value}'`
+            message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
           });          
         } else {
           Logging.logError({
             tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
             method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-            message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' to value '${ocppParameter.value}': `
+            message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
           });
         }
       } catch (error) {
         Logging.logError({
           tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
           method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-          message: `Error in changing OCPP parameter '${ocppParameter.key}' to value '${ocppParameter.value}'`,
+          message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
           detailedMessages: error
         });
       }
