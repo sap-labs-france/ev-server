@@ -74,6 +74,10 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
@@ -205,6 +209,10 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
@@ -329,6 +337,11 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.7",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
@@ -382,6 +395,97 @@
 						"timezone": "UTC",
 						"websocketpinginterval": 120,
 						"controlchargebyremotecommand": true
+					}
+				}
+			]
+		}
+	},
+	{
+		"id": "ABB~MDTERRA53",
+		"chargePointVendor": "ABB",
+		"extraFilters": {
+			"chargeBoxSerialNumber": "MD_TERRA_53"
+		},
+		"template": {
+			"cannotChargeInParallel": true,
+			"currentType": "DC",
+			"connectors": [
+				{
+					"connectorId": 1,
+					"power": 50000,
+					"type": "CCS",
+					"currentType": "DC",
+					"numberOfConnectedPhase": 0,
+					"voltage": 500,
+					"amperage": 125
+				},
+				{
+					"connectorId": 2,
+					"power": 50000,
+					"type": "C",
+					"currentType": "DC",
+					"numberOfConnectedPhase": 0,
+					"voltage": 500,
+					"amperage": 120
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": false,
+						"supportStaticLimitationPerConnector": false,
+						"supportChargingProfiles": false
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"MeterValueSampleInterval": 60,
+						"WebSocketPingInterval": 30,
+						"HeartBeatInterval": 60,
+						"MeterValuesSampledData": "SoC,Energy.Active.Import.Register",
+						"LocalAuthorizeOffline": true,
+						"StopTransactionOnEVSideDisconnect": true,
+						"ClockAlignedDataInterval": 0,
+						"UnlockConnectorOnEVSideDisconnect": true,
+						"AuthorizationCacheEnabled": true
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
 					}
 				}
 			]
