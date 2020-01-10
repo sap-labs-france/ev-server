@@ -194,6 +194,7 @@ export default class ChargingStationService {
     next();
   }
 
+
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
@@ -252,13 +253,9 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingProfile(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const chargingProfile = await ChargingStationStorage.getChargingProfile();
-    res.json(chargingProfile);
-    next();
-  }
-
-  public static async handleGetChargingProfileSchedule(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    const chargingProfile = await ChargingStationStorage.getChargingProfileSchedule();
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingProfileRequest(req.query);
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, filteredRequest.ChargeBoxID);
     res.json(chargingProfile);
     next();
   }
@@ -1029,12 +1026,22 @@ export default class ChargingStationService {
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'unlockConnector', args);
       case 'Reset':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'reset', args);
-      case 'SetChargingProfile':
-        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'setChargingProfile', args);
+      case 'SetChargingProfile': {
+        const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'setChargingProfile', args);
+        //if (result.status === 'Accepted') {
+        await ChargingStationStorage.saveChargingProfile(tenantID, chargingStation.id, args);
+        //}
+        return result;
+      }
       case 'GetCompositeSchedule':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getCompositeSchedule', args);
-      case 'ClearChargingProfile':
-        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearChargingProfile', args);
+      case 'ClearChargingProfile': {
+        const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearChargingProfile', args);
+        //if (result.status === 'Accepted') {
+        await ChargingStationStorage.deleteChargingProfile(tenantID, chargingStation.id);
+        //}
+        return result;
+      }
       case 'GetDiagnostics':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getDiagnostics', args);
       case 'ChangeAvailability':

@@ -10,9 +10,6 @@ import SchedulerTask from './SchedulerTask';
 import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import SynchronizeSmartChargingProfilesTask from './tasks/SynchronizeSmartChargingProfilesTask';
-import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
-import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
-import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
 import cron from 'node-cron';
 
 export default class SchedulerManager {

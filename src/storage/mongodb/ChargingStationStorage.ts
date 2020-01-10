@@ -1,7 +1,7 @@
 import moment from 'moment';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationTemplate, Connector, ChargingProfile } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -85,12 +85,15 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.result[0];
   }
 
-  public static async getChargingProfile(): Promise<any> {
-    return {"chargingProfileId":3,"stackLevel":3,"chargingProfilePurpose":"TxDefaultProfile","chargingProfileKind":"Absolute","chargingSchedule": { "startSchedule":"2019-12-20T10:46:00.000Z","chargingRateUnit":"A","chargingSchedulePeriod": [ { "startPeriod":0,"limit":32 }, { "startPeriod":3600,"limit":32 }] } };
-  }
+  public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
 
-  public static async getChargingProfileSchedule(): Promise<any> {
-    return [ { "startPeriod":0,"limit":32 }, { "startPeriod":3600,"limit":32 } ];
+    const chargingProfile = await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOne(
+      { 'chargingStationID': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfile', uniqueTimerID, { id });
+    return chargingProfile;
   }
 
 
@@ -419,6 +422,32 @@ export default class ChargingStationStorage {
     };
   }
 
+  public static async saveChargingProfile(tenantID: string, chargeBoxID: string, args: any): Promise<string> {
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const chargingProfileFilter = {
+      chargingStationID: chargeBoxID
+    };
+    const chargingProfileMDB = {
+      chargingProfileId: args.csChargingProfiles.chargingProfileId,
+      stackLevel: args.csChargingProfiles.stackLevel,
+      chargingProfilePurpose: args.csChargingProfiles.chargingProfilePurpose,
+      chargingProfileKind: args.csChargingProfiles.chargingProfileKind,
+      chargingSchedule: {
+        startSchedule: args.csChargingProfiles.chargingSchedule.startSchedule,
+        chargingRateUnit: args.csChargingProfiles.chargingSchedule.chargingRateUnit,
+        chargingSchedulePeriod: args.csChargingProfiles.chargingSchedule.chargingSchedulePeriod,
+      }
+    };
+    const result = await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
+      chargingProfileFilter,
+      { $set: chargingProfileMDB },
+      { upsert: true });
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+    return chargingProfileMDB.chargingProfileId;
+  }
+
   public static async saveChargingStation(tenantID: string, chargingStationToSave: Partial<ChargingStation>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
@@ -555,6 +584,20 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
   }
+
+  public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profile
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': id });
+    // Keep the rest (bootnotif, authorize...)
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
+  }
+
 
   public static async getConfigurationParamValue(tenantID: string, chargeBoxID: string, paramName: string) {
     // Debug
