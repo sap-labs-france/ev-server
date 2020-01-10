@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -23,8 +24,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import OCPPService from '../../ocpp/services/OCPPService';
 
 export default class ChargingStationService {
 
