@@ -98,8 +98,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
-    const title = i18n.t('notifications.optimalChargeReached.title',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
+    const title = i18n.t('notifications.optimalChargeReached.title');
     const body = i18n.t('notifications.optimalChargeReached.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
@@ -116,8 +115,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
-    const title = i18n.t('notifications.endOfCharge.title',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
+    const title = i18n.t('notifications.endOfCharge.title');
     const body = i18n.t('notifications.endOfCharge.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
@@ -134,8 +132,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
-    const title = i18n.t('notifications.endOfSession.title',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
+    const title = i18n.t('notifications.endOfSession.title');
     const body = i18n.t('notifications.endOfSession.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, tenantName: tenant.name });
     // Send Notification
@@ -157,8 +154,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Set the locale
     I18nManager.switchLocale(user.locale);
     // Get Message Text
-    const title = i18n.t('notifications.chargingStationStatusError.title',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error });
+    const title = i18n.t('notifications.chargingStationStatusError.title');
     const body = i18n.t('notifications.chargingStationStatusError.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error, tenantName: tenant.name });
     // Send Notification

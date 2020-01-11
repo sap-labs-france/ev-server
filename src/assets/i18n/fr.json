@@ -25,7 +25,7 @@
 			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée dans l'organisation '{{tenantName}}'"
 		},
 		"chargingStationStatusError": {
-			"title": "Erreur sur '{{chargeBoxID}}'",
+			"title": "Borne en Erreur",
 			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}': {{error}}"
 		},
 		"unknownUserBadged": {
@@ -48,7 +48,7 @@
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Non Démarrée",
-			"body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur {{connectorId}} dans l'organisation '{{tenantName}}'"
+			"body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}'"
 		},
 		"offlineChargingStation": {
 			"title": "Bornes Hors Ligne",

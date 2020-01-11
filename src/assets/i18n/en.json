@@ -25,7 +25,7 @@
 			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished in organization '{{tenantName}}'"
 		},
 		"chargingStationStatusError": {
-			"title": "Error on '{{chargeBoxID}}'",
+			"title": "Charging Station in Error",
 			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}': {{error}}"
 		},
 		"unknownUserBadged": {
@@ -48,7 +48,7 @@
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Not Started",
-			"body": "Session not started on charging station '{{chargeBoxID}}', connector {{connectorId}} in organization '{{tenantName}}'"
+			"body": "Session not started on charging station '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}'"
 		},
 		"offlineChargingStation": {
 			"title": "Offline Charging Stations",
