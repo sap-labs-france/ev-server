@@ -5,8 +5,8 @@
 			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "OCPI - Erreur Mise à jour Statuts",
-			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
+			"title": "Mise à jour Statuts",
+			"body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}', vérifier les logs"
 		},
 		"smtpAuthError": {
 			"title": "Erreur Serveur Email",
@@ -33,7 +33,7 @@
 			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}'"
 		},
 		"chargingStationRegistered": {
-			"title": "{{chargeBoxID}} vient de se Connecter",
+			"title": "Connection Borne",
 			"body": "La borne '{{chargeBoxID}}' vient de se connecter au le serveur central"
 		},
 		"userAccountStatusChanged": {
@@ -43,7 +43,7 @@
 			"body": "Votre compte a été {{status}} par un administrateur"
 		},
 		"userAccountInactivity": {
-			"title": "Inactivité Compte Utilisateur",
+			"title": "Compte Utilisateur",
 			"body": "Votre compte est inactif depuis le {{lastLogin}}. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
 		},
 		"preparingSessionNotStarted": {
@@ -55,7 +55,7 @@
 			"body": "Les bornes suivantes sont hors ligne dans votre organisation: '{{chargeBoxIDs}}'"
 		},
     "billingUserSynchronizationFailed": {
-      "title": "Erreur Synchro Utilisateurs",
+      "title": "Synchro Utilisateurs",
       "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation."
     }
 	},

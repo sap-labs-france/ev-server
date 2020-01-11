@@ -5,8 +5,8 @@
 			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "OCPI - Patch Status Failed",
-			"body": "The transfer of the Charging Station's statuses has failed on location '{{location}}', check the logs"
+			"title": "Patch Status",
+			"body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}', check the logs"
 		},
 		"smtpAuthError": {
 			"title": "Email Server Error",
@@ -33,7 +33,7 @@
 			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}'"
 		},
 		"chargingStationRegistered": {
-			"title": "{{chargeBoxID}} just Connected",
+			"title": "Charging Station Connected",
 			"body": "The charging station '{{chargeBoxID}}' just got connected to the central server"
 		},
 		"userAccountStatusChanged": {
@@ -43,7 +43,7 @@
 			"body": "Your account has been {{status}} by an administrator"
 		},
 		"userAccountInactivity": {
-			"title": "User Account Inactivity",
+			"title": "User Account",
 			"body": "Your account has been inactive since {{lastLogin}}. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted."
 		},
 		"preparingSessionNotStarted": {
