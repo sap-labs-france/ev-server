@@ -228,8 +228,8 @@ export default class ChargingStationService {
 
   public static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+    const filteredRequest = ChargingStationSecurity.filterRequestChargingStationConfigurationRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -238,17 +238,18 @@ export default class ChargingStationService {
         action: Constants.ACTION_READ,
         entity: Constants.ENTITY_CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleGetChargingStationConfiguration',
-        value: filteredRequest.ChargeBoxID
+        method: 'handleRequestChargingStationConfiguration',
+        value: filteredRequest.chargeBoxID
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist anymore.`,
+      'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     // Get the Config
-    const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(req.user.tenantID, chargingStation);
+    const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+      req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
     // Ok
     res.json(result);
     next();
@@ -1043,7 +1044,7 @@ export default class ChargingStationService {
         // Start Transaction
         case OCPPChargingStationCommand.REMOTE_START_TRANSACTION:
           result = await chargingStationClient.remoteStartTransaction({
-            connectorId: params.connectorID,
+            connectorId: params.connectorId,
             idTag: params.tagID
           });
           break;
@@ -1056,7 +1057,7 @@ export default class ChargingStationService {
         // Set Charging Profile
         case OCPPChargingStationCommand.SET_CHARGING_PROFILE:
           result = await chargingStationClient.setChargingProfile({
-            connectorId: params.connectorID,
+            connectorId: params.connectorId,
             csChargingProfiles: params.csChargingProfiles
           });
           break;

@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation, { ChargingSchedulePeriod, ChargingSchedule } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -133,6 +133,13 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
+  public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      forceUpdateOCPPParamsFromTemplate: UtilsSecurity.filterBoolean(request.forceUpdateOCPPParamsFromTemplate)
+    };
+  }
+
   public static filterChargingStationRequest(request: any): HttpByIDRequest {
     return { ID: sanitize(request.ID) };
   }
@@ -226,9 +233,6 @@ export default class ChargingStationSecurity {
       }
       if (request.args.hasOwnProperty('value')) {
         filteredRequest.args.value = sanitize(request.args.value);
-      }
-      if (request.args.hasOwnProperty('connectorID')) {
-        filteredRequest.args.connectorID = sanitize(request.args.connectorID);
       }
       if (request.args.hasOwnProperty('connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);

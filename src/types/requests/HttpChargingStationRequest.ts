@@ -19,6 +19,11 @@ export interface HttpChargingStationRequest {
   ChargeBoxID: string;
 }
 
+export interface HttpChargingStationConfigurationRequest {
+  chargeBoxID: string;
+  forceUpdateOCPPParamsFromTemplate: boolean;
+}
+
 export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpChargingStationCommandRequest {
   maxIntensity?: number;
   args?: {maxIntensity: number};

@@ -99,6 +99,7 @@ class RequestMapper {
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
+          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
@@ -168,7 +169,6 @@ class RequestMapper {
           ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
-          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),

@@ -344,10 +344,6 @@ export enum OCPPDataTransferStatus {
   UNKNOWN_VENDOR_ID = 'UnknownVendorId'
 }
 
-
-
-
-
 export interface OCPPStopTransactionRequest {
   idTag?: string;
   meterStop: string|number;

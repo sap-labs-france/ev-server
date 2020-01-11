@@ -3,7 +3,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPConfigurationStatus, OCPPChangeConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
@@ -289,7 +289,7 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation: boolean = false) {
+  public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation: boolean = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -328,11 +328,11 @@ export default class OCPPUtils {
         method: 'requestAndSaveChargingStationOcppConfiguration', action: 'RequestConfiguration',
         message: 'Configuration has been saved'
       });
-      return { status: 'Accepted' };
+      return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
-      return { status: 'Rejected' };
+      return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
   
