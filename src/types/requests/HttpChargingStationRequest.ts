@@ -6,6 +6,7 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
 }
 
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
+  Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
   SiteID?: string;
