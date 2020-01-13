@@ -1070,8 +1070,7 @@ export default class UserStorage {
         ];
       }
       case 'inactive_user_account': {
-        const userAccountInactivityMonths = 6;
-        const someMonthsAgo = moment().subtract(userAccountInactivityMonths, 'months').toDate();
+        const someMonthsAgo = moment().subtract(6, 'months').toDate();
         if (moment(someMonthsAgo).isValid()) {
           return [
             {
