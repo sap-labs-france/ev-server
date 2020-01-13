@@ -109,19 +109,20 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    let allowedStatus = 'NOT_ALLOWED';
-    switch (user.status) {
-      case Constants.USER_STATUS_ACTIVE:
-        allowedStatus = 'ALLOWED';
-        break;
-      case Constants.USER_STATUS_BLOCKED:
-        allowedStatus = 'BLOCKED';
-        break;
-      case Constants.USER_STATUS_DELETED:
-        allowedStatus = 'EXPIRED';
-        break;
-      default:
-        allowedStatus = 'NOT_ALLOWED';
+    let allowedStatus;
+    if (user.deleted) {
+      allowedStatus = 'EXPIRED';
+    } else {
+      switch (user.status) {
+        case Constants.USER_STATUS_ACTIVE:
+          allowedStatus = 'ALLOWED';
+          break;
+        case Constants.USER_STATUS_BLOCKED:
+          allowedStatus = 'BLOCKED';
+          break;
+        default:
+          allowedStatus = 'NOT_ALLOWED';
+      }
     }
 
     res.json(OCPIUtils.success(

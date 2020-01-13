@@ -732,7 +732,7 @@ export default class Authorizations {
         method: 'checkAndGetUserTagIDOnChargingStation',
         user: user
       });
-    } else if (user.status === Constants.USER_STATUS_DELETED) {
+    } else if (user.deleted) {
       // Set default user's value
       user.name = 'Unknown';
       user.firstName = 'User';
