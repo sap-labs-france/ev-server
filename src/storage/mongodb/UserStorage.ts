@@ -760,7 +760,7 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: { search?: string; roles?: string[]; errorTypes?: string[]; userAccountInactivityMonths?: number },
+    params: { search?: string; roles?: string[]; errorTypes?: string[] },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -811,7 +811,7 @@ export default class UserStorage {
         continue;
       }
       array.push(`$${type}`);
-      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type, params.userAccountInactivityMonths);
+      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
@@ -1048,7 +1048,7 @@ export default class UserStorage {
     };
   }
 
-  private static getUserInErrorFacet(tenantID: string, errorType: string, userAccountInactivityMonths?: number) {
+  private static getUserInErrorFacet(tenantID: string, errorType: string) {
     switch (errorType) {
       case 'inactive_user':
         return [
@@ -1069,10 +1069,8 @@ export default class UserStorage {
           { $addFields: { 'errorCode': 'unassigned_user' } }
         ];
       }
-      case 'snoozed_user': {
-        if (!userAccountInactivityMonths || userAccountInactivityMonths <= 0) {
-          userAccountInactivityMonths = 6;
-        }
+      case 'inactive_user_account': {
+        const userAccountInactivityMonths = 6;
         const someMonthsAgo = moment().subtract(userAccountInactivityMonths, 'months').toDate();
         if (moment(someMonthsAgo).isValid()) {
           return [
@@ -1085,7 +1083,7 @@ export default class UserStorage {
 
             },
             {
-              $addFields: { 'errorCode': 'snoozed_user' }
+              $addFields: { 'errorCode': 'inactive_user_account' }
             }
           ];
         }
