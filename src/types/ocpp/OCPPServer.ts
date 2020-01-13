@@ -242,7 +242,7 @@ export interface OCPPAuthorizeResponse {
 }
 
 export interface OCPPIdTagInfo {
-  status: OCPPAuthorizationStatus
+  status: OCPPAuthorizationStatus;
   expiryDate?: Date;
   parentIdTag?: string;
 }
@@ -372,5 +372,5 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
 }
 
 export interface OCPPStopTransactionResponse {
-  status: OCPPAuthorizationStatus
+  status: OCPPAuthorizationStatus;
 }
