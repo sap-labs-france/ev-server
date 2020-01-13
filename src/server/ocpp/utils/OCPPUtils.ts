@@ -1,7 +1,7 @@
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationTemplate, ChargingStationCurrentType } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPConfigurationStatus, OCPPChangeConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
@@ -205,6 +205,8 @@ export default class OCPPUtils {
             break;
           }
         }
+        // Recalculate Max Power
+        this.recalculateChargingStationMaxPower(chargingStation);
       }
       // Log
       Logging.logInfo({
@@ -224,6 +226,22 @@ export default class OCPPUtils {
       message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
     });
     return false;
+  }
+
+  public static recalculateChargingStationMaxPower(chargingStation: ChargingStation) {
+    let maximumPower = 0;
+    // Only for AC
+    if (chargingStation.currentType !== ChargingStationCurrentType.AC) {
+      return;
+    }
+    for (const connector of chargingStation.connectors) {
+      if (connector.hasOwnProperty('power')) {
+        maximumPower += connector.power;
+      }
+    }
+    if (maximumPower) {
+      chargingStation.maximumPower = maximumPower;
+    }
   }
 
   public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {

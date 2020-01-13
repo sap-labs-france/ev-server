@@ -340,6 +340,8 @@ export default class OCPPService {
     foundConnector.statusLastChangedOn = new Date(statusNotification.timestamp);
     // Save Status Notification
     await OCPPStorage.saveStatusNotification(tenantID, statusNotification);
+    // Update Heartbeat
+    chargingStation.lastHeartBeat = new Date();
     // Log
     Logging.logInfo({
       tenantID: tenantID, source: chargingStation.id,
@@ -351,9 +353,8 @@ export default class OCPPService {
     await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
-    // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, chargingStation.connectors.find((localConnector) =>
-      localConnector.connectorId === statusNotification.connectorId));
+    // Save
+    await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
   }
 
   private async checkStatusNotificationInactivity(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
