@@ -2,20 +2,21 @@ import User from './User';
 import NotificationTask from '../notification/NotificationTask';
 
 export default interface UserNotifications {
-  sendSessionStarted?: boolean;
-  sendOptimalChargeReached?: boolean;
-  sendEndOfCharge?: boolean;
-  sendEndOfSession?: boolean;
-  sendUserAccountStatusChanged?: boolean;
-  sendUnknownUserBadged?: boolean;
-  sendChargingStationStatusError?: boolean;
-  sendChargingStationRegistered?: boolean;
-  sendOcpiPatchStatusError?: boolean;
-  sendSmtpAuthError?: boolean;
-  sendUserAccountInactivity?: boolean;
-  sendPreparingSessionNotStarted?: boolean;
-  sendOfflineChargingStations?: boolean;
-  sendBillingUserSynchronizationFailed?: boolean;
+  sendSessionStarted: boolean;
+  sendOptimalChargeReached: boolean;
+  sendEndOfCharge: boolean;
+  sendEndOfSession: boolean;
+  sendUserAccountStatusChanged: boolean;
+  sendNewRegisteredUser: boolean;
+  sendUnknownUserBadged: boolean;
+  sendChargingStationStatusError: boolean;
+  sendChargingStationRegistered: boolean;
+  sendOcpiPatchStatusError: boolean;
+  sendSmtpAuthError: boolean;
+  sendUserAccountInactivity: boolean;
+  sendPreparingSessionNotStarted: boolean;
+  sendOfflineChargingStations: boolean;
+  sendBillingUserSynchronizationFailed: boolean;
 }
 
 export type UserNotificationKeys =

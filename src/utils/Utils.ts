@@ -355,6 +355,22 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
+  static convertToBoolean(value: any) {
+    let result = false;
+    // Check boolean
+    if (value) {
+      // Check the type
+      if (typeof value === 'boolean') {
+        // Already a boolean
+        result = value;
+      } else {
+        // Convert
+        result = (value === 'true');
+      }
+    }
+    return result;
+  }
+
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
