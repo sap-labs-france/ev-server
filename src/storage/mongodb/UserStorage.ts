@@ -256,6 +256,7 @@ export default class UserStorage {
       address: userToSave.address,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      notifications: userToSave.notifications,
       deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By

@@ -163,7 +163,6 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
