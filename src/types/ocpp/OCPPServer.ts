@@ -1,4 +1,4 @@
-import User from "../User";
+import User from '../User';
 
 export interface OCPPBootNotificationRequest {
   chargeBoxSerialNumber?: string;
@@ -70,7 +70,7 @@ export interface OCPPMeterValueRequest {
 export interface OCPPMeterValues {
   transactionId?: number;
   connectorId: number;
-  meterValue: OCPPMeterValue[]
+  meterValue: OCPPMeterValue[];
 }
 
 export interface OCPPMeterValuesExtended extends OCPPMeterValues {

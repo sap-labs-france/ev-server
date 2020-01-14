@@ -40,5 +40,5 @@ export default class ChargingStationClientFactory {
       });
     }
     return chargingClient;
-  };
+  }
 }

@@ -509,7 +509,7 @@ export default class ChargingStationService {
 
   public static async handleAction(command: OCPPChargingStationCommand, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = 
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
@@ -1009,7 +1009,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-      command: OCPPChargingStationCommand, params: any): Promise<any> {
+    command: OCPPChargingStationCommand, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -1115,19 +1115,19 @@ export default class ChargingStationService {
           message: `OCPP Command '${command}' has been executed`,
           detailedMessages: { params, result }
         });
-        return result;        
-      } else {
-        // Throw error
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: command,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `Unknown OCPP command '${command}'`,
-          module: 'ChargingStationService',
-          method: 'handleChargingStationCommand',
-          user: user,
-        });
+        return result;
       }
+      // Throw error
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: command,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unknown OCPP command '${command}'`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationCommand',
+        user: user,
+      });
+
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

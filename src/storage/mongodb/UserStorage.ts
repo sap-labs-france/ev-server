@@ -24,7 +24,6 @@ import moment from 'moment';
 export default class UserStorage {
 
 
-
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
