@@ -20,6 +20,7 @@ import SchedulerConfiguration from './SchedulerConfiguration';
 import LoggingConfiguration from './LoggingConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
 import HealthCheckConfiguration from './HealthCheckConfiguration';
+import MigrationConfiguration from './MigrationConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;
@@ -44,4 +45,5 @@ export interface Configuration {
   Scheduler: SchedulerConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
+  Migration?: MigrationConfiguration;
 }

@@ -15,7 +15,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation, { Connector, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse } from '../../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -1008,7 +1008,7 @@ export default class OCPPService {
     return newMeterValues;
   }
 
-  private buildMeterValueAttributes(sampledValue: OCPPSampledValue) : OCPPAttribute {
+  private buildMeterValueAttributes(sampledValue: OCPPSampledValue): OCPPAttribute {
     return {
       context: (sampledValue.context ? sampledValue.context : OCPPReadingContext.SAMPLE_PERIODIC),
       format: (sampledValue.format ? sampledValue.format : OCPPValueFormat.RAW),
@@ -1085,7 +1085,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) : Promise<OCPPFirmwareStatusNotificationResponse> {
+  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);

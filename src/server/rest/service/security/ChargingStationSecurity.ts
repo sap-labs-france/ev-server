@@ -4,7 +4,7 @@ import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../..
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpChargingStationRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -337,7 +337,7 @@ export default class ChargingStationSecurity {
                 chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
               }
               // Add
-              chargingSchedulePeriod.push(chargingSchedulePeriodNew)
+              chargingSchedulePeriod.push(chargingSchedulePeriodNew);
             }
           }
           if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingProfileId')) {

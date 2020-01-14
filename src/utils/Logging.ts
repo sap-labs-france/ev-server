@@ -338,7 +338,7 @@ export default class Logging {
   }
 
   private static _buildLog(error, action: string, source: string, module: string,
-      method: string, tenantID: string, user: UserToken|User|string): Log {
+    method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
