@@ -737,8 +737,6 @@ export default class Utils {
         return 'Blocked';
       case Constants.USER_STATUS_ACTIVE:
         return 'Active';
-      case Constants.USER_STATUS_DELETED:
-        return 'Deleted';
       case Constants.USER_STATUS_INACTIVE:
         return 'Inactive';
       default:
