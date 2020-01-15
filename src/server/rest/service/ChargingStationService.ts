@@ -11,7 +11,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -389,6 +389,34 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGetOCCPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Get Charging Stations
+    const chargingStations = await ChargingStationService.getChargingStations(req);
+    const configurations: ChargingStationConfiguration[] = [];
+    for (const chargingStation of chargingStations.result) {
+      // Get Configuration
+      configurations.push(await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id));
+    }
+    // Build export
+    const filename = 'exported-occp-params.csv';
+    fs.writeFile(filename, ChargingStationService.convertOCCPParamsToCSV(configurations), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
+        }
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
+          }
+        });
+      });
+    });
+  }
+
+
   public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
@@ -519,7 +547,7 @@ export default class ChargingStationService {
     let result;
     // Remote Stop Transaction / Unlock Connector
     if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION ||
-        command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
+      command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
@@ -976,6 +1004,18 @@ export default class ChargingStationService {
         chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
     }
     return chargingStations;
+  }
+
+  private static convertOCCPParamsToCSV(configurations: ChargingStationConfiguration[]): string {
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value\r\n`;
+    for (const config of configurations) {
+      for (const params of config.configuration) {
+        csv += `${config.id}` + Constants.CSV_SEPARATOR;
+        csv += `${params.key}` + Constants.CSV_SEPARATOR;
+        csv += `${params.value}\r\n`;
+      }
+    }
+    return csv;
   }
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {

@@ -114,6 +114,7 @@ class RequestMapper {
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
+          OCPPParamsExport:ChargingStationService.handleGetOCCPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
           RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           StatusNotifications: ChargingStationService.handleGetStatusNotifications.bind(this),
