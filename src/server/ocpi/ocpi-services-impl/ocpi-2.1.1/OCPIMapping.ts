@@ -13,6 +13,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
+import { OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class

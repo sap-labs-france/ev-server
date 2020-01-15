@@ -1,16 +1,17 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import moment from 'moment';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -94,12 +95,92 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
-        method: 'getSessionRequest',
+        method: 'putSessionRequest',
         errorCode: Constants.HTTP_GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+
+    const session: OCPISession = req.body as OCPISession;
+
+    if (!this.validateSession(session)) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'putSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Session object is invalid',
+        detailedMessages: session,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, session.id);
+    if (!transaction) {
+      const user = await UserStorage.getUserByTagId(tenant.id, session.auth_id);
+      if (!user) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `No user found for auth_id ${session.auth_id}`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, session.location.evses[0].evse_id);
+      if (!chargingStation) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `No charging station found for evse_id ${session.location.evses[0].evse_id}`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        });
+      }
+
+      transaction = {
+        userID: user.id,
+        tagID: session.auth_id,
+        timestamp: session.start_datetime,
+        lastUpdate: session.last_updated,
+        chargeBoxID: chargingStation.id,
+        meterStart: 0,
+        currentTotalConsumption: session.kwh,
+        stateOfCharge: 0,
+        currentStateOfCharge: 0,
+        currentTotalInactivitySecs: 0,
+        ocpiSession: session
+      } as Transaction;
+    }
+    transaction.ocpiSession = session;
+    transaction.lastUpdate = session.last_updated;
+
+    if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
+      transaction.stop = {
+        extraInactivityComputed: false,
+        extraInactivitySecs: 0,
+        meterStop: session.kwh,
+        price: 0,
+        priceUnit: session.currency,
+        pricingSource: '',
+        roundedPrice: 0,
+        stateOfCharge: 0,
+        tagID: session.auth_id,
+        timestamp: session.end_datetime,
+        totalConsumption: session.kwh,
+        totalDurationSecs: Math.round(moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()),
+        totalInactivitySecs: 0,
+        userID: transaction.userID
+      };
+    }
+
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
 
     res.json(OCPIUtils.success({}));
   }
@@ -130,6 +211,29 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
     res.json(OCPIUtils.success({}));
+  }
+
+  private validateSession(session: OCPISession): boolean {
+    if (!session.id
+      || !session.start_datetime
+      || !session.kwh
+      || !session.auth_id
+      || !session.auth_method
+      || !session.location
+      || !session.currency
+      || !session.status
+      || !session.last_updated
+    ) {
+      return false;
+    }
+    return this.validateLocation(session.location);
+  }
+
+  private validateLocation(location: OCPILocation): boolean {
+    if (!location.evses || location.evses.length !== 1 || !location.evses[0].evse_id) {
+      return false;
+    }
+    return true;
   }
 }
 

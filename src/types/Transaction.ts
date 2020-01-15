@@ -3,6 +3,7 @@ import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
 import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
+import { OCPISession } from './ocpi/OCPISession';
 
 export type InactivityStatusLevel =
  'info' |
@@ -24,8 +25,8 @@ export enum TransactionAction {
 
 export default interface Transaction {
   id?: number;
-  siteID: string;
-  siteAreaID: string;
+  siteID?: string;
+  siteAreaID?: string;
   connectorId: number;
   tagID: string;
   userID: string;
@@ -47,7 +48,7 @@ export default interface Transaction {
     extraInactivityComputed: boolean;
     totalConsumption: number;
     totalDurationSecs: number;
-    inactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+    inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
     inactivityStatus?: InactivityStatus;
     timestamp: Date;
     transactionData?: any;
@@ -90,4 +91,5 @@ export default interface Transaction {
   errorCode?: number;
   values?: Consumption[];
   billingData?: BillingTransactionData;
+  ocpiSession?: OCPISession;
 }
