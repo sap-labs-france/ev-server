@@ -41,7 +41,7 @@ export interface OCPPStatusNotificationRequest {
   errorCode: ChargePointErrorCode;
   info: string;
   status: ChargePointStatus;
-  timestamp: Date;
+  timestamp: string;
   vendorId: string;
   vendorErrorCode: string;
 }
@@ -96,7 +96,7 @@ export interface OCPPNormalizedMeterValue {
 }
 
 export interface OCPPMeterValue {
-  timestamp: Date;
+  timestamp: string;
   sampledValue: OCPPSampledValue[];
 }
 
@@ -243,7 +243,7 @@ export interface OCPPAuthorizeResponse {
 
 export interface OCPPIdTagInfo {
   status: OCPPAuthorizationStatus;
-  expiryDate?: Date;
+  expiryDate?: string;
   parentIdTag?: string;
 }
 
@@ -303,7 +303,7 @@ export interface OCPPStartTransactionRequest {
   idTag: string;
   meterStart: number;
   reservationId?: number;
-  timestamp: Date;
+  timestamp: string;
 }
 
 export interface OCPPStartTransactionRequestExtended extends OCPPStartTransactionRequest {
@@ -347,7 +347,7 @@ export enum OCPPDataTransferStatus {
 export interface OCPPStopTransactionRequest {
   idTag?: string;
   meterStop: string|number;
-  timestamp: Date;
+  timestamp: string;
   transactionId: number;
   reason?: OCPPReason;
   transactionData?: OCPPMeterValue[];

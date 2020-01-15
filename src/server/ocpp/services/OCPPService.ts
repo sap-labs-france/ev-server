@@ -963,7 +963,7 @@ export default class OCPPService {
       newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
       newMeterValue.connectorId = meterValues.connectorId;
       newMeterValue.transactionId = meterValues.transactionId;
-      newMeterValue.timestamp = value.timestamp;
+      newMeterValue.timestamp = Utils.convertToDate(value.timestamp);
       // OCPP 1.6
       if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
         // Multiple Values?
@@ -1149,11 +1149,19 @@ export default class OCPPService {
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
-        ...startTransaction,
+        chargeBoxID: startTransaction.chargeBoxID,
+        tagID: startTransaction.idTag,
+        timezone: startTransaction.timezone,
+        userID: startTransaction.userID,
+        siteAreaID: startTransaction.siteAreaID,
+        siteID: startTransaction.siteID,
+        connectorId: startTransaction.connectorId,
+        meterStart: startTransaction.meterStart,
+        timestamp: Utils.convertToDate(startTransaction.timestamp),
         numberOfMeterValues: 0,
         lastMeterValue: {
           value: startTransaction.meterStart,
-          timestamp: startTransaction.timestamp
+          timestamp: Utils.convertToDate(startTransaction.timestamp)
         },
         currentTotalInactivitySecs: 0,
         currentInactivityStatus: InactivityStatus.INFO,
@@ -1269,7 +1277,7 @@ export default class OCPPService {
             'chargeBoxID': activeTransaction.chargeBoxID,
             'transactionId': activeTransaction.id,
             'meterStop': activeTransaction.lastMeterValue.value,
-            'timestamp': new Date(activeTransaction.lastMeterValue.timestamp),
+            'timestamp': Utils.convertToDate(activeTransaction.lastMeterValue.timestamp).toISOString(),
           }, false, true);
           // Check
           if (result.status === 'Invalid') {
