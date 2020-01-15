@@ -1156,18 +1156,18 @@ export default class ChargingStationService {
           detailedMessages: { params, result }
         });
         return result;
-      } else {
-        // Throw error
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: command,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `Unknown OCPP command '${command}'`,
-          module: 'ChargingStationService',
-          method: 'handleChargingStationCommand',
-          user: user,
-        });
       }
+      // Throw error
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: command,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unknown OCPP command '${command}'`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationCommand',
+        user: user,
+      });
+
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

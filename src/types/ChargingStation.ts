@@ -103,12 +103,12 @@ export interface ChargingStationTemplate {
     connectors: {
       connectorId: number;
       power: number;
-      type: ConnectorType,
-      currentType: ConnectorCurrentType,
+      type: ConnectorType;
+      currentType: ConnectorCurrentType;
       numberOfConnectedPhase: number;
       voltage: number;
       amperage: number;
-    }[]
+    }[];
     capabilities: {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];

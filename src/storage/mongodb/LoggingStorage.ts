@@ -92,9 +92,9 @@ export default class LoggingStorage {
   }
 
   public static async getLogs(tenantID: string, params: {
-        dateFrom?: Date; dateUntil?: Date; level?: LogLevel; sources?: string[]; type?: LogType; actions?: string[];
-        host?: string; userIDs?: string[]; search?: string; logID?: string;
-      } = {}, dbParams: DbParams) {
+    dateFrom?: Date; dateUntil?: Date; level?: LogLevel; sources?: string[]; type?: LogType; actions?: string[];
+    host?: string; userIDs?: string[]; search?: string; logID?: string;
+  } = {}, dbParams: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit

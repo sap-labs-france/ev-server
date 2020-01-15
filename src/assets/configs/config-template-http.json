@@ -150,6 +150,9 @@
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
   },
+  "Migration": {
+    "active": true
+  },
   "Scheduler": {
     "active": true,
     "tasks": [

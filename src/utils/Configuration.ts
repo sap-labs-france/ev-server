@@ -26,6 +26,7 @@ import ChargingStationConfiguration from '../types/configuration/ChargingStation
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
+import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -283,4 +284,16 @@ export default class Configuration {
     }
     return Configuration.getConfig().HealthCheck;
   }
+
+  static getMigrationConfig(): MigrationConfiguration {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().Migration) {
+      Configuration.getConfig().Migration = {} as MigrationConfiguration;
+    }
+    if (!Configuration.getConfig().Migration.active) {
+      Configuration.getConfig().Migration.active = false;
+    }
+    return Configuration.getConfig().Migration;
+  }
 }
+

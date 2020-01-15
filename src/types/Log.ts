@@ -1,8 +1,8 @@
-import User from "./User";
-import UserToken from "./UserToken";
+import User from './User';
+import UserToken from './UserToken';
 
 export interface Log {
-  tenantID: string,
+  tenantID: string;
   id?: string;
   level?: LogLevel;
   source?: string;

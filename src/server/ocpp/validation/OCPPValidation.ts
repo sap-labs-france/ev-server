@@ -2,7 +2,7 @@ import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import global from '../../../types/GlobalType';
-import { OCPPBootNotificationRequestExtended, OCPPHeartbeatRequest, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPAuthorizeRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPStopTransactionRequestExtended } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequest, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended } from '../../../types/ocpp/OCPPServer';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -42,7 +42,7 @@ export default class OCPPValidation extends SchemaValidator {
   validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
     // Check non mandatory or wrong timestamp
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
-      statusNotification.timestamp = new Date();
+      statusNotification.timestamp = new Date().toISOString();
     }
     this.validate(this._statusNotificationRequest, statusNotification);
   }

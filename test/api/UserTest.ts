@@ -6,6 +6,7 @@ import ContextProvider from './contextProvider/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import TenantContext from './contextProvider/TenantContext';
+import User from '../types/User';
 
 chai.use(chaiSubset);
 
@@ -16,7 +17,7 @@ class TestData {
   public userContext: any;
   public userService: CentralServerService;
   public siteContext: SiteContext;
-  public newUser: any;
+  public newUser: User;
   public createdUsers: any[] = [];
 }
 
@@ -103,7 +104,7 @@ describe('User tests', function() {
             Factory.user.build()
           );
           // Remove Passwords
-          delete testData.newUser.passwords;
+          delete testData.newUser['passwords'];
           testData.createdUsers.push(testData.newUser);
         });
 

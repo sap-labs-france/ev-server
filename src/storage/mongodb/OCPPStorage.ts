@@ -1,6 +1,6 @@
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPDataTransferRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';

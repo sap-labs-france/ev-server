@@ -15,7 +15,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation, { Connector, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse } from '../../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -340,6 +340,8 @@ export default class OCPPService {
     foundConnector.statusLastChangedOn = new Date(statusNotification.timestamp);
     // Save Status Notification
     await OCPPStorage.saveStatusNotification(tenantID, statusNotification);
+    // Update Heartbeat
+    chargingStation.lastHeartBeat = new Date();
     // Log
     Logging.logInfo({
       tenantID: tenantID, source: chargingStation.id,
@@ -351,9 +353,8 @@ export default class OCPPService {
     await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
-    // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, chargingStation.connectors.find((localConnector) =>
-      localConnector.connectorId === statusNotification.connectorId));
+    // Save
+    await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
   }
 
   private async checkStatusNotificationInactivity(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
@@ -962,7 +963,7 @@ export default class OCPPService {
       newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
       newMeterValue.connectorId = meterValues.connectorId;
       newMeterValue.transactionId = meterValues.transactionId;
-      newMeterValue.timestamp = value.timestamp;
+      newMeterValue.timestamp = Utils.convertToDate(value.timestamp);
       // OCPP 1.6
       if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
         // Multiple Values?
@@ -1007,7 +1008,7 @@ export default class OCPPService {
     return newMeterValues;
   }
 
-  private buildMeterValueAttributes(sampledValue: OCPPSampledValue) : OCPPAttribute {
+  private buildMeterValueAttributes(sampledValue: OCPPSampledValue): OCPPAttribute {
     return {
       context: (sampledValue.context ? sampledValue.context : OCPPReadingContext.SAMPLE_PERIODIC),
       format: (sampledValue.format ? sampledValue.format : OCPPValueFormat.RAW),
@@ -1084,7 +1085,7 @@ export default class OCPPService {
     }
   }
 
-  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) : Promise<OCPPFirmwareStatusNotificationResponse> {
+  public async handleFirmwareStatusNotification(headers: OCPPHeader, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended): Promise<OCPPFirmwareStatusNotificationResponse> {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1148,11 +1149,19 @@ export default class OCPPService {
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
-        ...startTransaction,
+        chargeBoxID: startTransaction.chargeBoxID,
+        tagID: startTransaction.idTag,
+        timezone: startTransaction.timezone,
+        userID: startTransaction.userID,
+        siteAreaID: startTransaction.siteAreaID,
+        siteID: startTransaction.siteID,
+        connectorId: startTransaction.connectorId,
+        meterStart: startTransaction.meterStart,
+        timestamp: Utils.convertToDate(startTransaction.timestamp),
         numberOfMeterValues: 0,
         lastMeterValue: {
           value: startTransaction.meterStart,
-          timestamp: startTransaction.timestamp
+          timestamp: Utils.convertToDate(startTransaction.timestamp)
         },
         currentTotalInactivitySecs: 0,
         currentInactivityStatus: InactivityStatus.INFO,
@@ -1268,7 +1277,7 @@ export default class OCPPService {
             'chargeBoxID': activeTransaction.chargeBoxID,
             'transactionId': activeTransaction.id,
             'meterStop': activeTransaction.lastMeterValue.value,
-            'timestamp': new Date(activeTransaction.lastMeterValue.timestamp),
+            'timestamp': Utils.convertToDate(activeTransaction.lastMeterValue.timestamp).toISOString(),
           }, false, true);
           // Check
           if (result.status === 'Invalid') {
