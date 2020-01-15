@@ -389,7 +389,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetOCCPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     const configurations: ChargingStationConfiguration[] = [];
