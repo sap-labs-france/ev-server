@@ -117,7 +117,6 @@ export default class Constants {
   // Statuses
   public static readonly USER_STATUS_PENDING = 'P';
   public static readonly USER_STATUS_ACTIVE = 'A';
-  public static readonly USER_STATUS_DELETED = 'D';
   public static readonly USER_STATUS_INACTIVE = 'I';
   public static readonly USER_STATUS_BLOCKED = 'B';
   public static readonly USER_STATUS_LOCKED = 'L';

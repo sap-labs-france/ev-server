@@ -17,6 +17,7 @@ import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import AddChargingStationIssuerFieldTask from './tasks/AddChargingStationIssuerFieldTask';
+import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -49,6 +50,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddInactivityStatusInTransactions());
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
       currentMigrationTasks.push(new AddChargingStationIssuerFieldTask());
+      currentMigrationTasks.push(new CleanupOrphanBadgeTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

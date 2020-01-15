@@ -118,7 +118,19 @@ export default class UserStorage {
       .toArray();
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
-      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      if (tagsMDB[0].userID) {
+        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      }
+
+      if (!user) {
+        Logging.logError({
+          tenantID: tenantID,
+          module: 'UserStorage',
+          method: 'getUserByTagId',
+          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
+          detailedMessages: tagsMDB[0]
+        });
+      }
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
@@ -300,6 +312,8 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
       await global.database.getCollection<any>(tenantID, 'tags')
