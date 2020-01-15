@@ -73,7 +73,19 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success());
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
+    if (!transaction) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'getSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `No transaction found for ocpi session ${sessionId}`,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    res.json(OCPIUtils.success(transaction.ocpiSession));
   }
 
   /**
@@ -116,7 +128,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
-    let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, session.id);
+    let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       const user = await UserStorage.getUserByTagId(tenant.id, session.auth_id);
       if (!user) {
