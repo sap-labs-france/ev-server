@@ -75,6 +75,7 @@ export interface Connector {
   type: string;
   voltage?: number;
   amperage?: number;
+  amperageLimit?: number;
   activeTransactionID?: number;
   activeTransactionDate?: Date;
   activeTagID?: string;
