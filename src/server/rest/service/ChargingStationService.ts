@@ -1007,7 +1007,7 @@ export default class ChargingStationService {
   }
 
   private static convertOCCPParamsToCSV(configurations: ChargingStationConfiguration[]): string {
-    let csv = `Charging Station${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value\r\n`;
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value\r\n`;
     for (const config of configurations) {
       for (const params of config.configuration) {
         csv += `${config.id}` + Constants.CSV_SEPARATOR;
