@@ -11,7 +11,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -389,6 +389,34 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGetOCCPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Get Charging Stations
+    const chargingStations = await ChargingStationService.getChargingStations(req);
+    const configurations: ChargingStationConfiguration[] = [];
+    for (const chargingStation of chargingStations.result) {
+      // Get Configuration
+      configurations.push(await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id));
+    }
+    // Build export
+    const filename = 'exported-occp-params.csv';
+    fs.writeFile(filename, ChargingStationService.convertOCCPParamsToCSV(configurations), (err) => {
+      if (err) {
+        throw err;
+      }
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
+        }
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
+          }
+        });
+      });
+    });
+  }
+
+
   public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
@@ -509,7 +537,7 @@ export default class ChargingStationService {
 
   public static async handleAction(command: OCPPChargingStationCommand, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = 
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
@@ -519,7 +547,7 @@ export default class ChargingStationService {
     let result;
     // Remote Stop Transaction / Unlock Connector
     if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION ||
-        command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
+      command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
@@ -978,6 +1006,18 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
+  private static convertOCCPParamsToCSV(configurations: ChargingStationConfiguration[]): string {
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value\r\n`;
+    for (const config of configurations) {
+      for (const params of config.configuration) {
+        csv += `${config.id}` + Constants.CSV_SEPARATOR;
+        csv += `${params.key}` + Constants.CSV_SEPARATOR;
+        csv += `${params.value}\r\n`;
+      }
+    }
+    return csv;
+  }
+
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
     I18nManager.switchLanguage(loggedUser.language);
     let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
@@ -1009,7 +1049,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-      command: OCPPChargingStationCommand, params: any): Promise<any> {
+    command: OCPPChargingStationCommand, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -1115,7 +1155,7 @@ export default class ChargingStationService {
           message: `OCPP Command '${command}' has been executed`,
           detailedMessages: { params, result }
         });
-        return result;        
+        return result;
       } else {
         // Throw error
         throw new AppError({
