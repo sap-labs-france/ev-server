@@ -155,6 +155,17 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
+      if (chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `OCPI Session is not authorized on charging station ${evse.evse_id} issued locally`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        });
+      }
 
       let connectorId = 1;
       if (evse.connectors && evse.connectors.length === 1) {
