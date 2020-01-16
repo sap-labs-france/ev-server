@@ -13,6 +13,7 @@ import moment from 'moment';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import Utils from '../../../../utils/Utils';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -28,20 +29,14 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        await this.getSessionRequest(req, res, next, tenant);
-        break;
+        return await this.getSessionRequest(req, res, next, tenant);
       case 'PATCH':
-        await this.patchSessionRequest(req, res, next, tenant);
-        break;
+        return await this.patchSessionRequest(req, res, next, tenant);
       case 'PUT':
-        await this.putSessionRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.putSessionRequest(req, res, next, tenant);
     }
   }
 
@@ -51,7 +46,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    * /sessions/{country_code}/{party_id}/{session_id}
    *
    */
-  private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -84,7 +79,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success(transaction.ocpiSession));
+    return OCPIUtils.success(transaction.ocpiSession);
   }
 
   /**
@@ -92,7 +87,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    */
-  private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -220,7 +215,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     await TransactionStorage.saveTransaction(tenant.id, transaction);
 
-    res.json(OCPIUtils.success({}));
+    return OCPIUtils.success({});
   }
 
   /**
@@ -228,7 +223,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    */
-  private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -264,7 +259,13 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     let patched = false;
 
     const session: Partial<OCPISession> = req.body as Partial<OCPISession>;
+    if (session.status) {
+      transaction.ocpiSession.status = session.status;
+    }
     if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
+      if (session.end_datetime) {
+        transaction.ocpiSession.end_datetime = session.end_datetime;
+      }
       transaction.stop = {
         extraInactivityComputed: false,
         extraInactivitySecs: 0,
@@ -285,6 +286,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
 
     if (session.kwh) {
+      transaction.ocpiSession.kwh = session.kwh;
       transaction.currentTotalConsumption = session.kwh * 1000;
       if (transaction.stop) {
         transaction.stop.meterStop = transaction.currentTotalConsumption;
@@ -294,6 +296,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
 
     if (session.currency) {
+      transaction.ocpiSession.currency = session.currency;
       transaction.priceUnit = session.currency;
       if (transaction.stop) {
         transaction.stop.priceUnit = session.currency;
@@ -302,6 +305,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
 
     if (session.total_cost) {
+      transaction.ocpiSession.total_cost = session.total_cost;
       transaction.price = session.total_cost;
       transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
       if (transaction.stop) {
@@ -311,10 +315,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       patched = true;
     }
 
-    if (patched) {
-      await TransactionStorage.saveTransaction(tenant.id, transaction);
-      res.json(OCPIUtils.success({}));
-    } else {
+    if (!patched) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -325,12 +326,14 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
+
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    return OCPIUtils.success({});
   }
 
   private validateSession(session: OCPISession): boolean {
     if (!session.id
       || !session.start_datetime
-      || !session.kwh
       || !session.auth_id
       || !session.auth_method
       || !session.location

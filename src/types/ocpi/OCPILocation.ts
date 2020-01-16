@@ -25,3 +25,9 @@ export enum OCPILocationType {
   UNKNOWN = 'UNKNOWN'
 }
 
+export interface OCPILocationReference {
+  location_id: string;
+  evse_uids: string[];
+  connector_ids: string[];
+}
+

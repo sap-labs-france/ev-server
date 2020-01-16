@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import OCPIUtils from '../OCPIUtils';
 import Tenant from '../../../types/Tenant';
 import AbstractOCPIService from '../AbstractOCPIService';
-import Site from '../../../types/Site';
+import { OCPIResponse } from '../../../types/ocpi/OCPIResponse';
 
 /**
  * Abstract Endpoint
  */
-export default class AbstractEndpoint {
+export default abstract class AbstractEndpoint {
   // Create OCPI Service
   constructor(readonly ocpiService: AbstractOCPIService, readonly identifier: string = 'default') {
   }
@@ -33,8 +32,6 @@ export default class AbstractEndpoint {
   }
 
   // Abstract - Process endpoint
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,require-await
-  public async process(req: Request, res: Response, next: Function, tenant: Tenant, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
-    res.sendStatus(501);
-  }
+  abstract async process(req: Request, res: Response, next: Function, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse>;
 }
+
