@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingProfile } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
@@ -132,6 +132,16 @@ export default class ChargingStationSecurity {
 
   public static filterChargingProfileRequest(request: any): HttpChargingStationRequest {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+  }
+
+  public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
+    // Set
+    const filteredRequest: any = {};
+    if (request.hasOwnProperty('profile')) {
+      filteredRequest.profile = sanitize(request.profile);
+    }
+    filteredRequest.chargingStationID = sanitize(request.chargingStationID);
+    return filteredRequest;
   }
 
   public static filterChargingStationRequest(request: any): HttpByIDRequest {

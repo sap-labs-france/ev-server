@@ -186,6 +186,7 @@ class RequestMapper {
       case 'PUT':
         // Register REST actions
         this.registerJsonActionsPaths({
+          ChargingProfileUpdate: ChargingStationService.handleUpdateChargingProfile.bind(this),
           PricingUpdate: PricingService.handleUpdatePricing.bind(this),
           UserUpdate: UserService.handleUpdateUser.bind(this),
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
@@ -212,6 +213,7 @@ class RequestMapper {
       case 'DELETE':
         // Register REST actions
         this.registerJsonActionsPaths({
+          ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           UserDelete: UserService.handleDeleteUser.bind(this),
           TenantDelete: TenantService.handleDeleteTenant.bind(this),
           RegistrationTokenDelete: RegistrationTokenService.handleDeleteRegistrationToken.bind(this),

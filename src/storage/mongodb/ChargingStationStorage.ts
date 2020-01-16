@@ -422,30 +422,20 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingProfile(tenantID: string, chargeBoxID: string, args: any): Promise<string> {
+  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<string> {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const chargingProfileFilter = {
-      chargingStationID: chargeBoxID
+      chargingStationID: chargingProfile.chargingStationID
     };
-    const chargingProfileMDB = {
-      chargingProfileId: args.csChargingProfiles.chargingProfileId,
-      stackLevel: args.csChargingProfiles.stackLevel,
-      chargingProfilePurpose: args.csChargingProfiles.chargingProfilePurpose,
-      chargingProfileKind: args.csChargingProfiles.chargingProfileKind,
-      chargingSchedule: {
-        startSchedule: args.csChargingProfiles.chargingSchedule.startSchedule,
-        chargingRateUnit: args.csChargingProfiles.chargingSchedule.chargingRateUnit,
-        chargingSchedulePeriod: args.csChargingProfiles.chargingSchedule.chargingSchedulePeriod,
-      }
-    };
+    const chargingProfileMDB: ChargingProfile = chargingProfile;
     const result = await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
       chargingProfileFilter,
       { $set: chargingProfileMDB },
       { upsert: true });
     Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
-    return chargingProfileMDB.chargingProfileId;
+    return 'success';
   }
 
   public static async saveChargingStation(tenantID: string, chargingStationToSave: Partial<ChargingStation>): Promise<string> {

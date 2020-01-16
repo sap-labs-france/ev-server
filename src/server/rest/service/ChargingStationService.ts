@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
+import fs, { stat } from 'fs';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -21,7 +21,9 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
+import ChargingStationSpecificsFactory from '../../../integration/charging-station-specifics/ChargingStationSpecificsFactory';
 import UtilsService from './UtilsService';
+import { filter } from 'bluebird';
 
 export default class ChargingStationService {
 
@@ -194,6 +196,118 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleUpdateChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    // Check
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleUpdateChargingProfile', req.user);
+
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleUpdateChargingProfile',
+        value: chargingStation.id
+      });
+    }
+
+    // Set charging profile
+    const chargingStationVendor = ChargingStationSpecificsFactory.getChargingStationSpecificsInstance(chargingStation);
+    const status = (await chargingStationVendor).setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
+    console.log(status);
+
+    // Update
+    // if (status === 'Accepted') {
+    await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
+    // }
+
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
+      user: req.user, module: 'ChargingStationService',
+      method: 'handleUpdateChargingProfile',
+      message: 'Charging Profile has been updated successfully',
+      action: action, detailedMessages: {
+        'chargingProfile': filteredRequest,
+        'chargingStation': chargingStation.id,
+      }
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleDeleteChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+
+    // Check existence
+    const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
+    // Get
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+    // Check
+    UtilsService.assertObjectExists(chargingStationID, `ChargingStation '${chargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleDeleteChargingProfile',
+        value: chargingStation.id
+      });
+    }
+
+    // Clear charging profile
+    const status = await OCPPUtils.requestExecuteChargingStationCommand(req.user.tenantID, chargingStation, 'clearChargingProfile');
+    console.log(status);
+
+    // Update
+    // if (status === 'Accepted') {
+    await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
+    // }
+
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
+      user: req.user, module: 'ChargingStationService',
+      method: 'handleDeleteChargingProfile',
+      message: 'Charging Profile has been cleared successfully',
+      action: action, detailedMessages: {
+        'chargingStation': chargingStation.id,
+      }
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+
+  }
+
 
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
@@ -255,6 +369,21 @@ export default class ChargingStationService {
   public static async handleGetChargingProfile(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileRequest(req.query);
+    // Check
+    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStation', req.user);
+    // Check auth
+    if (!Authorizations.canReadChargingStation(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleGetChargingProfile',
+        value: filteredRequest.ChargeBoxID
+      });
+    }
+
     const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, filteredRequest.ChargeBoxID);
     res.json(chargingProfile);
     next();
@@ -1026,22 +1155,12 @@ export default class ChargingStationService {
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'unlockConnector', args);
       case 'Reset':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'reset', args);
-      case 'SetChargingProfile': {
-        const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'setChargingProfile', args);
-        //if (result.status === 'Accepted') {
-        await ChargingStationStorage.saveChargingProfile(tenantID, chargingStation.id, args);
-        //}
-        return result;
-      }
+      case 'SetChargingProfile':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'setChargingProfile', args);;
       case 'GetCompositeSchedule':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getCompositeSchedule', args);
-      case 'ClearChargingProfile': {
-        const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearChargingProfile', args);
-        //if (result.status === 'Accepted') {
-        await ChargingStationStorage.deleteChargingProfile(tenantID, chargingStation.id);
-        //}
-        return result;
-      }
+      case 'ClearChargingProfile':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearChargingProfile', args);
       case 'GetDiagnostics':
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getDiagnostics', args);
       case 'ChangeAvailability':
