@@ -1,13 +1,13 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -105,8 +105,8 @@ const RECORDS_LIMIT = 20;
       }
     } else {
       // Get query parameters
-      const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
-      const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
+      const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
+      const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
 
       // Get all locations
       const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);

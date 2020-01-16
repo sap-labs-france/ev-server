@@ -1,13 +1,13 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation, { ChargingProfile } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod, ChargingProfile } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -37,7 +37,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation = chargingStation;
       for (const connector of filteredChargingStation.connectors) {
         if (filteredChargingStation.inactive && connector) {
-          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+          connector.status = ChargePointStatus.UNAVAILABLE;
           connector.currentConsumption = 0;
           connector.totalConsumption = 0;
           connector.totalInactivitySecs = 0;
@@ -57,8 +57,9 @@ export default class ChargingStationSecurity {
           return connector;
         }
         return {
+          'id': connector.id,
           'connectorId': connector.connectorId,
-          'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
+          'status': (filteredChargingStation.inactive ? ChargePointStatus.UNAVAILABLE : connector.status),
           'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
@@ -71,6 +72,8 @@ export default class ChargingStationSecurity {
           'errorCode': connector.errorCode,
           'type': connector.type,
           'power': connector.power,
+          'numberOfConnectedPhase': connector.numberOfConnectedPhase,
+          'currentType' : connector.currentType,
           'voltage': connector.voltage,
           'amperage': connector.amperage
         };
@@ -141,7 +144,14 @@ export default class ChargingStationSecurity {
       filteredRequest.profile = sanitize(request.profile);
     }
     filteredRequest.chargingStationID = sanitize(request.chargingStationID);
-    return filteredRequest;
+    return filteredRequest;}
+
+
+  public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      forceUpdateOCPPParamsFromTemplate: UtilsSecurity.filterBoolean(request.forceUpdateOCPPParamsFromTemplate)
+    };
   }
 
   public static filterChargingStationRequest(request: any): HttpByIDRequest {
@@ -154,6 +164,7 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
+    filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -180,9 +191,6 @@ export default class ChargingStationSecurity {
     if (request.hasOwnProperty('chargingStationURL')) {
       filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
     }
-    if (request.hasOwnProperty('numberOfConnectedPhase')) {
-      filteredRequest.numberOfConnectedPhase = sanitize(request.numberOfConnectedPhase);
-    }
     if (request.hasOwnProperty('maximumPower')) {
       filteredRequest.maximumPower = sanitize(request.maximumPower);
     }
@@ -194,6 +202,9 @@ export default class ChargingStationSecurity {
     }
     if (request.hasOwnProperty('powerLimitUnit')) {
       filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
+    }
+    if (request.hasOwnProperty('currentType')) {
+      filteredRequest.currentType = sanitize(request.currentType);
     }
     if (request.coordinates && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
@@ -212,7 +223,9 @@ export default class ChargingStationSecurity {
           power: sanitize(connector.power),
           type: sanitize(connector.type),
           voltage: sanitize(connector.voltage),
-          amperage: sanitize(connector.amperage)
+          amperage: sanitize(connector.amperage),
+          currentType: sanitize(connector.currentType),
+          numberOfConnectedPhase: sanitize(connector.numberOfConnectedPhase)
         };
       });
     }
@@ -224,7 +237,132 @@ export default class ChargingStationSecurity {
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     // Do not check action?
-    filteredRequest.args = request.args;
+    if (request.args) {
+      filteredRequest.args = {};
+      // Check
+      if (request.args.hasOwnProperty('type')) {
+        filteredRequest.args.type = sanitize(request.args.type);
+      }
+      if (request.args.hasOwnProperty('key')) {
+        filteredRequest.args.key = sanitize(request.args.key);
+      }
+      if (request.args.hasOwnProperty('value')) {
+        filteredRequest.args.value = sanitize(request.args.value);
+      }
+      if (request.args.hasOwnProperty('connectorId')) {
+        filteredRequest.args.connectorId = sanitize(request.args.connectorId);
+      }
+      if (request.args.hasOwnProperty('duration')) {
+        filteredRequest.args.duration = sanitize(request.args.duration);
+      }
+      if (request.args.hasOwnProperty('chargingRateUnit')) {
+        filteredRequest.args.chargingRateUnit = sanitize(request.args.chargingRateUnit);
+      }
+      if (request.args.hasOwnProperty('chargingProfilePurpose')) {
+        filteredRequest.args.chargingProfilePurpose = sanitize(request.args.chargingProfilePurpose);
+      }
+      if (request.args.hasOwnProperty('stackLevel')) {
+        filteredRequest.args.stackLevel = sanitize(request.args.stackLevel);
+      }
+      if (request.args.hasOwnProperty('tagID')) {
+        filteredRequest.args.tagID = sanitize(request.args.tagID);
+      }
+      if (request.args.hasOwnProperty('location')) {
+        filteredRequest.args.location = sanitize(request.args.location);
+      }
+      if (request.args.hasOwnProperty('retries')) {
+        filteredRequest.args.retries = sanitize(request.args.retries);
+      }
+      if (request.args.hasOwnProperty('retryInterval')) {
+        filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
+      }
+      if (request.args.hasOwnProperty('startTime')) {
+        filteredRequest.args.startTime = sanitize(request.args.startTime);
+      }
+      if (request.args.hasOwnProperty('stopTime')) {
+        filteredRequest.args.stopTime = sanitize(request.args.stopTime);
+      }
+      if (request.args.hasOwnProperty('retrieveDate')) {
+        filteredRequest.args.retrieveDate = sanitize(request.args.retrieveDate);
+      }
+      if (request.args.hasOwnProperty('retryInterval')) {
+        filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
+      }
+      if (request.args.hasOwnProperty('transactionId')) {
+        filteredRequest.args.transactionId = sanitize(request.args.transactionId);
+      }
+      if (request.args.hasOwnProperty('csChargingProfiles')) {
+        filteredRequest.args.csChargingProfiles = {};
+        // Check
+        if (request.args.csChargingProfiles.hasOwnProperty('chargingProfileId')) {
+          filteredRequest.args.csChargingProfiles.chargingProfileId = sanitize(request.args.csChargingProfiles.chargingProfileId);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('transactionId')) {
+          filteredRequest.args.csChargingProfiles.transactionId = sanitize(request.args.csChargingProfiles.transactionId);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('stackLevel')) {
+          filteredRequest.args.csChargingProfiles.stackLevel = sanitize(request.args.csChargingProfiles.stackLevel);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('chargingProfilePurpose')) {
+          filteredRequest.args.csChargingProfiles.chargingProfilePurpose = sanitize(request.args.csChargingProfiles.chargingProfilePurpose);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('chargingProfileKind')) {
+          filteredRequest.args.csChargingProfiles.chargingProfileKind = sanitize(request.args.csChargingProfiles.chargingProfileKind);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('recurrencyKind')) {
+          filteredRequest.args.csChargingProfiles.recurrencyKind = sanitize(request.args.csChargingProfiles.recurrencyKind);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('validFrom')) {
+          filteredRequest.args.csChargingProfiles.validFrom = sanitize(request.args.csChargingProfiles.validFrom);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('validTo')) {
+          filteredRequest.args.csChargingProfiles.validTo = sanitize(request.args.csChargingProfiles.validTo);
+        }
+        if (request.args.csChargingProfiles.hasOwnProperty('chargingSchedule')) {
+          const chargingSchedule: ChargingSchedule = {} as ChargingSchedule;
+          filteredRequest.args.csChargingProfiles.chargingSchedule = chargingSchedule;
+          // Check
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('duration')) {
+            chargingSchedule.duration = sanitize(request.args.csChargingProfiles.chargingSchedule.duration);
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('startSchedule')) {
+            chargingSchedule.startSchedule = sanitize(request.args.csChargingProfiles.chargingSchedule.startSchedule);
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingRateUnit')) {
+            chargingSchedule.chargingRateUnit = sanitize(request.args.csChargingProfiles.chargingSchedule.chargingRateUnit);
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('minChargeRate')) {
+            chargingSchedule.minChargeRate = sanitize(request.args.csChargingProfiles.chargingSchedule.minChargeRate);
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingSchedulePeriod')) {
+            const chargingSchedulePeriod: ChargingSchedulePeriod[] = [];
+            filteredRequest.args.csChargingProfiles.chargingSchedule.chargingSchedulePeriod = chargingSchedulePeriod;
+            // Check
+            for (const chargingSchedulePeriod of request.args.csChargingProfiles.chargingSchedule.chargingSchedulePeriod) {
+              const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
+              // Check
+              if (chargingSchedulePeriod.hasOwnProperty('startPeriod')) {
+                chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
+              }
+              if (chargingSchedulePeriod.hasOwnProperty('limit')) {
+                chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
+              }
+              if (chargingSchedulePeriod.hasOwnProperty('numberPhases')) {
+                chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
+              }
+              // Add
+              chargingSchedulePeriod.push(chargingSchedulePeriodNew);
+            }
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingProfileId')) {
+            filteredRequest.args.csChargingProfiles.chargingSchedule.chargingProfileId = sanitize(request.args.csChargingProfiles.chargingSchedule.chargingProfileId);
+          }
+          if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingProfileId')) {
+            filteredRequest.args.csChargingProfiles.chargingSchedule.chargingProfileId = sanitize(request.args.csChargingProfiles.chargingSchedule.chargingProfileId);
+          }
+        }
+      }
+    }
     return filteredRequest;
   }
 

@@ -35,7 +35,7 @@ export default abstract class SchedulerTask {
           module: 'SchedulerTask', method: 'run',
           action: 'Scheduler',
           message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
-        });          
+        });
       } catch (error) {
         Logging.logError({
           tenantID: tenant.id,
@@ -43,7 +43,7 @@ export default abstract class SchedulerTask {
           action: 'Scheduler',
           message: `Error while running the task '${name}': ${error.message}`,
           detailedMessages: error
-        });                  
+        });
       }
     }
     // Log Total Processing Time

@@ -8,6 +8,7 @@ import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import uuid = require('uuid');
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -51,8 +52,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     urlSegment.shift();
 
     // Get query parameters
-    const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
-    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
+    const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
+    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
 
     // Get all tokens
     const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset);
@@ -108,19 +109,20 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    let allowedStatus = 'NOT_ALLOWED';
-    switch (user.status) {
-      case Constants.USER_STATUS_ACTIVE:
-        allowedStatus = 'ALLOWED';
-        break;
-      case Constants.USER_STATUS_BLOCKED:
-        allowedStatus = 'BLOCKED';
-        break;
-      case Constants.USER_STATUS_DELETED:
-        allowedStatus = 'EXPIRED';
-        break;
-      default:
-        allowedStatus = 'NOT_ALLOWED';
+    let allowedStatus;
+    if (user.deleted) {
+      allowedStatus = 'EXPIRED';
+    } else {
+      switch (user.status) {
+        case Constants.USER_STATUS_ACTIVE:
+          allowedStatus = 'ALLOWED';
+          break;
+        case Constants.USER_STATUS_BLOCKED:
+          allowedStatus = 'BLOCKED';
+          break;
+        default:
+          allowedStatus = 'NOT_ALLOWED';
+      }
     }
 
     res.json(OCPIUtils.success(

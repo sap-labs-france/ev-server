@@ -21,33 +21,8 @@ import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
 import moment from 'moment';
 
-
 export default class UserStorage {
 
-  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
-    let eulaText = null;
-    try {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
-    } catch (e) {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
-    }
-    // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
-    // Parse the auth and replace values
-    eulaText = Mustache.render(
-      eulaText,
-      {
-        'chargeAngelsURL': frontEndURL
-      }
-    );
-    // Debug
-    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
-    return eulaText;
-  }
 
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
@@ -143,7 +118,19 @@ export default class UserStorage {
       .toArray();
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
-      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      if (tagsMDB[0].userID) {
+        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      }
+
+      if (!user) {
+        Logging.logError({
+          tenantID: tenantID,
+          module: 'UserStorage',
+          method: 'getUserByTagId',
+          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
+          detailedMessages: tagsMDB[0]
+        });
+      }
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
@@ -281,6 +268,23 @@ export default class UserStorage {
       address: userToSave.address,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      notifications: {
+        sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
+        sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
+        sendEndOfCharge: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfCharge) : false,
+        sendEndOfSession: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfSession) : false,
+        sendUserAccountStatusChanged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountStatusChanged) : false,
+        sendNewRegisteredUser: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendNewRegisteredUser) : false,
+        sendUnknownUserBadged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUnknownUserBadged) : false,
+        sendChargingStationStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationStatusError) : false,
+        sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
+        sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
+        sendSmtpAuthError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpAuthError) : false,
+        sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
+        sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
+        sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
+        sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
+      },
       deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
@@ -308,6 +312,8 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
       await global.database.getCollection<any>(tenantID, 'tags')
@@ -828,27 +834,18 @@ export default class UserStorage {
     // are not assigned yet to at least one site.
     // If the organization component is not active then the system just looks for non active users.
     const facets: any = { $facet: {} };
-    if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
-      const array = [];
-      params.errorTypes.forEach((type) => {
-        array.push(`$${type}`);
-        facets.$facet[type] = UserStorage._buildUserInErrorFacet(tenantID, type);
-      });
-      aggregation.push(facets);
-      // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { usersInError: { $setUnion: array } } });
-    } else {
-      aggregation.push({
-        '$facet': {
-          'unactive_user': [
-            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields: { 'errorCode': 'unactive_user' } },
-          ]
-        }
-      });
-      // Take out the facet name from the result
-      aggregation.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
+    const array = [];
+    const tenant = await TenantStorage.getTenant(tenantID);
+    for (const type of params.errorTypes) {
+      if (type === 'unassigned_user' && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
+        continue;
+      }
+      array.push(`$${type}`);
+      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
+    aggregation.push(facets);
+    // Manipulate the results to convert it to an array of document on root level
+    aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     // Finish the preparation of the result
     aggregation.push({ $unwind: '$usersInError' });
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
@@ -1069,24 +1066,29 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
+        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false
-      } as UserNotifications,
+        sendSmtpAuthError: false,
+        sendUserAccountInactivity: false,
+        sendPreparingSessionNotStarted: false,
+        sendOfflineChargingStations: false,
+        sendBillingUserSynchronizationFailed: false
+      },
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
       tags: []
     };
   }
 
-  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
+  private static getUserInErrorFacet(tenantID: string, errorType: string) {
     switch (errorType) {
-      case 'unactive_user':
+      case 'inactive_user':
         return [
-          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-          { $addFields: { 'errorCode': 'unactive_user' } }
+          { $match: { status: { $ne: Constants.USER_STATUS_ACTIVE } } },
+          { $addFields: { 'errorCode': 'inactive_user' } }
         ];
       case 'unassigned_user': {
         return [
@@ -1102,8 +1104,54 @@ export default class UserStorage {
           { $addFields: { 'errorCode': 'unassigned_user' } }
         ];
       }
+      case 'inactive_user_account': {
+        const someMonthsAgo = moment().subtract(6, 'months').toDate();
+        if (moment(someMonthsAgo).isValid()) {
+          return [
+            {
+              $match: {
+                $and: [
+                  { eulaAcceptedOn: { $lte: someMonthsAgo } },
+                  { role: 'B' }]
+              }
+
+            },
+            {
+              $addFields: { 'errorCode': 'inactive_user_account' }
+            }
+          ];
+        }
+
+        return [];
+
+      }
       default:
         return [];
     }
+  }
+
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
+    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
+    let eulaText = null;
+    try {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
+    } catch (e) {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
+    }
+    // Build Front End URL
+    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+    // Parse the auth and replace values
+    eulaText = Mustache.render(
+      eulaText,
+      {
+        'chargeAngelsURL': frontEndURL
+      }
+    );
+    // Debug
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
+    return eulaText;
   }
 }

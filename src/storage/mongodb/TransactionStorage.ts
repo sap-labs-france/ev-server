@@ -28,7 +28,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
   }
 
-  public static async saveTransaction(tenantID: string, transactionToSave: Partial<Transaction>): Promise<number> {
+  public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
@@ -251,7 +251,7 @@ export default class TransactionStorage {
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -670,7 +670,7 @@ export default class TransactionStorage {
     // Filter?
     if (params.search) {
       match.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -759,7 +759,7 @@ export default class TransactionStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = this._buildTransactionsInErrorFacet(type);
+        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -957,7 +957,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
-  private static _buildTransactionsInErrorFacet(errorType: string) {
+  private static getTransactionsInErrorFacet(errorType: string) {
     switch (errorType) {
       case 'long_inactivity':
         return [

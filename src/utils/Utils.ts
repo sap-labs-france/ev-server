@@ -14,18 +14,19 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ChargePointStatus } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
+import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
+import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import Tag from '../types/Tag';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -161,28 +162,28 @@ export default class Utils {
         connectorStats.totalConnectors++;
         // Not Available?
         if (chargingStation.inactive ||
-          connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
+          connector.status === ChargePointStatus.UNAVAILABLE) {
           connectorStats.unavailableConnectors++;
           // Available?
-        } else if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        } else if (connector.status === ChargePointStatus.AVAILABLE) {
           connectorStats.availableConnectors++;
           // Suspended?
-        } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
-          connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
+        } else if (connector.status === ChargePointStatus.SUSPENDED_EV ||
+          connector.status === ChargePointStatus.SUSPENDED_EVSE) {
           connectorStats.suspendedConnectors++;
           // Charging?
-        } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
-          connector.status === Constants.CONN_STATUS_OCCUPIED) {
+        } else if (connector.status === ChargePointStatus.CHARGING ||
+          connector.status === ChargePointStatus.OCCUPIED) {
           connectorStats.chargingConnectors++;
           // Faulted?
-        } else if (connector.status === Constants.CONN_STATUS_FAULTED ||
-          connector.status === Constants.CONN_STATUS_OCCUPIED) {
+        } else if (connector.status === ChargePointStatus.FAULTED ||
+          connector.status === ChargePointStatus.OCCUPIED) {
           connectorStats.faultedConnectors++;
           // Preparing?
-        } else if (connector.status === Constants.CONN_STATUS_PREPARING) {
+        } else if (connector.status === ChargePointStatus.PREPARING) {
           connectorStats.preparingConnectors++;
           // Finishing?
-        } else if (connector.status === Constants.CONN_STATUS_FINISHING) {
+        } else if (connector.status === ChargePointStatus.FINISHING) {
           connectorStats.finishingConnectors++;
         }
       }
@@ -192,7 +193,7 @@ export default class Utils {
           continue;
         }
         // Check if Available
-        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        if (!chargingStation.inactive && connector.status === ChargePointStatus.AVAILABLE) {
           connectorStats.availableChargers++;
           break;
         }
@@ -210,7 +211,7 @@ export default class Utils {
         if (!connector) {
           continue;
         }
-        if (connector.status !== Constants.CONN_STATUS_AVAILABLE) {
+        if (connector.status !== ChargePointStatus.AVAILABLE) {
           lockAllConnectors = true;
           break;
         }
@@ -221,14 +222,14 @@ export default class Utils {
           if (!connector) {
             continue;
           }
-          if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          if (connector.status === ChargePointStatus.AVAILABLE) {
             // Check OCPP Version
             if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
               // Set OCPP 1.5 Occupied
-              connector.status = Constants.CONN_STATUS_OCCUPIED;
+              connector.status = ChargePointStatus.OCCUPIED;
             } else {
               // Set OCPP 1.6 Unavailable
-              connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+              connector.status = ChargePointStatus.UNAVAILABLE;
             }
           }
         }
@@ -354,6 +355,22 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
+  static convertToBoolean(value: any) {
+    let result = false;
+    // Check boolean
+    if (value) {
+      // Check the type
+      if (typeof value === 'boolean') {
+        // Already a boolean
+        result = value;
+      } else {
+        // Convert
+        result = (value === 'true');
+      }
+    }
+    return result;
+  }
+
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
@@ -435,7 +452,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: User): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -581,7 +598,7 @@ export default class Utils {
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
-      recordLimit = parseInt(recordLimit);
+      recordLimit = Utils.convertToInt(recordLimit);
     }
     // Not provided?
     if (isNaN(recordLimit) || recordLimit < 0 || recordLimit === 0) {
@@ -595,11 +612,15 @@ export default class Utils {
   }
 
   public static roundTo(number, scale) {
-    return parseFloat(number.toFixed(scale));
+    return Utils.convertToFloat(number.toFixed(scale));
   }
 
   public static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
+  }
+
+  public static firstLetterInLowerCase(value): string {
+    return value[0].toLowerCase() + value.substring(1);
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -613,7 +634,7 @@ export default class Utils {
   public static checkRecordSkip(recordSkip: number | string): number {
     // String?
     if (typeof recordSkip === 'string') {
-      recordSkip = parseInt(recordSkip);
+      recordSkip = Utils.convertToInt(recordSkip);
     }
     // Not provided?
     if (isNaN(recordSkip) || recordSkip < 0) {
@@ -716,8 +737,6 @@ export default class Utils {
         return 'Blocked';
       case Constants.USER_STATUS_ACTIVE:
         return 'Active';
-      case Constants.USER_STATUS_DELETED:
-        return 'Deleted';
       case Constants.USER_STATUS_INACTIVE:
         return 'Inactive';
       default:

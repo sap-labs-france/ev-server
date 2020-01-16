@@ -19,10 +19,12 @@ import AdvancedConfiguration from './AdvancedConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import LoggingConfiguration from './LoggingConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
+import HealthCheckConfiguration from './HealthCheckConfiguration';
+import MigrationConfiguration from './MigrationConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;
-  Cluster: ClusterConfiguration;
+  Cluster?: ClusterConfiguration;
   CentralSystemServer: CentralSystemServerConfiguration;
   CentralSystems: CentralSystemConfiguration[];
   CentralSystemRestService: CentralSystemRestServiceConfiguration;
@@ -42,4 +44,6 @@ export interface Configuration {
   Advanced: AdvancedConfiguration;
   Scheduler: SchedulerConfiguration;
   Logging: LoggingConfiguration;
+  HealthCheck?: HealthCheckConfiguration;
+  Migration?: MigrationConfiguration;
 }

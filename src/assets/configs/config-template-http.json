@@ -150,6 +150,9 @@
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
   },
+  "Migration": {
+    "active": true
+  },
   "Scheduler": {
     "active": true,
     "tasks": [
@@ -166,6 +169,18 @@
         "name": "OCPIPatchLocationsTask",
         "active": true,
         "periodicity": "0-59/5 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetLocationsTask",
+        "active": true,
+        "periodicity": "0 1 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetTokensTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
         "config": {}
       },
       {

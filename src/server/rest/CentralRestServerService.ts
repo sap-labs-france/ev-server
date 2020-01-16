@@ -20,6 +20,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
+import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -51,8 +52,10 @@ class RequestMapper {
             if (action === 'StopTransaction') {
               action = 'RemoteStopTransaction';
             }
+            // Type it
+            const chargingStationCommand: OCPPChargingStationCommand = action as OCPPChargingStationCommand;
             // Delegate
-            await ChargingStationService.handleAction(action, req, res, next);
+            await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
           'ChargingStationClearCache',
           'ChargingStationGetConfiguration',
@@ -96,6 +99,7 @@ class RequestMapper {
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
+          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
@@ -166,7 +170,6 @@ class RequestMapper {
           ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
-          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
@@ -305,7 +308,6 @@ export default {
       // Execute
       await handleRequest(action, req, res, next);
     } catch (error) {
-      // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

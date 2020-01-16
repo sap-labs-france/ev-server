@@ -1,5 +1,5 @@
-import ChargingStation, { ChargingProfile } from "../../../types/ChargingStation";
-import ChargingStationSpecifics from "../ChargingStationSpecifics";
+import ChargingStation, { ChargingProfile } from '../../../types/ChargingStation';
+import ChargingStationSpecifics from '../ChargingStationSpecifics';
 
 
 export default class SchneiderChargingStationSpecifics extends ChargingStationSpecifics {
@@ -8,7 +8,7 @@ export default class SchneiderChargingStationSpecifics extends ChargingStationSp
   }
 
   public setStaticLimitation(tenantID: string, chargingStation: ChargingStation, maxAmps: number, connectorID?: number) {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile) {
