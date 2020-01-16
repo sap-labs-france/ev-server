@@ -1,6 +1,6 @@
 import ChargingStation, { ChargingProfile } from '../../types/ChargingStation';
 
-export default abstract class ChargingStationSpecifics {
+export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
 
   constructor(chargingStation: ChargingStation) {

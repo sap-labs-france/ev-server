@@ -1,8 +1,8 @@
 import ChargingStation, { ChargingProfile } from '../../../types/ChargingStation';
-import ChargingStationSpecifics from '../ChargingStationSpecifics';
+import ChargingStationVendor from '../ChargingStationVendor';
 
 
-export default class SchneiderChargingStationSpecifics extends ChargingStationSpecifics {
+export default class SchneiderChargingStationVendor extends ChargingStationVendor {
   constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }
