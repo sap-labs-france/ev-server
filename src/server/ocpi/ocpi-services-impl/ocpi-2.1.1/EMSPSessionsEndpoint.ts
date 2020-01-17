@@ -178,6 +178,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         timestamp: session.start_datetime,
         lastUpdate: session.last_updated,
         chargeBoxID: chargingStation.id,
+        timezone: Utils.getTimezone(chargingStation.coordinates),
         connectorId: connectorId,
         meterStart: 0,
         currentTotalConsumption: session.kwh * 1000,
@@ -193,6 +194,11 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     transaction.priceUnit = session.currency;
     transaction.pricingSource = 'ocpi';
     transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+
+    transaction.lastMeterValue = {
+      value: session.kwh * 1000,
+      timestamp: session.last_updated
+    };
 
     if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
       transaction.stop = {
@@ -288,6 +294,10 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     if (session.kwh) {
       transaction.ocpiSession.kwh = session.kwh;
       transaction.currentTotalConsumption = session.kwh * 1000;
+      transaction.lastMeterValue = {
+        value: session.kwh * 1000,
+        timestamp: session.last_updated ? session.last_updated : new Date()
+      }
       if (transaction.stop) {
         transaction.stop.meterStop = transaction.currentTotalConsumption;
         transaction.stop.totalConsumption = transaction.currentTotalConsumption;
