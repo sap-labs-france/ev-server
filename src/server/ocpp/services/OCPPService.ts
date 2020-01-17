@@ -130,20 +130,24 @@ export default class OCPPService {
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
-        if (chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
-          chargingStation.chargePointModel !== bootNotification.chargePointModel) {
-          // Double check on Serial Number
-          if (!chargingStation.chargePointSerialNumber || !bootNotification.chargePointSerialNumber ||
-            chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber) {
-            // Not the same Charging Station!
-            throw new BackendError({
-              source: chargingStation.id,
-              module: 'OCPPService',
-              method: 'handleBootNotification',
-              message: `Registration rejected: Vendor, Model or Serial Number attribute is different: '${bootNotification.chargePointVendor}' / '${bootNotification.chargePointModel} / ${bootNotification.chargePointSerialNumber}'! Expected '${chargingStation.chargePointVendor}' / '${chargingStation.chargePointModel}' / '${chargingStation.chargePointSerialNumber}'`,
-              action: 'BootNotification'
-            });
-          }
+        if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
+            chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
+            (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
+            chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
+          // Not the same Charging Station!
+          throw new BackendError({
+            source: chargingStation.id,
+            module: 'OCPPService',
+            method: 'handleBootNotification',
+            message: `Boot Notif Rejected: Attribute mismatch: ` +
+              (bootNotification.chargePointVendor !== chargingStation.chargePointVendor ? 
+                `Got chargePointVendor='${bootNotification.chargePointVendor}' but expected '${chargingStation.chargePointVendor}'! ` : '') +
+              (bootNotification.chargePointModel !== chargingStation.chargePointModel ?
+                `Got chargePointModel='${bootNotification.chargePointModel}' but expected '${chargingStation.chargePointModel}'! ` : '') +
+              (bootNotification.chargePointSerialNumber !== chargingStation.chargePointSerialNumber ?
+                `Got chargePointSerialNumber='${bootNotification.chargePointSerialNumber ? bootNotification.chargePointSerialNumber : ''}' but expected '${chargingStation.chargePointSerialNumber ? chargingStation.chargePointSerialNumber : ''}'!` : ''),
+            action: 'BootNotification'
+          });
         }
         chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
         chargingStation.chargeBoxSerialNumber = bootNotification.chargeBoxSerialNumber;
