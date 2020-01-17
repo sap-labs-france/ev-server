@@ -395,7 +395,10 @@ export default class ChargingStationService {
     const configurations: ChargingStationConfiguration[] = [];
     for (const chargingStation of chargingStations.result) {
       // Get Configuration
-      configurations.push(await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id));
+      const configuration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
+      if (configuration) {
+        configurations.push(configuration);
+      }
     }
     // Build export
     const filename = 'exported-occp-params.csv';
