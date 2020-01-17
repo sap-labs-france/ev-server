@@ -1,21 +1,22 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Transaction from '../../../../types/Transaction';
+import moment from 'moment';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import Utils from '../../../../utils/Utils';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
-
-const RECORDS_LIMIT = 100;
 /**
  * EMSP Tokens Endpoint
  */
@@ -28,20 +29,14 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        await this.getSessionRequest(req, res, next, tenant);
-        break;
+        return await this.getSessionRequest(req, res, next, tenant);
       case 'PATCH':
-        await this.patchSessionRequest(req, res, next, tenant);
-        break;
+        return await this.patchSessionRequest(req, res, next, tenant);
       case 'PUT':
-        await this.putSessionRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.putSessionRequest(req, res, next, tenant);
     }
   }
 
@@ -51,7 +46,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    * /sessions/{country_code}/{party_id}/{session_id}
    *
    */
-  private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -72,7 +67,19 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success());
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
+    if (!transaction) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'getSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `No transaction found for ocpi session ${sessionId}`,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    return OCPIUtils.success(transaction.ocpiSession);
   }
 
   /**
@@ -80,7 +87,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    */
-  private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async putSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -94,14 +101,121 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
-        method: 'getSessionRequest',
+        method: 'putSessionRequest',
         errorCode: Constants.HTTP_GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
-    res.json(OCPIUtils.success({}));
+    const session: OCPISession = req.body as OCPISession;
+
+    if (!this.validateSession(session)) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'putSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Session object is invalid',
+        detailedMessages: session,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
+    if (!transaction) {
+      const user = await UserStorage.getUserByTagId(tenant.id, session.auth_id);
+      if (!user) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `No user found for auth_id ${session.auth_id}`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
+
+      const evse = session.location.evses[0];
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, evse.evse_id);
+      if (!chargingStation) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `No charging station found for evse_id ${evse.evse_id}`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        });
+      }
+      if (chargingStation.issuer) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'putSessionRequest',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `OCPI Session is not authorized on charging station ${evse.evse_id} issued locally`,
+          detailedMessages: session,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        });
+      }
+
+      let connectorId = 1;
+      if (evse.connectors && evse.connectors.length === 1) {
+        const evseConnectorId = evse.connectors[0].id;
+        chargingStation.connectors.forEach((connector) => {
+          if (evseConnectorId === connector.id) {
+            connectorId = connector.connectorId;
+          }
+        });
+      }
+
+      transaction = {
+        userID: user.id,
+        tagID: session.auth_id,
+        timestamp: session.start_datetime,
+        lastUpdate: session.last_updated,
+        chargeBoxID: chargingStation.id,
+        connectorId: connectorId,
+        meterStart: 0,
+        currentTotalConsumption: session.kwh * 1000,
+        stateOfCharge: 0,
+        currentStateOfCharge: 0,
+        currentTotalInactivitySecs: 0,
+        ocpiSession: session
+      } as Transaction;
+    }
+    transaction.ocpiSession = session;
+    transaction.lastUpdate = session.last_updated;
+    transaction.price = session.total_cost;
+    transaction.priceUnit = session.currency;
+    transaction.pricingSource = 'ocpi';
+    transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+
+    if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
+      transaction.stop = {
+        extraInactivityComputed: false,
+        extraInactivitySecs: 0,
+        meterStop: session.kwh * 1000,
+        price: session.total_cost,
+        priceUnit: session.currency,
+        pricingSource: 'ocpi',
+        roundedPrice: Utils.convertToFloat(session.total_cost.toFixed(2)),
+        stateOfCharge: 0,
+        tagID: session.auth_id,
+        timestamp: session.end_datetime ? session.end_datetime : new Date(),
+        totalConsumption: session.kwh * 1000,
+        totalDurationSecs: Math.round(moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()),
+        totalInactivitySecs: 0,
+        userID: transaction.userID
+      };
+    }
+
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
+
+    return OCPIUtils.success({});
   }
 
   /**
@@ -109,7 +223,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    */
-  private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async patchSessionRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -129,7 +243,114 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    res.json(OCPIUtils.success({}));
+
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
+    if (!transaction) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'getSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `No transaction found for ocpi session ${sessionId}`,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    let patched = false;
+
+    const session: Partial<OCPISession> = req.body as Partial<OCPISession>;
+    if (session.status) {
+      transaction.ocpiSession.status = session.status;
+    }
+    if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
+      if (session.end_datetime) {
+        transaction.ocpiSession.end_datetime = session.end_datetime;
+      }
+      transaction.stop = {
+        extraInactivityComputed: false,
+        extraInactivitySecs: 0,
+        meterStop: transaction.currentTotalConsumption,
+        price: transaction.price,
+        priceUnit: transaction.priceUnit,
+        pricingSource: 'ocpi',
+        roundedPrice: transaction.roundedPrice,
+        stateOfCharge: 0,
+        tagID: transaction.ocpiSession.auth_id,
+        timestamp: session.end_datetime ? session.end_datetime : new Date(),
+        totalConsumption: transaction.currentTotalConsumption,
+        totalDurationSecs: Math.round(moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()),
+        totalInactivitySecs: 0,
+        userID: transaction.userID
+      };
+      patched = true;
+    }
+
+    if (session.kwh) {
+      transaction.ocpiSession.kwh = session.kwh;
+      transaction.currentTotalConsumption = session.kwh * 1000;
+      if (transaction.stop) {
+        transaction.stop.meterStop = transaction.currentTotalConsumption;
+        transaction.stop.totalConsumption = transaction.currentTotalConsumption;
+      }
+      patched = true;
+    }
+
+    if (session.currency) {
+      transaction.ocpiSession.currency = session.currency;
+      transaction.priceUnit = session.currency;
+      if (transaction.stop) {
+        transaction.stop.priceUnit = session.currency;
+      }
+      patched = true;
+    }
+
+    if (session.total_cost) {
+      transaction.ocpiSession.total_cost = session.total_cost;
+      transaction.price = session.total_cost;
+      transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+      if (transaction.stop) {
+        transaction.stop.price = session.total_cost;
+        transaction.stop.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
+      }
+      patched = true;
+    }
+
+    if (!patched) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'getSessionRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Missing request parameters',
+        detailedMessages: session,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+      });
+    }
+
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
+    return OCPIUtils.success({});
+  }
+
+  private validateSession(session: OCPISession): boolean {
+    if (!session.id
+      || !session.start_datetime
+      || !session.auth_id
+      || !session.auth_method
+      || !session.location
+      || !session.currency
+      || !session.status
+      || !session.last_updated
+    ) {
+      return false;
+    }
+    return this.validateLocation(session.location);
+  }
+
+  private validateLocation(location: OCPILocation): boolean {
+    if (!location.evses || location.evses.length !== 1 || !location.evses[0].evse_id) {
+      return false;
+    }
+    return true;
   }
 }
 

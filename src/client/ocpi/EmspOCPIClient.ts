@@ -62,23 +62,23 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
+        action: 'OcpiPushTokens',
+        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
+        method: 'sendTokens'
       });
     } else if (sendResult.success > 0) {
       // Log info
       Logging.logInfo({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
+        action: 'OcpiPushTokens',
+        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
+        method: 'sendTokens'
       });
     }
 

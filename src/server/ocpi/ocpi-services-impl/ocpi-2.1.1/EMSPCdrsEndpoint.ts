@@ -1,16 +1,11 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -28,16 +23,13 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        await this.getCdrRequest(req, res, next, tenant);
+        return await this.getCdrRequest(req, res, next, tenant);
         break;
       case 'POST':
-        await this.postCdrRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
+        return await this.postCdrRequest(req, res, next, tenant);
         break;
     }
   }
@@ -48,7 +40,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    * /sessions/{country_code}/{party_id}/{session_id}
    *
    */
-  private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -69,7 +61,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success());
+    return OCPIUtils.success();
   }
 
   /**
@@ -77,7 +69,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    *
    * /sessions/{country_code}/{party_id}/{session_id}
    */
-  private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -98,8 +90,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success(
-      {}));
+    return OCPIUtils.success({});
   }
 }
 
