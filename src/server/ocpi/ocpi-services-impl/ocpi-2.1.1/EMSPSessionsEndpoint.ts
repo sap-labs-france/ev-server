@@ -198,45 +198,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     }
 
     if (session.kwh > 0) {
-      const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastMeterValue.value);
-      const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
-      if (consumptionWh > 0 || duration > 0) {
-        const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
-        const currentConsumption = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
-        const amount = session.total_cost - transaction.price;
-
-        transaction.currentConsumption = currentConsumption;
-        transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
-        transaction.currentTotalConsumption = transaction.currentTotalConsumption + transaction.currentConsumptionWh;
-
-        if (consumptionWh <= 0) {
-          transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
-          transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
-            transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
-        }
-
-        const consumption: Consumption = {
-          transactionId: transaction.id,
-          connectorId: transaction.connectorId,
-          chargeBoxID: transaction.chargeBoxID,
-          userID: transaction.userID,
-          startedAt: new Date(transaction.lastMeterValue.timestamp),
-          endedAt: new Date(session.last_updated),
-          consumption: transaction.currentConsumptionWh,
-          instantPower: Math.round(transaction.currentConsumption),
-          cumulatedConsumption: transaction.currentTotalConsumption,
-          totalInactivitySecs: transaction.currentTotalInactivitySecs,
-          totalDurationSecs: transaction.stop ?
-            moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-            moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
-          stateOfCharge: transaction.currentStateOfCharge,
-          amount: amount,
-          currencyCode: session.currency,
-          cumulatedAmount: session.total_cost
-        } as Consumption;
-
-        await ConsumptionStorage.saveConsumption(tenant.id, consumption);
-      }
+      await this.computeConsumption(tenant, transaction, session);
     }
 
     transaction.ocpiSession = session;
@@ -389,6 +351,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       });
     }
 
+    await this.computeConsumption(tenant, transaction, transaction.ocpiSession);
+
     await TransactionStorage.saveTransaction(tenant.id, transaction);
     return OCPIUtils.success({});
   }
@@ -413,6 +377,48 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       return false;
     }
     return true;
+  }
+
+  private async computeConsumption(tenant: Tenant, transaction: Transaction, session: OCPISession) {
+    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastMeterValue.value);
+    const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
+    if (consumptionWh > 0 || duration > 0) {
+      const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
+      const currentConsumption = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
+      const amount = session.total_cost - transaction.price;
+
+      transaction.currentConsumption = currentConsumption;
+      transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
+      transaction.currentTotalConsumption = transaction.currentTotalConsumption + transaction.currentConsumptionWh;
+
+      if (consumptionWh <= 0) {
+        transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
+        transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
+          transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
+      }
+
+      const consumption: Consumption = {
+        transactionId: transaction.id,
+        connectorId: transaction.connectorId,
+        chargeBoxID: transaction.chargeBoxID,
+        userID: transaction.userID,
+        startedAt: new Date(transaction.lastMeterValue.timestamp),
+        endedAt: new Date(session.last_updated),
+        consumption: transaction.currentConsumptionWh,
+        instantPower: Math.round(transaction.currentConsumption),
+        cumulatedConsumption: transaction.currentTotalConsumption,
+        totalInactivitySecs: transaction.currentTotalInactivitySecs,
+        totalDurationSecs: transaction.stop ?
+          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
+          moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
+        stateOfCharge: transaction.currentStateOfCharge,
+        amount: amount,
+        currencyCode: session.currency,
+        cumulatedAmount: session.total_cost
+      } as Consumption;
+
+      await ConsumptionStorage.saveConsumption(tenant.id, consumption);
+    }
   }
 }
 
