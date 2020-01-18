@@ -109,14 +109,12 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
-
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
-
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
@@ -192,6 +190,41 @@ export default class ChargingStationService {
         'chargingStationURL': chargingStation.chargingStationURL
       }
     });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleChargingStationLimitPower(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    // Check
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleUpdateChargingStationParams',
+        value: chargingStation.id
+      });
+    }
+    // Check if limit is supported
+    console.log('====================================');
+    console.log(filteredRequest);
+    console.log('====================================');
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

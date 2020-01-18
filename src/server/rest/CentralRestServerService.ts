@@ -193,6 +193,7 @@ class RequestMapper {
           UserUpdate: UserService.handleUpdateUser.bind(this),
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
+          ChargingStationLimitPower: ChargingStationService.handleChargingStationLimitPower.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
