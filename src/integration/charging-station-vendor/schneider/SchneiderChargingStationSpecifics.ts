@@ -24,6 +24,14 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
       }
       // Save it
       await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Constants.ACTION_POWER_LIMITATION,
+        message: `Charging Station power limit has been updated following an OCPP parameter update`,
+        module: 'SchneiderChargingStationVendor', method: 'checkUpdateOfOCPPParams',
+        detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
+      });
     }
   }
 
