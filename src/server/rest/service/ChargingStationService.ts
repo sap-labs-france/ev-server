@@ -13,7 +13,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation, { ChargingStationConfiguration } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
-import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -24,6 +24,7 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 
 export default class ChargingStationService {
 
@@ -202,7 +203,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      'ChargingStationService', 'handleChargingStationLimitPower', req.user);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
@@ -214,17 +215,40 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: Constants.HTTP_AUTH_ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
+        action: Constants.ACTION_POWER_LIMITATION,
         entity: Constants.ENTITY_CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleUpdateChargingStationParams',
+        method: 'handleChargingStationLimitPower',
         value: chargingStation.id
       });
     }
     // Check if limit is supported
-    console.log('====================================');
-    console.log(filteredRequest);
-    console.log('====================================');
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Constants.ACTION_POWER_LIMITATION,
+        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        message: `Charging Station '${chargingStation.id}' does not support power limitation`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
+    // Get the Vendor instance
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    if (!chargingStationVendor) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Constants.ACTION_POWER_LIMITATION,
+        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        message: `No vendor implementation is available for limiting the charge of the Charging Station '${chargingStation.id}'`,
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
+    // Call the limitation
+    await chargingStationVendor.setPowerLimitation(
+      req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -318,19 +342,17 @@ export default class ChargingStationService {
         value: chargingStationID
       });
     }
-
     // Deleted
     if (chargingStation.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `ChargingStation with ID '${chargingStationID}' is already deleted`,
+        message: `Charging Station with ID '${chargingStationID}' is already deleted`,
         module: 'ChargingStationService',
         method: 'handleDeleteChargingStation',
         user: req.user
       });
     }
-
     for (const connector of chargingStation.connectors) {
       if (connector && connector.activeTransactionID) {
         const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.activeTransactionID);
@@ -338,7 +360,7 @@ export default class ChargingStationService {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
-            message: `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
+            message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
             module: 'ChargingStationService',
             method: 'handleDeleteChargingStation',
             user: req.user
@@ -348,7 +370,6 @@ export default class ChargingStationService {
         }
       }
     }
-
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
@@ -1111,8 +1132,16 @@ export default class ChargingStationService {
             key: params.key,
             value: params.value
           });
-          // Refresh Configuration
-          await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
+          // Check
+          if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+            // Refresh Configuration
+            await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
+            // Check update with Vendor
+            const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+            if (chargingStationVendor) {
+              await chargingStationVendor.checkUpdateOfOCPPParams(tenantID, chargingStation, params.key, params.value);
+            }
+          }
           break;
         // Unlock Connector
         case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
