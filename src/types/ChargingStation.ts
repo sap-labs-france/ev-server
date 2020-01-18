@@ -179,7 +179,7 @@ export enum ChargingRateUnitType {
   AMPERE = 'A'
 }
 
-export enum ChargingProfileKindType{
+export enum ChargingProfileKindType {
   ABSOLUTE = 'Absolute',
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'
