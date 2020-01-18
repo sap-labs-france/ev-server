@@ -1133,7 +1133,7 @@ export default class ChargingStationService {
             value: params.value
           });
           // Check
-          if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+          if (result.status === OCPPConfigurationStatus.ACCEPTED) {
             // Refresh Configuration
             await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
             // Check update with Vendor
