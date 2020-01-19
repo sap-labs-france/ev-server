@@ -311,7 +311,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       transaction.lastMeterValue = {
         value: session.kwh * 1000,
         timestamp: session.last_updated ? session.last_updated : new Date()
-      }
+      };
       if (transaction.stop) {
         transaction.stop.meterStop = transaction.currentTotalConsumption;
         transaction.stop.totalConsumption = transaction.currentTotalConsumption;
