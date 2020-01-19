@@ -28,7 +28,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
   }
 
-  public static async saveTransaction(tenantID: string, transactionToSave: Partial<Transaction>): Promise<number> {
+  public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
@@ -136,6 +136,9 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
+    if (transactionToSave.ocpiSession) {
+      transactionMDB.ocpiSession = transactionToSave.ocpiSession;
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
@@ -208,7 +211,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -248,10 +251,12 @@ export default class TransactionStorage {
     // Filter?
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
+    } else if (params.ocpiSessionId) {
+      filterMatch['ocpiSession.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -670,7 +675,7 @@ export default class TransactionStorage {
     // Filter?
     if (params.search) {
       match.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -759,7 +764,7 @@ export default class TransactionStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = this._buildTransactionsInErrorFacet(type);
+        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -831,6 +836,22 @@ export default class TransactionStorage {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionId: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
+    // Found?
+    if (transactionsMDB && transactionsMDB.count > 0) {
+      return transactionsMDB.result[0];
+    }
+    return null;
+  }
+
+  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getOCPITransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delegate work
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getOCPITransaction', uniqueTimerID, { sessionId });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];
@@ -957,7 +978,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
-  private static _buildTransactionsInErrorFacet(errorType: string) {
+  private static getTransactionsInErrorFacet(errorType: string) {
     switch (errorType) {
       case 'long_inactivity':
         return [

@@ -1,20 +1,20 @@
 import moment from 'moment-timezone';
-import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import ChargingStation from '../../../types/ChargingStation';
+import Consumption from '../../../types/Consumption';
+import { PricedConsumption } from '../../../types/Pricing';
+import { ConvergentChargingPricingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Pricing from '../Pricing';
+import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
 import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/RateRequest';
 import { RateResult } from './model/RateResult';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
-import Transaction from '../../../types/Transaction';
-import Consumption from '../../../types/Consumption';
-import { ConvergentChargingPricingSetting } from '../../../types/Setting';
-import { PricedConsumption } from '../../../types/Pricing';
-import Constants from '../../../utils/Constants';
 
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
@@ -147,7 +147,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
     Logging.logError({
       tenantID: this.tenantId,
-      source: chargingStation, module: 'ConvergentCharging',
+      source: chargingStation.id, module: 'ConvergentCharging',
       method: 'handleError', action: action,
       message: chargingResult.message,
       detailedMessages: {
@@ -157,9 +157,10 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     });
     if (chargingResult.status === 'error') {
       if (chargingStation) {
-        await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
-          tagID: this.transaction.tagID,
-          connectorID: consumptionData.connectorId
+        // Execute OCPP Command
+        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+        await chargingStationClient.remoteStopTransaction({
+          transactionId: this.transaction.id
         });
       }
     }
@@ -175,11 +176,14 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
               case 'CSMS_INFO':
                 chargingStation = await ChargingStationStorage.getChargingStation(this.tenantId, this.transaction.chargeBoxID);
                 if (chargingStation) {
-                  await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'setChargingProfile', {
-                    chargingProfileId: 42,
-                    transactionId: consumptionData.transactionId,
-                    message: JSON.stringify(notification)
-                  });
+                  // TODO: To fill proper parameters
+                  // // Get the client
+                  // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+                  // // Set Charging Profile
+                  // await chargingStationClient.setChargingProfile({
+                  //   csChargingProfiles: null,
+                  //   connectorId: null
+                  // });
                 }
                 break;
             }

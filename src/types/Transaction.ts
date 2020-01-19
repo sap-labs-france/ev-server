@@ -2,6 +2,8 @@ import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
+import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
+import { OCPISession } from './ocpi/OCPISession';
 
 export type InactivityStatusLevel =
  'info' |
@@ -15,10 +17,16 @@ export enum InactivityStatus {
   ERROR = 'E'
 }
 
+export enum TransactionAction {
+  START = 'start',
+  UPDATE = 'update',
+  STOP = 'stop'
+}
+
 export default interface Transaction {
-  id: number;
-  siteID: string;
-  siteAreaID: string;
+  id?: number;
+  siteID?: string;
+  siteAreaID?: string;
   connectorId: number;
   tagID: string;
   userID: string;
@@ -40,7 +48,7 @@ export default interface Transaction {
     extraInactivityComputed: boolean;
     totalConsumption: number;
     totalDurationSecs: number;
-    inactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+    inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
     inactivityStatus?: InactivityStatus;
     timestamp: Date;
     transactionData?: any;
@@ -58,32 +66,30 @@ export default interface Transaction {
     reportId?: string;
     status?: any;
   };
-  lastMeterValue?: {
-    value: number;
-    timestamp: Date;
-  };
+  lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
-  price: number;
-  roundedPrice: number;
-  priceUnit: string;
-  pricingSource: string;
+  price?: number;
+  roundedPrice?: number;
+  priceUnit?: string;
+  pricingSource?: string;
   stateOfCharge: number;
   timezone: string;
   lastUpdate?: Date;
   currentTotalInactivitySecs: number;
-  currentInactivityStatusLevel: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
+  currentInactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   numberOfMeterValues: number;
   currentConsumption: number;
   currentConsumptionWh?: number;
-  currentCumulatedPrice: number;
+  currentCumulatedPrice?: number;
   currentTotalConsumption: number;
-  currentSignedData?: number;
+  currentSignedData?: string;
   uniqueId?: string;
   errorCode?: number;
   values?: Consumption[];
   billingData?: BillingTransactionData;
+  ocpiSession?: OCPISession;
 }

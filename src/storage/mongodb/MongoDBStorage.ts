@@ -7,6 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import RunLock from './../../utils/Locking';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import BackendError from '../../exception/BackendError';
+import Utils from '../../utils/Utils';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -303,7 +304,7 @@ export default class MongoDBStorage {
       // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
-        port: Number.parseInt(urlencode(this.dbConfig.port + '')),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port + '')),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),

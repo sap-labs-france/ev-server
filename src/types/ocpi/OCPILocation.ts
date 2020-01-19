@@ -9,8 +9,8 @@ export interface OCPILocation {
   postal_code: string;
   country: string;
   coordinates: {
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
   };
   evses: OCPIEvse[];
   last_updated: Date;
@@ -23,5 +23,11 @@ export enum OCPILocationType {
   PARKING_LOT = 'PARKING_LOT',
   OTHER = 'OTHER',
   UNKNOWN = 'UNKNOWN'
+}
+
+export interface OCPILocationReference {
+  location_id: string;
+  evse_uids: string[];
+  connector_ids: string[];
 }
 

@@ -2,61 +2,61 @@
 	"notifications": {
 		"sessionStarted": {
 			"title": "Session Started",
-			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully"
+			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "OCPI - Patch Status Failed",
-			"body": "The transfer of the Charging Station's statuses has failed on location '{{location}}', check the logs"
+			"title": "Patch Status",
+			"body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
 		},
 		"smtpAuthError": {
 			"title": "Email Server Error",
-			"body": "The authentication against the primary email server has failed, check the configuration"
+			"body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
 		},
 		"optimalChargeReached": {
 			"title": "Optimal Charge Reached",
-			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%)"
+			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"
 		},
 		"endOfCharge": {
 			"title": "Charge Finished",
-			"body": "Your electric vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging"
+			"body": "Your electric vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging in organization '{{tenantName}}'"
 		},
 		"endOfSession": {
 			"title": "Session Finished",
-			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished"
+			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished in organization '{{tenantName}}'"
 		},
 		"chargingStationStatusError": {
-			"title": "Error on '{{chargeBoxID}}'",
-			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
+			"title": "Charging Station in Error",
+			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}': {{error}}"
 		},
 		"unknownUserBadged": {
 			"title": "Unknown User",
-			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}'"
+			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}' in organization '{{tenantName}}'"
 		},
 		"chargingStationRegistered": {
-			"title": "{{chargeBoxID}} just Connected",
-			"body": "The charging station '{{chargeBoxID}}' just got connected to the central server"
+			"title": "Charging Station Connected",
+			"body": "The charging station '{{chargeBoxID}}' just got connected to the central server in organization '{{tenantName}}'"
 		},
 		"userAccountStatusChanged": {
 			"title": "Account {{status}}",
 			"activated": "activated",
 			"suspended": "suspended",
-			"body": "Your account has been {{status}} by an administrator"
+			"body": "Your account has been {{status}} by an administrator in organization '{{tenantName}}'"
 		},
 		"userAccountInactivity": {
-			"title": "User Account Inactivity",
-			"body": "Your account has been inactive since {{lastLogin}}. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted."
+			"title": "User Account",
+			"body": "Your account has been inactive since {{lastLogin}} in organization '{{tenantName}}'. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted"
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Not Started",
-			"body": "Session not started on charging station '{{chargeBoxID}}', connector '{{connectorId}}'."
+			"body": "Session not started on charging station '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}'"
 		},
 		"offlineChargingStation": {
 			"title": "Offline Charging Stations",
-			"body": "At least one charging station is offline in your organization."
+			"body": "The following charging stations are offline in organization '{{tenantName}}': {{chargeBoxIDs}}"
 		},
     "billingUserSynchronizationFailed": {
       "title": "User Synchro Failed",
-      "body": "Unable to synchronize {{nbrUsersInError}} user(s) with Billing Service provider"
+      "body": "Unable to synchronize {{nbrUsersInError}} user(s) with the billing service provider in organization '{{tenantName}}'"
     }
 	},
   "billing": {

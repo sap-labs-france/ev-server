@@ -575,7 +575,7 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-      transaction: Transaction, tagID: string, action: string): Promise<User> {
+    transaction: Transaction, tagID: string, action: string): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
@@ -732,7 +732,7 @@ export default class Authorizations {
         method: 'checkAndGetUserTagIDOnChargingStation',
         user: user
       });
-    } else if (user.status === Constants.USER_STATUS_DELETED) {
+    } else if (user.deleted) {
       // Set default user's value
       user.name = 'Unknown';
       user.firstName = 'User';

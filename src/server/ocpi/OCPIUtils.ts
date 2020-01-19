@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import Constants from '../../utils/Constants';
 import AppError from '../../exception/AppError';
+import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 
 /**
  * OCPI Utils
@@ -11,7 +12,7 @@ export default class OCPIUtils {
    * Return OCPI Success Body Response
    * @param {*} data
    */
-  public static success(data?: any): { data: any; status_code: number; status_message: string; timestamp: string } { // TODO: restrict any
+  public static success(data?: any): OCPIResponse {
     return {
       'data': data,
       'status_code': Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
@@ -24,11 +25,11 @@ export default class OCPIUtils {
    * Return OCPI Error Body Response
    * @param {*} error
    */
-  public static toErrorResponse(error: Error): { status_code: number; status_message: string; timestamp: string } {
+  public static toErrorResponse(error: Error): OCPIResponse {
     return {
-      status_message: error.message,
-      timestamp: new Date().toISOString(),
-      status_code: error instanceof AppError && error.params.ocpiError ?
+      'status_message': error.message,
+      'timestamp': new Date().toISOString(),
+      'status_code': error instanceof AppError && error.params.ocpiError ?
         error.params.ocpiError.status_code : Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR.status_code
     };
   }

@@ -1,4 +1,4 @@
 export default interface ClusterConfiguration {
   enabled: boolean;
-  numWorkers: number;
+  numWorkers?: number;
 }

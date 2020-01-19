@@ -22,6 +22,7 @@ export default class Constants {
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
+  public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
 
   public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
   public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
@@ -59,17 +60,6 @@ export default class Constants {
   public static readonly DEFAULT_TENANT = 'default';
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
-
-  public static readonly CONN_STATUS_AVAILABLE = 'Available';
-  public static readonly CONN_STATUS_OCCUPIED = 'Occupied';
-  public static readonly CONN_STATUS_CHARGING = 'Charging';
-  public static readonly CONN_STATUS_FAULTED = 'Faulted';
-  public static readonly CONN_STATUS_RESERVED = 'Reserved';
-  public static readonly CONN_STATUS_FINISHING = 'Finishing';
-  public static readonly CONN_STATUS_PREPARING = 'Preparing';
-  public static readonly CONN_STATUS_SUSPENDED_EVSE = 'SuspendedEVSE';
-  public static readonly CONN_STATUS_SUSPENDED_EV = 'SuspendedEV';
-  public static readonly CONN_STATUS_UNAVAILABLE = 'Unavailable';
 
   public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
   public static readonly STATS_GROUP_BY_USAGE = 'U';
@@ -128,7 +118,6 @@ export default class Constants {
   // Statuses
   public static readonly USER_STATUS_PENDING = 'P';
   public static readonly USER_STATUS_ACTIVE = 'A';
-  public static readonly USER_STATUS_DELETED = 'D';
   public static readonly USER_STATUS_INACTIVE = 'I';
   public static readonly USER_STATUS_BLOCKED = 'B';
   public static readonly USER_STATUS_LOCKED = 'L';
@@ -165,6 +154,7 @@ export default class Constants {
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
   public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
+  public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
@@ -194,13 +184,6 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
   public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
-
-  public static readonly METER_VALUE_CTX_SAMPLE_PERIODIC = 'Sample.Periodic';
-  public static readonly METER_VALUE_CTX_SAMPLE_CLOCK = 'Sample.Clock';
-  public static readonly METER_VALUE_FORMAT_RAW = 'Raw';
-  public static readonly METER_VALUE_MEASURAND_IMPREG = 'Energy.Active.Import.Register';
-  public static readonly METER_VALUE_LOCATION_OUTLET = 'Outlet';
-  public static readonly METER_VALUE_UNIT_WH = 'Wh';
 
   public static readonly CHARGER_VENDOR_EBEE = 'Bender GmbH Co. KG';
   public static readonly CHARGER_VENDOR_SCHNEIDER = 'Schneider Electric';

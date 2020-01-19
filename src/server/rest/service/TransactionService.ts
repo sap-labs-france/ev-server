@@ -314,6 +314,7 @@ export default class TransactionService {
       },
       {
         transactionId: transactionId,
+        chargeBoxID: chargingStation.id,
         idTag: req.user.tagIDs[0],
         timestamp: Utils.convertToDate(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp).toISOString(),
         meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart

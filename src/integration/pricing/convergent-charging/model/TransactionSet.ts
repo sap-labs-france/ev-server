@@ -1,4 +1,5 @@
 import { CCTransaction } from './CCTransaction';
+import Utils from '../../../../utils/Utils';
 
 export class TransactionSet {
   public ccTransactions: CCTransaction[];
@@ -12,7 +13,7 @@ export class TransactionSet {
   }
 
   getTotalUnroundedAmount(): number {
-    return this.ccTransactions.map((t) => parseFloat(t.details['default.unrounded_amount']))
+    return this.ccTransactions.map((t) => Utils.convertToFloat(t.details['default.unrounded_amount']))
       .reduce((previousValue, currentValue) => previousValue + currentValue, 0);
   }
 
