@@ -603,8 +603,7 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector
-    if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION ||
-      command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
+    if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
