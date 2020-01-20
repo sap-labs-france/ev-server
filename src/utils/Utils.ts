@@ -524,8 +524,9 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+  public static buildOCPPServerURL(tenantID: string, ocppVersion: string, ocppProtocol: string, token?: string): string {
     let ocppUrl;
+    const version = ocppVersion === Constants.OCPP_VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
       case Constants.OCPP_PROTOCOL_JSON:
         ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
@@ -535,7 +536,7 @@ export default class Utils {
         return ocppUrl;
       case Constants.OCPP_PROTOCOL_SOAP:
       default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
         if (token) {
           ocppUrl += `%26Token=${token}`;
         }
