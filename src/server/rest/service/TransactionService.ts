@@ -208,6 +208,7 @@ export default class TransactionService {
   public static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -220,13 +221,25 @@ export default class TransactionService {
         value: transactionId.toString()
       });
     }
-    // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(transactionId, 'TransactionsService', 'handleDeleteTransaction', req.user);
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
-    if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+    const result = await TransactionService.deleteTransactions(req.user, [transactionId]);
+    if (result['TransactionsIdToDelete'].length > 0) {
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+        module: 'TransactionService', method: 'handleDeleteTransaction',
+        message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
+        action: action, detailedMessages: transaction
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    }
+
+    else if (result['TransactionsIdsNotFound'].length > 0) {
+      UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+    }
+
+    else if (result['TransactionsIdsRefunded'].length > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -236,39 +249,15 @@ export default class TransactionService {
         user: req.user
       });
     }
-    // Handle active transactions
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    if (!transaction.stop) {
-      // Free the Charging Station
-      UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-      const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
-      if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-        OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-        await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
-      }
+
+    else {
+      UtilsService.assertObjectExists(null, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
     }
-    // Delete Transaction
-    await TransactionStorage.deleteTransaction(req.user.tenantID, transaction);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-      module: 'TransactionService', method: 'handleDeleteTransaction',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-      action: action, detailedMessages: transaction
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
   }
-  /* eslint-disable */
+
   public static async handleDeleteTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionsIds = TransactionSecurity.filterTransactionsRequestByID(req.body);
-    const transactionsIdToDelete = [];
-    const transactionsIdsNotFound = [];
-    const transactionsIdRefunded = [];
-    const transactionsIdNoChargingStation = [];
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
@@ -281,39 +270,11 @@ export default class TransactionService {
         value: transactionsIds.toString()
       });
     }
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
-    for (const transactionId of transactionsIds) {
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-      if (!transaction) {
-        transactionsIdsNotFound.push(transactionId);
-      }
-      else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
-        transactionsIdRefunded.push(transactionId);
-      }
-      else {
-        if (!transaction.stop) {
-          const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-          if (!chargingStation) {
-            transactionsIdNoChargingStation.push(transactionId);
-          }
-          else {
-            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
-            if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-              OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-              await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
-            }
-            transactionsIdToDelete.push(transactionId);
-          }
-        }
-        else {
-          transactionsIdToDelete.push(transactionId);
-        }
-      }
-    }
-
-    // Handle active transactions
-    // Delete Transaction
-    await TransactionStorage.deleteTransactions(req.user.tenantID, transactionsIdToDelete);
+    const result = await TransactionService.deleteTransactions(req.user, transactionsIds);
+    const transactionsIdToDelete = result['TransactionsIdToDelete'];
+    const transactionsIdsNotFound = result['TransactionsIdsNotFound'];
+    const transactionsIdRefunded = result['TransactionsIdsRefunded'];
+    const transactionsIdNoChargingStation = result['TransactionsIdsNoChargingStation'];
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -987,4 +948,52 @@ export default class TransactionService {
     }
     return csv;
   }
+
+  private static async  deleteTransactions(loggedUser: UserToken, transactionsIDs: number[]): Promise<{ [id: string]: number[] }> {
+    const transactionsIDsToDelete = [];
+    const transactionsIDsNotFound = [];
+    const transactionsIDsRefunded = [];
+    const transactionsIDsNoChargingStation = [];
+    const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
+    for (const transactionId of transactionsIDs) {
+      const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
+      if (!transaction) {
+        transactionsIDsNotFound.push(transactionId);
+      }
+      else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+        transactionsIDsRefunded.push(transactionId);
+      }
+      else {
+        if (!transaction.stop) {
+          const chargingStation = await ChargingStationStorage.getChargingStation(loggedUser.tenantID, transaction.chargeBoxID);
+          if (!chargingStation) {
+            transactionsIDsNoChargingStation.push(transactionId);
+          }
+          else {
+            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+            if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
+              OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
+              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, chargingStation);
+            }
+            transactionsIDsToDelete.push(transactionId);
+          }
+        }
+        else {
+          transactionsIDsToDelete.push(transactionId);
+        }
+      }
+    }
+
+    // Delete Transaction
+    await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
+    return {
+      'TransactionsIdToDelete': transactionsIDsToDelete,
+      'TransactionsIdsNotFound': transactionsIDsNotFound,
+      'TransactionsIdsRefunded': transactionsIDsRefunded,
+      'TransactionsIdsNoChargingStation': transactionsIDsNoChargingStation
+    };
+
+  }
 }
+
+

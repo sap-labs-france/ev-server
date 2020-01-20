@@ -12,23 +12,10 @@ import RefundReport from '../../types/RefundReport';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Delete
-    await global.database.getCollection<Transaction>(tenantID, 'transactions')
-      .findOneAndDelete({ '_id': transaction.id });
-    // Delete Meter Values
-    await global.database.getCollection<any>(tenantID, 'metervalues')
-      .deleteMany({ 'transactionId': transaction.id });
-    // Delete Consumptions
-    ConsumptionStorage.deleteConsumptions(tenantID, transaction.id);
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
+    await this.deleteTransactions(tenantID, [transaction.id]);
   }
 
-  public static async deleteTransactions(tenantID: string, transactionsIDs: Transaction[]): Promise<void> {
+  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
@@ -40,7 +27,7 @@ export default class TransactionStorage {
     await global.database.getCollection<any>(tenantID, 'metervalues')
       .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
-    ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
+    await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
   }
