@@ -28,6 +28,23 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
   }
 
+  public static async deleteTransactions(tenantID: string, transactionsIDs: Transaction[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<Transaction>(tenantID, 'transactions')
+      .deleteMany({ '_id': { $in: transactionsIDs } });
+    // Delete Meter Values
+    await global.database.getCollection<any>(tenantID, 'metervalues')
+      .deleteMany({ 'transactionId': { $in: transactionsIDs } });
+    // Delete Consumptions
+    ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
+  }
+
   public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
