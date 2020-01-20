@@ -50,6 +50,16 @@ export default class OCPIUtils {
   }
 
   /**
+   * Build Location Url
+   * @param {*} req request in order to get url
+   * @param {*} id the object id to build the location url
+   */
+  public static buildLocationUrl(req: Request, id: string): string {
+    // Build url
+    return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '/' + id;
+  }
+
+  /**
    * Convert from base64 back to String.
    * @param {*} string encoded base64
    */
