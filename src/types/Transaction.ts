@@ -4,6 +4,7 @@ import Consumption from './Consumption';
 import User from './User';
 import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
 import { OCPISession } from './ocpi/OCPISession';
+import { OCPICdr } from './ocpi/OCPICdr';
 
 export type InactivityStatusLevel =
  'info' |
@@ -92,4 +93,5 @@ export default interface Transaction {
   values?: Consumption[];
   billingData?: BillingTransactionData;
   ocpiSession?: OCPISession;
+  ocpiCdr?: OCPICdr;
 }
