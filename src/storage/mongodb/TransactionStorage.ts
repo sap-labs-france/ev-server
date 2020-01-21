@@ -136,6 +136,12 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
+    if (transactionToSave.ocpiSession) {
+      transactionMDB.ocpiSession = transactionToSave.ocpiSession;
+    }
+    if (transactionToSave.ocpiCdr) {
+      transactionMDB.ocpiCdr = transactionToSave.ocpiCdr;
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
@@ -208,7 +214,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -248,6 +254,8 @@ export default class TransactionStorage {
     // Filter?
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
+    } else if (params.ocpiSessionId) {
+      filterMatch['ocpiSession.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
@@ -831,6 +839,22 @@ export default class TransactionStorage {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionId: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
+    // Found?
+    if (transactionsMDB && transactionsMDB.count > 0) {
+      return transactionsMDB.result[0];
+    }
+    return null;
+  }
+
+  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getOCPITransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delegate work
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getOCPITransaction', uniqueTimerID, { sessionId });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];

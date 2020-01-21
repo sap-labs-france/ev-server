@@ -42,7 +42,7 @@ export default class OCPPUtils {
     return foundTemplate;
   }
 
-  public static async enrichCharingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<boolean> {
+  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<boolean> {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
     // Copy from template
@@ -154,7 +154,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        module: 'OCPPUtils', method: 'enrichCharingStationWithTemplate',
+        module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
         action: 'ChargingStationTemplate',
         message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
         detailedMessages: chargingStationTemplate
@@ -165,14 +165,14 @@ export default class OCPPUtils {
     Logging.logWarning({
       tenantID: tenantID,
       source: chargingStation.id,
-      module: 'OCPPUtils', method: 'enrichCharingStationWithTemplate',
+      module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
       action: 'ChargingStationTemplate',
       message: `No Template has been found for '${chargingStation.chargePointVendor}'`
     });
     return false;
   }
 
-  public static async enrichCharingStationConnectorWithTemplate(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<boolean> {
+  public static async enrichChargingStationConnectorWithTemplate(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<boolean> {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
     // Copy from template
@@ -186,7 +186,7 @@ export default class OCPPUtils {
           // Log
           Logging.logWarning({
             tenantID: tenantID, source: chargingStation.id,
-            module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+            module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
             action: 'ChargingStationTemplate',
             message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
           });
@@ -202,6 +202,7 @@ export default class OCPPUtils {
             connector.numberOfConnectedPhase = templateConnector.numberOfConnectedPhase;
             connector.voltage = templateConnector.voltage;
             connector.amperage = templateConnector.amperage;
+            connector.amperageLimit = templateConnector.amperage;
             break;
           }
         }
@@ -211,7 +212,7 @@ export default class OCPPUtils {
       // Log
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id,
-        module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+        module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
         action: 'ChargingStationTemplate',
         message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
         detailedMessages: chargingStationTemplate
@@ -221,7 +222,7 @@ export default class OCPPUtils {
     // Log
     Logging.logWarning({
       tenantID: tenantID, source: chargingStation.id,
-      module: 'OCPPUtils', method: 'enrichCharingStationConnectorWithTemplate',
+      module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
       action: 'ChargingStationTemplate',
       message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
     });

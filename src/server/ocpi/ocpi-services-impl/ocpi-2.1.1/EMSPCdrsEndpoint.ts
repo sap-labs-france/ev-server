@@ -1,23 +1,20 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import Site from '../../../../types/Site';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
-
-const RECORDS_LIMIT = 100;
 /**
- * EMSP Tokens Endpoint
+ * EMSP Cdrs Endpoint
  */
 export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
@@ -28,37 +25,32 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        await this.getCdrRequest(req, res, next, tenant);
+        return await this.getCdrRequest(req, res, next, tenant);
         break;
       case 'POST':
-        await this.postCdrRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
+        return await this.postCdrRequest(req, res, next, tenant);
         break;
     }
   }
 
   /**
-   * Get the Session object from the eMSP system by its id {session_id}.
+   * Get the Cdr object from the eMSP system by its id {cdr_id}.
    *
-   * /sessions/{country_code}/{party_id}/{session_id}
+   * /cdrs/{cdr_id}
    *
    */
-  private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
 
     // Get filters
-    const countryCode = urlSegment.shift();
-    const partyId = urlSegment.shift();
-    const sessionId = urlSegment.shift();
+    const id = urlSegment.shift();
 
-    if (!countryCode || !partyId || !sessionId) {
+    if (!id) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -69,37 +61,99 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success());
-  }
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
 
-  /**
-   * Send a new/updated Session object.
-   *
-   * /sessions/{country_code}/{party_id}/{session_id}
-   */
-  private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
-    const urlSegment = req.path.substring(1).split('/');
-    // Remove action
-    urlSegment.shift();
-
-    // Get filters
-    const countryCode = urlSegment.shift();
-    const partyId = urlSegment.shift();
-    const sessionId = urlSegment.shift();
-
-    if (!countryCode || !partyId || !sessionId) {
+    if (!transaction || !transaction.ocpiCdr) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
-        method: 'getSessionRequest',
+        method: 'postCdrRequest',
         errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'Missing request parameters',
+        message: `The CDR ${id} does not exist or does not belong to the requester`,
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
-    res.json(OCPIUtils.success(
-      {}));
+    return OCPIUtils.success(transaction.ocpiCdr);
+  }
+
+  /**
+   * Post a new cdr object.
+   *
+   * /cdrs/
+   */
+  private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+    const cdr: OCPICdr = req.body as OCPICdr;
+
+    if (!this.validateCdr(cdr)) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCdrRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Cdr object is invalid',
+        detailedMessages: cdr,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, cdr.id);
+
+    if (!transaction) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCdrRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `No transaction found for ocpi session ${cdr.id}`,
+        detailedMessages: cdr,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+    if (transaction.ocpiCdr) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCdrRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `A cdr already exists for the session ${cdr.id}`,
+        detailedMessages: cdr,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    transaction.ocpiCdr = cdr;
+    await TransactionStorage.saveTransaction(tenant.id, transaction);
+
+    res.setHeader('Location', OCPIUtils.buildLocationUrl(req, cdr.id));
+
+    return OCPIUtils.success({});
+  }
+
+  private validateCdr(cdr: OCPICdr): boolean {
+    if (!cdr.id
+      || !cdr.start_date_time
+      || !cdr.stop_date_time
+      || !cdr.auth_id
+      || !cdr.auth_method
+      || !cdr.location
+      || !cdr.currency
+      || !cdr.charging_periods
+      || !cdr.total_cost
+      || !cdr.total_energy
+      || !cdr.total_time
+      || !cdr.last_updated
+    ) {
+      return false;
+    }
+    return this.validateLocation(cdr.location);
+  }
+
+  private validateLocation(location: OCPILocation): boolean {
+    if (!location.evses || location.evses.length !== 1 || !location.evses[0].evse_id) {
+      return false;
+    }
+    return true;
   }
 }
 

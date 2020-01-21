@@ -75,6 +75,7 @@ export interface Connector {
   type: string;
   voltage?: number;
   amperage?: number;
+  amperageLimit?: number;
   activeTransactionID?: number;
   activeTransactionDate?: Date;
   activeTagID?: string;
@@ -184,7 +185,7 @@ export enum ChargingRateUnitType {
   AMPERE = 'A'
 }
 
-export enum ChargingProfileKindType{
+export enum ChargingProfileKindType {
   ABSOLUTE = 'Absolute',
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'

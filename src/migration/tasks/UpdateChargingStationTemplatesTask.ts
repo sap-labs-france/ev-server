@@ -1,7 +1,7 @@
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import ChargingStation from '../../types/ChargingStation';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -26,11 +26,28 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     let updated = 0;
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(tenant.id, 'chargingstations').find(
-      { 'currentType2': { $exists: false } }).toArray();
+      {
+        $or: [
+          { 'currentType': { $exists: false } },
+          { 'connectors.numberOfConnectedPhase': { $exists: false } },
+          { 'connectors.amperageLimit': { $exists: false } }
+        ]
+      }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
-      const chargingStationUpdated = await OCPPUtils.enrichCharingStationWithTemplate(tenant.id, chargingStationMDB);
+      let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStationMDB);
+      for (const connector of chargingStationMDB.connectors) {
+        const chargingStationConnectorUpdated = await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant.id, chargingStationMDB, connector.connectorId);
+        chargingStationUpdated = chargingStationUpdated || chargingStationConnectorUpdated;
+      }
+      // Check Connectors
+      for (const connector of chargingStationMDB.connectors) {
+        if (!connector.hasOwnProperty('amperageLimit')) {
+          connector.amperageLimit = connector.amperage;
+          chargingStationUpdated = true;
+        }
+      }
       // Save
       if (chargingStationUpdated) {
         await global.database.getCollection(tenant.id, 'chargingstations').findOneAndUpdate(

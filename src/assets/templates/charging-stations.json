@@ -534,7 +534,7 @@
 		"id": "ABB~MDTERRA53",
 		"chargePointVendor": "ABB",
 		"extraFilters": {
-			"chargeBoxSerialNumber": "MD_TERRA_53"
+			"chargePointModel": "MD_TERRA_53"
 		},
 		"template": {
 			"cannotChargeInParallel": true,
