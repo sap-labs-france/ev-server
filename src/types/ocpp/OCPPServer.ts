@@ -30,6 +30,16 @@ export interface OCPPBootNotificationResponse {
   heartbeatInterval: number;
 }
 
+export enum OCPPProtocol {
+  SOAP = 'soap',
+  JSON = 'json',
+}
+
+export enum OCPPVersion {
+  VERSION_16 = '1.6',
+  VERSION_15 = '1.5',
+}
+
 export enum RegitrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',
