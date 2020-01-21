@@ -6,7 +6,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import SmartChargingFactory from '../../integration/smartCharging/SmartChargingFactory';
 
-export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
+export default class SynchronizeSmartChargingProfilesTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.SMART_CHARGING)) {
       Logging.logDebug({

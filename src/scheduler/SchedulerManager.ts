@@ -70,6 +70,7 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeSmartChargingProfilesTask':
             schedulerTask = new SynchronizeSmartChargingProfilesTask();
+            break;
           case 'SynchronizeBillingUsersTask':
             schedulerTask = new SynchronizeBillingUsersTask();
             break;
