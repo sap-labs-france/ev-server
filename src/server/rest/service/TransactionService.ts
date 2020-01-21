@@ -13,7 +13,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Consumption from '../../../types/Consumption';
-import Transaction from '../../../types/Transaction';
+import Transaction, { TransactionIDs } from '../../../types/Transaction';
 import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -222,7 +222,7 @@ export default class TransactionService {
       });
     }
     const result = await TransactionService.deleteTransactions(req.user, [transactionId]);
-    if (result['TransactionsIdToDelete'].length > 0) {
+    if (result.transactionsIdToDelete.length > 0) {
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -235,11 +235,11 @@ export default class TransactionService {
       next();
     }
 
-    else if (result['TransactionsIdsNotFound'].length > 0) {
+    else if (result.transactionsIdsNotFound.length > 0) {
       UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
     }
 
-    else if (result['TransactionsIdsRefunded'].length > 0) {
+    else if (result.transactionsIdsRefunded.length > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -271,10 +271,10 @@ export default class TransactionService {
       });
     }
     const result = await TransactionService.deleteTransactions(req.user, transactionsIds);
-    const transactionsIdToDelete = result['TransactionsIdToDelete'];
-    const transactionsIdsNotFound = result['TransactionsIdsNotFound'];
-    const transactionsIdRefunded = result['TransactionsIdsRefunded'];
-    const transactionsIdNoChargingStation = result['TransactionsIdsNoChargingStation'];
+    const transactionsIdToDelete = result.transactionsIdToDelete;
+    const transactionsIdsNotFound = result.transactionsIdsNotFound;
+    const transactionsIdRefunded = result.transactionsIdsRefunded;
+    const transactionsIdNoChargingStation = result.transactionsIdsNoChargingStation;
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -949,7 +949,7 @@ export default class TransactionService {
     return csv;
   }
 
-  private static async  deleteTransactions(loggedUser: UserToken, transactionsIDs: number[]): Promise<{ [id: string]: number[] }> {
+  private static async deleteTransactions(loggedUser: UserToken, transactionsIDs: number[]): Promise<TransactionIDs> {
     const transactionsIDsToDelete = [];
     const transactionsIDsNotFound = [];
     const transactionsIDsRefunded = [];
@@ -983,17 +983,17 @@ export default class TransactionService {
         }
       }
     }
-
     // Delete Transaction
     await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
-    return {
-      'TransactionsIdToDelete': transactionsIDsToDelete,
-      'TransactionsIdsNotFound': transactionsIDsNotFound,
-      'TransactionsIdsRefunded': transactionsIDsRefunded,
-      'TransactionsIdsNoChargingStation': transactionsIDsNoChargingStation
+
+    const transactionIDs: TransactionIDs = {
+      transactionsIdToDelete:transactionsIDsToDelete,
+      transactionsIdsNoChargingStation:transactionsIDsNoChargingStation,
+      transactionsIdsNotFound:transactionsIDsNotFound,
+      transactionsIdsRefunded: transactionsIDsRefunded
     };
+
+    return transactionIDs;
 
   }
 }
-
-

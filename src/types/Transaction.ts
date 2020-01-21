@@ -3,12 +3,20 @@ import ChargingStation from '../types/ChargingStation';
 import Consumption from './Consumption';
 import User from './User';
 import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
+import { type } from 'os';
 
 export type InactivityStatusLevel =
  'info' |
  'warning' |
  'danger'
 ;
+
+export type TransactionIDs = {
+  transactionsIdToDelete: number[];
+  transactionsIdsNotFound: number[];
+  transactionsIdsRefunded: number[];
+  transactionsIdsNoChargingStation: number[];
+};
 
 export enum InactivityStatus {
   INFO = 'I',
