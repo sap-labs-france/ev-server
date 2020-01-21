@@ -139,6 +139,9 @@ export default class TransactionStorage {
     if (transactionToSave.ocpiSession) {
       transactionMDB.ocpiSession = transactionToSave.ocpiSession;
     }
+    if (transactionToSave.ocpiCdr) {
+      transactionMDB.ocpiCdr = transactionToSave.ocpiCdr;
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
