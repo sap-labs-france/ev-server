@@ -1,6 +1,8 @@
+import { OCPPVersion, OCPPProtocol } from "./OCPPServer";
+
 export interface OCPPHeader {
-  ocppVersion?: string;
-  ocppProtocol?: string;
+  ocppVersion?: OCPPVersion;
+  ocppProtocol?: OCPPProtocol;
   chargeBoxIdentity?: string;
   currentIPAddress?: string;
   tenantID?: string;

@@ -1,4 +1,4 @@
-import Constants from '../../utils/Constants';
+import { OCPPProtocol, OCPPVersion } from '../../types/ocpp/OCPPServer';
 import OCPPService from './services/OCPPService';
 
 export default class CentralSystemServer {
@@ -21,11 +21,11 @@ export default class CentralSystemServer {
   start() {
   }
 
-  getChargingStationService(protocol): OCPPService {
-    switch (protocol) {
-      case Constants.OCPP_VERSION_12:
-      case Constants.OCPP_VERSION_15:
-      case Constants.OCPP_VERSION_16:
+  getChargingStationService(ocppVersion: OCPPVersion): OCPPService {
+    switch (ocppVersion) {
+      case OCPPVersion.VERSION_12:
+      case OCPPVersion.VERSION_15:
+      case OCPPVersion.VERSION_16:
       default:
         if (!this.chargingStationService) {
           this.chargingStationService = new OCPPService(this.chargingStationConfig);

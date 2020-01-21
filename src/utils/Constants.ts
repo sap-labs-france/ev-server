@@ -223,13 +223,6 @@ export default class Constants {
 
   public static readonly OCPP_RESPONSE_ACCEPTED = 'Accepted';
 
-  public static readonly OCPP_PROTOCOL_JSON = 'json';
-  public static readonly OCPP_PROTOCOL_SOAP = 'soap';
-  public static readonly OCPP_VERSION_12 = '1.2';
-  public static readonly OCPP_VERSION_15 = '1.5';
-  public static readonly OCPP_VERSION_16 = '1.6';
-  public static readonly OCPP_VERSION_20 = '2.0';
-
   public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
   public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';
   public static readonly REFUND_STATUS_CANCELLED = 'cancelled';

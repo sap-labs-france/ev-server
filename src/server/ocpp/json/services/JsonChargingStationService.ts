@@ -1,5 +1,5 @@
-import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
+import { OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Logging from '../../../../utils/Logging';
 
 const MODULE_NAME = 'JsonChargingStationService';
@@ -10,7 +10,7 @@ export default class JsonChargingStationService {
   constructor(chargingStationConfig) {
     this.chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
-    this.chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
+    this.chargingStationService = global.centralSystemJson.getChargingStationService(OCPPVersion.VERSION_16);
   }
 
   async _handle(command, headers, payload) {

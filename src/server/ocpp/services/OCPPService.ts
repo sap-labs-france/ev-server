@@ -15,7 +15,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation, { Connector, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequest, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, RegitrationStatus, OCPPVersion, OCPPProtocol } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -926,7 +926,7 @@ export default class OCPPService {
   private filterMeterValuesOnCharger(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPNormalizedMeterValues) {
     // Clean up Sample.Clock meter value
     if (chargingStation.chargePointVendor !== Constants.CHARGER_VENDOR_ABB ||
-      chargingStation.ocppVersion !== Constants.OCPP_VERSION_15) {
+      chargingStation.ocppVersion !== OCPPVersion.VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
@@ -951,7 +951,7 @@ export default class OCPPService {
     newMeterValues.values = [];
     newMeterValues.chargeBoxID = chargingStation.id;
     // OCPP 1.6
-    if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
+    if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       meterValues.values = meterValues.meterValue;
       delete meterValues.meterValue;
     }
@@ -969,7 +969,7 @@ export default class OCPPService {
       newMeterValue.transactionId = meterValues.transactionId;
       newMeterValue.timestamp = Utils.convertToDate(value.timestamp);
       // OCPP 1.6
-      if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
+      if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
         // Multiple Values?
         if (Array.isArray(value.sampledValue)) {
           // Create one record per value
