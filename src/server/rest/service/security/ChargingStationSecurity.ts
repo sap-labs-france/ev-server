@@ -158,7 +158,9 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
-    filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
