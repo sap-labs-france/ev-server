@@ -125,7 +125,7 @@ export default class ChargingStationStorage {
       filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
 
-    if (params.issuer) {
+    if (params.issuer === true || params.issuer === false) {
       filters.$and.push({ 'issuer': params.issuer });
     }
 
