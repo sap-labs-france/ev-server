@@ -12,15 +12,6 @@ export type InactivityStatusLevel =
  'danger'
 ;
 
-export interface MultipleDeleteResult {
-  deleted: number;
-  notFound: number;
-};
-
-export interface MultipleTransactionsDeleteResult extends MultipleDeleteResult {
-  refunded: number;
-};
-
 export enum InactivityStatus {
   INFO = 'I',
   WARNING = 'W',

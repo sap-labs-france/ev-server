@@ -21,10 +21,10 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<Transaction>(tenantID, 'transactions')
+    const result = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
-    const result = await global.database.getCollection<any>(tenantID, 'metervalues')
+    await global.database.getCollection<any>(tenantID, 'metervalues')
       .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
     await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);

@@ -13,7 +13,8 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Consumption from '../../../types/Consumption';
-import Transaction, { MultipleTransactionsDeleteResult } from '../../../types/Transaction';
+import { ActionsResponse } from '../../../types/GlobalType';
+import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
@@ -223,15 +224,8 @@ export default class TransactionService {
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
     // Delete
-    await TransactionService.deleteTransactions(req.user, [transactionId]);
-    Logging.logInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-      module: 'TransactionService', method: 'handleDeleteTransaction',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-      action: action, detailedMessages: transaction
-    });
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
+    res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
     next();
   }
 
@@ -251,15 +245,7 @@ export default class TransactionService {
       });
     }
     // Delete
-    const result = await TransactionService.deleteTransactions(req.user, transactionsIds);
-    // Log
-    Logging.logInfo({
-      tenantID: req.user.tenantID,
-      user: req.user,
-      module: 'TransactionService', method: 'handleDeleteTransactions',
-      message: `${result.deleted} deleted, ${result.notFound} not found, ${result.refunded} refunded and cannot be deleted`,
-      action: action
-    });
+    const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
     res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
     next();
   }
@@ -925,12 +911,11 @@ export default class TransactionService {
     return csv;
   }
 
-  private static async deleteTransactions(loggedUser: UserToken, transactionsIDs: number[]): Promise<MultipleTransactionsDeleteResult> {
+  private static async deleteTransactions(action: string, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
     const transactionsIDsToDelete = [];
-    const result: MultipleTransactionsDeleteResult = {
-      deleted: 0,
-      notFound: 0,
-      refunded: 0
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
     }
     // Check if transaction has been refunded
     const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
@@ -939,10 +924,10 @@ export default class TransactionService {
       const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
       // Not Found
       if (!transaction) {
-        result.notFound++;
+        result.inError++;
       // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
-        result.refunded++;
+        result.inError++;
       } else {
         // Ongoing transaction?
         if (!transaction.stop) {
@@ -968,9 +953,27 @@ export default class TransactionService {
       }
     }
     // Delete All Transactions
-    result.deleted = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
+    result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
     // Adjust
-    result.notFound += transactionsIDsToDelete.length - result.deleted;
+    result.inError += transactionsIDsToDelete.length - result.inSuccess;
+    // Log
+    if (result.inError > 0) {
+      Logging.logError({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
+        action: action
+      });
+    } else {      
+      Logging.logInfo({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully`,
+        action: action
+      });
+    }
     return result;
   }
 }
