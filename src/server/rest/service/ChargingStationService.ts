@@ -11,7 +11,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { ChargingStationConfiguration } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, OCPPParams } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -392,14 +392,21 @@ export default class ChargingStationService {
   public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
-    const configurations: ChargingStationConfiguration[] = [];
+    const ocppParams: OCPPParams[] = [];
+    let params: OCPPParams;
+    let site;
     for (const chargingStation of chargingStations.result) {
-      // Get Configuration
-      configurations.push(await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id));
+      site = await SiteStorage.getSite(req.user.tenantID, chargingStation.siteArea.siteID);
+      params = {
+        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+        site: chargingStation.siteArea.name,
+        siteAre: site.name
+      };
+      ocppParams.push(params);
     }
     // Build export
     const filename = 'exported-occp-params.csv';
-    fs.writeFile(filename, ChargingStationService.convertOCCPParamsToCSV(configurations), (err) => {
+    fs.writeFile(filename, ChargingStationService.convertOCCPParamsToCSV(ocppParams), (err) => {
       if (err) {
         throw err;
       }
@@ -1006,13 +1013,15 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCCPParamsToCSV(configurations: ChargingStationConfiguration[]): string {
-    let csv = `Charging Station${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value\r\n`;
+  private static convertOCCPParamsToCSV(configurations: OCPPParams[]): string {
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value${Constants.CSV_SEPARATOR}Site${Constants.CSV_SEPARATOR}Site Area\r\n`;
     for (const config of configurations) {
-      for (const params of config.configuration) {
-        csv += `${config.id}` + Constants.CSV_SEPARATOR;
+      for (const params of config.params.configuration) {
+        csv += `${config.params.id}` + Constants.CSV_SEPARATOR;
         csv += `${params.key}` + Constants.CSV_SEPARATOR;
-        csv += `${params.value}\r\n`;
+        csv += `${params.value}` + Constants.CSV_SEPARATOR;
+        csv += `${config.site}` + Constants.CSV_SEPARATOR;
+        csv += `${config.siteAre}\r\n`;
       }
     }
     return csv;
