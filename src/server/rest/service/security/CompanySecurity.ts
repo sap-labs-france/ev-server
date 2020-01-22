@@ -21,6 +21,7 @@ export default class CompanySecurity {
 
   public static filterCompaniesRequest(request: any): HttpCompaniesRequest {
     const filteredRequest: HttpCompaniesRequest = {
+      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites),
       WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)

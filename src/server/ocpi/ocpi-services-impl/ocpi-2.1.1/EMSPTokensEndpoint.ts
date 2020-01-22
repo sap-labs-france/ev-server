@@ -152,9 +152,14 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+
+    const tag = user.tags.find((value) => value.id === tokenId);
+
     let allowedStatus;
     if (user.deleted) {
       allowedStatus = 'EXPIRED';
+    } else if (!tag.issuer) {
+      allowedStatus = 'NOT_ALLOWED';
     } else {
       switch (user.status) {
         case Constants.USER_STATUS_ACTIVE:
