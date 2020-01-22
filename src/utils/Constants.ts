@@ -26,6 +26,7 @@ export default class Constants {
   public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
   public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
   public static readonly HTTP_CONCUR_CITY_UNKNOWN_ERROR = 553;
+  public static readonly HTTP_CANNOT_DELETED_REFUNDED_SESSION = 555;
 
   public static readonly HTTP_PRICING_REQUEST_INVOICE_ERROR = 561;
 

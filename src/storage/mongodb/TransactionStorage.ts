@@ -15,7 +15,7 @@ export default class TransactionStorage {
     await this.deleteTransactions(tenantID, [transaction.id]);
   }
 
-  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<void> {
+  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
@@ -24,12 +24,13 @@ export default class TransactionStorage {
     await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
-    await global.database.getCollection<any>(tenantID, 'metervalues')
+    const result = await global.database.getCollection<any>(tenantID, 'metervalues')
       .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
     await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
+    return result.deletedCount;
   }
 
   public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {

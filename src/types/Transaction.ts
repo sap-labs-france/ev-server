@@ -11,11 +11,13 @@ export type InactivityStatusLevel =
  'danger'
 ;
 
-export type TransactionIDs = {
-  transactionsIdToDelete: number[];
-  transactionsIdsNotFound: number[];
-  transactionsIdsRefunded: number[];
-  transactionsIdsNoChargingStation: number[];
+export interface MultipleDeleteResult {
+  deleted: number;
+  notFound: number;
+};
+
+export interface MultipleTransactionsDeleteResult extends MultipleDeleteResult {
+  refunded: number;
 };
 
 export enum InactivityStatus {

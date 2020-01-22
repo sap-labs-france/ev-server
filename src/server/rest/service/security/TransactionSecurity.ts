@@ -32,7 +32,7 @@ export default class TransactionSecurity {
     return Utils.convertToInt(sanitize(request.ID));
   }
 
-  public static filterTransactionsRequestByID(request: any): number[] {
+  public static filterTransactionRequestByIDs(request: any): number[] {
     return request.transactionsIDs.map(sanitize);
   }
 
