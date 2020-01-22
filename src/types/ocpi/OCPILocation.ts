@@ -1,4 +1,5 @@
 import { OCPIEvse } from './OCPIEvse';
+import { OCPIBusinessDetails } from './OCPIBusinessDetails';
 
 export interface OCPILocation {
   id: string;
@@ -12,6 +13,7 @@ export interface OCPILocation {
     latitude: string;
     longitude: string;
   };
+  operator?: OCPIBusinessDetails;
   evses: OCPIEvse[];
   last_updated: Date;
 }

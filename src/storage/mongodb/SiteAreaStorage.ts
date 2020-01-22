@@ -50,6 +50,7 @@ export default class SiteAreaStorage {
     const siteAreaMDB: any = {
       _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
+      issuer: siteAreaToSave.issuer,
       accessControl: siteAreaToSave.accessControl,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     };
