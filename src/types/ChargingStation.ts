@@ -2,6 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
+import { OCPPVersion, OCPPProtocol } from './ocpp/OCPPServer';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -17,8 +18,8 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   firmwareVersion: string;
   meterSerialNumber: string;
   endpoint: string;
-  ocppVersion: string;
-  ocppProtocol: string;
+  ocppVersion: OCPPVersion;
+  ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
   lastHeartBeat: Date;
   deleted: boolean;
@@ -179,7 +180,7 @@ export enum ChargingRateUnitType {
   AMPERE = 'A'
 }
 
-export enum ChargingProfileKindType{
+export enum ChargingProfileKindType {
   ABSOLUTE = 'Absolute',
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'

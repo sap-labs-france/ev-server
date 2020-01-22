@@ -50,7 +50,8 @@ export default class CompanyStorage {
     // Set
     const companyMDB: any = {
       _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
-      name: companyToSave.name
+      name: companyToSave.name,
+      issuer: companyToSave.issuer,
     };
     if (companyToSave.address) {
       companyMDB.address = companyToSave.address;

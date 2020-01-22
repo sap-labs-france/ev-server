@@ -7,7 +7,9 @@ export default abstract class ChargingStationVendor {
     this.chargingStation = chargingStation;
   }
 
-  public abstract setStaticLimitation(tenantID: string, chargingStation: ChargingStation, maxAmps: number, connectorID?: number);
+  public abstract async setPowerLimitation(tenantID: string, chargingStation: ChargingStation, connectorID?: number, maxAmps?: number);
 
-  public abstract setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile);
+  public abstract async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation, ocppParamName: string, ocppParamValue);
+
+  public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile);
 }

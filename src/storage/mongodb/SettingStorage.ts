@@ -121,6 +121,7 @@ export default class SettingStorage {
         refundSettings.concur = {
           authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
           apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
+          appUrl: config.concur.appUrl ? config.concur.appUrl : '',
           clientId: config.concur.clientId ? config.concur.clientId : '',
           clientSecret: config.concur.clientSecret ? config.concur.clientSecret : '',
           paymentTypeId: config.concur.paymentTypeId ? config.concur.paymentTypeId : '',

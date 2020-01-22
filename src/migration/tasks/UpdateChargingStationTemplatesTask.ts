@@ -29,6 +29,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       {
         $or: [
           { 'currentType': { $exists: false } },
+          { 'connectors.numberOfConnectedPhase': { $exists: false } },
           { 'connectors.amperageLimit': { $exists: false } }
         ]
       }).toArray();
@@ -36,6 +37,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
       let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStationMDB);
+      for (const connector of chargingStationMDB.connectors) {
+        const chargingStationConnectorUpdated = await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant.id, chargingStationMDB, connector.connectorId);
+        chargingStationUpdated = chargingStationUpdated || chargingStationConnectorUpdated;
+      }
       // Check Connectors
       for (const connector of chargingStationMDB.connectors) {
         if (!connector.hasOwnProperty('amperageLimit')) {

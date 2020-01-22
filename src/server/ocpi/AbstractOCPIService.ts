@@ -217,8 +217,38 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
-        Logging.logDebug(`Request ${action} with path ${req.path}`);
-        await endpoint.process(req, res, next, tenant, options);
+        Logging.logDebug({
+          tenantID: tenant.id,
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: action,
+          message: `>> OCPI Request ${req.method} ${req.path} Received`,
+          action: action,
+          detailedMessages: req.body
+        });
+        const response = await endpoint.process(req, res, next, tenant, options);
+        if (response) {
+          Logging.logDebug({
+            tenantID: tenant.id,
+            source: Constants.OCPI_SERVER,
+            module: MODULE_NAME,
+            method: action,
+            message: `<< OCPI Response ${req.method} ${req.path} Sent`,
+            action: action,
+            detailedMessages: response
+          });
+          res.json(response);
+        } else {
+          Logging.logWarning({
+            tenantID: tenant.id,
+            source: Constants.OCPI_SERVER,
+            module: MODULE_NAME,
+            method: action,
+            message: `<< OCPI Endpoint ${req.method} ${req.path} not implemented`,
+            action: action
+          });
+          res.sendStatus(501);
+        }
       } else {
         // pragma res.sendStatus(501);
         throw new AppError({

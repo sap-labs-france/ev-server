@@ -9,6 +9,7 @@ import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -25,17 +26,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
-        await this.postCredentials(req, res, next, tenant);
-        break;
+        return await this.postCredentials(req, res, next, tenant);
       case 'DELETE':
-        await this.deleteCredentials(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.deleteCredentials(req, res, next, tenant);
     }
   }
 
@@ -43,7 +39,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
    * Registration process initiated by IOP
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {
@@ -82,14 +78,13 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     ocpiEndpoint.backgroundPatchJob = false;
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
-    // Respond with credentials
-    res.json(OCPIUtils.success());
+    return OCPIUtils.success();
   }
 
   /**
    * Registration process initiated by IOP
    */
-  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
     const credential = req.body;
 
@@ -286,7 +281,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Respond with credentials
-    res.json(OCPIUtils.success(respCredential));
+    return OCPIUtils.success(respCredential);
   }
 }
 

@@ -9,7 +9,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, StripeBillingSetting } from '../../src/types/Setting';
+import { BillingSetting, StripeBillingSetting, SettingDB, BillingSettingsType } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';
@@ -69,7 +69,8 @@ describe('Billing Service', function() {
       if (tenant.id) {
         const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
         expect(tenantBillingSettings.data.count).to.be.eq(1);
-        const componentSetting = tenantBillingSettings.data.result[0];
+        const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+        componentSetting.content.type = BillingSettingsType.STRIPE;
         componentSetting.content.stripe = { ...billingSettings };
         componentSetting.sensitiveData = ['content.stripe.secretKey'];
         await testData.userService.settingApi.update(componentSetting);
@@ -147,7 +148,8 @@ describe('Billing Service', function() {
         if (tenant.id) {
           const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
           expect(tenantBillingSettings.data.count).to.be.eq(1);
-          const componentSetting = tenantBillingSettings.data.result[0];
+          const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+          componentSetting.content.type = BillingSettingsType.STRIPE;
           componentSetting.content.stripe = { ...billingSettings };
           componentSetting.sensitiveData = ['content.stripe.secretKey'];
           await testData.userService.settingApi.update(componentSetting);

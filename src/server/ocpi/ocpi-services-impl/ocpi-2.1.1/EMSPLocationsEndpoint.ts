@@ -13,6 +13,8 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import HttpStatusCodes from 'http-status-codes';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -30,17 +32,12 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PATCH':
-        await this.patchLocationRequest(req, res, next, tenant);
-        break;
+        return await this.patchLocationRequest(req, res, next, tenant);
       case 'PUT':
-        await this.putLocationRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.putLocationRequest(req, res, next, tenant);
     }
   }
 
@@ -51,7 +48,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
    */
-  private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async patchLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -81,7 +78,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'patchLocationRequest',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HttpStatusCodes.NOT_FOUND,
           message: 'Unknown EVSE with id ' + evseUid,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
         });
@@ -103,7 +100,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success());
+    return OCPIUtils.success();
   }
 
   /**
@@ -113,7 +110,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}
    * /locations/{country_code}/{party_id}/{location_id}/{evse_uid}/{connector_id}
    */
-  private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async putLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -161,7 +158,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       }
     }
 
-    res.json(OCPIUtils.success());
+    return OCPIUtils.success();
   }
 
   private async patchEvse(tenant: Tenant, chargingStation: ChargingStation, evse: Partial<OCPIEvse>) {

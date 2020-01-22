@@ -1,17 +1,16 @@
 import cluster from 'cluster';
+import express from 'express';
 import sanitize from 'express-sanitizer';
 import morgan from 'morgan';
-import express from 'express';
-import path from 'path';
 import socketio from 'socket.io';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
+import ChangeNotification from '../../types/ChangeNotification';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
+import expressTools from '../ExpressTools';
 import SessionHashService from '../rest/service/SessionHashService';
-import ChangeNotification from '../../types/ChangeNotification';
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {

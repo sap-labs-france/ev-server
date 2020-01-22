@@ -7,6 +7,7 @@ import ConnectorStats from './ConnectorStats';
 export default interface SiteArea extends CreatedUpdatedProps {
   id: string;
   name: string;
+  issuer: boolean;
   maximumPower: number;
   address: Address;
   image: string;

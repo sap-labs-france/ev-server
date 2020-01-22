@@ -22,6 +22,7 @@ export default class Constants {
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
+  public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
 
   public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
   public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
@@ -154,6 +155,7 @@ export default class Constants {
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
   public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
+  public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
@@ -221,13 +223,6 @@ export default class Constants {
   public static readonly OCPP_ERROR_GENERIC_ERROR = 'GenericError';
 
   public static readonly OCPP_RESPONSE_ACCEPTED = 'Accepted';
-
-  public static readonly OCPP_PROTOCOL_JSON = 'json';
-  public static readonly OCPP_PROTOCOL_SOAP = 'soap';
-  public static readonly OCPP_VERSION_12 = '1.2';
-  public static readonly OCPP_VERSION_15 = '1.5';
-  public static readonly OCPP_VERSION_16 = '1.6';
-  public static readonly OCPP_VERSION_20 = '2.0';
 
   public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
   public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';

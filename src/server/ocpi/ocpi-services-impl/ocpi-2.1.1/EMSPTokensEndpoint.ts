@@ -9,6 +9,9 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import uuid = require('uuid');
 import Utils from '../../../../utils/Utils';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -26,17 +29,12 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
-        await this.authorizeRequest(req, res, next, tenant);
-        break;
+        return await this.authorizeRequest(req, res, next, tenant);
       case 'GET':
-        await this.getTokensRequest(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.getTokensRequest(req, res, next, tenant);
     }
   }
 
@@ -46,7 +44,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    * /tokens/?date_from=xxx&date_to=yyy
    *
    */
-  private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getTokensRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -72,7 +70,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
 
-    res.json(OCPIUtils.success(tokens.result));
+    return OCPIUtils.success(tokens.result);
   }
 
   /**
@@ -80,7 +78,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/{token_uid}/authorize?{type=token_type}
    */
-  private async authorizeRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async authorizeRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -98,6 +96,51 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
 
+    const locationReference: OCPILocationReference = req.body;
+
+    if (!locationReference) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'authorizeRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Missing LocationReference',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+      });
+    }
+    if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'authorizeRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Missing EVSE Id.',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+      });
+    }
+    if (locationReference.evse_uids.length > 1) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'authorizeRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, locationReference.evse_uids[0]);
+    if (!chargingStation || chargingStation.issuer) {
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'authorizeRequest',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+      });
+    }
+
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
     if (!user) {
       throw new AppError({
@@ -109,9 +152,14 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+
+    const tag = user.tags.find((value) => value.id === tokenId);
+
     let allowedStatus;
     if (user.deleted) {
       allowedStatus = 'EXPIRED';
+    } else if (!tag.issuer) {
+      allowedStatus = 'NOT_ALLOWED';
     } else {
       switch (user.status) {
         case Constants.USER_STATUS_ACTIVE:
@@ -125,11 +173,12 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       }
     }
 
-    res.json(OCPIUtils.success(
+    return OCPIUtils.success(
       {
         allowed: allowedStatus,
-        authorization_id: uuid()
-      }));
+        authorization_id: uuid(),
+        location: locationReference
+      });
   }
 }
 
