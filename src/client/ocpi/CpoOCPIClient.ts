@@ -270,4 +270,10 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     return [];
   }
+
+  async triggerJobs(): Promise<any> {
+    return {
+      locations: await this.sendEVSEStatuses()
+    };
+  }
 }
