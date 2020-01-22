@@ -102,7 +102,7 @@ export default class SettingSecurity {
           }
           break;
         case RefundSettingsType.CONCUR:
-          if (!Utils.isEmptyJSon(request.content.simple)) {
+          if (!Utils.isEmptyJSon(request.content.concur)) {
             settings.content.concur = {
               authenticationUrl: sanitize(request.content.concur.authenticationUrl),
               apiUrl: sanitize(request.content.concur.apiUrl),
