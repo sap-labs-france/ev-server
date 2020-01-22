@@ -103,6 +103,7 @@ export default class CONTEXTS {
           concur: {
             authenticationUrl: '',
             apiUrl: '',
+            appUrl: '',
             clientId: '',
             clientSecret: '',
             paymentTypeId: '',
@@ -226,6 +227,7 @@ export default class CONTEXTS {
           concur: {
             authenticationUrl: '',
             apiUrl: '',
+            appUrl: '',
             clientId: '',
             clientSecret: '',
             paymentTypeId: '',
