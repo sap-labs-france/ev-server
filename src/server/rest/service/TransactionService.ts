@@ -13,17 +13,18 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Consumption from '../../../types/Consumption';
+import { ActionsResponse } from '../../../types/GlobalType';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
-import I18nManager from '../../../utils/I18nManager';
-import UserToken from '../../../types/UserToken';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -215,50 +216,37 @@ export default class TransactionService {
         user: req.user,
         action: Constants.ACTION_DELETE,
         entity: Constants.ENTITY_TRANSACTION,
-        module: 'TransactionService',
-        method: 'handleDeleteTransaction',
+        module: 'TransactionService', method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
     }
-    // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(transactionId, 'TransactionsService', 'handleDeleteTransaction', req.user);
-    // Get Transaction
+    // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
-    if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'A refunded transaction cannot be deleted',
+    // Delete
+    const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
+    res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
+    next();
+  }
+
+  public static async handleDeleteTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
+    // Check auth
+    if (!Authorizations.canDeleteTransaction(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_TRANSACTION,
         module: 'TransactionService',
-        method: 'handleDeleteTransaction',
-        user: req.user
+        method: 'handleDeleteTransactions',
+        value: transactionsIds.toString()
       });
     }
-    // Handle active transactions
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    if (!transaction.stop) {
-      // Free the Charging Station
-      UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-      const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
-      if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-        OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-        await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
-      }
-    }
-    // Delete Transaction
-    await TransactionStorage.deleteTransaction(req.user.tenantID, transaction);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-      module: 'TransactionService', method: 'handleDeleteTransaction',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-      action: action, detailedMessages: transaction
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    // Delete
+    const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
+    res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
     next();
   }
 
@@ -438,7 +426,7 @@ export default class TransactionService {
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime
     },
-    { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -921,5 +909,71 @@ export default class TransactionService {
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;
+  }
+
+  private static async deleteTransactions(action: string, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+    const transactionsIDsToDelete = [];
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    }
+    // Check if transaction has been refunded
+    const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
+    for (const transactionId of transactionsIDs) {
+      // Get
+      const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
+      // Not Found
+      if (!transaction) {
+        result.inError++;
+      // Already Refunded
+      } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+        result.inError++;
+      } else {
+        // Ongoing transaction?
+        if (!transaction.stop) {
+          // Get the charger
+          const chargingStation = await ChargingStationStorage.getChargingStation(loggedUser.tenantID, transaction.chargeBoxID);
+          if (!chargingStation) {
+            transactionsIDsToDelete.push(transactionId);
+          } else {
+            // Check connector
+            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+            if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
+              // Clear connector
+              OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
+              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, chargingStation);
+            }
+            // To Delete
+            transactionsIDsToDelete.push(transactionId);
+          }
+        } else {
+          // To Delete
+          transactionsIDsToDelete.push(transactionId);
+        }
+      }
+    }
+    // Delete All Transactions
+    result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
+    // Adjust
+    result.inError += transactionsIDsToDelete.length - result.inSuccess;
+    // Log
+    if (result.inError > 0) {
+      Logging.logError({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
+        action: action
+      });
+    } else {      
+      Logging.logInfo({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully`,
+        action: action
+      });
+    }
+    return result;
   }
 }

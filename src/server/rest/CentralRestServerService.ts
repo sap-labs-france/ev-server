@@ -227,6 +227,7 @@ class RequestMapper {
           VehicleDelete: VehicleService.handleDeleteVehicle.bind(this),
           VehicleManufacturerDelete: VehicleManufacturerService.handleDeleteVehicleManufacturer.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
+          TransactionsDelete: TransactionService.handleDeleteTransactions.bind(this),
           IntegrationConnectionDelete: ConnectorService.handleDeleteConnection.bind(this),
           SettingDelete: SettingService.handleDeleteSetting.bind(this),
           OcpiEndpointDelete: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),

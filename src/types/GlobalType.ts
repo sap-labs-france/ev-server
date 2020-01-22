@@ -12,6 +12,11 @@ export interface KeyValue {
   readonly?: boolean;
 }
 
+export interface ActionsResponse {
+  inSuccess: number;
+  inError: number;
+}
+
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;

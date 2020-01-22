@@ -12,20 +12,25 @@ import RefundReport from '../../types/RefundReport';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
+    await this.deleteTransactions(tenantID, [transaction.id]);
+  }
+
+  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<Transaction>(tenantID, 'transactions')
-      .findOneAndDelete({ '_id': transaction.id });
+    const result = await global.database.getCollection<Transaction>(tenantID, 'transactions')
+      .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenantID, 'metervalues')
-      .deleteMany({ 'transactionId': transaction.id });
+      .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
-    ConsumptionStorage.deleteConsumptions(tenantID, transaction.id);
+    await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
+    return result.deletedCount;
   }
 
   public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
