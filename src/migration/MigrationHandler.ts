@@ -16,8 +16,8 @@ import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
-import AddChargingStationIssuerFieldTask from './tasks/AddChargingStationIssuerFieldTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
+import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -49,7 +49,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new RenameTagPropertiesTask());
       currentMigrationTasks.push(new AddInactivityStatusInTransactions());
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
-      currentMigrationTasks.push(new AddChargingStationIssuerFieldTask());
+      currentMigrationTasks.push(new AddIssuerFieldTask());
       currentMigrationTasks.push(new CleanupOrphanBadgeTask());
 
       // Get the already done migrations from the DB

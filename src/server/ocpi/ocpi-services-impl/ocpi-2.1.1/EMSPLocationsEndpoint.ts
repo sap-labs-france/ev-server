@@ -14,6 +14,7 @@ import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import HttpStatusCodes from 'http-status-codes';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -77,7 +78,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'patchLocationRequest',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HttpStatusCodes.NOT_FOUND,
           message: 'Unknown EVSE with id ' + evseUid,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
         });
