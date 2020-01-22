@@ -5,6 +5,7 @@ import User from './User';
 import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
 import { OCPISession } from './ocpi/OCPISession';
 import { OCPICdr } from './ocpi/OCPICdr';
+import { RefundStatus, RefundType } from './Refund';
 
 export type InactivityStatusLevel =
  'info' |
@@ -63,9 +64,9 @@ export default interface Transaction {
   refundData?: {
     refundId: string;
     refundedAt: Date;
-    type: any;
+    type: RefundType;
     reportId?: string;
-    status?: any;
+    status?: RefundStatus;
   };
   lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
   chargeBox?: ChargingStation;

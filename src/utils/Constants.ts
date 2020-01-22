@@ -222,16 +222,7 @@ export default class Constants {
   public static readonly OCPP_ERROR_TYPERAINT_VIOLATION = 'TyperaintViolation';
   // Any other error not covered by the previous ones
   public static readonly OCPP_ERROR_GENERIC_ERROR = 'GenericError';
-
   public static readonly OCPP_RESPONSE_ACCEPTED = 'Accepted';
-
-  public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
-  public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';
-  public static readonly REFUND_STATUS_CANCELLED = 'cancelled';
-  public static readonly REFUND_STATUS_APPROVED = 'approved';
-
-  public static readonly REFUND_TYPE_REFUNDED = 'refunded';
-  public static readonly REFUND_TYPE_NOT_REFUNDED = 'notRefunded';
 
   public static readonly BILLING_STATUS_UNBILLED = 'unbilled';
   public static readonly BILLING_STATUS_BILLED = 'billed';

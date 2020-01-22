@@ -10,7 +10,7 @@ import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
-import RefundReport from '../../../../types/RefundReport';
+import RefundReport from '../../../../types/Refund';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {

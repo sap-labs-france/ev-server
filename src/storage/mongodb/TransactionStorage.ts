@@ -1,14 +1,14 @@
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from './../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
 import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
-import RefundReport from '../../types/RefundReport';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -315,7 +315,7 @@ export default class TransactionStorage {
     }
     // Refund status
     if (params.refundStatus && params.refundStatus.length > 0) {
-      const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
+      const statuses = params.refundStatus.map((status) => status === RefundStatus.NOT_SUBMITTED ? null : status);
       filterMatch['refundData.status'] = {
         $in: statuses
       };
@@ -374,10 +374,10 @@ export default class TransactionStorage {
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
-            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 1, 0] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, 1] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
+            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, 1] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
