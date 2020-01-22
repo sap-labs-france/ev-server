@@ -146,6 +146,7 @@ export default class Constants {
   public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
   public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
   public static readonly ACTION_PING = 'Ping';
+  public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
   public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
   public static readonly ACTION_SEND_TOKENS = 'SendTokens';
   public static readonly ACTION_REGISTER = 'Register';

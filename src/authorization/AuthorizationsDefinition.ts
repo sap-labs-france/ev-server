@@ -59,7 +59,7 @@ const GRANTS = {
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
-        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens'],
+        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens', 'TriggerJob'],
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },

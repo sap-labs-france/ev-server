@@ -118,6 +118,13 @@ export default class EmspOCPIClient extends OCPIClient {
   }
 
   async pullLocations() {
+    // Result
+    const sendResult = {
+      success: 0,
+      failure: 0,
+      total: 0,
+      logs: []
+    };
     // Get locations endpoint url
     const locationsUrl = this.getEndpointUrl('locations');
 
@@ -163,8 +170,20 @@ export default class EmspOCPIClient extends OCPIClient {
     }
 
     for (const location of response.data.data) {
-      await this.processLocation(location, company, sites.result);
+      try {
+        await this.processLocation(location, company, sites.result);
+        sendResult.success++;
+        sendResult.logs.push(
+          `Location ${location.name} successfully updated`
+        );
+      } catch (error) {
+        sendResult.failure++;
+        sendResult.logs.push(
+          `Failure updating location:${location.name}:${error.message}`
+        );
+      }
     }
+    return sendResult;
   }
 
   async processLocation(location: OCPILocation, company: Company, sites: Site[]) {
@@ -323,5 +342,12 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async remoteStopSession() {
 
+  }
+
+  async triggerJobs() {
+    return {
+      tokens: await this.sendTokens(),
+      locations: await this.pullLocations()
+    };
   }
 }

@@ -393,6 +393,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_SEND_EVSE_STATUSES);
   }
 
+  public static canTriggerJobOcpiEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_TRIGGER_JOB);
+  }
+
   public static canSendTokensOcpiEndpoint(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_SEND_TOKENS);
   }
