@@ -14,6 +14,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Consumption from '../../../types/Consumption';
 import { ActionsResponse } from '../../../types/GlobalType';
+import { RefundStatus } from '../../../types/Refund';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -25,7 +26,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
-import { RefundStatus } from '../../../types/Refund';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -240,8 +240,7 @@ export default class TransactionService {
         user: req.user,
         action: Constants.ACTION_DELETE,
         entity: Constants.ENTITY_TRANSACTION,
-        module: 'TransactionService',
-        method: 'handleDeleteTransactions',
+        module: 'TransactionService', method: 'handleDeleteTransactions',
         value: transactionsIds.toString()
       });
     }
@@ -917,7 +916,13 @@ export default class TransactionService {
     const result: ActionsResponse = {
       inSuccess: 0,
       inError: 0
-    }
+    };
+    const specificError: { refunded: number; notFound: number; refundedIDs: number[], notFoundIDs: number[] } = {
+      refunded: 0,
+      notFound: 0,
+      refundedIDs: [],
+      notFoundIDs: []
+    };
     // Check if transaction has been refunded
     const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
     for (const transactionId of transactionsIDs) {
@@ -926,23 +931,25 @@ export default class TransactionService {
       // Not Found
       if (!transaction) {
         result.inError++;
+        specificError.notFound++;
+        specificError.notFoundIDs.push(transactionId);
       // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
+        specificError.refunded++;
+        specificError.refundedIDs.push(transactionId);
       } else {
         // Ongoing transaction?
         if (!transaction.stop) {
-          // Get the charger
-          const chargingStation = await ChargingStationStorage.getChargingStation(loggedUser.tenantID, transaction.chargeBoxID);
-          if (!chargingStation) {
+          if (!transaction.chargeBox) {
             transactionsIDsToDelete.push(transactionId);
           } else {
             // Check connector
-            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+            const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
             if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
               // Clear connector
-              OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, chargingStation);
+              OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
             }
             // To Delete
             transactionsIDsToDelete.push(transactionId);
@@ -959,12 +966,20 @@ export default class TransactionService {
     result.inError += transactionsIDsToDelete.length - result.inSuccess;
     // Log
     if (result.inError > 0) {
+      const errorDetails = [];
+      if (specificError.notFound) {
+        errorDetails.push(`${specificError.notFound} session IDs have not been found: ${specificError.notFoundIDs.join(', ')}`);
+      }
+      if (specificError.refunded) {
+        errorDetails.push(`${specificError.refunded} session IDs has been refunded and cannot be deleted: ${specificError.refundedIDs.join(', ')}`);
+      }
       Logging.logError({
         tenantID: loggedUser.tenantID,
         user: loggedUser,
         module: 'TransactionService', method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
-        action: action
+        action: action,
+        detailedMessages: errorDetails
       });
     } else {      
       Logging.logInfo({
