@@ -1,4 +1,4 @@
-import { AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RoamingSettings, SettingDB } from '../../types/Setting';
+import { AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RoamingSettings, SettingDB, RefundSettingsType, AnalyticsSettingsType, RoamingSettingsType } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
@@ -98,6 +98,7 @@ export default class SettingStorage {
       analyticsSettings.sensitiveData = settings.result[0].sensitiveData;
       // SAP Analytics
       if (config.sac) {
+        analyticsSettings.type = AnalyticsSettingsType.SAC;
         analyticsSettings.sac = {
           timezone: config.sac.timezone ? config.sac.timezone : '',
           mainUrl: config.sac.mainUrl ? config.sac.mainUrl : '',
@@ -111,13 +112,13 @@ export default class SettingStorage {
     const refundSettings = {
       identifier: ComponentType.REFUND
     } as RefundSettings;
-
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       refundSettings.id = settings.result[0].id;
       refundSettings.sensitiveData = settings.result[0].sensitiveData;
       if (config.concur) {
+        refundSettings.type = RefundSettingsType.CONCUR;
         refundSettings.concur = {
           authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
           apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
