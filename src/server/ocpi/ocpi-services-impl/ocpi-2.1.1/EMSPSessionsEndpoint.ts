@@ -16,6 +16,7 @@ import Utils from '../../../../utils/Utils';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -31,7 +32,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getSessionRequest(req, res, next, tenant);
@@ -126,7 +127,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
-      const user = await UserStorage.getUserByTagId(tenant.id, session.auth_id);
+      const user = await UserStorage.getUser(tenant.id, session.auth_id);
       if (!user) {
         throw new AppError({
           source: Constants.OCPI_SERVER,

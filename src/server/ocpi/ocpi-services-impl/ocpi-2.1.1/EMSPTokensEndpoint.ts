@@ -12,6 +12,7 @@ import Utils from '../../../../utils/Utils';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -29,7 +30,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         return await this.authorizeRequest(req, res, next, tenant);
@@ -63,7 +64,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     });
 
     // Return next link
-    const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, tokens.count);
+    const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tokens.count);
     if (nextUrl) {
       res.links({
         next: nextUrl
@@ -129,7 +130,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       });
     }
 
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, locationReference.evse_uids[0]);
+    const chargingStationId = OCPIUtils.buildChargingStationId(locationReference.location_id, locationReference.evse_uids[0]);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
     if (!chargingStation || chargingStation.issuer) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
