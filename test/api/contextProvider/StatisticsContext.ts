@@ -8,7 +8,7 @@ import TenantContext from './TenantContext';
 import User from '../../types/User';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
 import * as faker from 'faker';
-import { RefundStatus, RefundType } from '../../types/Refund';
+import { RefundStatus, RefundType } from '../../../src/types/Refund';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
