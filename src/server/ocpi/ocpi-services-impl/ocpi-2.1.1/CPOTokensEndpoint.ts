@@ -6,6 +6,7 @@ import Tenant from '../../../../types/Tenant';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import Logging from '../../../../utils/Logging';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
@@ -23,7 +24,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PUT':
       case 'PATCH':

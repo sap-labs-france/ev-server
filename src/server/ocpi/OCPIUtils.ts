@@ -37,26 +37,63 @@ export default class OCPIUtils {
   /**
    * Build Next Url
    * @param {*} req request in order to get url
+   * @param {*} baseUrl the baseUrl of the service to get url
    * @param {*} offset  offset
    * @param {*} limit limit of query
    * @param {*} total total number of records
    */
-  public static buildNextUrl(req: Request, offset: number, limit: number, total: number): string | undefined {
+  public static buildNextUrl(req: Request, baseUrl: string, offset: number, limit: number, total: number): string | undefined {
     // Check if next link should be generated
     if (offset + limit < total) {
       // Build url
-      return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '?offset=' + (offset + limit) + '&limit=' + limit;
+      const query = req.query;
+      query.offset = (offset + limit);
+      query.limit = limit;
+      let queryString;
+      for (const param in query) {
+        queryString = queryString ? `${queryString}&${param}=${query[param]}` : `${param}=${query[param]}`;
+      }
+      return `${baseUrl + req.originalUrl.split('?')[0]}?${queryString}`;
     }
   }
 
   /**
    * Build Location Url
    * @param {*} req request in order to get url
+   * @param {*} baseUrl the baseUrl of the service to get url
    * @param {*} id the object id to build the location url
    */
-  public static buildLocationUrl(req: Request, id: string): string {
+  public static buildLocationUrl(req: Request, baseUrl: string, id: string): string {
     // Build url
-    return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '/' + id;
+    return `${baseUrl + req.originalUrl.split('?')[0]}/${id}`;
+  }
+
+  /**
+   * Build Charging Station Id from OCPI location
+   * @param {*} locationId id of the location
+   * @param {*} evseId id of the evse
+   */
+  public static buildChargingStationId(locationId: string, evseId: string) {
+    return `${locationId}-${evseId}`;
+  }
+
+  /**
+   * Build Site Area name from OCPI location
+   * @param {*} countryCode the code of the CPO
+   * @param {*} partyId the partyId of the CPO
+   */
+  public static buildSiteName(countryCode: string, partyId: string) {
+    return `${countryCode}*${partyId}`;
+  }
+
+  /**
+   * Build Site Area name from OCPI location
+   * @param {*} countryCode the code of the CPO
+   * @param {*} partyId the partyId of the CPO
+   * @param {*} locationId id of the location
+   */
+  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string) {
+    return `${countryCode}*${partyId}-${locationId}`;
   }
 
   /**

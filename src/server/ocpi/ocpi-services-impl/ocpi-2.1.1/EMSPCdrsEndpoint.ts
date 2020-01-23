@@ -10,6 +10,7 @@ import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -25,7 +26,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
         return await this.getCdrRequest(req, res, next, tenant);
@@ -125,7 +126,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     transaction.ocpiCdr = cdr;
     await TransactionStorage.saveTransaction(tenant.id, transaction);
 
-    res.setHeader('Location', OCPIUtils.buildLocationUrl(req, cdr.id));
+    res.setHeader('Location', OCPIUtils.buildLocationUrl(req, this.getBaseUrl(req), cdr.id));
 
     return OCPIUtils.success({});
   }
