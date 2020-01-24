@@ -1,19 +1,12 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpTenantsRequest, HttpTenantVerifyRequest } from '../../../../types/requests/HttpTenantRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
 
 export default class TenantSecurity {
-  public static filterTenantDeleteRequest(request: any): HttpTenantDeleteRequest {
-    return {
-      ID: sanitize(request.ID),
-      forced: sanitize(request.forced)
-    };
-  }
-
   public static filterTenantRequestByID(request: any): string {
     return sanitize(request.ID);
   }
