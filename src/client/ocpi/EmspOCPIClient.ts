@@ -19,6 +19,7 @@ import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import moment from 'moment';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -132,7 +133,7 @@ export default class EmspOCPIClient extends OCPIClient {
     return company;
   }
 
-  async pullLocations() {
+  async pullLocations(partial = true) {
     // Result
     const sendResult = {
       success: 0,
@@ -141,52 +142,68 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get locations endpoint url
-    const locationsUrl = this.getEndpointUrl('locations');
+    let locationsUrl = this.getEndpointUrl('locations');
+    if (partial) {
+      const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
+      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
+    } else {
+      locationsUrl = `${locationsUrl}?limit=5`;
+    }
 
     const company = await this.getCompany();
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
 
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: 'OcpiGetLocations',
-      message: `Retrieve locations at ${locationsUrl}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'patchEVSEStatus'
-    });
+    let nextResult = true;
 
-    // Call IOP
-    const response = await axios.get(locationsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
+    while (nextResult) {
+      // Log
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: 'OcpiGetLocations',
+        message: `Retrieve locations at ${locationsUrl}`,
+        source: 'OCPI Client',
+        module: 'OCPIClient',
+        method: 'patchEVSEStatus'
       });
 
-    // Check response
-    if (response.status !== 200 || !response.data) {
-      throw new Error(`Invalid response code ${response.status} from Get locations`);
-    }
-    if (!response.data.data) {
-      throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
-    }
+      // Call IOP
+      const response = await axios.get(locationsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: 10000
+        });
 
-    for (const location of response.data.data) {
-      try {
-        await this.processLocation(location, company, sites.result);
-        sendResult.success++;
-        sendResult.logs.push(
-          `Location ${location.name} successfully updated`
-        );
-      } catch (error) {
-        sendResult.failure++;
-        sendResult.logs.push(
-          `Failure updating location:${location.name}:${error.message}`
-        );
+      // Check response
+      if (response.status !== 200 || !response.data) {
+        throw new Error(`Invalid response code ${response.status} from Get locations`);
+      }
+      if (!response.data.data) {
+        throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
+      }
+
+      for (const location of response.data.data) {
+        try {
+          await this.processLocation(location, company, sites.result);
+          sendResult.success++;
+          sendResult.logs.push(
+            `Location ${location.name} successfully updated`
+          );
+        } catch (error) {
+          sendResult.failure++;
+          sendResult.logs.push(
+            `Failure updating location:${location.name}:${error.message}`
+          );
+        }
+      }
+
+      const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
+      if (nextUrl && nextUrl.length > 0 && nextUrl !== locationsUrl) {
+        locationsUrl = nextUrl;
+      } else {
+        nextResult = false;
       }
     }
     return sendResult;
@@ -359,7 +376,7 @@ export default class EmspOCPIClient extends OCPIClient {
   async triggerJobs() {
     return {
       tokens: await this.sendTokens(),
-      locations: await this.pullLocations()
+      locations: await this.pullLocations(false)
     };
   }
 }
