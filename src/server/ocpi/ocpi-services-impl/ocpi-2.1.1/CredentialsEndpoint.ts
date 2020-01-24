@@ -170,8 +170,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         },
         timeout: 10000
       });
@@ -222,8 +221,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         }
       });
 
