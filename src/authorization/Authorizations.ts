@@ -702,7 +702,8 @@ export default class Authorizations {
         id: tagID,
         deleted: false,
         issuer: false,
-        userID: user.id
+        userID: user.id,
+        lastChangedOn: new Date()
       };
       await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
