@@ -391,6 +391,10 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.lastChangedOn;
+        tag.lastChangedBy = filteredRequest.lastChangedBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
 
       // Synchronize badges with IOP
@@ -885,6 +889,10 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.createdOn;
+        tag.lastChangedBy = filteredRequest.createdBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
 
       // Synchronize badges with IOP

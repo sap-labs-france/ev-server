@@ -162,24 +162,26 @@ export default class OCPIMapping {
    * Get All OCPI Tokens from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllTokens(tenant: Tenant, limit: number, skip: number): Promise<DataResult<OCPIToken>> {
+  static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
+      const user = await UserStorage.getUser(tenant.id, tag.userID);
+      const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
         type: 'RFID',
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: tenant.name,
-        valid: true,
+        valid: valid,
         whitelist: 'ALLOWED_OFFLINE',
-        'last_updated': new Date()
+        'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
 
