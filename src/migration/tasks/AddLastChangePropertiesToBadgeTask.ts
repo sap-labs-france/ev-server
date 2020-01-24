@@ -53,7 +53,7 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   }
 
   getVersion() {
-    return '0.9';
+    return '1.0';
   }
 
   getName() {
