@@ -79,6 +79,9 @@
   "JsonEndpoint": {
     "baseUrl": ""
   },
+  "OCPIEndpoint": {
+    "baseUrl": ""
+  },
   "WSClient": {
     "autoReconnectMaxRetries": 10,
     "autoReconnectTimeout": 60

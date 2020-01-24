@@ -90,6 +90,9 @@
   "JsonEndpoint": {
     "baseUrl": ""
   },
+  "OCPIEndpoint": {
+    "baseUrl": ""
+  },
   "Storage": {
     "implementation": "mongodb",
     "uri": null,

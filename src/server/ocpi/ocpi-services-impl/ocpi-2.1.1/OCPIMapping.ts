@@ -13,7 +13,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
-import { OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Configuration from '../../../../utils/Configuration';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -471,7 +471,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server-qa.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.ocpi) {
