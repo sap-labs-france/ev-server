@@ -711,7 +711,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -723,8 +723,21 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
-    if (params && params.hasOwnProperty('issuer')) {
-      aggregation.push({ $match: { 'issuer': params.issuer } });
+    if (params) {
+      const filters = [];
+      if (params.issuer === true || params.issuer === false) {
+        filters.push({ 'issuer': params.issuer });
+      }
+      if (params.dateFrom && moment(params.dateFrom).isValid()) {
+        filters.push({ 'lastChangedOn': { $gte: new Date(params.dateFrom) } });
+      }
+      if (params.dateTo && moment(params.dateTo).isValid()) {
+        filters.push({ 'lastChangedOn': { $lte: new Date(params.dateTo) } });
+      }
+
+      if (filters.length > 0) {
+        aggregation.push({ $match: { $and: filters } });
+      }
     }
 
     // Limit records?
@@ -753,7 +766,7 @@ export default class UserStorage {
       });
     } else {
       aggregation.push({
-        $sort: { id: -1 }
+        $sort: { lastChangedOn: 1 }
       });
     }
     // Skip
@@ -769,7 +782,8 @@ export default class UserStorage {
       $project: {
         id: '$_id',
         _id: 0,
-        userID: { $toString: '$userID' }
+        userID: { $toString: '$userID' },
+        lastChangedOn: 1
       }
     });
     // Read DB
