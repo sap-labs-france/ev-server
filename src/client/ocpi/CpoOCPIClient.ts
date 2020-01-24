@@ -43,8 +43,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await axios.get(tokensUrl,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Token ${this.ocpiEndpoint.token}`
         },
         timeout: 10000
       });

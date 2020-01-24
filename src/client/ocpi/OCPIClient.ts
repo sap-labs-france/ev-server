@@ -169,8 +169,7 @@ export default abstract class OCPIClient {
 
     const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
@@ -199,8 +198,7 @@ export default abstract class OCPIClient {
 
     const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
