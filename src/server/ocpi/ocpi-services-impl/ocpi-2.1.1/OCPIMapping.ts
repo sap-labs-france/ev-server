@@ -13,6 +13,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
+import Configuration from '../../../../utils/Configuration';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -45,9 +46,9 @@ export default class OCPIMapping {
     };
   }
 
-  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+  static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation: ChargingStation = {
-      id: evse.evse_id,
+      id: evseId,
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
@@ -470,7 +471,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.ocpi) {

@@ -1,10 +1,10 @@
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
-import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
+import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
+import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
-import ChargingStationClient from './ChargingStationClient';
 
 export default class ChargingStationClientFactory {
   public static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
@@ -12,7 +12,7 @@ export default class ChargingStationClientFactory {
     // Check protocol
     switch (chargingStation.ocppProtocol) {
       // JSON
-      case Constants.OCPP_PROTOCOL_JSON:
+      case OCPPProtocol.JSON:
         // Get the client from Json Server
         if (global.centralSystemJson) {
           chargingClient = global.centralSystemJson.getChargingStationClient(tenantID, chargingStation.id);
@@ -24,7 +24,7 @@ export default class ChargingStationClientFactory {
         }
         break;
         // SOAP
-      case Constants.OCPP_PROTOCOL_SOAP:
+      case OCPPProtocol.SOAP:
       default:
         // Init client
         chargingClient = await SoapChargingStationClient.getChargingStationClient(tenantID, chargingStation);

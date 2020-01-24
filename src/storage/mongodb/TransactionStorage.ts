@@ -1,27 +1,27 @@
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from './../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
 import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
-import RefundReport from '../../types/RefundReport';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
     await this.deleteTransactions(tenantID, [transaction.id]);
   }
 
-  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<void> {
+  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<Transaction>(tenantID, 'transactions')
+    const result = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenantID, 'metervalues')
@@ -30,6 +30,7 @@ export default class TransactionStorage {
     await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
+    return result.deletedCount;
   }
 
   public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
@@ -140,6 +141,12 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
+    if (transactionToSave.ocpiSession) {
+      transactionMDB.ocpiSession = transactionToSave.ocpiSession;
+    }
+    if (transactionToSave.ocpiCdr) {
+      transactionMDB.ocpiCdr = transactionToSave.ocpiCdr;
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
@@ -212,7 +219,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -252,6 +259,8 @@ export default class TransactionStorage {
     // Filter?
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
+    } else if (params.ocpiSessionId) {
+      filterMatch['ocpiSession.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
@@ -306,7 +315,7 @@ export default class TransactionStorage {
     }
     // Refund status
     if (params.refundStatus && params.refundStatus.length > 0) {
-      const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
+      const statuses = params.refundStatus.map((status) => status === RefundStatus.NOT_SUBMITTED ? null : status);
       filterMatch['refundData.status'] = {
         $in: statuses
       };
@@ -365,10 +374,10 @@ export default class TransactionStorage {
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
-            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 1, 0] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, 1] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
+            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, 1] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -835,6 +844,22 @@ export default class TransactionStorage {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionId: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
+    // Found?
+    if (transactionsMDB && transactionsMDB.count > 0) {
+      return transactionsMDB.result[0];
+    }
+    return null;
+  }
+
+  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getOCPITransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delegate work
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getOCPITransaction', uniqueTimerID, { sessionId });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];

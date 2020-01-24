@@ -5,6 +5,8 @@ import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import Logging from '../../../../utils/Logging';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
@@ -22,18 +24,13 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PUT':
       case 'PATCH':
-        await this.updateToken(req, res, next, tenant);
-        break;
+        return this.updateToken(req, res, next, tenant);
       case 'GET':
-        await this.getToken(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.getToken(req, res, next, tenant);
     }
   }
 
@@ -43,7 +40,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    * /tokens/{country_code}/{party_id}/{token_uid}
    *
    */
-  private async getToken(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async getToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -56,7 +53,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     // Retrieve token
     const token = await OCPIMapping.getToken(tenant, countryCode, partyId, tokenId);
 
-    res.json(OCPIUtils.success(token));
+    return OCPIUtils.success(token);
   }
 
   /**
@@ -64,7 +61,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
    *
    * /tokens/{country_code}/{party_id}/{token_uid}
    */
-  private async updateToken(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  private async updateToken(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
@@ -75,6 +72,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
 
     Logging.logDebug(`Updating token ${tokenId} for eMSP ${countryCode}/${partyId}`);
+
+    return OCPIUtils.success();
   }
 }
 

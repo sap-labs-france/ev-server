@@ -4,7 +4,7 @@ import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../..
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -17,6 +17,14 @@ export default class ChargingStationSecurity {
     return {
       siteAreaID: sanitize(request.siteAreaID),
       chargingStationIDs: request.chargingStationIDs.map(sanitize)
+    };
+  }
+
+  public static filterChargingStationLimitPowerRequest(request: any): HttpChargingStationLimitPowerRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      connectorId: sanitize(request.connectorId),
+      ampLimitValue: sanitize(request.ampLimitValue),
     };
   }
 
@@ -150,7 +158,9 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
-    filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);

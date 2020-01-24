@@ -43,6 +43,12 @@ export default class OCPIEndpointSecurity {
     return OCPIEndpointSecurity._filterOcpiEndpointRequest(request) as OCPIEndpoint;
   }
 
+  static filterOcpiEndpointTriggerJobRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
   static filterOcpiEndpointSendEVSEStatusesRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);

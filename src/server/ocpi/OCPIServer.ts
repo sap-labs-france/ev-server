@@ -27,6 +27,7 @@ export default class OCPIServer {
             write: (message) => {
               // Log
               Logging.logDebug({
+                tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME,
                 method: 'constructor',
                 action: 'HttpRequestLog',

@@ -22,10 +22,12 @@ export default class Constants {
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
+  public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
 
   public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
   public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
   public static readonly HTTP_CONCUR_CITY_UNKNOWN_ERROR = 553;
+  public static readonly HTTP_CANNOT_DELETED_REFUNDED_SESSION = 555;
 
   public static readonly HTTP_PRICING_REQUEST_INVOICE_ERROR = 561;
 
@@ -145,6 +147,7 @@ export default class Constants {
   public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
   public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
   public static readonly ACTION_PING = 'Ping';
+  public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
   public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
   public static readonly ACTION_SEND_TOKENS = 'SendTokens';
   public static readonly ACTION_REGISTER = 'Register';
@@ -153,6 +156,7 @@ export default class Constants {
   public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
   public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
+  public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
@@ -218,23 +222,7 @@ export default class Constants {
   public static readonly OCPP_ERROR_TYPERAINT_VIOLATION = 'TyperaintViolation';
   // Any other error not covered by the previous ones
   public static readonly OCPP_ERROR_GENERIC_ERROR = 'GenericError';
-
   public static readonly OCPP_RESPONSE_ACCEPTED = 'Accepted';
-
-  public static readonly OCPP_PROTOCOL_JSON = 'json';
-  public static readonly OCPP_PROTOCOL_SOAP = 'soap';
-  public static readonly OCPP_VERSION_12 = '1.2';
-  public static readonly OCPP_VERSION_15 = '1.5';
-  public static readonly OCPP_VERSION_16 = '1.6';
-  public static readonly OCPP_VERSION_20 = '2.0';
-
-  public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
-  public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';
-  public static readonly REFUND_STATUS_CANCELLED = 'cancelled';
-  public static readonly REFUND_STATUS_APPROVED = 'approved';
-
-  public static readonly REFUND_TYPE_REFUNDED = 'refunded';
-  public static readonly REFUND_TYPE_NOT_REFUNDED = 'notRefunded';
 
   public static readonly BILLING_STATUS_UNBILLED = 'unbilled';
   public static readonly BILLING_STATUS_BILLED = 'billed';

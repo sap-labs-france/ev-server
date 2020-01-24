@@ -283,6 +283,8 @@ export default abstract class OCPIClient {
     return respOcpiCredentials;
   }
 
+  async abstract triggerJobs();
+
   protected getLocalCountryCode(): string {
     if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);

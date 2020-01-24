@@ -1,11 +1,12 @@
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
+import RefundFactory from '../../integration/refund/RefundFactory';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import { RefundStatus } from '../../types/Refund';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import RefundFactory from '../../integration/refund/RefundFactory';
+import SchedulerTask from '../SchedulerTask';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
@@ -31,7 +32,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     }
     // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id, {
-      'refundStatus': [Constants.REFUND_STATUS_SUBMITTED]
+      'refundStatus': [RefundStatus.SUBMITTED]
     }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID' : 1, 'refundData.reportId' : 1 } });
     // Check
     if (transactions.count > 0) {
@@ -53,10 +54,10 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           // Update Transaction
           const updatedAction = await refundConnector.updateRefundStatus(tenant.id, transaction);
           switch (updatedAction) {
-            case Constants.REFUND_STATUS_CANCELLED:
+            case RefundStatus.CANCELLED:
               actionsDone.cancelled++;
               break;
-            case Constants.REFUND_STATUS_APPROVED:
+            case RefundStatus.APPROVED:
               actionsDone.approved++;
               break;
             default:

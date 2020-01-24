@@ -33,7 +33,7 @@ export interface SettingDB extends CreatedUpdatedProps, Setting {
 
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | NotificationsSettingsType | SmartChargingSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -42,15 +42,6 @@ export interface SettingDBContent {
   links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
-  notifications?: NotificationsSettings;
-}
-
-export enum NotificationsSettingsType {
-  NOTIFICATIONS = 'notifications'
-}
-
-export interface NotificationsSettings {
-  userInactivity?: boolean;
 }
 
 export enum PricingSettingsType {
@@ -91,27 +82,28 @@ export interface RoamingSettings extends Setting {
 }
 
 export interface OcpiSetting {
-  cpo: {
-    countryCode: string;
-    partyID: string;
-  };
-  emsp: {
-    countryCode: string;
-    partyID: string;
-  };
-  businessDetails: {
-    name: string;
-    website: string;
-    logo: {
-      url: string;
-      thumbnail: string;
-      category: string;
-      type: string;
-      width: string;
-      height: string;
-    };
-  };
+  cpo: OcpiIdentifier;
+  emsp: OcpiIdentifier;
+  businessDetails: OcpiBusinessDetails;
 }
+
+export interface OcpiIdentifier {
+  countryCode: string;
+  partyID: string;
+}
+
+export interface OcpiBusinessDetails {
+  name: string;
+  website: string;
+  logo: {
+    url: string;
+    thumbnail: string;
+    category: string;
+    type: string;
+    width: string;
+    height: string;
+  };
+};
 
 export enum AnalyticsSettingsType {
   SAC = 'sac'
@@ -158,6 +150,7 @@ export interface RefundSettings extends Setting {
 export interface ConcurRefundSetting {
   authenticationUrl: string;
   apiUrl: string;
+  appUrl: string;
   clientId: string;
   clientSecret: string;
   paymentTypeId: string;

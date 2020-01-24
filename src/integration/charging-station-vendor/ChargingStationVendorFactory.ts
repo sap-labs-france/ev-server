@@ -5,7 +5,7 @@ import SchneiderChargingStationVendor from './schneider/SchneiderChargingStation
 
 export default class ChargingStationVendorFactory {
 
-  static async getChargingStationVendorInstance(chargingStation: ChargingStation): Promise<ChargingStationVendor> {
+  static getChargingStationVendorInstance(chargingStation: ChargingStation): ChargingStationVendor {
     switch (chargingStation.chargePointVendor) {
       // Schneider
       case Constants.VENDOR_SCHNEIDER:

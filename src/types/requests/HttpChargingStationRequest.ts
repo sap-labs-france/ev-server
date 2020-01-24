@@ -5,6 +5,12 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
   chargingStationIDs: string[];
 }
 
+export interface HttpChargingStationLimitPowerRequest {
+  chargeBoxID: string;
+  connectorId: number;
+  ampLimitValue: number;
+}
+
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;

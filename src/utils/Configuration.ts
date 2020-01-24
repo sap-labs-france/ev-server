@@ -27,6 +27,7 @@ import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
+import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -188,6 +189,11 @@ export default class Configuration {
   // Central System Json config
   static getJsonEndpointConfig(): JsonEndpointConfiguration {
     return Configuration.getConfig().JsonEndpoint;
+  }
+
+  // Central System OCPI config
+  static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
+    return Configuration.getConfig().OCPIEndpoint;
   }
 
   // Central System Front-End config

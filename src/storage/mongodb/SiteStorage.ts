@@ -256,6 +256,7 @@ export default class SiteStorage {
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
+      issuer: siteToSave.issuer,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,

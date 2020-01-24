@@ -1,4 +1,5 @@
 import { OCPIEvse } from './OCPIEvse';
+import { OCPIBusinessDetails } from './OCPIBusinessDetails';
 
 export interface OCPILocation {
   id: string;
@@ -12,6 +13,7 @@ export interface OCPILocation {
     latitude: string;
     longitude: string;
   };
+  operator?: OCPIBusinessDetails;
   evses: OCPIEvse[];
   last_updated: Date;
 }
@@ -23,5 +25,11 @@ export enum OCPILocationType {
   PARKING_LOT = 'PARKING_LOT',
   OTHER = 'OTHER',
   UNKNOWN = 'UNKNOWN'
+}
+
+export interface OCPILocationReference {
+  location_id: string;
+  evse_uids: string[];
+  connector_ids: string[];
 }
 
