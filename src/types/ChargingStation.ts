@@ -205,6 +205,6 @@ export interface ChargingStationConfiguration {
 
 export type OCPPParams = {
   site: string;
-  siteAre: string;
+  siteArea: string;
   params: ChargingStationConfiguration;
 };

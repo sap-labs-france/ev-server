@@ -446,21 +446,55 @@ export default class ChargingStationService {
   public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
-    const ocppParams: OCPPParams[] = [];
-    let params: OCPPParams;
-    let site;
-    for (const chargingStation of chargingStations.result) {
-      site = await SiteStorage.getSite(req.user.tenantID, chargingStation.siteArea.siteID);
-      params = {
-        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
-        site: chargingStation.siteArea.name,
-        siteAre: site.name
-      };
-      ocppParams.push(params);
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    let dataToExport = '';
+    if (chargingStations.count < 1) {
+      let siteID = filteredRequest.SiteID;
+      if (!siteID) {
+        const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
+        siteID = siteArea.siteID;
+      }
+      if (!Authorizations.canExportParams(req.user, siteID)) {
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_EXPORT_PARAMS,
+          entity: Constants.ENTITY_CHARGING_STATION,
+          module: 'ChargingStationService',
+          method: 'handleChargingStationsOCPPParamsExport',
+        });
+      }
+      dataToExport = ChargingStationService.convertOCCPParamsToCSV([]);
+    } else {
+      if (!Authorizations.canExportParams(req.user, chargingStations.result[0].siteArea.siteID)) {
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_EXPORT_PARAMS,
+          entity: Constants.ENTITY_CHARGING_STATION,
+          module: 'ChargingStationService',
+          method: 'handleChargingStationsOCPPParamsExport',
+        });
+      }
+      const ocppParams: OCPPParams[] = [];
+      let params: OCPPParams;
+      for (const chargingStation of chargingStations.result) {
+        params = {
+          params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+          site: chargingStation.siteArea.site.name,
+          siteArea: chargingStation.siteArea.name
+        };
+        ocppParams.push(params);
+      }
+      dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
+
     }
+
+
     // Build export
     const filename = 'exported-occp-params.csv';
-    fs.writeFile(filename, ChargingStationService.convertOCCPParamsToCSV(ocppParams), (err) => {
+    fs.writeFile(filename, dataToExport, (err) => {
       if (err) {
         throw err;
       }
@@ -1074,7 +1108,7 @@ export default class ChargingStationService {
         csv += `${params.key}` + Constants.CSV_SEPARATOR;
         csv += `${params.value}` + Constants.CSV_SEPARATOR;
         csv += `${config.site}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteAre}\r\n`;
+        csv += `${config.siteArea}\r\n`;
       }
     }
     return csv;

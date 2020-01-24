@@ -157,6 +157,8 @@ export default class Constants {
   public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
   public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
   public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
+  public static readonly ACTION_EXPORT_PARAMS = 'ExportParams';
+
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;

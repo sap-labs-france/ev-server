@@ -273,6 +273,14 @@ export default class Authorizations {
     });
   }
 
+  public static canExportParams(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_EXPORT_PARAMS, {
+      'site': siteID,
+      'sitesAdmin': loggedUser.sitesAdmin
+    });
+
+  }
+
   public static canListUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USERS, Constants.ACTION_LIST);
   }
