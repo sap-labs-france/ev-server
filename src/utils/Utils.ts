@@ -383,6 +383,10 @@ export default class Utils {
     return date;
   }
 
+  public static replaceSpecialCharsInCSVValueParam(value: string): string {
+    return value ? value.replace(/\n/g, '') : '';
+  }
+
   public static isEmptyJSon(document) {
     // Empty?
     if (!document) {

@@ -444,18 +444,15 @@ export default class ChargingStationService {
   }
 
   public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationsOCPPParamsExport(req.query);
+    // Always with site
+    req.query.WithSite = true;
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
-    // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-    let dataToExport = '';
-    if (chargingStations.count < 1) {
-      let siteID = filteredRequest.SiteID;
-      if (!siteID) {
-        const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
-        siteID = siteArea.siteID;
-      }
-      if (!Authorizations.canExportParams(req.user, siteID)) {
+    for (const chargingStation of chargingStations.result) {
+      // Check all chargers
+      if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.site.id)) {
         throw new AppAuthError({
           errorCode: Constants.HTTP_AUTH_ERROR,
           user: req.user,
@@ -465,33 +462,18 @@ export default class ChargingStationService {
           method: 'handleChargingStationsOCPPParamsExport',
         });
       }
-      dataToExport = ChargingStationService.convertOCCPParamsToCSV([]);
-    } else {
-      if (!Authorizations.canExportParams(req.user, chargingStations.result[0].siteArea.siteID)) {
-        throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
-          user: req.user,
-          action: Constants.ACTION_EXPORT_PARAMS,
-          entity: Constants.ENTITY_CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleChargingStationsOCPPParamsExport',
-        });
-      }
-      const ocppParams: OCPPParams[] = [];
-      let params: OCPPParams;
-      for (const chargingStation of chargingStations.result) {
-        params = {
-          params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
-          site: chargingStation.siteArea.site.name,
-          siteArea: chargingStation.siteArea.name
-        };
-        ocppParams.push(params);
-      }
-      dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
-
     }
-
-
+    const ocppParams: OCPPParams[] = [];
+    for (const chargingStation of chargingStations.result) {
+      // Get OCPP Params
+      ocppParams.push({
+        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+        siteName: chargingStation.siteArea.site.name,
+        siteAreaName: chargingStation.siteArea.name,
+        chargingStationName: chargingStation.id
+      });
+    }
+    const dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
     // Build export
     const filename = 'exported-occp-params.csv';
     fs.writeFile(filename, dataToExport, (err) => {
@@ -510,7 +492,6 @@ export default class ChargingStationService {
       });
     });
   }
-
 
   public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
@@ -1101,14 +1082,14 @@ export default class ChargingStationService {
   }
 
   private static convertOCCPParamsToCSV(configurations: OCPPParams[]): string {
-    let csv = `Charging Station${Constants.CSV_SEPARATOR}Parameter Name${Constants.CSV_SEPARATOR}Parameter Value${Constants.CSV_SEPARATOR}Site${Constants.CSV_SEPARATOR}Site Area\r\n`;
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
     for (const config of configurations) {
       for (const params of config.params.configuration) {
-        csv += `${config.params.id}` + Constants.CSV_SEPARATOR;
+        csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
         csv += `${params.key}` + Constants.CSV_SEPARATOR;
-        csv += `${params.value}` + Constants.CSV_SEPARATOR;
-        csv += `${config.site}` + Constants.CSV_SEPARATOR;
-        csv += `${config.siteArea}\r\n`;
+        csv += `${Utils.replaceSpecialCharsInCSVValueParam(params.value)}` + Constants.CSV_SEPARATOR;
+        csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
+        csv += `${config.siteName}\r\n`;
       }
     }
     return csv;
