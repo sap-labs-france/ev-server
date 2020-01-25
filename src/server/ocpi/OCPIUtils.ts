@@ -58,6 +58,19 @@ export default class OCPIUtils {
   }
 
   /**
+   * Retrieve the next url from the link response header
+   * @param {*} link the link header of the response
+   */
+  public static getNextUrl(link: string): string | undefined {
+    if (link) {
+      const match = /<(.*)>;rel="next"/.exec(link.replace(/ /g, ''));
+      if (match) {
+        return match[1];
+      }
+    }
+  }
+
+  /**
    * Build Location Url
    * @param {*} req request in order to get url
    * @param {*} baseUrl the baseUrl of the service to get url
