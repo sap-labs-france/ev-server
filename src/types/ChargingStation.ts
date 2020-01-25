@@ -202,3 +202,10 @@ export interface ChargingStationConfiguration {
   timestamp: Date;
   configuration: KeyValue[];
 }
+
+export type OCPPParams = {
+  siteName: string;
+  siteAreaName: string;
+  chargingStationName: string;
+  params: ChargingStationConfiguration;
+};

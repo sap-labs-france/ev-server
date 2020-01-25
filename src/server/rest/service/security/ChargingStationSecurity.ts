@@ -4,7 +4,7 @@ import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../..
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpChargingStationsOCPPParamsExportRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -154,6 +154,13 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterChargingStationsOCPPParamsExport(request: any): HttpChargingStationsOCPPParamsExportRequest {
+    const filteredRequest: HttpChargingStationsOCPPParamsExportRequest = {} as HttpChargingStationsOCPPParamsExportRequest;
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    return filteredRequest;
   }
 
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {

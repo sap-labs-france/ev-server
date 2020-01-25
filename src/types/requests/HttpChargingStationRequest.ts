@@ -22,6 +22,11 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   ErrorType?: string;
 }
 
+export interface HttpChargingStationsOCPPParamsExportRequest extends HttpDatabaseRequest {
+  SiteID?: string;
+  SiteAreaID?: string;
+}
+
 export interface HttpChargingStationRequest {
   ChargeBoxID: string;
 }
