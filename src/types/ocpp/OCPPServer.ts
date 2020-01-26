@@ -70,8 +70,9 @@ export interface OCPPHeartbeatRequest {
 }
 
 export interface OCPPHeartbeatRequestExtended extends OCPPHeartbeatRequest {
-  timestamp: Date;
   chargeBoxID: string;
+  timestamp: Date;
+  timezone: string;
 }
 
 export interface OCPPHeartbeatResponse {
