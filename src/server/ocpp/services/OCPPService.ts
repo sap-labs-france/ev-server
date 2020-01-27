@@ -223,8 +223,16 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
       chargingStation.lastHeartBeat = new Date();
-      // Save
+      // Set Heart Beat Object
+      heartbeat = {
+        chargeBoxID: chargingStation.id,
+        timestamp: new Date(),
+        timezone: Utils.getTimezone(chargingStation.coordinates)
+      };
+      // Save Charging Station
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation);
+      // Save Heart Beat
+      await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID, source: chargingStation.id,
