@@ -141,14 +141,15 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       }
 
       const evse = session.location.evses[0];
-      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, evse.evse_id);
+      const chargingStationId = OCPIUtils.buildChargingStationId(session.location.id, evse.uid);
+      const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
       if (!chargingStation) {
         throw new AppError({
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'putSessionRequest',
           errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `No charging station found for evse_id ${evse.evse_id}`,
+          message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: session,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
         });
@@ -159,7 +160,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
           module: MODULE_NAME,
           method: 'putSessionRequest',
           errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `OCPI Session is not authorized on charging station ${evse.evse_id} issued locally`,
+          message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: session,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
         });
