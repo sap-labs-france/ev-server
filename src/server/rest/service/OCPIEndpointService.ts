@@ -247,6 +247,34 @@ export default class OCPIEndpointService {
     next();
   }
 
+  static async handlePullLocationsEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canPullLocationsOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_PULL_LOCATIONS,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handlePullLocationsEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+    // Send EVSE statuses
+    const result = await ocpiClient.pullLocations(false);
+    // Return result
+    res.json(result);
+    next();
+  }
+
   static async handleSendEVSEStatusesOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {

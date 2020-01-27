@@ -149,6 +149,7 @@ export default class Constants {
   public static readonly ACTION_PING = 'Ping';
   public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
   public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
+  public static readonly ACTION_PULL_LOCATIONS = 'PullLocations';
   public static readonly ACTION_SEND_TOKENS = 'SendTokens';
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
