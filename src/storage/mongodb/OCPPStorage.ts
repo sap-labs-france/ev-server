@@ -1,6 +1,6 @@
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
@@ -27,6 +27,24 @@ export default class OCPPStorage {
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
+  }
+
+  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveHeartbeat');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const timestamp = Utils.convertToDate(heartbeat.timestamp);
+    // Insert
+    await global.database.getCollection<any>(tenantID, 'heartbeats')
+      .insertOne({
+        _id: Cypher.hash(`${heartbeat.chargeBoxID}~${timestamp.toISOString()}`),
+        chargeBoxID: heartbeat.chargeBoxID,
+        timestamp: timestamp,
+        timezone: heartbeat.timezone
+      });
+    // Debug
+    Logging.traceEnd('OCPPStorage', 'saveHeartbeat', uniqueTimerID);
   }
 
   static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
