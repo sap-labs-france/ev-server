@@ -18,6 +18,7 @@ import BackendError from '../../../exception/BackendError';
 import Company from '../../../types/Company';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import RefundConnector from '../RefundConnector';
+import { RefundStatus, RefundType } from '../../../types/Refund';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -201,13 +202,13 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           const locationId = await this.getLocation(tenantID, connection, site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
-            transaction.refundData = { refundId: entryId, type: 'quick', refundedAt: new Date() };
+            transaction.refundData = { refundId: entryId, type: RefundType.QUICK, refundedAt: new Date() };
           } else {
             const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, userId);
             transaction.refundData = {
               refundId: entryId,
-              type: 'report',
-              status: Constants.REFUND_STATUS_SUBMITTED,
+              type: RefundType.REPORT,
+              status: RefundStatus.SUBMITTED,
               reportId: expenseReportId,
               refundedAt: new Date()
             };
@@ -238,7 +239,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       if (report) {
         // Approved
         if (report.ApprovalStatusCode === 'A_APPR') {
-          transaction.refundData.status = Constants.REFUND_STATUS_APPROVED;
+          transaction.refundData.status = RefundStatus.APPROVED;
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
@@ -246,7 +247,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
-          return Constants.REFUND_STATUS_APPROVED;
+          return RefundStatus.APPROVED;
         }
         Logging.logDebug({
           tenantID: tenantID,
@@ -256,7 +257,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         });
       } else {
         // Cancelled
-        transaction.refundData.status = Constants.REFUND_STATUS_CANCELLED;
+        transaction.refundData.status = RefundStatus.CANCELLED;
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
@@ -264,7 +265,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
-        return Constants.REFUND_STATUS_CANCELLED;
+        return RefundStatus.CANCELLED;
       }
     }
   }
@@ -272,8 +273,8 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
   canBeDeleted(transaction: Transaction): boolean {
     if (transaction.refundData && transaction.refundData.status) {
       switch (transaction.refundData.status) {
-        case Constants.REFUND_STATUS_CANCELLED:
-        case Constants.REFUND_STATUS_NOT_SUBMITTED:
+        case RefundStatus.CANCELLED:
+        case RefundStatus.NOT_SUBMITTED:
           return true;
         default:
           return false;

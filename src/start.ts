@@ -1,39 +1,47 @@
-import cluster from 'cluster';
 import CentralRestServer from './server/rest/CentralRestServer';
+import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';
+import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
+import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
-import global from './types/GlobalType';
+import I18nManager from './utils/I18nManager';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
 import LockingStorage from './storage/mongodb/LockingStorage';
 import Logging from './utils/Logging';
+import MigrationConfiguration from './types/configuration/MigrationConfiguration';
 import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import OCPIServer from './server/ocpi/OCPIServer';
+import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
 import ODataServer from './server/odata/ODataServer';
+import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
+import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
-import I18nManager from './utils/I18nManager';
+import cluster from 'cluster';
+import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
   private static numWorkers: number;
   private static isClusterEnabled: boolean;
-  private static centralSystemRestConfig: any;
-  private static centralRestServer: any;
-  private static chargingStationConfig: any;
+  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
+  private static centralRestServer: CentralRestServer;
+  private static chargingStationConfig: ChargingStationConfiguration;
   private static storageNotification: any;
-  private static storageConfig: any;
-  private static centralSystemsConfig: any;
-  private static SoapCentralSystemServer: any;
-  private static JsonCentralSystemServer: any;
-  private static ocpiConfig: any;
-  private static ocpiServer: any;
-  private static oDataServerConfig: any;
-  private static oDataServer: any;
+  private static storageConfig: StorageConfiguration;
+  private static centralSystemsConfig: CentralSystemConfiguration[];
+  private static SoapCentralSystemServer: SoapCentralSystemServer;
+  private static JsonCentralSystemServer: JsonCentralSystemServer;
+  private static ocpiConfig: OCPIServiceConfiguration;
+  private static ocpiServer: OCPIServer;
+  private static oDataServerConfig: ODataServiceConfiguration;
+  private static oDataServer: ODataServer;
   private static databaseDone: boolean;
   private static database: any;
+  private static migrationConfig: MigrationConfiguration;
   private static migrationDone: boolean;
 
   public static async start(): Promise<void> {
@@ -54,6 +62,7 @@ export default class Bootstrap {
       Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
+      Bootstrap.migrationConfig = Configuration.getMigrationConfig();
       // Init global user and tenant IDs hashmap
       global.userHashMapIDs = new Map<string, string>();
       global.tenantHashMapIDs = new Map<string, string>();
@@ -94,7 +103,7 @@ export default class Bootstrap {
         await LockingStorage.cleanLocks();
       }
 
-      if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.centralSystemRestConfig) {
+      if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
         Bootstrap.migrationDone = true;

@@ -10,7 +10,7 @@ import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
-import RefundReport from '../../../../types/RefundReport';
+import RefundReport from '../../../../types/Refund';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -30,6 +30,10 @@ export default class TransactionSecurity {
 
   public static filterTransactionRequestByID(request: any): number {
     return Utils.convertToInt(sanitize(request.ID));
+  }
+
+  public static filterTransactionRequestByIDs(request: any): number[] {
+    return request.transactionsIDs.map(sanitize);
   }
 
   public static filterTransactionSoftStop(request: any): number {
@@ -147,6 +151,7 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
+      filteredTransaction.ocpiSession = transaction.ocpiSession;
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;

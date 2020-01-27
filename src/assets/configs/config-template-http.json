@@ -79,6 +79,9 @@
   "JsonEndpoint": {
     "baseUrl": ""
   },
+  "OCPIEndpoint": {
+    "baseUrl": ""
+  },
   "WSClient": {
     "autoReconnectMaxRetries": 10,
     "autoReconnectTimeout": 60
@@ -149,6 +152,9 @@
   },
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Migration": {
+    "active": true
   },
   "Scheduler": {
     "active": true,

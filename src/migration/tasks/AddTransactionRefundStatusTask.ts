@@ -1,9 +1,10 @@
-import Constants from '../../utils/Constants';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import { RefundStatus } from '../../types/Refund';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 export default class AddTransactionRefundStatusTask extends MigrationTask {
   async migrate() {
@@ -20,7 +21,7 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
         'refundData': { $exists: true },
         'refundData.status': { $exists: false }
       },
-      { $set: { 'refundData.status': Constants.REFUND_STATUS_SUBMITTED } },
+      { $set: { 'refundData.status': RefundStatus.SUBMITTED } },
       { upsert: false }
     );
     // Log in the default tenant

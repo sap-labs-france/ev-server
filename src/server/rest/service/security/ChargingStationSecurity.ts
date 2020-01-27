@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation, { ChargingSchedulePeriod, ChargingSchedule } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpChargingStationsOCPPParamsExportRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -17,6 +17,14 @@ export default class ChargingStationSecurity {
     return {
       siteAreaID: sanitize(request.siteAreaID),
       chargingStationIDs: request.chargingStationIDs.map(sanitize)
+    };
+  }
+
+  public static filterChargingStationLimitPowerRequest(request: any): HttpChargingStationLimitPowerRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      connectorId: sanitize(request.connectorId),
+      ampLimitValue: sanitize(request.ampLimitValue),
     };
   }
 
@@ -133,6 +141,13 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
+  public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      forceUpdateOCPPParamsFromTemplate: UtilsSecurity.filterBoolean(request.forceUpdateOCPPParamsFromTemplate)
+    };
+  }
+
   public static filterChargingStationRequest(request: any): HttpByIDRequest {
     return { ID: sanitize(request.ID) };
   }
@@ -141,8 +156,18 @@ export default class ChargingStationSecurity {
     return sanitize(request.ID);
   }
 
+  public static filterChargingStationsOCPPParamsExport(request: any): HttpChargingStationsOCPPParamsExportRequest {
+    const filteredRequest: HttpChargingStationsOCPPParamsExportRequest = {} as HttpChargingStationsOCPPParamsExportRequest;
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    return filteredRequest;
+  }
+
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -226,9 +251,6 @@ export default class ChargingStationSecurity {
       }
       if (request.args.hasOwnProperty('value')) {
         filteredRequest.args.value = sanitize(request.args.value);
-      }
-      if (request.args.hasOwnProperty('connectorID')) {
-        filteredRequest.args.connectorID = sanitize(request.args.connectorID);
       }
       if (request.args.hasOwnProperty('connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
@@ -332,7 +354,7 @@ export default class ChargingStationSecurity {
                 chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
               }
               // Add
-              chargingSchedulePeriod.push(chargingSchedulePeriodNew)
+              chargingSchedulePeriod.push(chargingSchedulePeriodNew);
             }
           }
           if (request.args.csChargingProfiles.chargingSchedule.hasOwnProperty('chargingProfileId')) {

@@ -15,7 +15,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ChargePointStatus } from '../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPVersion, OCPPProtocol } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
@@ -224,7 +224,7 @@ export default class Utils {
           }
           if (connector.status === ChargePointStatus.AVAILABLE) {
             // Check OCPP Version
-            if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
+            if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
               // Set OCPP 1.5 Occupied
               connector.status = ChargePointStatus.OCCUPIED;
             } else {
@@ -355,6 +355,22 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
+  static convertToBoolean(value: any) {
+    let result = false;
+    // Check boolean
+    if (value) {
+      // Check the type
+      if (typeof value === 'boolean') {
+        // Already a boolean
+        result = value;
+      } else {
+        // Convert
+        result = (value === 'true');
+      }
+    }
+    return result;
+  }
+
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
@@ -365,6 +381,10 @@ export default class Utils {
       return new Date(date);
     }
     return date;
+  }
+
+  public static replaceSpecialCharsInCSVValueParam(value: string): string {
+    return value ? value.replace(/\n/g, '') : '';
   }
 
   public static isEmptyJSon(document) {
@@ -508,18 +528,19 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+  public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl;
+    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
-      case Constants.OCPP_PROTOCOL_JSON:
+      case OCPPProtocol.JSON:
         ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
         if (token) {
           ocppUrl += `/${token}`;
         }
         return ocppUrl;
-      case Constants.OCPP_PROTOCOL_SOAP:
+      case OCPPProtocol.SOAP:
       default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
         if (token) {
           ocppUrl += `%26Token=${token}`;
         }
@@ -721,8 +742,6 @@ export default class Utils {
         return 'Blocked';
       case Constants.USER_STATUS_ACTIVE:
         return 'Active';
-      case Constants.USER_STATUS_DELETED:
-        return 'Deleted';
       case Constants.USER_STATUS_INACTIVE:
         return 'Inactive';
       default:

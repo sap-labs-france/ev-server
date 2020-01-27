@@ -37,7 +37,7 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
           'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*']
+          'GetDiagnostics', 'UpdateFirmware','ExportParams'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
@@ -59,7 +59,7 @@ const GRANTS = {
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
-        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens'],
+        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens', 'TriggerJob'],
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
@@ -218,7 +218,7 @@ const GRANTS = {
         resource: 'ChargingStation', action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction'], attributes: ['*'],
+          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction','ExportParams'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {

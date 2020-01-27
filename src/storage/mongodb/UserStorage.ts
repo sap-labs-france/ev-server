@@ -21,33 +21,8 @@ import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
 import moment from 'moment';
 
-
 export default class UserStorage {
 
-  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
-    let eulaText = null;
-    try {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
-    } catch (e) {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
-    }
-    // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
-    // Parse the auth and replace values
-    eulaText = Mustache.render(
-      eulaText,
-      {
-        'chargeAngelsURL': frontEndURL
-      }
-    );
-    // Debug
-    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
-    return eulaText;
-  }
 
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
@@ -143,7 +118,19 @@ export default class UserStorage {
       .toArray();
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
-      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      if (tagsMDB[0].userID) {
+        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      }
+
+      if (!user) {
+        Logging.logError({
+          tenantID: tenantID,
+          module: 'UserStorage',
+          method: 'getUserByTagId',
+          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
+          detailedMessages: tagsMDB[0]
+        });
+      }
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
@@ -281,6 +268,23 @@ export default class UserStorage {
       address: userToSave.address,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      notifications: {
+        sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
+        sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
+        sendEndOfCharge: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfCharge) : false,
+        sendEndOfSession: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfSession) : false,
+        sendUserAccountStatusChanged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountStatusChanged) : false,
+        sendNewRegisteredUser: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendNewRegisteredUser) : false,
+        sendUnknownUserBadged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUnknownUserBadged) : false,
+        sendChargingStationStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationStatusError) : false,
+        sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
+        sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
+        sendSmtpAuthError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpAuthError) : false,
+        sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
+        sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
+        sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
+        sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
+      },
       deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
@@ -308,6 +312,8 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
       await global.database.getCollection<any>(tenantID, 'tags')
@@ -705,7 +711,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -717,8 +723,21 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
-    if (params && params.hasOwnProperty('issuer')) {
-      aggregation.push({ $match: { 'issuer': params.issuer } });
+    if (params) {
+      const filters = [];
+      if (params.issuer === true || params.issuer === false) {
+        filters.push({ 'issuer': params.issuer });
+      }
+      if (params.dateFrom && moment(params.dateFrom).isValid()) {
+        filters.push({ 'lastChangedOn': { $gte: new Date(params.dateFrom) } });
+      }
+      if (params.dateTo && moment(params.dateTo).isValid()) {
+        filters.push({ 'lastChangedOn': { $lte: new Date(params.dateTo) } });
+      }
+
+      if (filters.length > 0) {
+        aggregation.push({ $match: { $and: filters } });
+      }
     }
 
     // Limit records?
@@ -747,7 +766,7 @@ export default class UserStorage {
       });
     } else {
       aggregation.push({
-        $sort: { id: -1 }
+        $sort: { lastChangedOn: 1 }
       });
     }
     // Skip
@@ -763,7 +782,8 @@ export default class UserStorage {
       $project: {
         id: '$_id',
         _id: 0,
-        userID: { $toString: '$userID' }
+        userID: { $toString: '$userID' },
+        lastChangedOn: 1
       }
     });
     // Read DB
@@ -1060,12 +1080,17 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
+        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false
-      } as UserNotifications,
+        sendSmtpAuthError: false,
+        sendUserAccountInactivity: false,
+        sendPreparingSessionNotStarted: false,
+        sendOfflineChargingStations: false,
+        sendBillingUserSynchronizationFailed: false
+      },
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
       tags: []
@@ -1093,8 +1118,54 @@ export default class UserStorage {
           { $addFields: { 'errorCode': 'unassigned_user' } }
         ];
       }
+      case 'inactive_user_account': {
+        const someMonthsAgo = moment().subtract(6, 'months').toDate();
+        if (moment(someMonthsAgo).isValid()) {
+          return [
+            {
+              $match: {
+                $and: [
+                  { eulaAcceptedOn: { $lte: someMonthsAgo } },
+                  { role: 'B' }]
+              }
+
+            },
+            {
+              $addFields: { 'errorCode': 'inactive_user_account' }
+            }
+          ];
+        }
+
+        return [];
+
+      }
       default:
         return [];
     }
+  }
+
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
+    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
+    let eulaText = null;
+    try {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
+    } catch (e) {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
+    }
+    // Build Front End URL
+    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+    // Parse the auth and replace values
+    eulaText = Mustache.render(
+      eulaText,
+      {
+        'chargeAngelsURL': frontEndURL
+      }
+    );
+    // Debug
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
+    return eulaText;
   }
 }

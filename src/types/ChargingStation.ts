@@ -2,6 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
+import { OCPPVersion, OCPPProtocol } from './ocpp/OCPPServer';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -17,8 +18,8 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   firmwareVersion: string;
   meterSerialNumber: string;
   endpoint: string;
-  ocppVersion: string;
-  ocppProtocol: string;
+  ocppVersion: OCPPVersion;
+  ocppProtocol: OCPPProtocol;
   cfApplicationIDAndInstanceIndex: string;
   lastHeartBeat: Date;
   deleted: boolean;
@@ -75,6 +76,7 @@ export interface Connector {
   type: string;
   voltage?: number;
   amperage?: number;
+  amperageLimit?: number;
   activeTransactionID?: number;
   activeTransactionDate?: Date;
   activeTagID?: string;
@@ -99,7 +101,16 @@ export interface ChargingStationTemplate {
   template: {
     cannotChargeInParallel: boolean;
     currentType: ChargingStationCurrentType;
-    connectors: Connector[];
+    maximumPower: number;
+    connectors: {
+      connectorId: number;
+      power: number;
+      type: ConnectorType;
+      currentType: ConnectorCurrentType;
+      numberOfConnectedPhase: number;
+      voltage: number;
+      amperage: number;
+    }[];
     capabilities: {
       supportedFirmwareVersions: string[];
       supportedOcppVersions: string[];
@@ -120,6 +131,16 @@ export interface ChargingStationTemplate {
       parameters: object;
     }[];
   };
+}
+
+export enum ConnectorType {
+  TYPE_2 = 'T2',
+  COMBO_CCS = 'CCS',
+  CHADEMO = 'C',
+  TYPE_1 = 'T1',
+  TYPE_1_CCS = 'T1CCS',
+  DOMESTIC = 'D',
+  UNKNOWN = 'U'
 }
 
 export interface ChargingStationCapabilities {
@@ -159,7 +180,7 @@ export enum ChargingRateUnitType {
   AMPERE = 'A'
 }
 
-export enum ChargingProfileKindType{
+export enum ChargingProfileKindType {
   ABSOLUTE = 'Absolute',
   RECURRING = 'Recurring',
   RELATIVE = 'Relative'
@@ -181,3 +202,10 @@ export interface ChargingStationConfiguration {
   timestamp: Date;
   configuration: KeyValue[];
 }
+
+export type OCPPParams = {
+  siteName: string;
+  siteAreaName: string;
+  chargingStationName: string;
+  params: ChargingStationConfiguration;
+};

@@ -1,5 +1,5 @@
-import { ChargingProfile, PowerLimitUnits, ChargingSchedule } from "../ChargingStation";
-import { KeyValue } from "../GlobalType";
+import { ChargingProfile, ChargingSchedule, PowerLimitUnits } from '../ChargingStation';
+import { KeyValue } from '../GlobalType';
 
 export enum OCPPChargingStationCommand {
   CLEAR_CACHE = 'ClearCache',
@@ -48,7 +48,7 @@ export enum OCPPClearCacheStatus {
 }
 
 export interface OCPPGetConfigurationCommandParam extends OCPPCommandParam {
-  key?: string[]
+  key?: string[];
 }
 
 export interface OCPPGetConfigurationCommandResult {

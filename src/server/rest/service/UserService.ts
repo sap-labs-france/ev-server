@@ -18,6 +18,8 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 
 export default class UserService {
 
@@ -222,6 +224,39 @@ export default class UserService {
         });
       }
     }
+
+    // Synchronize badges with IOP
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    try {
+      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+      if (ocpiClient) {
+        // Invalidate no more used tags
+        for (const tag of user.tags) {
+          if (tag.issuer) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: 'RFID',
+              'auth_id': user.id,
+              'visual_number': user.id,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: 'ALLOWED_OFFLINE',
+              'last_updated': new Date()
+            });
+          }
+        }
+      }
+    } catch (e) {
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        module: 'UserService',
+        method: 'handleUpdateUser',
+        action: 'UserUpdate',
+        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+        detailedMessages: e.message
+      });
+    }
+
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
@@ -319,6 +354,7 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
+    const previousTags = user.tags;
     // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
@@ -345,12 +381,71 @@ export default class UserService {
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id,
-        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+        {
+          password: newPasswordHashed,
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: null,
+          passwordBlockedUntil: null
+        });
     }
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.lastChangedOn;
+        tag.lastChangedBy = filteredRequest.lastChangedBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
+
+      // Synchronize badges with IOP
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Invalidate no more used tags
+          for (const previousTag of previousTags) {
+            const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+            if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
+              await ocpiClient.pushToken({
+                uid: previousTag.id,
+                type: 'RFID',
+                'auth_id': filteredRequest.id,
+                'visual_number': filteredRequest.id,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+          // Push new valid tags
+          for (const currentTag of filteredRequest.tags) {
+            const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
+            if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+              await ocpiClient.pushToken({
+                uid: currentTag.id,
+                type: 'RFID',
+                'auth_id': filteredRequest.id,
+                'visual_number': filteredRequest.id,
+                issuer: tenant.name,
+                valid: true,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+        }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+          detailedMessages: e.message
+        });
+      }
+
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -726,7 +821,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['inactive_user', 'unassigned_user'])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['inactive_user', 'unassigned_user', 'inactive_user_account'])
       },
       {
         limit: filteredRequest.Limit,
@@ -784,12 +879,53 @@ export default class UserService {
     if (filteredRequest.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       await UserStorage.saveUserPassword(req.user.tenantID, newUserID,
-        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+        {
+          password: newPasswordHashed,
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: null,
+          passwordBlockedUntil: null
+        });
     }
     // Save Admin Data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.createdOn;
+        tag.lastChangedBy = filteredRequest.createdBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
+
+      // Synchronize badges with IOP
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          for (const tag of filteredRequest.tags) {
+            if (tag.issuer) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: 'RFID',
+                'auth_id': newUserID,
+                'visual_number': newUserID,
+                issuer: tenant.name,
+                valid: true,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+        }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleCreateUser',
+          action: 'UserCreate',
+          message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
+          detailedMessages: e.message
+        });
+      }
+
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
@@ -843,6 +979,7 @@ export default class UserService {
         });
       }
     }
+
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

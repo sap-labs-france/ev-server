@@ -12,6 +12,14 @@ import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import Company from '../../types/Company';
+import Site from '../../types/Site';
+import SiteArea from '../../types/SiteArea';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import moment from 'moment';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -62,23 +70,23 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
+        action: 'OcpiPushTokens',
+        message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
+        method: 'sendTokens'
       });
     } else if (sendResult.success > 0) {
       // Log info
       Logging.logInfo({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
-        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
+        action: 'OcpiPushTokens',
+        message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: 'sendEVSEStatuses'
+        method: 'sendTokens'
       });
     }
 
@@ -111,44 +119,97 @@ export default class EmspOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async pullLocations() {
-    // Get locations endpoint url
-    const locationsUrl = this.getEndpointUrl('locations');
-
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: 'OcpiGetLocations',
-      message: `Retrieve locations at ${locationsUrl}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'patchEVSEStatus'
-    });
-
-    // Call IOP
-    const response = await axios.get(locationsUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      });
-
-    // Check response
-    if (response.status !== 200 || !response.data) {
-      throw new Error(`Invalid response code ${response.status} from Get locations`);
+  async getCompany(): Promise<Company> {
+    let company = await CompanyStorage.getCompany(this.tenant.id, this.ocpiEndpoint.id);
+    if (!company) {
+      company = {
+        id: this.ocpiEndpoint.id,
+        name: this.ocpiEndpoint.name,
+        issuer: false,
+        createdOn: new Date()
+      } as Company;
+      await CompanyStorage.saveCompany(this.tenant.id, company, false);
     }
-    if (!response.data.data) {
-      throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
-    }
-
-    for (const location of response.data.data) {
-      await this.processLocation(location);
-    }
+    return company;
   }
 
-  async processLocation(location: OCPILocation) {
+  async pullLocations(partial = true) {
+    // Result
+    const sendResult = {
+      success: 0,
+      failure: 0,
+      total: 0,
+      logs: []
+    };
+    // Get locations endpoint url
+    let locationsUrl = this.getEndpointUrl('locations');
+    if (partial) {
+      const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
+      locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
+    } else {
+      locationsUrl = `${locationsUrl}?limit=5`;
+    }
+
+    const company = await this.getCompany();
+    const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
+      Constants.DB_PARAMS_MAX_LIMIT);
+
+    let nextResult = true;
+
+    while (nextResult) {
+      // Log
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: 'OcpiGetLocations',
+        message: `Retrieve locations at ${locationsUrl}`,
+        source: 'OCPI Client',
+        module: 'OCPIClient',
+        method: 'patchEVSEStatus'
+      });
+
+      // Call IOP
+      const response = await axios.get(locationsUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: 10000
+        });
+
+      // Check response
+      if (response.status !== 200 || !response.data) {
+        throw new Error(`Invalid response code ${response.status} from Get locations`);
+      }
+      if (!response.data.data) {
+        throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
+      }
+
+      for (const location of response.data.data) {
+        try {
+          await this.processLocation(location, company, sites.result);
+          sendResult.success++;
+          sendResult.logs.push(
+            `Location ${location.name} successfully updated`
+          );
+        } catch (error) {
+          sendResult.failure++;
+          sendResult.logs.push(
+            `Failure updating location:${location.name}:${error.message}`
+          );
+        }
+      }
+
+      const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
+      if (nextUrl && nextUrl.length > 0 && nextUrl !== locationsUrl) {
+        locationsUrl = nextUrl;
+      } else {
+        nextResult = false;
+      }
+    }
+    return sendResult;
+  }
+
+  async processLocation(location: OCPILocation, company: Company, sites: Site[]) {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: 'OcpiGetLocations',
@@ -158,13 +219,72 @@ export default class EmspOCPIClient extends OCPIClient {
       method: 'processLocation',
       detailedMessage: location
     });
+    let site: Site;
+    site = sites.find((value) => value.name === location.operator.name);
+    if (!site) {
+      site = {
+        name: location.operator.name,
+        createdOn: new Date(),
+        companyID: company.id,
+        issuer: false,
+        address: {
+          address1: location.address,
+          postalCode: location.postal_code,
+          city: location.city,
+          country: location.country,
+          coordinates: []
+        }
+      } as Site;
+      if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+        site.address.coordinates = [
+          Number.parseFloat(location.coordinates.longitude),
+          Number.parseFloat(location.coordinates.latitude)
+        ];
+      }
+
+      site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
+      sites.push(site);
+    }
+
+    const locationName = site.name + '-' + location.id;
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id, {
+      siteIDs: [site.id],
+      search: locationName
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    let siteArea = siteAreas && siteAreas.result.length === 1 ? siteAreas.result[0] : null;
+    if (!siteArea) {
+      siteArea = {
+        name: locationName,
+        createdOn: new Date(),
+        siteID: site.id,
+        issuer: false,
+        address: {
+          address1: location.address,
+          address2: location.name,
+          postalCode: location.postal_code,
+          city: location.city,
+          country: location.country,
+          coordinates: []
+        }
+      } as SiteArea;
+      if (location.coordinates && location.coordinates.latitude && location.coordinates.longitude) {
+        siteArea.address.coordinates = [
+          Number.parseFloat(location.coordinates.longitude),
+          Number.parseFloat(location.coordinates.latitude)
+        ];
+      }
+
+      siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
+    }
+
     if (location.evses && location.evses.length > 0) {
       for (const evse of location.evses) {
-        if (!evse.evse_id) {
+        const chargingStationId = OCPIUtils.buildChargingStationId(location.id, evse.uid);
+        if (!evse.uid) {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: 'OcpiGetLocations',
-            message: `Missing evse id of location ${location.name}`,
+            message: `Missing evse uid of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
             method: 'processLocation',
@@ -174,24 +294,25 @@ export default class EmspOCPIClient extends OCPIClient {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: 'OcpiGetLocations',
-            message: `Delete removed evse ${evse.evse_id} of location ${location.name}`,
+            message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
             method: 'processLocation',
             detailedMessage: location
           });
-          await ChargingStationStorage.deleteChargingStation(this.tenant.id, evse.evse_id);
+          await ChargingStationStorage.deleteChargingStation(this.tenant.id, chargingStationId);
         } else {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: 'OcpiGetLocations',
-            message: `Update evse ${evse.evse_id} of location ${location.name}`,
+            message: `Update evse ${chargingStationId} of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
             method: 'processLocation',
             detailedMessage: location
           });
-          const chargingStation = OCPIMapping.convertEvseToChargingStation(evse, location);
+          const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
+          chargingStation.siteAreaID = siteArea.id;
           await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
         }
       }
@@ -250,5 +371,12 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async remoteStopSession() {
 
+  }
+
+  async triggerJobs() {
+    return {
+      tokens: await this.sendTokens(),
+      locations: await this.pullLocations(false)
+    };
   }
 }

@@ -2,61 +2,61 @@
 	"notifications": {
 		"sessionStarted": {
 			"title": "Session Démarrée",
-			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès"
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès dans l'organisation '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "OCPI - Erreur Mise à jour Statuts",
-			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
+			"title": "Mise à jour Statuts",
+			"body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
 		},
 		"smtpAuthError": {
 			"title": "Erreur Serveur Email",
-			"body": "L'authentification du serveur d'email principal a échoué, vérifier la configuration"
+			"body": "L'authentification du serveur d'email principal a échoué dans l'organisation '{{tenantName}}', vérifier la configuration"
 		},
 		"optimalChargeReached": {
 			"title": "Charge Optimale Atteinte",
-			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%)"
+			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%) dans l'organisation '{{tenantName}}'"
 		},
 		"endOfCharge": {
 			"title": "Charge Terminée",
-			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge"
+			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge dans l'organisation '{{tenantName}}'"
 		},
 		"endOfSession": {
 			"title": "Session Terminée",
-			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée"
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée dans l'organisation '{{tenantName}}'"
 		},
 		"chargingStationStatusError": {
-			"title": "Erreur sur '{{chargeBoxID}}'",
-			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}': {{error}}"
+			"title": "Borne en Erreur",
+			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}': {{error}}"
 		},
 		"unknownUserBadged": {
 			"title": "Utilisateur Inconnu",
-			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}'"
+			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}' dans l'organisation '{{tenantName}}'"
 		},
 		"chargingStationRegistered": {
-			"title": "{{chargeBoxID}} vient de se Connecter",
-			"body": "La borne '{{chargeBoxID}}' vient de se connecter au le serveur central"
+			"title": "Connection Borne",
+			"body": "La borne '{{chargeBoxID}}' vient de se connecter au le serveur central dans l'organisation '{{tenantName}}'"
 		},
 		"userAccountStatusChanged": {
 			"title": "Compte {{status}}",
 			"activated": "activé",
 			"suspended": "suspendu",
-			"body": "Votre compte a été {{status}} par un administrateur"
+			"body": "Votre compte a été {{status}} par un administrateur dans l'organisation '{{tenantName}}'"
 		},
 		"userAccountInactivity": {
-			"title": "Inactivité Compte Utilisateur",
-			"body": "Votre compte est inactif depuis le {{lastLogin}}. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
+			"title": "Compte Utilisateur",
+			"body": "Votre compte est inactif depuis le {{lastLogin}} dans l'organisation '{{tenantName}}'. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés"
 		},
 		"preparingSessionNotStarted": {
 			"title": "Session Non Démarrée",
-			"body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}'."
+			"body": "Session non démarrée sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' dans l'organisation '{{tenantName}}'"
 		},
 		"offlineChargingStation": {
 			"title": "Bornes Hors Ligne",
-			"body": "Les bornes suivantes sont hors ligne dans votre organisation: '{{chargeBoxIDs}}'"
+			"body": "Les bornes suivantes sont hors ligne dans l'organisation '{{tenantName}}': {{chargeBoxIDs}}"
 		},
     "billingUserSynchronizationFailed": {
-      "title": "Erreur Synchro Utilisateurs",
-      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation."
+      "title": "Synchro Utilisateurs",
+      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation dans l'organisation '{{tenantName}}'"
     }
 	},
   "billing": {

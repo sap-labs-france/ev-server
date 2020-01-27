@@ -3,18 +3,16 @@
 		"id": "Schneider~EV2S22P44",
 		"chargePointVendor": "Schneider Electric",
 		"extraFilters": {
+			"chargePointModel": "MONOBLOCK",
 			"chargeBoxSerialNumber": "EV.2S22P44"
 		},
 		"template": {
 			"cannotChargeInParallel": false,
 			"currentType": "AC",
+			"maximumPower": 44340,
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",
@@ -24,10 +22,6 @@
 				},
 				{
 					"connectorId": 2,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",
@@ -82,13 +76,17 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"parameters": {
-						"AllowOfflineTxForUnknownId": true,
-						"AuthorizationCacheEnabled": true,
-						"HeartBeatInterval": 60
+						"AllowOfflineTxForUnknownId": "true",
+						"AuthorizationCacheEnabled": "true",
+						"HeartBeatInterval": "60"
 					}
 				}
 			],
@@ -101,14 +99,14 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 3,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "3",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC"
 					}
@@ -122,17 +120,17 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 3,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "3",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC",
-						"websocketpinginterval": 120
+						"websocketpinginterval": "120"
 					}
 				}
 			]
@@ -142,18 +140,16 @@
 		"id": "Schneider~EV2S7P44",
 		"chargePointVendor": "Schneider Electric",
 		"extraFilters": {
+			"chargePointModel": "MONOBLOCK",
 			"chargeBoxSerialNumber": "EV.2S7P44"
 		},
 		"template": {
 			"cannotChargeInParallel": false,
 			"currentType": "AC",
+			"maximumPower": 14720,
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 7360,
 					"type": "T2",
 					"currentType": "AC",
@@ -163,10 +159,6 @@
 				},
 				{
 					"connectorId": 2,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 7360,
 					"type": "T2",
 					"currentType": "AC",
@@ -221,13 +213,17 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"parameters": {
-						"AllowOfflineTxForUnknownId": true,
-						"AuthorizationCacheEnabled": true,
-						"HeartBeatInterval": 60
+						"AllowOfflineTxForUnknownId": "true",
+						"AuthorizationCacheEnabled": "true",
+						"HeartBeatInterval": "60"
 					}
 				}
 			],
@@ -240,14 +236,14 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 3,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "3",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC"
 					}
@@ -261,17 +257,17 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 3,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "3",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC",
-						"websocketpinginterval": 120
+						"websocketpinginterval": "120"
 					}
 				}
 			]
@@ -281,18 +277,16 @@
 		"id": "Schneider~EVB1A22P4",
 		"chargePointVendor": "Schneider Electric",
 		"extraFilters": {
+			"chargePointModel": "EVlink Smart Wallbox",
 			"chargeBoxSerialNumber": "EVB1A22P4"
 		},
 		"template": {
 			"cannotChargeInParallel": true,
 			"currentType": "AC",
+			"maximumPower": 22170,
 			"connectors": [
 				{
 					"connectorId": 1,
-					"status": "Unavailable",
-					"errorCode": "NoError",
-					"info": "",
-					"vendorErrorCode": "",
 					"power": 22170,
 					"type": "T2",
 					"currentType": "AC",
@@ -349,13 +343,18 @@
 			],
 			"ocppStandardParameters": [
 				{
+					"supportedFirmwareVersions": [
+						"3.2.0.12",
+						"3.3.0.7",
+						"3.3.0.10"
+					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"parameters": {
-						"AllowOfflineTxForUnknownId": true,
-						"AuthorizationCacheEnabled": true,
-						"HeartBeatInterval": 60
+						"AllowOfflineTxForUnknownId": "true",
+						"AuthorizationCacheEnabled": "true",
+						"HeartBeatInterval": "60"
 					}
 				}
 			],
@@ -368,17 +367,17 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 2,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "2",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC",
-						"controlchargebyremotecommand": true
+						"controlchargebyremotecommand": "true"
 					}
 				},
 				{
@@ -390,18 +389,234 @@
 						"1.6"
 					],
 					"parameters": {
-						"ocppconnecttimeout": 60,
-						"clockaligneddatainterval": 0,
+						"ocppconnecttimeout": "60",
+						"clockaligneddatainterval": "0",
 						"metervaluessampleddata": "Energy.Active.Import.Register",
-						"metervaluesampleinterval": 60,
-						"emsetting": 2,
-						"maxintensitysocket": 32,
-						"enableevdetection": true,
-						"useautotimemanagment": true,
+						"metervaluesampleinterval": "60",
+						"emsetting": "2",
+						"maxintensitysocket": "32",
+						"enableevdetection": "true",
+						"useautotimemanagment": "true",
 						"timeservername": "pool.ntp.org",
 						"timezone": "UTC",
-						"websocketpinginterval": 120,
-						"controlchargebyremotecommand": true
+						"websocketpinginterval": "120",
+						"controlchargebyremotecommand": "true"
+					}
+				}
+			]
+		}
+	},
+	{
+		"id": "Ebee~CC6121M4PR",
+		"chargePointVendor": "Bender GmbH Co. KG",
+		"extraFilters": {
+			"chargePointModel": "CC612_1M4PR"
+		},
+		"template": {
+			"cannotChargeInParallel": false,
+			"currentType": "AC",
+			"maximumPower": 44340,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				},
+				{
+					"connectorId": 2,
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"4.52-5419",
+						"4.60-5939"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": true,
+						"supportStaticLimitationPerConnector": true,
+						"supportChargingProfiles": true
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"4.52-5419",
+						"4.60-5939"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+						"ReserveNow",
+						"CancelReservation",
+						"UpdateFirmware",
+						"FirmwareStatusNotification",
+						"GetDiagnostics",
+						"DiagnosticsStatusNotification",
+						{
+							"command": "SetChargingProfile",
+							"parameters": [
+								"TxProfile",
+								"TxDefaultProfile"
+							]
+						},
+						"GetCompositeSchedule",
+						"ClearChargingProfile"
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.52-5419",
+						"4.60-5939"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"MeterValueSampleInterval": "60",
+						"ClockAlignedDataInterval": "0",
+						"HeartBeatInterval": "60",
+						"BackendConnectionTimeout": "120",
+						"ConnectionTimeOut": "45",						
+						"WebSocketPingInterval": "10",
+						"MeterValuesSampledData": "Energy.Active.Import.Register",
+						"StopTransactionOnEVSideDisconnect": "1",
+						"UnlockConnectorOnEVSideDisconnect": "1",
+						"AuthorizationCacheEnabled": "1",
+						"AuthorizeRemoteTxRequests": "1",
+						"LocalAuthorizeOffline": "1"
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.52-5419",
+						"4.60-5939"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"RFIDEnable": "1",
+						"InfoStatusNotifications": "0",
+						"ErrorStatusNotifications": "1",
+						"idTagLetterCase": "1",
+						"RestartTransAfterPowerLoss": "1",
+						"FreeChargingMode": "5",
+						"OCPPMode": "2",
+						"FreeCharging": "0",
+						"OperatorCurrentLimit": "32",
+						"OperatorCurrentLimit_2": "32"
+					}
+				}
+			]
+		}
+	},
+	{
+		"id": "ABB~MDTERRA53",
+		"chargePointVendor": "ABB",
+		"extraFilters": {
+			"chargePointModel": "MD_TERRA_53"
+		},
+		"template": {
+			"cannotChargeInParallel": true,
+			"currentType": "DC",
+			"maximumPower": 50000,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"power": 50000,
+					"type": "CCS",
+					"currentType": "DC",
+					"numberOfConnectedPhase": 0,
+					"voltage": 500,
+					"amperage": 125
+				},
+				{
+					"connectorId": 2,
+					"power": 50000,
+					"type": "C",
+					"currentType": "DC",
+					"numberOfConnectedPhase": 0,
+					"voltage": 500,
+					"amperage": 120
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": false,
+						"supportStaticLimitationPerConnector": false,
+						"supportChargingProfiles": false
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"MeterValueSampleInterval": "60",
+						"WebSocketPingInterval": "30",
+						"HeartBeatInterval": "60",
+						"MeterValuesSampledData": "SoC,Energy.Active.Import.Register",
+						"LocalAuthorizeOffline": "true",
+						"StopTransactionOnEVSideDisconnect": "true",
+						"ClockAlignedDataInterval": "0",
+						"UnlockConnectorOnEVSideDisconnect": "true",
+						"AuthorizationCacheEnabled": "true"
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"4.0.3.63"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
 					}
 				}
 			]

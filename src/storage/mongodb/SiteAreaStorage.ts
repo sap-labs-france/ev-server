@@ -50,6 +50,7 @@ export default class SiteAreaStorage {
     const siteAreaMDB: any = {
       _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
+      issuer: siteAreaToSave.issuer,
       accessControl: siteAreaToSave.accessControl,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     };
@@ -98,6 +99,7 @@ export default class SiteAreaStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
+          { 'name': params.search },
           { 'name': { $regex: params.search, $options: 'i' } }
         ];
       }

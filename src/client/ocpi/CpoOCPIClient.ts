@@ -43,8 +43,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await axios.get(tokensUrl,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Token ${this.ocpiEndpoint.token}`
         },
         timeout: 10000
       });
@@ -269,5 +268,11 @@ export default class CpoOCPIClient extends OCPIClient {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
+  }
+
+  async triggerJobs(): Promise<any> {
+    return {
+      locations: await this.sendEVSEStatuses()
+    };
   }
 }

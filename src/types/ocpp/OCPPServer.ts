@@ -1,4 +1,4 @@
-import User from "../User";
+import User from '../User';
 
 export interface OCPPBootNotificationRequest {
   chargeBoxSerialNumber?: string;
@@ -30,6 +30,18 @@ export interface OCPPBootNotificationResponse {
   heartbeatInterval: number;
 }
 
+export enum OCPPProtocol {
+  SOAP = 'soap',
+  JSON = 'json',
+}
+
+export enum OCPPVersion {
+  VERSION_12 = '1.2',
+  VERSION_15 = '1.5',
+  VERSION_16 = '1.6',
+  VERSION_20 = '2.0',
+}
+
 export enum RegitrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',
@@ -41,7 +53,7 @@ export interface OCPPStatusNotificationRequest {
   errorCode: ChargePointErrorCode;
   info: string;
   status: ChargePointStatus;
-  timestamp: Date;
+  timestamp: string;
   vendorId: string;
   vendorErrorCode: string;
 }
@@ -57,6 +69,12 @@ export interface OCPPStatusNotificationResponse {
 export interface OCPPHeartbeatRequest {
 }
 
+export interface OCPPHeartbeatRequestExtended extends OCPPHeartbeatRequest {
+  chargeBoxID: string;
+  timestamp: Date;
+  timezone: string;
+}
+
 export interface OCPPHeartbeatResponse {
   currentTime: string;
 }
@@ -70,7 +88,7 @@ export interface OCPPMeterValueRequest {
 export interface OCPPMeterValues {
   transactionId?: number;
   connectorId: number;
-  meterValue: OCPPMeterValue[]
+  meterValue: OCPPMeterValue[];
 }
 
 export interface OCPPMeterValuesExtended extends OCPPMeterValues {
@@ -96,7 +114,7 @@ export interface OCPPNormalizedMeterValue {
 }
 
 export interface OCPPMeterValue {
-  timestamp: Date;
+  timestamp: string;
   sampledValue: OCPPSampledValue[];
 }
 
@@ -242,8 +260,8 @@ export interface OCPPAuthorizeResponse {
 }
 
 export interface OCPPIdTagInfo {
-  status: OCPPAuthorizationStatus
-  expiryDate?: Date;
+  status: OCPPAuthorizationStatus;
+  expiryDate?: string;
   parentIdTag?: string;
 }
 
@@ -303,7 +321,7 @@ export interface OCPPStartTransactionRequest {
   idTag: string;
   meterStart: number;
   reservationId?: number;
-  timestamp: Date;
+  timestamp: string;
 }
 
 export interface OCPPStartTransactionRequestExtended extends OCPPStartTransactionRequest {
@@ -344,14 +362,10 @@ export enum OCPPDataTransferStatus {
   UNKNOWN_VENDOR_ID = 'UnknownVendorId'
 }
 
-
-
-
-
 export interface OCPPStopTransactionRequest {
   idTag?: string;
   meterStop: string|number;
-  timestamp: Date;
+  timestamp: string;
   transactionId: number;
   reason?: OCPPReason;
   transactionData?: OCPPMeterValue[];
@@ -376,5 +390,5 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
 }
 
 export interface OCPPStopTransactionResponse {
-  status: OCPPAuthorizationStatus
+  status: OCPPAuthorizationStatus;
 }

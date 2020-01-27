@@ -7,6 +7,7 @@ import SiteArea from './SiteArea';
 export default interface Site extends CreatedUpdatedProps {
   id: string;
   name: string;
+  issuer: boolean;
   address: Address;
   companyID: string;
   autoUserSiteAssignment: boolean;

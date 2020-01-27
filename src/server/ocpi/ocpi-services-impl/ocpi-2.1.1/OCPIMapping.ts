@@ -13,6 +13,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
+import Configuration from '../../../../utils/Configuration';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -45,9 +46,9 @@ export default class OCPIMapping {
     };
   }
 
-  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+  static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation: ChargingStation = {
-      id: evse.evse_id,
+      id: evseId,
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
@@ -161,24 +162,26 @@ export default class OCPIMapping {
    * Get All OCPI Tokens from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllTokens(tenant: Tenant, limit: number, skip: number): Promise<DataResult<OCPIToken>> {
+  static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
+      const user = await UserStorage.getUser(tenant.id, tag.userID);
+      const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
         type: 'RFID',
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: tenant.name,
-        valid: true,
+        valid: valid,
         whitelist: 'ALLOWED_OFFLINE',
-        'last_updated': new Date()
+        'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
 
@@ -470,7 +473,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.ocpi) {

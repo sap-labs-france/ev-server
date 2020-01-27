@@ -90,6 +90,9 @@
   "JsonEndpoint": {
     "baseUrl": ""
   },
+  "OCPIEndpoint": {
+    "baseUrl": ""
+  },
   "Storage": {
     "implementation": "mongodb",
     "uri": null,
@@ -156,6 +159,9 @@
   },
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Migration": {
+    "active": true
   },
   "Scheduler": {
     "active": true,

@@ -1,5 +1,9 @@
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
+import fs from 'fs';
+import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -18,14 +22,17 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import ChargingStation, { ChargingStationConfiguration, OCPPParams } from '../../../types/ChargingStation';
+import { DataResult } from '../../../types/DataResult';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import global from '../../../types/GlobalType';
-import sanitize from 'mongo-sanitize';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 
 export default class ChargingStationService {
 
@@ -111,14 +118,12 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
-
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
-
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
@@ -199,6 +204,64 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleChargingStationLimitPower(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    // Check
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
+      'ChargingStationService', 'handleChargingStationLimitPower', req.user);
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_POWER_LIMITATION,
+        entity: Constants.ENTITY_CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationLimitPower',
+        value: chargingStation.id
+      });
+    }
+    // Check if limit is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Constants.ACTION_POWER_LIMITATION,
+        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        message: `Charging Station '${chargingStation.id}' does not support power limitation`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
+    // Get the Vendor instance
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    if (!chargingStationVendor) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Constants.ACTION_POWER_LIMITATION,
+        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        message: `No vendor implementation is available for limiting the charge of the Charging Station '${chargingStation.id}'`,
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
+    // Call the limitation
+    await chargingStationVendor.setPowerLimitation(
+      req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
@@ -230,8 +293,8 @@ export default class ChargingStationService {
 
   public static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+    const filteredRequest = ChargingStationSecurity.filterRequestChargingStationConfigurationRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -240,17 +303,18 @@ export default class ChargingStationService {
         action: Constants.ACTION_READ,
         entity: Constants.ENTITY_CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleGetChargingStationConfiguration',
-        value: filteredRequest.ChargeBoxID
+        method: 'handleRequestChargingStationConfiguration',
+        value: filteredRequest.chargeBoxID
       });
     }
     // Get the Charging Station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist anymore.`,
+      'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     // Get the Config
-    const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(req.user.tenantID, chargingStation);
+    const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+      req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
     // Ok
     res.json(result);
     next();
@@ -286,19 +350,17 @@ export default class ChargingStationService {
         value: chargingStationID
       });
     }
-
     // Deleted
     if (chargingStation.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `ChargingStation with ID '${chargingStationID}' is already deleted`,
+        message: `Charging Station with ID '${chargingStationID}' is already deleted`,
         module: 'ChargingStationService',
         method: 'handleDeleteChargingStation',
         user: req.user
       });
     }
-
     for (const connector of chargingStation.connectors) {
       if (connector && connector.activeTransactionID) {
         const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.activeTransactionID);
@@ -306,7 +368,7 @@ export default class ChargingStationService {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
-            message: `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
+            message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
             module: 'ChargingStationService',
             method: 'handleDeleteChargingStation',
             user: req.user
@@ -316,7 +378,6 @@ export default class ChargingStationService {
         }
       }
     }
-
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
@@ -388,6 +449,56 @@ export default class ChargingStationService {
   public static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     res.json(await ChargingStationService.getChargingStations(req));
     next();
+  }
+
+  public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationsOCPPParamsExport(req.query);
+    // Always with site
+    req.query.WithSite = true;
+    // Get Charging Stations
+    const chargingStations = await ChargingStationService.getChargingStations(req);
+    for (const chargingStation of chargingStations.result) {
+      // Check all chargers
+      if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.site.id)) {
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_EXPORT_PARAMS,
+          entity: Constants.ENTITY_CHARGING_STATION,
+          module: 'ChargingStationService',
+          method: 'handleChargingStationsOCPPParamsExport',
+        });
+      }
+    }
+    const ocppParams: OCPPParams[] = [];
+    for (const chargingStation of chargingStations.result) {
+      // Get OCPP Params
+      ocppParams.push({
+        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+        siteName: chargingStation.siteArea.site.name,
+        siteAreaName: chargingStation.siteArea.name,
+        chargingStationName: chargingStation.id
+      });
+    }
+    const dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
+    // Build export
+    const filename = 'exported-occp-params.csv';
+    fs.writeFile(filename, dataToExport, (err) => {
+      if (err) {
+        throw err;
+      }
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
+        }
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
+          }
+        });
+      });
+    });
   }
 
   public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -531,8 +642,7 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector
-    if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION ||
-        command === OCPPChargingStationCommand.UNLOCK_CONNECTOR) {
+    if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
@@ -967,6 +1077,7 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
+        issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         includeDeleted: filteredRequest.IncludeDeleted
@@ -988,6 +1099,20 @@ export default class ChargingStationService {
         chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
     }
     return chargingStations;
+  }
+
+  private static convertOCCPParamsToCSV(configurations: OCPPParams[]): string {
+    let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
+    for (const config of configurations) {
+      for (const params of config.params.configuration) {
+        csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
+        csv += `${params.key}` + Constants.CSV_SEPARATOR;
+        csv += `${Utils.replaceSpecialCharsInCSVValueParam(params.value)}` + Constants.CSV_SEPARATOR;
+        csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
+        csv += `${config.siteName}\r\n`;
+      }
+    }
+    return csv;
   }
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
@@ -1047,6 +1172,16 @@ export default class ChargingStationService {
             key: params.key,
             value: params.value
           });
+          // Check
+          if (result.status === OCPPConfigurationStatus.ACCEPTED) {
+            // Refresh Configuration
+            await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
+            // Check update with Vendor
+            const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+            if (chargingStationVendor) {
+              await chargingStationVendor.checkUpdateOfOCPPParams(tenantID, chargingStation, params.key, params.value);
+            }
+          }
           break;
         // Unlock Connector
         case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
@@ -1055,7 +1190,7 @@ export default class ChargingStationService {
         // Start Transaction
         case OCPPChargingStationCommand.REMOTE_START_TRANSACTION:
           result = await chargingStationClient.remoteStartTransaction({
-            connectorId: params.connectorID,
+            connectorId: params.connectorId,
             idTag: params.tagID
           });
           break;
@@ -1068,7 +1203,7 @@ export default class ChargingStationService {
         // Set Charging Profile
         case OCPPChargingStationCommand.SET_CHARGING_PROFILE:
           result = await chargingStationClient.setChargingProfile({
-            connectorId: params.connectorID,
+            connectorId: params.connectorId,
             csChargingProfiles: params.csChargingProfiles
           });
           break;
@@ -1123,7 +1258,7 @@ export default class ChargingStationService {
           module: 'ChargingStationService', method: 'handleChargingStationCommand',
           action: command,
           message: `OCPP Command '${command}' has been executed`,
-          detailedMessages: result
+          detailedMessages: { params, result }
         });
         return result;
       }
@@ -1146,7 +1281,7 @@ export default class ChargingStationService {
         module: 'ChargingStationService',
         method: 'handleChargingStationCommand',
         user: user,
-        detailedMessages: error
+        detailedMessages: { params, error }
       });
     }
   }

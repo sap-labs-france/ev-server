@@ -2,7 +2,7 @@ import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import global from '../../../types/GlobalType';
-import { OCPPBootNotificationRequestExtended, OCPPHeartbeatRequest, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPAuthorizeRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPStopTransactionRequestExtended } from '../../../types/ocpp/OCPPServer';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -36,13 +36,13 @@ export default class OCPPValidation extends SchemaValidator {
     return OCPPValidation.instance;
   }
 
-  validateHeartbeat(heartbeat: OCPPHeartbeatRequest) {
+  validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended) {
   }
 
   validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
     // Check non mandatory or wrong timestamp
     if (!statusNotification.timestamp || new Date(statusNotification.timestamp).getFullYear() === new Date(0).getFullYear()) {
-      statusNotification.timestamp = new Date();
+      statusNotification.timestamp = new Date().toISOString();
     }
     this.validate(this._statusNotificationRequest, statusNotification);
   }
@@ -80,7 +80,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   validateStopTransaction(chargingStation: ChargingStation, stopTransaction: OCPPStopTransactionRequestExtended) {
-    if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
+    if (chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       this.validate(this._stopTransactionRequest16, stopTransaction);
     } else {
       this.validate(this._stopTransactionRequest15, stopTransaction);

@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import User from '../../../src/types/User';
 import config from '../../config';
-import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import { ComponentType, PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import AuthenticationApi from './AuthenticationApi';
-import BaseApi from './utils/BaseApi';
+import BillingApi from './BillingApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
-import Constants from './utils/Constants';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
@@ -17,9 +17,10 @@ import SiteAreaApi from './SiteAreaApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
-import User from '../../../src/types/User';
 import UserApi from './UserApi';
-import BillingApi from './BillingApi';
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import BaseApi from './utils/BaseApi';
+import Constants from './utils/Constants';
 
 // Set
 chai.use(chaiSubset);
@@ -109,13 +110,14 @@ export default class CentralServerService {
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
-    let setting = settings.data.result.find((s) => s.identifier === 'pricing');
+    let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
-      setting = {};
-      setting.identifier = 'pricing';
+      setting = {} as SettingDB;
+      setting.identifier = ComponentType.PRICING;
       newSetting = true;
     }
     setting.content = {
+      type: PricingSettingsType.SIMPLE,
       simple: {
         price: priceKWH,
         currency: priceUnit

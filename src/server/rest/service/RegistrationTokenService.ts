@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import DbParams from '../../../types/database/DbParams';
-import Logging from '../../../utils/Logging';
-import RegistrationToken from '../../../types/RegistrationToken';
-import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import DbParams from '../../../types/database/DbParams';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import RegistrationToken from '../../../types/RegistrationToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
@@ -73,8 +74,9 @@ export default class RegistrationTokenService {
       };
       const registrationTokenID = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
       registrationToken.id = registrationTokenID;
-      registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
-      registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
+      registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
       // Ok
       res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
       next();
@@ -234,8 +236,9 @@ export default class RegistrationTokenService {
 
       const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID, params, dbParams);
       registrationTokens.result.forEach((registrationToken) => {
-        registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
-        registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
+        registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+        registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+        registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
         return registrationToken;
       });
       // Filter

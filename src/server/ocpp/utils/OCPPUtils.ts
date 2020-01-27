@@ -1,10 +1,10 @@
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -42,7 +42,7 @@ export default class OCPPUtils {
     return foundTemplate;
   }
 
-  public static async enrichCharingStationWithTemplate(chargingStation: ChargingStation): Promise<boolean> {
+  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<boolean> {
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
     // Copy from template
@@ -51,11 +51,11 @@ export default class OCPPUtils {
       if (chargingStationTemplate.template.hasOwnProperty('cannotChargeInParallel')) {
         chargingStation.cannotChargeInParallel = chargingStationTemplate.template.cannotChargeInParallel;
       }
+      if (chargingStationTemplate.template.hasOwnProperty('maximumPower')) {
+        chargingStation.maximumPower = chargingStationTemplate.template.maximumPower;
+      }
       if (chargingStationTemplate.template.hasOwnProperty('currentType')) {
         chargingStation.currentType = chargingStationTemplate.template.currentType;
-      }
-      if (chargingStationTemplate.template.hasOwnProperty('connectors')) {
-        chargingStation.connectors = chargingStationTemplate.template.connectors;
       }
       // Handle capabilities
       chargingStation.capabilities = {} as ChargingStationCapabilities;
@@ -150,9 +150,99 @@ export default class OCPPUtils {
           }
         }
       }
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
+        action: 'ChargingStationTemplate',
+        message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
+        detailedMessages: chargingStationTemplate
+      });
       return true;
     }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: `No Template has been found for '${chargingStation.chargePointVendor}'`
+    });
     return false;
+  }
+
+  public static async enrichChargingStationConnectorWithTemplate(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<boolean> {
+    // Get Template
+    const chargingStationTemplate = await OCPPUtils.getCharingStationTemplate(chargingStation);
+    // Copy from template
+    if (chargingStationTemplate) {
+      // Handle connector
+      if (chargingStationTemplate.template.hasOwnProperty('connectors')) {
+        // Find the connector in the template
+        const templateConnector = chargingStationTemplate.template.connectors.find(
+          (connector) => connector.connectorId === connectorID);
+        if (!templateConnector) {
+          // Log
+          Logging.logWarning({
+            tenantID: tenantID, source: chargingStation.id,
+            module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
+            action: 'ChargingStationTemplate',
+            message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
+          });
+          return false;
+        }
+        // Force Update
+        for (const connector of chargingStation.connectors) {
+          // Set
+          if (connector.connectorId === connectorID) {
+            connector.power = templateConnector.power;
+            connector.type = templateConnector.type;
+            connector.currentType = templateConnector.currentType;
+            connector.numberOfConnectedPhase = templateConnector.numberOfConnectedPhase;
+            connector.voltage = templateConnector.voltage;
+            connector.amperage = templateConnector.amperage;
+            connector.amperageLimit = templateConnector.amperage;
+            break;
+          }
+        }
+        // Recalculate Max Power
+        this.recalculateChargingStationMaxPower(chargingStation);
+      }
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: chargingStation.id,
+        module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
+        action: 'ChargingStationTemplate',
+        message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
+        detailedMessages: chargingStationTemplate
+      });
+      return true;
+    }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID, source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
+    });
+    return false;
+  }
+
+  public static recalculateChargingStationMaxPower(chargingStation: ChargingStation) {
+    let maximumPower = 0;
+    // Only for AC
+    if (chargingStation.currentType !== ChargingStationCurrentType.AC) {
+      return;
+    }
+    for (const connector of chargingStation.connectors) {
+      if (connector.hasOwnProperty('power')) {
+        maximumPower += connector.power;
+      }
+    }
+    if (maximumPower) {
+      chargingStation.maximumPower = maximumPower;
+    }
   }
 
   public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
@@ -218,7 +308,7 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation: boolean = false) {
+  public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string, chargingStation: ChargingStation, newChargingStation = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -257,21 +347,21 @@ export default class OCPPUtils {
         method: 'requestAndSaveChargingStationOcppConfiguration', action: 'RequestConfiguration',
         message: 'Configuration has been saved'
       });
-      return { status: 'Accepted' };
+      return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
-      return { status: 'Rejected' };
+      return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
-  
+
   public static async checkAndUpdateChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation, currentConfiguration: ChargingStationConfiguration) {
     let oneOCPPParameterUpdated = false;
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
         method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-        message: `Charging Station has no Standard/Vendor OCPP Parameters to change`
+        message: 'Charging Station has no Standard/Vendor OCPP Parameters to change'
       });
       return;
     }
@@ -281,10 +371,10 @@ export default class OCPPUtils {
     const ocppParameters = chargingStation.ocppStandardParameters.concat(chargingStation.ocppVendorParameters);
     // Check Standard OCPP Params
     for (const ocppParameter of ocppParameters) {
+      // Find OCPP Param
+      const currentOcppParam: KeyValue = currentConfiguration.configuration.find(
+        (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
-        // Find OCPP Param
-        const currentOcppParam: KeyValue =  currentConfiguration.configuration.find(
-          (ocppParam) => ocppParam.key === ocppParameter.key);
         if (!currentOcppParam) {
           // Not Found in Charging Station!
           Logging.logError({
@@ -315,20 +405,20 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
             method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-            message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set to '${currentOcppParam.value}'`
-          });          
+            message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
+          });
         } else {
           Logging.logError({
             tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
             method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-            message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' to value '${ocppParameter.value}': `
+            message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
           });
         }
       } catch (error) {
         Logging.logError({
           tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
           method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
-          message: `Error in changing OCPP parameter '${ocppParameter.key}' to value '${ocppParameter.value}'`,
+          message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
           detailedMessages: error
         });
       }
@@ -341,7 +431,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChangeChargingStationConfiguration(
-      tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
+    tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     // Get the configuration

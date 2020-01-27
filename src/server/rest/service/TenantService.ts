@@ -23,8 +23,8 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const id = TenantSecurity.filterTenantRequestByID(req.query);
+    UtilsService.assertIdIsProvided(id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -34,12 +34,12 @@ export default class TenantService {
         entity: Constants.ENTITY_TENANT,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
-        value: filteredRequest.ID
+        value: id
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
+    const tenant = await TenantStorage.getTenant(id);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -55,14 +55,8 @@ export default class TenantService {
     }
     // Delete
     await TenantStorage.deleteTenant(tenant.id);
-    if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
-      Logging.logWarning({
-        tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'deleteTenantDatabase',
-        message: `Deleting collections for tenant ${tenant.id}`
-      });
-      await TenantStorage.deleteTenantDB(tenant.id);
-    }
+    // Remove collection
+    await TenantStorage.deleteTenantDB(tenant.id);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,

@@ -273,6 +273,14 @@ export default class Authorizations {
     });
   }
 
+  public static canExportParams(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_EXPORT_PARAMS, {
+      'site': siteID,
+      'sitesAdmin': loggedUser.sitesAdmin
+    });
+
+  }
+
   public static canListUsers(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USERS, Constants.ACTION_LIST);
   }
@@ -391,6 +399,10 @@ export default class Authorizations {
 
   public static canSendEVSEStatusesOcpiEndpoint(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_SEND_EVSE_STATUSES);
+  }
+
+  public static canTriggerJobOcpiEndpoint(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT, Constants.ACTION_TRIGGER_JOB);
   }
 
   public static canSendTokensOcpiEndpoint(loggedUser: UserToken): boolean {
@@ -698,7 +710,8 @@ export default class Authorizations {
         id: tagID,
         deleted: false,
         issuer: false,
-        userID: user.id
+        userID: user.id,
+        lastChangedOn: new Date()
       };
       await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
@@ -732,7 +745,7 @@ export default class Authorizations {
         method: 'checkAndGetUserTagIDOnChargingStation',
         user: user
       });
-    } else if (user.status === Constants.USER_STATUS_DELETED) {
+    } else if (user.deleted) {
       // Set default user's value
       user.name = 'Unknown';
       user.firstName = 'User';
