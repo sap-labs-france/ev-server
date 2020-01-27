@@ -7,7 +7,6 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 
 export default class OCPIClientFactory {
@@ -64,7 +63,7 @@ export default class OCPIClientFactory {
     for (const ocpiEndpoint of ocpiEndpoints.result) {
       if (ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
         const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
-        return client as EmspOCPIClient;
+        return client;
       }
     }
   }
