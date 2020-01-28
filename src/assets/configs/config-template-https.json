@@ -182,9 +182,21 @@
         "config": {}
       },
       {
+        "name": "OCPIGetCdrsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
         "name": "OCPIGetLocationsTask",
         "active": true,
-        "periodicity": "0 1 * * *",
+        "periodicity": "0 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetSessionsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
         "config": {}
       },
       {

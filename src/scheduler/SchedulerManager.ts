@@ -12,6 +12,8 @@ import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransact
 import cron from 'node-cron';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
+import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
+import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -58,8 +60,14 @@ export default class SchedulerManager {
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
             break;
+          case 'OCPIGetCdrsTask':
+            schedulerTask = new OCPIGetCdrsTask();
+            break;
           case 'OCPIGetLocationsTask':
             schedulerTask = new OCPIGetLocationsTask();
+            break;
+          case 'OCPIGetSessionsTask':
+            schedulerTask = new OCPIGetSessionsTask();
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
