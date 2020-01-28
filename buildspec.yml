@@ -1,14 +1,18 @@
 version: 0.2
 phases:
+  runtime-versions:
+    nodejs: 10
   install:
     commands:
-      - 'npm install'
+      - echo Entered the install phase...
+      - npm install
   build:
     commands:
-      - 'npm run build:prod'
-# artifacts:
-#   type: zip
-#   files:
-#     - package.json
-#     - package-lock.json
-#     - 'dist/**/*'
+      - echo Entered the build phase...
+      - npm run build:prod
+artifacts:
+  type: zip
+  files:
+    - package.json
+    - package-lock.json
+    - 'dist/**/*'
