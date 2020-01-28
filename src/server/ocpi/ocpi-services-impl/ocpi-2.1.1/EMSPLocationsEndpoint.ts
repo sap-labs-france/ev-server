@@ -140,7 +140,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     const siteName = OCPIUtils.buildSiteName(countryCode, partyId);
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
     const company = await ocpiClient.getCompany();
-    const sites = await SiteStorage.getSites(tenant.id, {companyIDs: [company.id], search: siteName}, Constants.DB_PARAMS_SINGLE_RECORD);
+    const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], search: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
 
     if (evseUid && connectorId) {
       await this.updateConnector(tenant, locationId, evseUid, connectorId, req.body);
