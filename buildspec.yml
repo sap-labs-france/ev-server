@@ -4,11 +4,9 @@ phases:
     runtime-versions:
       nodejs: 10
     commands:
-      - echo Entered the install phase...
       - npm install
   build:
     commands:
-      - echo Entered the build phase...
       - npm run build:prod
 artifacts:
   type: zip
