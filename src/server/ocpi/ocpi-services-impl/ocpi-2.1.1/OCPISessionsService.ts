@@ -31,6 +31,10 @@ export default class OCPISessionsService {
       });
     }
 
+    if (!session.total_cost) {
+      session.total_cost = 0;
+    }
+
     let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, session.id);
     if (!transaction) {
       const user = await UserStorage.getUser(tenantId, session.auth_id);
