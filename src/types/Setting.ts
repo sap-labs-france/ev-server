@@ -14,7 +14,13 @@ export enum ComponentType {
 export interface Setting {
   id?: string;
   identifier: ComponentType;
-  sensitiveData: string[];
+  sensitiveData?: string[];
+  category?: 'business' | 'technical';
+}
+
+// Database Settings interface
+export interface SettingDB extends CreatedUpdatedProps, Setting {
+  content: SettingDBContent;
 }
 
 export interface SettingLink {
@@ -23,12 +29,6 @@ export interface SettingLink {
   description: string;
   role: string;
   url: string;
-}
-
-// Database Settings interface
-export interface SettingDB extends CreatedUpdatedProps, Setting {
-  category?: 'business' | 'technical';
-  content: SettingDBContent;
 }
 
 // Database Settings Content interface
@@ -95,7 +95,7 @@ export interface OcpiIdentifier {
 export interface OcpiBusinessDetails {
   name: string;
   website: string;
-  logo: {
+  logo?: {
     url: string;
     thumbnail: string;
     category: string;

@@ -20,7 +20,6 @@ export default class SettingSecurity {
     };
   }
 
-
   public static filterSettingsRequest(request: any): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);

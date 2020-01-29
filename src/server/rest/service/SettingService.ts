@@ -125,6 +125,11 @@ export default class SettingService {
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
+    console.log('====================================');
+    console.log(JSON.stringify(req.body, null, ' '));
+    console.log(req.user.tenantID);
+    console.log(JSON.stringify(filteredRequest, null, ' '));
+    console.log('====================================');
     // Save Setting
     filteredRequest.id = await SettingStorage.saveSettings(req.user.tenantID, filteredRequest);
     // Log
