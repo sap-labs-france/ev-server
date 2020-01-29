@@ -15,7 +15,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ChargePointStatus, OCPPVersion, OCPPProtocol } from '../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';

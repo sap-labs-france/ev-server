@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpTenantsRequest, HttpTenantVerifyRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';

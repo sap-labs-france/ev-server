@@ -226,7 +226,7 @@ export default class TransactionService {
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
-    res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
@@ -246,7 +246,7 @@ export default class TransactionService {
     }
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
-    res.json({...result, ...Constants.REST_RESPONSE_SUCCESS});
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
@@ -426,7 +426,7 @@ export default class TransactionService {
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime
     },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -917,7 +917,7 @@ export default class TransactionService {
       inSuccess: 0,
       inError: 0
     };
-    const specificError: { refunded: number; notFound: number; refundedIDs: number[], notFoundIDs: number[] } = {
+    const specificError: { refunded: number; notFound: number; refundedIDs: number[]; notFoundIDs: number[] } = {
       refunded: 0,
       notFound: 0,
       refundedIDs: [],
@@ -981,7 +981,7 @@ export default class TransactionService {
         action: action,
         detailedMessages: errorDetails
       });
-    } else {      
+    } else {
       Logging.logInfo({
         tenantID: loggedUser.tenantID,
         user: loggedUser,

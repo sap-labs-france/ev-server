@@ -103,7 +103,7 @@ export interface OcpiBusinessDetails {
     width: string;
     height: string;
   };
-};
+}
 
 export enum AnalyticsSettingsType {
   SAC = 'sac'
