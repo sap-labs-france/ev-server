@@ -918,6 +918,67 @@ export default class TransactionCommonTests {
     }
   }
 
+  public async testMultiDeleteNotFoundTransactions() {
+    const response = await this.transactionUserService.transactionApi.deleteMany([faker.random.number(100000), faker.random.number(100000)]);
+    expect(response.status).to.equal(200);
+    expect(response.data.inSuccess).to.equal(0);
+    expect(response.data.inError).to.equal(2);
+  }
+
+  public async testMultiDeleteTransactions(allowed = true) {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tags[0].id;
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.random.number(100000)]);
+    if (allowed) {
+      expect(response.status).to.equal(200);
+      expect(response.data.inSuccess).to.equal(1);
+      expect(response.data.inError).to.equal(1);
+    } else {
+      expect(response.status).to.equal(560);
+    }
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    if (allowed) {
+      expect(response.status).to.equal(550);
+    } else {
+      expect(response.status).to.equal(200);
+    }
+  }
+
+  public async testMultiDeleteValidTransactions() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tags[0].id;
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const secondTransactionId = response.data.transactionId;
+    response = await this.transactionUserService.transactionApi.deleteMany([transactionId, secondTransactionId]);
+    expect(response.status).to.equal(200);
+    expect(response.data.inSuccess).to.equal(2);
+    expect(response.data.inError).to.equal(0);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    expect(response.status).to.equal(550);
+    response = await this.transactionUserService.transactionApi.readById(secondTransactionId);
+    expect(response.status).to.equal(550);
+
+  }
+
   public async testReadPriceForStoppedTransaction() {
     const connectorId = 1;
     const tagId = this.transactionUser.tags[0].id;

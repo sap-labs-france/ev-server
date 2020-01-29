@@ -222,7 +222,16 @@ describe('Transaction tests', function() {
         });
 
       });
+      describe('Using function "deleteMany"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
+        it('Cannot delete multi transactions with a basic user', async () => {
+          await testData.transactionCommonTests.testMultiDeleteTransactions(false);
+        });
+      });
       describe('Using function "delete"', () => {
 
         after(async () => {
@@ -340,7 +349,21 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testSessionsAmountIncreaseByOne({ OnlyRecordCount: true });
         });
       });
+      describe('Using function "deleteMany"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+        it('Can delete only existent transactions', async () => {
+          await testData.transactionCommonTests.testMultiDeleteTransactions();
+        });
+        it('Can delete multi valid transactions', async () => {
+          await testData.transactionCommonTests.testMultiDeleteValidTransactions();
+        });
+        it('Cannot delete non-existent transactions', async () => {
+          await testData.transactionCommonTests.testMultiDeleteNotFoundTransactions();
+        });
+      });
       describe('Using function "delete"', () => {
 
         after(async () => {
