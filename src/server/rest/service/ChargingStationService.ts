@@ -1,38 +1,32 @@
+import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
 import { DataResult } from '../../../types/DataResult';
-import { GridFSBucket } from 'mongodb';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
-import { OCPPChargingStationCommand } from '../../../types/ocpp/OCPPClient';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { ChargingStationConfiguration, OCPPParams } from '../../../types/ChargingStation';
-import { DataResult } from '../../../types/DataResult';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import fs from 'fs';
+import global from '../../../types/GlobalType';
+import sanitize from 'mongo-sanitize';
+import { ObjectID } from 'mongodb';
 
 export default class ChargingStationService {
 
@@ -481,7 +475,7 @@ export default class ChargingStationService {
         chargingStationName: chargingStation.id
       });
     }
-    const dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
+    const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
     // Build export
     const filename = 'exported-occp-params.csv';
     fs.writeFile(filename, dataToExport, (err) => {
@@ -619,14 +613,18 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetFirmwareFile(action: string, req: Request, res: Response, next: NextFunction) {
-    // TODO: Check Auth
+  public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
     // TODO: Filter
     // Open a download stream and pipe it in the response
-    const bucket = global.database.createGridFSBucket('default.firmwareFiles');
-    if (req.body.fileName) {
-      res.attachment(req.body.fileName);
-      bucket.openDownloadStreamByName(req.body.fileName).pipe(res);
+    const bucket = global.database.createGridFSBucket('default.firmware');
+    if (req.query.fileName) {
+      const filename = req.query.fileName;
+      res.writeHead(200, {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename=' + filename
+      });
+      const stream = bucket.openDownloadStreamByName(filename);
+      stream.pipe(res);
     }
     next();
   }
@@ -1101,7 +1099,7 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCCPParamsToCSV(configurations: OCPPParams[]): string {
+  private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
     let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
     for (const config of configurations) {
       for (const params of config.params.configuration) {
