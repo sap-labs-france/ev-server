@@ -165,17 +165,11 @@ export default class ContextBuilder {
             content: tenantContextDef.componentSettings[componentSettingKey].content as SettingDBContent
           };
           console.log(`CREATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
-          console.log('createSettings ====================================');
-          console.log(JSON.stringify(settingInput, null, ' '));
-          console.log('====================================');
-          const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
+          await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
         } else {
           console.log(`UPDATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
-          console.log('updateSettings ====================================');
-          console.log(JSON.stringify(foundSetting, null, ' '));
-          console.log('====================================');
-          const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
+          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
         }
       }
     }
