@@ -65,13 +65,6 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * It will first destroy all Unit Test tenants
-   * Then it will create new ones with the minimum entities
-   * All definition is coming from ContextConstants.js
-   *
-   * @memberof ContextBuilder
-   */
   async prepareContexts() {
     await this.init();
     await this.destroy();
@@ -83,15 +76,6 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * Private method
-   * It will build the necessary tenants
-   * Precondition: The tenant MUST not exist already in the DB
-   *
-   * @param {*} tenantContextDef
-   * @returns
-   * @memberof ContextBuilder
-   */
   async buildTenantContext(tenantContextDef: any) {
     // Build component list
     const components = {};

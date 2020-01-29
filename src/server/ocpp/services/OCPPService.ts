@@ -1539,6 +1539,12 @@ export default class OCPPService {
       transaction.stop.totalInactivitySecs = transaction.stop.totalDurationSecs;
     }
     // Update Inactivity Status
+    console.log('====================================');
+    console.log(JSON.stringify({
+      charger: transaction.chargeBox,
+      connectorId: transaction.connectorId,
+      totalInactivity: transaction.stop.totalInactivitySecs}, null, ' '));
+    console.log('====================================');
     transaction.stop.inactivityStatus =
       Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.stop.totalInactivitySecs);
     return lastMeterValue;
