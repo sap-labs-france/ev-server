@@ -172,11 +172,6 @@ describe('Transaction tests', function() {
         it('Cannot find any transactions in error if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoTransactionsInError();
         });
-
-        it('Can find some transactions in error', async () => {
-          await testData.transactionCommonTests.testReadSomeTransactionsInError();
-        });
-
       });
 
       describe('Using function "readAllConsumption"', () => {
