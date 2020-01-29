@@ -430,30 +430,30 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertToInt(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToInt(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseInt(id);
+      changedValue = parseInt(value);
     }
-    return changedID;
+    return changedValue;
   }
 
-  public static convertToFloat(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToFloat(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseFloat(id);
+      changedValue = parseFloat(value);
     }
-    return changedID;
+    return changedValue;
   }
 
   public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
