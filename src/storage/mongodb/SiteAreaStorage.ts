@@ -15,7 +15,7 @@ export default class SiteAreaStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImageMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteareaimages')
+    const siteAreaImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'siteareaimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, { id });
@@ -33,11 +33,20 @@ export default class SiteAreaStorage {
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID,
-      { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      {
+        siteAreaID: id,
+        withSite: params.withSite,
+        withChargeBoxes: params.withChargeBoxes,
+        withAvailableChargers: true
+      },
       Constants.DB_PARAMS_SINGLE_RECORD
     );
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, {
+      id,
+      withChargeBoxes: params.withChargeBoxes,
+      withSite: params.withSite
+    });
     return siteAreaResult.result[0];
   }
 
@@ -77,8 +86,10 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean;
-      withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
+    params: {
+      siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
+      withChargeBoxes?: boolean; withAvailableChargers?: boolean;
+    } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
@@ -93,7 +104,7 @@ export default class SiteAreaStorage {
     // Query by Site Area ID if available
     if (params.siteAreaID) {
       filters._id = Utils.convertToObjectID(params.siteAreaID);
-    // Otherwise check if search is present
+      // Otherwise check if search is present
     } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
@@ -110,6 +121,11 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
     }
+
+    if (params.issuer === true || params.issuer === false) {
+      filters.issuer = params.issuer;
+    }
+
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -121,8 +137,10 @@ export default class SiteAreaStorage {
     // Sites
     if (params.withSite) {
       DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-          asField: 'site', oneToOneCardinality: true });
+        {
+          tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+          asField: 'site', oneToOneCardinality: true
+        });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -146,8 +164,10 @@ export default class SiteAreaStorage {
     // Charging Stations
     if (params.withChargeBoxes || params.withAvailableChargers) {
       DatabaseUtils.pushChargingStationLookupInAggregation(
-        { tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
-          asField: 'chargingStations' });
+        {
+          tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
+          asField: 'chargingStations'
+        });
     }
     // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
@@ -182,7 +202,10 @@ export default class SiteAreaStorage {
     }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     const siteAreas: SiteArea[] = [];
     // Check

@@ -557,13 +557,12 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
+    const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
         action: action

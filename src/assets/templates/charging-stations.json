@@ -493,8 +493,7 @@
 						"MeterValueSampleInterval": "60",
 						"ClockAlignedDataInterval": "0",
 						"HeartBeatInterval": "60",
-						"BackendConnectionTimeout": "120",
-						"ConnectionTimeOut": "45",						
+						"ConnectionTimeOut": "60",						
 						"WebSocketPingInterval": "10",
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
 						"StopTransactionOnEVSideDisconnect": "1",
@@ -515,6 +514,7 @@
 						"1.6"
 					],
 					"parameters": {
+						"BackendConnectionTimeout": "60",
 						"RFIDEnable": "1",
 						"InfoStatusNotifications": "0",
 						"ErrorStatusNotifications": "1",
@@ -617,6 +617,123 @@
 						"1.6"
 					],
 					"parameters": {
+					}
+				}
+			]
+		}
+	},
+	{
+		"id": "Legrand~059015",
+		"chargePointVendor": "Legrand",
+		"extraFilters": {
+			"chargePointModel": "059015"
+		},
+		"template": {
+			"cannotChargeInParallel": false,
+			"currentType": "AC",
+			"maximumPower": 44340,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				},
+				{
+					"connectorId": 2,
+					"power": 3680,
+					"type": "D",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 1,
+					"voltage": 230,
+					"amperage": 16
+				},
+				{
+					"connectorId": 3,
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				},
+				{
+					"connectorId": 4,
+					"power": 3680,
+					"type": "D",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 1,
+					"voltage": 230,
+					"amperage": 16
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"V01.01.88/V01.01.88"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": false,
+						"supportStaticLimitationPerConnector": false,
+						"supportChargingProfiles": false
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"V01.01.88/V01.01.88"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+						"UpdateFirmware",
+						"FirmwareStatusNotification",
+						"GetDiagnostics",
+						"DiagnosticsStatusNotification"
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"V01.01.88/V01.01.88"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"ClockAlignedDataInterval": "0",
+						"UnlockConnectorOnEVSideDisconnect": "true",
+						"HeartBeatInterval": "60",
+						"MeterValueSampleInterval": "60",
+						"AllowOffLineTxForUnknownId":"true",
+						"LocalAuthorizeOffline": "true",
+						"ConnectionTimeOut": "60",						
+						"MeterValuesSampledData": "Energy.Active.Import.Register",
+						"StopTransactionOnEVSideDisconnect": "true"			
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"V01.01.88/V01.01.88"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"StatusNotificationAfterBootNotification": "true",
+						"MeterValuesSampleClock": "false",
+						"ResetRetries": "2"
 					}
 				}
 			]

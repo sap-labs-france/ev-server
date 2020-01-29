@@ -247,13 +247,94 @@ export default class OCPIEndpointService {
     next();
   }
 
-  static async handleSendEVSEStatusesOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handlePullLocationsEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
-    if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: Constants.HTTP_AUTH_ERROR,
         user: req.user,
-        action: Constants.ACTION_SEND_EVSE_STATUSES,
+        action: Constants.ACTION_TRIGGER_JOB,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handlePullLocationsEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handlePullLocationsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+    const result = await ocpiClient.pullLocations(false);
+    // Return result
+    res.json(result);
+    next();
+  }
+
+  static async handlePullSessionsEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_TRIGGER_JOB,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handlePullLocationsEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handlePullSessionsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+    const result = await ocpiClient.pullSessions();
+    // Return result
+    res.json(result);
+    next();
+  }
+
+  static async handlePullCdrsEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_TRIGGER_JOB,
+        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handlePullCdrsEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handlePullCdrsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+    const result = await ocpiClient.pullCdrs();
+    // Return result
+    res.json(result);
+    next();
+  }
+
+  static async handleSendEVSEStatusesOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_TRIGGER_JOB,
         entity: Constants.ENTITY_OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleSendEVSEStatusesOcpiEndpoint'
@@ -277,11 +358,11 @@ export default class OCPIEndpointService {
 
   static async handleSendTokensOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
-    if (!Authorizations.canSendTokensOcpiEndpoint(req.user)) {
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
         errorCode: Constants.HTTP_AUTH_ERROR,
         user: req.user,
-        action: Constants.ACTION_SEND_TOKENS,
+        action: Constants.ACTION_TRIGGER_JOB,
         entity: Constants.ENTITY_OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleSendTokensOcpiEndpoint'

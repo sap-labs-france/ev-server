@@ -16,10 +16,7 @@ import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import CompanyStorage from '../../../../storage/mongodb/CompanyStorage';
-import Company from '../../../../types/Company';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 
 const EP_IDENTIFIER = 'locations';
@@ -176,6 +173,8 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       chargingStation.connectors = patchedChargingStation.connectors;
       chargingStation.maximumPower = patchedChargingStation.maximumPower;
     }
+
+    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
   }
 
   private async patchConnector(tenant: Tenant, chargingStation: ChargingStation, connectorId: string, ocpiConnector: Partial<OCPIConnector>) {

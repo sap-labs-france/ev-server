@@ -12,6 +12,9 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
+import ChargingStation from '../../types/ChargingStation';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -52,6 +55,23 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.data) {
       Logging.logDebug(`${response.data.length} Tokens retrieved`);
     }
+  }
+
+  async patchChargingStationStatus(chargingStation: ChargingStation, status: ChargePointStatus) {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new Error('Charging Station must be associated to a site area');
+    }
+    if (!chargingStation.issuer) {
+      throw new Error('Only charging Station issued locally can be exposed to IOP');
+    }
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+    await this.patchEVSEStatus(siteID, chargingStation.id ,OCPIMapping.convertStatus2OCPIStatus(status));
   }
 
   /**

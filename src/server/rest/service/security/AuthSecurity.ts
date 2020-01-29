@@ -52,7 +52,7 @@ export default class AuthSecurity {
   public static filterVerifyEmailRequest(request: any): Partial<HttpVerifyEmailRequest> {
     return {
       Email: sanitize(request.Email),
-      tenant: sanitize(request.tenant),
+      Tenant: sanitize(request.Tenant),
       VerificationToken: sanitize(request.VerificationToken)
     };
   }

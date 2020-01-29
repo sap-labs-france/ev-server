@@ -126,6 +126,7 @@ export default abstract class OCPIClient {
 
       // Set available endpoints
       this.ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(services.data.data);
+      this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
 
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
@@ -250,7 +251,7 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials');
 
-    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
+    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({

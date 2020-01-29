@@ -99,10 +99,12 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (!chargingStation.cannotChargeInParallel) {
-        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
-      } else {
-        evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
+      if (chargingStation.issuer === true) {
+        if (!chargingStation.cannotChargeInParallel) {
+          evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
+        } else {
+          evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
+        }
       }
     });
 
@@ -123,7 +125,8 @@ export default class OCPIMapping {
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
       {
         withChargeBoxes: true,
-        siteIDs: [site.id]
+        siteIDs: [site.id],
+        issuer: true
       },
       Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
@@ -144,7 +147,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {

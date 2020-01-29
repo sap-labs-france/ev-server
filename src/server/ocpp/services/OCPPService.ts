@@ -27,6 +27,9 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import Tenant from '../../../types/Tenant';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -223,8 +226,16 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
       chargingStation.lastHeartBeat = new Date();
-      // Save
+      // Set Heart Beat Object
+      heartbeat = {
+        chargeBoxID: chargingStation.id,
+        timestamp: new Date(),
+        timezone: Utils.getTimezone(chargingStation.coordinates)
+      };
+      // Save Charging Station
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation);
+      // Save Heart Beat
+      await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID, source: chargingStation.id,
@@ -357,6 +368,8 @@ export default class OCPPService {
     await this.checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
     // Notify admins
     await this.notifyStatusNotification(tenantID, chargingStation, statusNotification);
+    // Send new status to IOP
+    await this.updateOCPIStatus(tenantID, chargingStation, statusNotification);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
   }
@@ -431,6 +444,26 @@ export default class OCPPService {
         tenantID, chargingStation.id, statusNotification.connectorId);
       // Clean up connector
       OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, statusNotification.connectorId, true);
+    }
+  }
+
+  private async updateOCPIStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+      try {
+        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.CPO) as CpoOCPIClient;
+        if (ocpiClient) {
+          await ocpiClient.patchChargingStationStatus(chargingStation, statusNotification.status);
+        }
+      } catch (exception) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: chargingStation.id, module: 'OCPPService', method: 'updateOCPIStatus',
+          action: 'updateOCPIStatus',
+          message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
+          detailedMessages: exception
+        });
+      }
     }
   }
 
