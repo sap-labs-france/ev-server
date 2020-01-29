@@ -155,12 +155,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
-      if (data.tenant) {
-        emailTemplate.tenant = data.tenant;
-      } else if (tenant.id !== Constants.DEFAULT_TENANT) {
-        emailTemplate.tenant = tenant.name;
-      } else {
+      if (tenant.id === Constants.DEFAULT_TENANT) {
         emailTemplate.tenant = Constants.DEFAULT_TENANT;
+      } else {
+        emailTemplate.tenant = tenant.name;
       }
       // Render Base URL
       emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
@@ -229,12 +227,6 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      // Add Admins in BCC from Configuration
-      let adminEmails = null;
-      if (data.adminUsers && data.adminUsers.length > 0) {
-        // Add Admins
-        adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
-      }
       // Send the email
       await this.sendEmail({
         to: user.email,
