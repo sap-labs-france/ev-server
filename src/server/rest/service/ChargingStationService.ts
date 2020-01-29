@@ -444,8 +444,6 @@ export default class ChargingStationService {
   }
 
   public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationsOCPPParamsExport(req.query);
     // Always with site
     req.query.WithSite = true;
     // Get Charging Stations
