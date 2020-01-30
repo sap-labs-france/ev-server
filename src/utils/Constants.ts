@@ -1,55 +1,56 @@
 export default class Constants {
-  public static readonly SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
-  public static readonly SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
-  public static readonly SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
-  public static readonly SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
-  public static readonly SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
-  public static readonly SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
-  public static readonly SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
-  public static readonly SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
-  public static readonly SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
-  public static readonly SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
-  public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
-  public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
-  public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
-  public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
-  public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
-  public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
-  public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed';
+  // Source
+  // public static readonly SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
+  // public static readonly SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
+  // public static readonly SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
+  // public static readonly SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
+  // public static readonly SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
+  // public static readonly SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
+  // public static readonly SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
+  // public static readonly SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
+  // public static readonly SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
+  // public static readonly SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
+  // public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
+  // public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
+  // public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+  // public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
+  // public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
+  // public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
+  // public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed';
 
-  public static readonly CSV_SEPARATOR = '\t';
+  public static readonly CSV_SEPARATOR = '\t'; // Cannot store Regex ind enum
 
-  public static readonly HTTP_GENERAL_ERROR = 500;
-  public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
-  public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
-  public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
+  // public static readonly HTTP_GENERAL_ERROR = 500;
+  // public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
+  // public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
+  // public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
 
-  public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
-  public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
-  public static readonly HTTP_CONCUR_CITY_UNKNOWN_ERROR = 553;
-  public static readonly HTTP_CANNOT_DELETED_REFUNDED_SESSION = 555;
+  // public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
+  // public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
+  // public static readonly HTTP_CONCUR_CITY_UNKNOWN_ERROR = 553;
+  // public static readonly HTTP_CANNOT_DELETED_REFUNDED_SESSION = 555;
 
-  public static readonly HTTP_PRICING_REQUEST_INVOICE_ERROR = 561;
+  // public static readonly HTTP_PRICING_REQUEST_INVOICE_ERROR = 561;
 
-  public static readonly HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR = 555;
+  // public static readonly HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR = 555;
 
-  public static readonly HTTP_AUTH_ERROR = 560;
-  public static readonly HTTP_AUTH_INVALID_CAPTCHA = 530;
-  public static readonly HTTP_AUTH_INVALID_TOKEN_ERROR = 540;
-  public static readonly HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR = 525;
-  public static readonly HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR = 525;
-  public static readonly HTTP_AUTH_USER_WITH_NO_SITE_ERROR = 525;
+  // public static readonly HTTP_AUTH_ERROR = 560;
+  // public static readonly HTTP_AUTH_INVALID_CAPTCHA = 530;
+  // public static readonly HTTP_AUTH_INVALID_TOKEN_ERROR = 540;
+  // public static readonly HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR = 525;
+  // public static readonly HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR = 525;
+  // public static readonly HTTP_AUTH_USER_WITH_NO_SITE_ERROR = 525;
 
-  public static readonly HTTP_EXISTING_TRANSACTION_ERROR = 570;
+  // public static readonly HTTP_EXISTING_TRANSACTION_ERROR = 570;
 
-  public static readonly HTTP_USER_EMAIL_ALREADY_EXIST_ERROR = 510;
-  public static readonly HTTP_USER_EULA_ERROR = 520;
-  public static readonly HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR = 530;
-  public static readonly HTTP_USER_TAG_ID_ALREADY_USED_ERROR = 540;
-  public static readonly HTTP_USER_LOCKED_ERROR = 570;
-  public static readonly HTTP_USER_NO_BADGE_ERROR = 570;
-  public static readonly HTTP_USER_ACCOUNT_INACTIVE_ERROR = 580;
-  public static readonly HTTP_USER_ACCOUNT_PENDING_ERROR = 590;
+  // public static readonly HTTP_USER_EMAIL_ALREADY_EXIST_ERROR = 510;
+  // public static readonly HTTP_USER_EULA_ERROR = 520;
+  // public static readonly HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR = 530;
+  // public static readonly HTTP_USER_TAG_ID_ALREADY_USED_ERROR = 540;
+  // public static readonly HTTP_USER_LOCKED_ERROR = 570;
+  // public static readonly HTTP_USER_NO_BADGE_ERROR = 570;
+  // public static readonly HTTP_USER_ACCOUNT_INACTIVE_ERROR = 580;
+  // public static readonly HTTP_USER_ACCOUNT_PENDING_ERROR = 590;
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
@@ -68,94 +69,95 @@ export default class Constants {
   public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
   public static readonly STATS_GROUP_BY_PRICING = 'P';
 
-  public static readonly ENTITY_SITE = 'Site';
-  public static readonly ENTITY_SITES = 'Sites';
-  public static readonly ENTITY_SITE_AREA = 'SiteArea';
-  public static readonly ENTITY_SITE_AREAS = 'SiteAreas';
-  public static readonly ENTITY_COMPANY = 'Company';
-  public static readonly ENTITY_COMPANIES = 'Companies';
-  public static readonly ENTITY_CHARGING_STATION = 'ChargingStation';
-  public static readonly ENTITY_CHARGING_STATIONS = 'ChargingStations';
-  public static readonly ENTITY_TENANT = 'Tenant';
-  public static readonly ENTITY_TENANTS = 'Tenants';
-  public static readonly ENTITY_TRANSACTION = 'Transaction';
-  public static readonly ENTITY_TRANSACTIONS = 'Transactions';
-  public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
-  public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
-  public static readonly ENTITY_REPORT = 'Report';
-  public static readonly ENTITY_USER = 'User';
-  public static readonly ENTITY_USERS = 'Users';
-  public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
-  public static readonly ENTITY_VEHICLE_MANUFACTURERS = 'VehicleManufacturers';
-  public static readonly ENTITY_VEHICLES = 'Vehicles';
-  public static readonly ENTITY_VEHICLE = 'Vehicle';
-  public static readonly ENTITY_LOGGINGS = 'Loggings';
-  public static readonly ENTITY_LOGGING = 'Logging';
-  public static readonly ENTITY_PRICING = 'Pricing';
-  public static readonly ENTITY_BILLING = 'Billing';
-  public static readonly ENTITY_SETTING = 'Setting';
-  public static readonly ENTITY_SETTINGS = 'Settings';
-  public static readonly ENTITY_TOKENS = 'Tokens';
-  public static readonly ENTITY_TOKEN = 'Token';
-  public static readonly ENTITY_OCPI_ENDPOINT = 'OcpiEndpoint';
-  public static readonly ENTITY_OCPI_ENDPOINTS = 'OcpiEndpoints';
-  public static readonly ENTITY_CONNECTION = 'Connection';
-  public static readonly ENTITY_CONNECTIONS = 'Connections';
+  // Entities
+  // public static readonly ENTITY_SITE = 'Site';
+  // public static readonly ENTITY_SITES = 'Sites';
+  // public static readonly ENTITY_SITE_AREA = 'SiteArea';
+  // public static readonly ENTITY_SITE_AREAS = 'SiteAreas';
+  // public static readonly ENTITY_COMPANY = 'Company';
+  // public static readonly ENTITY_COMPANIES = 'Companies';
+  // public static readonly ENTITY_CHARGING_STATION = 'ChargingStation';
+  // public static readonly ENTITY_CHARGING_STATIONS = 'ChargingStations';
+  // public static readonly ENTITY_TENANT = 'Tenant';
+  // public static readonly ENTITY_TENANTS = 'Tenants';
+  // public static readonly ENTITY_TRANSACTION = 'Transaction';
+  // public static readonly ENTITY_TRANSACTIONS = 'Transactions';
+  // public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
+  // public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
+  // public static readonly ENTITY_REPORT = 'Report';
+  // public static readonly ENTITY_USER = 'User';
+  // public static readonly ENTITY_USERS = 'Users';
+  // public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
+  // public static readonly ENTITY_VEHICLE_MANUFACTURERS = 'VehicleManufacturers';
+  // public static readonly ENTITY_VEHICLES = 'Vehicles';
+  // public static readonly ENTITY_VEHICLE = 'Vehicle';
+  // public static readonly ENTITY_LOGGINGS = 'Loggings';
+  // public static readonly ENTITY_LOGGING = 'Logging';
+  // public static readonly ENTITY_PRICING = 'Pricing';
+  // public static readonly ENTITY_BILLING = 'Billing';
+  // public static readonly ENTITY_SETTING = 'Setting';
+  // public static readonly ENTITY_SETTINGS = 'Settings';
+  // public static readonly ENTITY_TOKENS = 'Tokens';
+  // public static readonly ENTITY_TOKEN = 'Token';
+  // public static readonly ENTITY_OCPI_ENDPOINT = 'OcpiEndpoint';
+  // public static readonly ENTITY_OCPI_ENDPOINTS = 'OcpiEndpoints';
+  // public static readonly ENTITY_CONNECTION = 'Connection';
+  // public static readonly ENTITY_CONNECTIONS = 'Connections';
 
-  public static readonly VENDOR_SCHNEIDER = 'Schneider Electric';
+  // public static readonly VENDOR_SCHNEIDER = 'Schneider Electric';
 
   public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';
 
-  public static readonly WITH_CHARGING_STATIONS = true;
-  public static readonly WITHOUT_CHARGING_STATIONS = false;
-  public static readonly WITH_SITE = true;
-  public static readonly WITHOUT_SITE = false;
+  public static readonly WITH_CHARGING_STATIONS = true; // Not used
+  public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
+  public static readonly WITH_SITE = true; // Not used
+  public static readonly WITHOUT_SITE = false; // Not used
 
   public static readonly VEHICLE_TYPE_CAR = 'C';
 
   // Statuses
-  public static readonly USER_STATUS_PENDING = 'P';
-  public static readonly USER_STATUS_ACTIVE = 'A';
-  public static readonly USER_STATUS_INACTIVE = 'I';
-  public static readonly USER_STATUS_BLOCKED = 'B';
-  public static readonly USER_STATUS_LOCKED = 'L';
+  // public static readonly USER_STATUS_PENDING = 'P';
+  // public static readonly USER_STATUS_ACTIVE = 'A';
+  // public static readonly USER_STATUS_INACTIVE = 'I';
+  // public static readonly USER_STATUS_BLOCKED = 'B';
+  // public static readonly USER_STATUS_LOCKED = 'L';
 
-  // Roles
-  public static readonly ROLE_SUPER_ADMIN = 'S';
-  public static readonly ROLE_ADMIN = 'A';
-  public static readonly ROLE_BASIC = 'B';
-  public static readonly ROLE_DEMO = 'D';
+  // // Roles
+  // public static readonly ROLE_SUPER_ADMIN = 'S';
+  // public static readonly ROLE_ADMIN = 'A';
+  // public static readonly ROLE_BASIC = 'B';
+  // public static readonly ROLE_DEMO = 'D';
 
-  public static readonly ACTION_READ = 'Read';
-  public static readonly ACTION_CREATE = 'Create';
-  public static readonly ACTION_UPDATE = 'Update';
-  public static readonly ACTION_DELETE = 'Delete';
-  public static readonly ACTION_LOGOUT = 'Logout';
-  public static readonly ACTION_LIST = 'List';
-  public static readonly ACTION_RESET = 'Reset';
-  public static readonly ACTION_AUTHORIZE = 'Authorize';
-  public static readonly ACTION_CLEAR_CACHE = 'ClearCache';
-  public static readonly ACTION_DATA_TRANSFER = 'DataTransfer';
-  public static readonly ACTION_STOP_TRANSACTION = 'StopTransaction';
-  public static readonly ACTION_REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction';
-  public static readonly ACTION_START_TRANSACTION = 'StartTransaction';
-  public static readonly ACTION_REMOTE_START_TRANSACTION = 'RemoteStartTransaction';
-  public static readonly ACTION_REFUND_TRANSACTION = 'RefundTransaction';
-  public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
-  public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
-  public static readonly ACTION_PING = 'Ping';
-  public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
-  public static readonly ACTION_REGISTER = 'Register';
-  public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
-  public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
-  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
-  public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
-  public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
-  public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
-  public static readonly ACTION_EXPORT_PARAMS = 'ExportParams';
+  // public static readonly ACTION_READ = 'Read';
+  // public static readonly ACTION_CREATE = 'Create';
+  // public static readonly ACTION_UPDATE = 'Update';
+  // public static readonly ACTION_DELETE = 'Delete';
+  // public static readonly ACTION_LOGOUT = 'Logout';
+  // public static readonly ACTION_LIST = 'List';
+  // public static readonly ACTION_RESET = 'Reset';
+  // public static readonly ACTION_AUTHORIZE = 'Authorize';
+  // public static readonly ACTION_CLEAR_CACHE = 'ClearCache';
+  // public static readonly ACTION_DATA_TRANSFER = 'DataTransfer';
+  // public static readonly ACTION_STOP_TRANSACTION = 'StopTransaction';
+  // public static readonly ACTION_REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction';
+  // public static readonly ACTION_START_TRANSACTION = 'StartTransaction';
+  // public static readonly ACTION_REMOTE_START_TRANSACTION = 'RemoteStartTransaction';
+  // public static readonly ACTION_REFUND_TRANSACTION = 'RefundTransaction';
+  // public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
+  // public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
+  // public static readonly ACTION_PING = 'Ping';
+  // public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
+  // public static readonly ACTION_REGISTER = 'Register';
+  // public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
+  // public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
+  // public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
+  // public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
+  // public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
+  // public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
+  // public static readonly ACTION_EXPORT_PARAMS = 'ExportParams';
 
 
   // Password constants
@@ -166,10 +168,10 @@ export default class Constants {
   public static readonly PWD_NUMBER_MIN_COUNT = 1;
   public static readonly PWD_SPECIAL_MIN_COUNT = 1;
 
-  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g;
-  public static readonly PWD_LOWERCASE_RE = /([a-z])/g;
-  public static readonly PWD_NUMBER_RE = /([\d])/g;
-  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g;
+  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store Regex ind enum
+  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store Regex ind enum
+  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store Regex ind enum
+  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store Regex ind enum
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
@@ -187,9 +189,10 @@ export default class Constants {
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
   public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
 
-  public static readonly CHARGER_VENDOR_EBEE = 'Bender GmbH Co. KG';
-  public static readonly CHARGER_VENDOR_SCHNEIDER = 'Schneider Electric';
-  public static readonly CHARGER_VENDOR_ABB = 'ABB';
+  // Vendors
+  // public static readonly CHARGER_VENDOR_EBEE = 'Bender GmbH Co. KG';
+  // public static readonly CHARGER_VENDOR_SCHNEIDER = 'Schneider Electric';
+  // public static readonly CHARGER_VENDOR_ABB = 'ABB';
 
   public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;
@@ -352,6 +355,6 @@ export default class Constants {
     'verificationToken': 0
   };
 
-  public static readonly MOBILE_OS_ANDROID = 'android';
-  public static readonly MOBILE_OS_IOS = 'ios';
+  public static readonly MOBILE_OS_ANDROID = 'android'; // Not used
+  public static readonly MOBILE_OS_IOS = 'ios'; // Not used
 }

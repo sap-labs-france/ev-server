@@ -110,8 +110,7 @@ export default class SiteAreaStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { 'name': params.search },
-          { 'name': { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
         ];
       }
     }

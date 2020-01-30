@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -6,8 +8,10 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -18,22 +22,20 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
+      Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -44,7 +46,7 @@ export default class UserService {
     if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site\'s IDs must be provided',
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -55,10 +57,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleAssignSitesToUser',
         value: filteredRequest.userID
@@ -69,7 +71,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.userID}' does not exist anymore`,
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -82,7 +84,7 @@ export default class UserService {
       if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `Site with ID '${siteID}' does not exist anymore`,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
@@ -93,10 +95,10 @@ export default class UserService {
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, siteID)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_SITE,
+          action: Action.UPDATE,
+          entity: Entity.SITE,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
           value: siteID
@@ -127,7 +129,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -138,10 +140,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_USER,
+        action: Action.DELETE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleDeleteUser',
         value: id
@@ -151,7 +153,7 @@ export default class UserService {
     if (id === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot delete himself',
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -164,7 +166,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -176,7 +178,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is already deleted`,
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -280,7 +282,7 @@ export default class UserService {
     if (!filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -291,10 +293,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleUpdateUser',
         value: filteredRequest.id
@@ -305,7 +307,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -317,7 +319,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -331,7 +333,7 @@ export default class UserService {
     if (userWithEmail && user.id !== userWithEmail.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -503,7 +505,7 @@ export default class UserService {
     if (!filteredRequest.mobileToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -514,10 +516,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
         value: filteredRequest.id
@@ -528,7 +530,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -540,7 +542,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -574,7 +576,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUser',
@@ -585,10 +587,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUser',
         value: id
@@ -599,7 +601,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUser',
@@ -611,7 +613,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUser',
@@ -635,7 +637,7 @@ export default class UserService {
     if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -646,10 +648,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUserImage',
         value: filteredRequest.ID
@@ -660,7 +662,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.ID}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -672,7 +674,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.ID}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -690,7 +692,7 @@ export default class UserService {
   public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_USER, 'UserService', 'handleGetSites');
+      Action.UPDATE, Entity.USER, 'UserService', 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     // Check Mandatory fields
@@ -698,7 +700,7 @@ export default class UserService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetSites',
@@ -710,7 +712,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.UserID}' does not exist`,
         module: 'UserService',
         method: 'handleGetSites',
@@ -721,10 +723,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetSites',
         value: user.id
@@ -759,10 +761,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_USERS,
+        action: Action.LIST,
+        entity: Entity.USERS,
         module: 'UserService',
         method: 'handleGetUsers'
       });
@@ -772,7 +774,7 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
+        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsers');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
@@ -801,10 +803,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_USERS,
+        action: Action.LIST,
+        entity: Entity.USERS,
         module: 'UserService',
         method: 'handleGetUsersInError'
       });
@@ -814,7 +816,7 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
+        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -841,10 +843,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.CREATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleCreateUser'
       });
@@ -858,7 +860,7 @@ export default class UserService {
     if (foundUser) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleCreateUser',
@@ -1000,7 +1002,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1011,10 +1013,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUserInvoice',
         value: id
@@ -1025,7 +1027,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1037,7 +1039,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1054,7 +1056,7 @@ export default class UserService {
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1074,7 +1076,7 @@ export default class UserService {
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1103,7 +1105,7 @@ export default class UserService {
       if (!invoice) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
+          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
           message: `An error occurred while requesting invoice ${invoiceNumber}`,
           module: 'UserService',
           method: 'handleGetUserInvoice',
@@ -1130,7 +1132,7 @@ export default class UserService {
     } catch (e) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
+        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
         message: `An error occurred while requesting invoice ${invoiceNumber}`,
         module: 'UserService',
         method: 'handleGetUserInvoice',

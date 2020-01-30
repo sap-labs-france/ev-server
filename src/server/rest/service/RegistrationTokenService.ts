@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
 import Authorizations from '../../../authorization/Authorizations';
@@ -24,7 +26,7 @@ export default class RegistrationTokenService {
         if (!siteArea) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`,
             module: 'RegistrationTokenService',
             method: 'handleCreateRegistrationToken',
@@ -34,10 +36,10 @@ export default class RegistrationTokenService {
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
           throw new AppAuthError({
-            errorCode: Constants.HTTP_AUTH_ERROR,
+            errorCode: HTTPAuthError.ERROR,
             user: req.user,
-            action: Constants.ACTION_CREATE,
-            entity: Constants.ENTITY_TOKEN,
+            action: Action.CREATE,
+            entity: Entity.TOKEN,
             module: 'RegistrationTokenService',
             method: 'handleCreateRegistrationToken'
           });
@@ -45,10 +47,10 @@ export default class RegistrationTokenService {
       } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_CREATE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.CREATE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleCreateRegistrationToken'
         });
@@ -57,7 +59,7 @@ export default class RegistrationTokenService {
       if (!filteredRequest.description) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'The description must be provided',
           module: 'RegistrationTokenService',
           method: 'handleCreateRegistrationToken',
@@ -93,7 +95,7 @@ export default class RegistrationTokenService {
       if (!tokenID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
           module: 'RegistrationTokenService',
           method: 'handleDeleteRegistrationToken',
@@ -103,10 +105,10 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canDeleteRegistrationToken(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_DELETE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.DELETE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleDeleteRegistrationToken',
           value: tokenID
@@ -117,7 +119,7 @@ export default class RegistrationTokenService {
       if (!registrationToken) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `Token with ID '${tokenID}' does not exist anymore`,
           module: 'RegistrationTokenService',
           method: 'handleDeleteRegistrationToken',
@@ -150,7 +152,7 @@ export default class RegistrationTokenService {
       if (!tokenID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
           module: 'RegistrationTokenService',
           method: 'handleRevokeRegistrationToken',
@@ -160,10 +162,10 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canUpdateRegistrationToken(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.UPDATE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleRevokeRegistrationToken',
           value: tokenID
@@ -174,7 +176,7 @@ export default class RegistrationTokenService {
       if (!registrationToken) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `Token with ID '${tokenID}' does not exist anymore`,
           module: 'RegistrationTokenService',
           method: 'handleRevokeRegistrationToken',
@@ -209,10 +211,10 @@ export default class RegistrationTokenService {
       if (!Authorizations.canListRegistrationTokens(req.user)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TOKENS,
+          action: Action.LIST,
+          entity: Entity.TOKENS,
           module: 'RegistrationTokenService',
           method: 'handleGetRegistrationTokens'
         });

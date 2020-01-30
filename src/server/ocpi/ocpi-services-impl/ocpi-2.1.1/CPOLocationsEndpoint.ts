@@ -3,6 +3,7 @@ import AppError from '../../../../exception/AppError';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Utils from '../../../../utils/Utils';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
@@ -66,7 +67,7 @@ const RECORDS_LIMIT = 20;
           module: MODULE_NAME,
           method: 'getLocationRequest',
           action: 'OcpiGetLocations',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -82,7 +83,7 @@ const RECORDS_LIMIT = 20;
           module: MODULE_NAME,
           method: 'getLocationRequest',
           action: 'OcpiGetLocations',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -98,7 +99,7 @@ const RECORDS_LIMIT = 20;
           module: MODULE_NAME,
           method: 'getLocationRequest',
           action: 'OcpiGetLocations',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `Site id '${locationId}' not found`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });

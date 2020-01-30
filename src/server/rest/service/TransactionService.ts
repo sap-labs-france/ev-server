@@ -1,4 +1,6 @@
+import { Action, Entity } from '../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import fs from 'fs';
 import moment from 'moment';
 import Authorizations from '../../../authorization/Authorizations';
@@ -32,10 +34,10 @@ export default class TransactionService {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_TRANSACTION,
+          action: Action.UPDATE,
+          entity: Entity.TRANSACTION,
           module: 'TransactionService',
           method: 'handleSynchronizeRefundedTransactions'
         });
@@ -62,7 +64,7 @@ export default class TransactionService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
         module: 'TransactionService',
         method: 'handleRefundTransactions',
@@ -96,10 +98,10 @@ export default class TransactionService {
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_REFUND_TRANSACTION,
-          entity: Constants.ENTITY_TRANSACTION,
+          action: Action.REFUND_TRANSACTION,
+          entity: Entity.TRANSACTION,
           module: 'TransactionService',
           method: 'handleRefundTransactions',
           value: transaction.id.toString()
@@ -114,7 +116,7 @@ export default class TransactionService {
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
         module: 'TransactionService',
         method: 'handleRefundTransactions',
@@ -141,10 +143,10 @@ export default class TransactionService {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount'
       });
@@ -154,7 +156,7 @@ export default class TransactionService {
     if (!filteredRequest.UserID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'UserID must be provided',
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount',
@@ -176,10 +178,10 @@ export default class TransactionService {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleAssignTransactionsToUser'
       });
@@ -190,7 +192,7 @@ export default class TransactionService {
     if (!filteredRequest.UserID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID must be provided',
         module: 'TransactionService',
         method: 'handleAssignTransactionsToUser',
@@ -213,10 +215,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.DELETE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService', method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
@@ -236,10 +238,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.DELETE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService', method: 'handleDeleteTransactions',
         value: transactionsIds.toString()
       });
@@ -258,10 +260,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleTransactionSoftStop',
         value: transactionId.toString()
@@ -285,7 +287,7 @@ export default class TransactionService {
         if (connector && connector.activeTransactionID === transaction.id) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_GENERAL_ERROR,
+            errorCode: HTTPError.GENERAL_ERROR,
             message: `The active transaction ${transaction.id} on the active charging station ${chargingStation.id} must be stopped remotely`,
             module: 'TransactionService',
             method: 'handleTransactionSoftStop',
@@ -335,10 +337,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.READ,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetConsumptionFromTransaction',
         value: transaction.id.toString()
@@ -348,7 +350,7 @@ export default class TransactionService {
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
         module: 'TransactionService',
         method: 'handleGetConsumptionFromTransaction',
@@ -382,10 +384,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.READ,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetTransaction',
         value: filteredRequest.ID.toString()
@@ -403,10 +405,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetChargingStationTransactions'
       });
@@ -452,10 +454,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsActive'
       });
@@ -505,10 +507,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsCompleted'
       });
@@ -572,10 +574,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsToRefund'
       });
@@ -636,10 +638,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetRefundReports'
       });
@@ -677,10 +679,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsExport'
       });
@@ -751,10 +753,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsToRefundExport'
       });
@@ -835,10 +837,10 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsInError'
       });

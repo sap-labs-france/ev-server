@@ -209,3 +209,9 @@ export type OCPPParams = {
   chargingStationName: string;
   params: ChargingStationConfiguration;
 };
+
+export enum ChargerVendor {
+  EBEE = 'Bender GmbH Co. KG',
+  SCHNEIDER = 'Schneider Electric',
+  ABB = 'ABB',
+}

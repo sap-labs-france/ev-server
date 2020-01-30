@@ -2,6 +2,7 @@ import { Request } from 'express';
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+import { Status } from '../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class AuthSecurity {
@@ -32,7 +33,7 @@ export default class AuthSecurity {
       name: sanitize(request.name),
       acceptEula: sanitize(request.acceptEula),
       captcha: sanitize(request.captcha),
-      status: Constants.USER_STATUS_PENDING,
+      status: Status.PENDING,
       password: sanitize(request.passwords.password),
       email: sanitize(request.email),
       firstName: sanitize(request.firstName),
