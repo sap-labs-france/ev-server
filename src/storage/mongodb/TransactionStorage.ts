@@ -775,6 +775,13 @@ export default class TransactionStorage {
           foreignField: '_id',
           as: 'siteAreas'
         }
+      }, {
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+          localField: 'userID',
+          foreignField: '_id',
+          as: 'users'
+        }
       });
     }
     // Build facets for each type of error if any
@@ -1051,8 +1058,19 @@ export default class TransactionStorage {
         ];
       case 'missing_user':
         return [
-          { $match: { userID: null } },
-          { $match: { 'siteAreas.accessControl': { '$eq': true } } },
+          {
+            $match: {
+              $and: [
+                {
+                  $or: [
+                    { userID: null },
+                    { 'users': { $size: 0 } },
+                  ]
+                },
+                { 'siteAreas.accessControl': { '$eq': true } }
+              ]
+            }
+          },
           { $addFields: { 'errorCode': 'missing_user' } }
         ];
       default:
