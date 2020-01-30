@@ -80,7 +80,7 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
+        source: Constants.OCPI_SERVER,
         module: 'AbstractOCPIService',
         method: 'restService',
         message: 'Regex did not match.'
@@ -238,7 +238,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: action,
-          message: `>> OCPI Request ${req.originalUrl}`,
+          message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: action,
           detailedMessages: req.body
         });
@@ -249,7 +249,7 @@ export default abstract class AbstractOCPIService {
             source: Constants.OCPI_SERVER,
             module: MODULE_NAME,
             method: action,
-            message: `<< OCPI Response ${req.originalUrl}`,
+            message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: action,
             detailedMessages: response
           });
