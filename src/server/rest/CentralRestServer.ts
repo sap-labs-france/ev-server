@@ -1,16 +1,18 @@
-import cluster from 'cluster';
-import express from 'express';
-import sanitize from 'express-sanitizer';
-import morgan from 'morgan';
-import socketio from 'socket.io';
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
 import ChangeNotification from '../../types/ChangeNotification';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import { Entity } from '../../types/Authorization';
 import Logging from '../../utils/Logging';
-import expressTools from '../ExpressTools';
 import SessionHashService from '../rest/service/SessionHashService';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
+
+import cluster from 'cluster';
+import express from 'express';
+import expressTools from '../ExpressTools';
+import morgan from 'morgan';
+import sanitize from 'express-sanitizer';
+import socketio from 'socket.io';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -150,14 +152,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_USER,
+      'entity': Entity.USER,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_USERS
+      'entity': Entity.USERS
     });
   }
 
@@ -165,14 +167,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_VEHICLE,
+      'entity': Entity.VEHICLE,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_VEHICLES
+      'entity': Entity.VEHICLES
     });
   }
 
@@ -180,14 +182,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_VEHICLE_MANUFACTURER,
+      'entity': Entity.VEHICLE_MANUFACTURER,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_VEHICLE_MANUFACTURERS
+      'entity': Entity.VEHICLE_MANUFACTURERS
     });
   }
 
@@ -200,14 +202,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_TENANT,
+      'entity': Entity.TENANT,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_TENANTS
+      'entity': Entity.TENANTS
     });
   }
 
@@ -215,14 +217,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_SITE,
+      'entity': Entity.SITE,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_SITES
+      'entity': Entity.SITES
     });
   }
 
@@ -230,14 +232,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_SITE_AREA,
+      'entity': Entity.SITE_AREA,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_SITE_AREAS
+      'entity': Entity.SITE_AREAS
     });
   }
 
@@ -245,14 +247,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_COMPANY,
+      'entity': Entity.COMPANY,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_COMPANIES
+      'entity': Entity.COMPANIES
     });
   }
 
@@ -260,14 +262,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_TRANSACTION,
+      'entity': Entity.TRANSACTION,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_TRANSACTIONS
+      'entity': Entity.TRANSACTIONS
     });
   }
 
@@ -275,14 +277,14 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_CHARGING_STATION,
+      'entity': Entity.CHARGING_STATION,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_CHARGING_STATIONS
+      'entity': Entity.CHARGING_STATIONS
     });
   }
 
@@ -290,7 +292,7 @@ export default class CentralRestServer {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Constants.ENTITY_LOGGINGS,
+      'entity': Entity.LOGGINGS,
       'action': action
     });
   }

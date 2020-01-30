@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -17,7 +19,7 @@ export default class VehicleService {
     if (!vehicleID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle\'s ID must be provided',
         module: 'VehicleService',
         method: 'handleDeleteVehicle',
@@ -27,10 +29,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canDeleteVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_VEHICLE,
+        action: Action.DELETE,
+        entity: Entity.VEHICLE,
         module: 'VehicleService',
         method: 'handleDeleteVehicle',
         value: vehicleID
@@ -41,7 +43,7 @@ export default class VehicleService {
     if (!vehicle) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Vehicle with ID '${vehicleID}' does not exist`,
         module: 'VehicleService',
         method: 'handleDeleteVehicle',
@@ -68,7 +70,7 @@ export default class VehicleService {
     if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle\'s ID must be provided',
         module: 'VehicleService',
         method: 'handleGetVehicle',
@@ -78,10 +80,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_VEHICLE,
+        action: Action.READ,
+        entity: Entity.VEHICLE,
         module: 'VehicleService',
         method: 'handleGetVehicle',
         value: filteredRequest.ID
@@ -92,7 +94,7 @@ export default class VehicleService {
     if (!vehicle) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`,
         module: 'VehicleService',
         method: 'handleGetVehicle',
@@ -112,10 +114,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canListVehicles(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_VEHICLES,
+        action: Action.LIST,
+        entity: Entity.VEHICLES,
         module: 'VehicleService',
         method: 'handleGetVehicles'
       });
@@ -141,7 +143,7 @@ export default class VehicleService {
     if (!vehicleID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle\'s ID must be provided',
         module: 'VehicleService',
         method: 'handleGetVehicleImage',
@@ -151,10 +153,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_VEHICLE,
+        action: Action.READ,
+        entity: Entity.VEHICLE,
         module: 'VehicleService',
         method: 'handleGetVehicleImage',
         value: vehicleID
@@ -165,7 +167,7 @@ export default class VehicleService {
     if (!vehicle) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle with ID '${vehicleID}' does not exist anymore`,
         module: 'VehicleService',
         method: 'handleGetVehicleImage',
@@ -183,10 +185,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canCreateVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_VEHICLE,
+        action: Action.READ,
+        entity: Entity.VEHICLE,
         module: 'VehicleService',
         method: 'handleCreateVehicle'
       });
@@ -230,10 +232,10 @@ export default class VehicleService {
     // Check auth
     if (!Authorizations.canUpdateVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_VEHICLE,
+        action: Action.UPDATE,
+        entity: Entity.VEHICLE,
         module: 'VehicleService',
         method: 'handleUpdateVehicle',
         value: filteredRequest.id
@@ -244,7 +246,7 @@ export default class VehicleService {
     if (!vehicle) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'VehicleService',
         method: 'handleUpdateVehicle',

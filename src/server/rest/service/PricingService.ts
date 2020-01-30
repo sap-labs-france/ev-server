@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
+import { Entity } from '../../../types/Authorization';
 import Logging from '../../../utils/Logging';
 import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../storage/mongodb/PricingStorage';
@@ -14,10 +16,10 @@ export default class PricingService {
       // Check auth
       if (!Authorizations.canReadPricing(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
           action: action,
-          entity: Constants.ENTITY_PRICING,
+          entity: Entity.PRICING,
           module: 'PricingService',
           method: 'handleGetPricing'
         });
@@ -46,10 +48,10 @@ export default class PricingService {
       // Check auth
       if (!Authorizations.canUpdatePricing(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
           action: action,
-          entity: Constants.ENTITY_PRICING,
+          entity: Entity.PRICING,
           module: 'PricingService',
           method: 'handleUpdatePricing'
         });
@@ -61,7 +63,7 @@ export default class PricingService {
         // Not Found!
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `The price ${filteredRequest.priceKWH} has not a correct format`,
           module: 'PricingService',
           method: 'handleUpdatePricing',

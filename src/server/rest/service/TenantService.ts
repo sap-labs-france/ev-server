@@ -1,3 +1,5 @@
+import { Action, Entity, Role } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -28,10 +30,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.DELETE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
         value: id
@@ -45,7 +47,7 @@ export default class TenantService {
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
@@ -77,10 +79,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.READ,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleGetTenant',
         value: tenantID
@@ -102,10 +104,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TENANTS,
+        action: Action.LIST,
+        entity: Entity.TENANTS,
         module: MODULE_NAME,
         method: 'handleGetTenants'
       });
@@ -127,10 +129,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.CREATE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleCreateTenant'
       });
@@ -143,7 +145,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -156,7 +158,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -181,7 +183,7 @@ export default class TenantService {
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Role.ADMIN);
     // Save User Status
     await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
     // Save User Account Verification
@@ -227,10 +229,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.UPDATE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleUpdateTenant',
         value: tenantUpdate.id

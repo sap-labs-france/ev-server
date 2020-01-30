@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import _ from 'lodash';
@@ -19,10 +21,10 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.DELETE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleDeleteSetting',
         value: settingID
@@ -52,10 +54,10 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.READ,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleGetSetting',
         value: settingID
@@ -79,10 +81,10 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_SETTINGS,
+        action: Action.LIST,
+        entity: Entity.SETTINGS,
         module: 'SettingService',
         method: 'handleGetSettings'
       });
@@ -110,10 +112,10 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.CREATE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleCreateSetting'
       });
@@ -151,10 +153,10 @@ export default class SettingService {
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.UPDATE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleUpdateSetting',
         value: settingUpdate.id
@@ -170,7 +172,7 @@ export default class SettingService {
       if (!Array.isArray(settingUpdate.sensitiveData)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
           module: 'SettingService',
           method: 'handleUpdateSetting',

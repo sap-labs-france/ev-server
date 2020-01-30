@@ -1,3 +1,4 @@
+import User, { Status } from '../../types/User';
 import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
@@ -12,9 +13,9 @@ import Eula from '../../types/Eula';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site, { SiteUser } from '../../types/Site';
+import { Role } from '../../types/Authorization';
 import Tag from '../../types/Tag';
 import TenantStorage from './TenantStorage';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
@@ -1091,8 +1092,8 @@ export default class UserStorage {
         sendOfflineChargingStations: false,
         sendBillingUserSynchronizationFailed: false
       },
-      role: Constants.ROLE_BASIC,
-      status: Constants.USER_STATUS_PENDING,
+      role: Role.BASIC,
+      status: Status.PENDING,
       tags: []
     };
   }
@@ -1101,7 +1102,7 @@ export default class UserStorage {
     switch (errorType) {
       case 'inactive_user':
         return [
-          { $match: { status: { $ne: Constants.USER_STATUS_ACTIVE } } },
+          { $match: { status: { $ne: Status.ACTIVE } } },
           { $addFields: { 'errorCode': 'inactive_user' } }
         ];
       case 'unassigned_user': {

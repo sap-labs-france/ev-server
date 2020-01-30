@@ -1,12 +1,12 @@
 import * as admin from 'firebase-admin';
 import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import User, { Status } from '../../types/User';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../types/Tenant';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import i18n from 'i18n-js';
 
@@ -184,7 +184,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
-    const status = user.status === Constants.USER_STATUS_ACTIVE ?
+    const status = user.status === Status.ACTIVE ?
       i18n.t('notifications.userAccountStatusChanged.activated') :
       i18n.t('notifications.userAccountStatusChanged.suspended');
     // Get Message Text

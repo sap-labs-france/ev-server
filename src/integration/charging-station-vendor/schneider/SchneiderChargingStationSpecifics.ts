@@ -1,4 +1,5 @@
 import ChargingStation, { ChargingProfile } from '../../../types/ChargingStation';
+import { Action } from '../../../types/Authorization';
 import ChargingStationVendor from '../ChargingStationVendor';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
@@ -27,7 +28,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Constants.ACTION_POWER_LIMITATION,
+        action: Action.POWER_LIMITATION,
         message: 'Charging Station power limit has been updated following an OCPP parameter update',
         module: 'SchneiderChargingStationVendor', method: 'checkUpdateOfOCPPParams',
         detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
@@ -47,7 +48,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Constants.ACTION_POWER_LIMITATION,
+        action: Action.POWER_LIMITATION,
         module: 'SchneiderChargingStationVendor',
         method: 'setPowerLimitation',
         message: 'The Charging Station has not connector',
@@ -67,7 +68,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Constants.ACTION_POWER_LIMITATION,
+        action: Action.POWER_LIMITATION,
         module: 'SchneiderChargingStationVendor',
         method: 'setPowerLimitation',
         message: `Failed to limit the power to '${maxAmps}' Amps ('${maxAmpsPerConnector}' Amps per connector): ${result.status}`,
@@ -77,7 +78,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Constants.ACTION_POWER_LIMITATION,
+      action: Action.POWER_LIMITATION,
       message: `The power limitation has been successfully set to '${maxAmps}' Amps ('${maxAmpsPerConnector}' Amps per connector)`,
       module: 'SchneiderChargingStationVendor', method: 'setPowerLimitation',
       detailedMessages: result,

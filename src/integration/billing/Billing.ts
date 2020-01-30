@@ -1,4 +1,6 @@
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import User, { Status } from '../../types/User';
+import { Action } from '../../types/Authorization';
 import BackendError from '../../exception/BackendError';
 import BillingFactory from './BillingFactory';
 import { BillingSetting } from '../../types/Setting';
@@ -6,7 +8,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Transaction from '../../types/Transaction';
-import User from '../../types/User';
 import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
@@ -33,7 +34,7 @@ export default abstract class Billing<T extends BillingSetting> {
         message: 'Billing settings are not configured',
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
       });
     }
     // Check
@@ -45,14 +46,14 @@ export default abstract class Billing<T extends BillingSetting> {
     let userIDsChangedInBilling = await billingImpl.getUpdatedUserIDsInBilling();
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
     const usersNotSynchronized = await UserStorage.getUsers(tenantID,
-      { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
+      { 'statuses': [Status.ACTIVE], 'notSynchronizedBillingData': true },
       { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
     if (usersNotSynchronized.count > 0) {
       // Process them
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'BillingService', method: 'handleSynchronizeUsers',
         message: `${usersNotSynchronized.count} users are going to be synchronized in the Billing system`
       });
@@ -75,7 +76,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             user: user,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
+            action: Action.SYNCHRONIZE_BILLING,
             module: 'BillingService', method: 'handleSynchronizeUsers',
             message: 'User have been synchronized successfully'
           });
@@ -90,7 +91,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             user: user,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
+            action: Action.SYNCHRONIZE_BILLING,
             module: 'BillingService', method: 'handleSynchronizeUsers',
             message: `Synchronization error: ${error.message}`,
             detailedMessages: error
@@ -100,7 +101,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'BillingService', method: 'handleSynchronizeUsers',
         message: `${usersNotSynchronized.count} users have been synchronized successfully in the Billing system`
       });
@@ -110,7 +111,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'BillingService', method: 'handleSynchronizeUsers',
         message: `${userIDsChangedInBilling.length} e-Mobility users are going to be synchronized with Billing users`
       });
@@ -131,7 +132,7 @@ export default abstract class Billing<T extends BillingSetting> {
               tenantID: tenantID,
               user: user,
               source: Constants.CENTRAL_SERVER,
-              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              action: Action.SYNCHRONIZE_BILLING,
               module: 'BillingService', method: 'handleSynchronizeUsers',
               message: 'User have been synchronized successfully'
             });
@@ -141,7 +142,7 @@ export default abstract class Billing<T extends BillingSetting> {
             Logging.logError({
               tenantID: tenantID,
               source: Constants.CENTRAL_SERVER,
-              action: Constants.ACTION_SYNCHRONIZE_BILLING,
+              action: Action.SYNCHRONIZE_BILLING,
               module: 'BillingService', method: 'handleSynchronizeUsers',
               message: `Billing user with ID '${userIDChangedInBilling}' and email '${billingUser.email}' does not exist in e-Mobility`
             });
@@ -152,7 +153,7 @@ export default abstract class Billing<T extends BillingSetting> {
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
+            action: Action.SYNCHRONIZE_BILLING,
             module: 'BillingService', method: 'handleSynchronizeUsers',
             message: `Billing user with ID '${userIDChangedInBilling}' does not exist`
           });
@@ -161,7 +162,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'BillingService', method: 'handleSynchronizeUsers',
         message: `${userIDsChangedInBilling.length} e-Mobility users have been synchronized successfully`
       });

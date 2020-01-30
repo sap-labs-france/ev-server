@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
@@ -22,10 +24,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.DELETE,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleDeleteOcpiEndpoint',
         value: filteredRequest.ID
@@ -56,10 +58,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canReadOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.READ,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleGetOcpiEndpoint',
         value: endpointID
@@ -77,10 +79,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canListOcpiEndpoints(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_OCPI_ENDPOINTS,
+        action: Action.LIST,
+        entity: Entity.OCPI_ENDPOINTS,
         module: MODULE_NAME,
         method: 'handleGetOcpiEndpoints'
       });
@@ -107,10 +109,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.CREATE,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleCreateOcpiEndpoint'
       });
@@ -146,10 +148,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.UPDATE,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleUpdateOcpiEndpoint',
         value: filteredRequest.id
@@ -179,10 +181,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canPingOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_PING,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.PING,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handlePingOcpiEndpoint'
       });
@@ -223,10 +225,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleTriggerJobsEndpoint'
       });
@@ -251,10 +253,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handlePullLocationsEndpoint'
       });
@@ -278,10 +280,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handlePullLocationsEndpoint'
       });
@@ -305,10 +307,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handlePullCdrsEndpoint'
       });
@@ -332,10 +334,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleSendEVSEStatusesOcpiEndpoint'
       });
@@ -360,10 +362,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_TRIGGER_JOB,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleSendTokensOcpiEndpoint'
       });
@@ -388,10 +390,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_REGISTER,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.REGISTER,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleUnregisterOcpiEndpoint'
       });
@@ -434,10 +436,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_REGISTER,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.REGISTER,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleRegisterOcpiEndpoint'
       });
@@ -480,10 +482,10 @@ export default class OCPIEndpointService {
     // Check auth
     if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_GENERATE_LOCAL_TOKEN,
-        entity: Constants.ENTITY_OCPI_ENDPOINT,
+        action: Action.GENERATE_LOCAL_TOKEN,
+        entity: Entity.OCPI_ENDPOINT,
         module: MODULE_NAME,
         method: 'handleGenerateLocalTokenOcpiEndpoint'
       });
