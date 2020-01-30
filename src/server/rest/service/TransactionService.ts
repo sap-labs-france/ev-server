@@ -869,9 +869,9 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price'];
+      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price', 'missing_user'];
     } else {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption'];
+      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_user'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

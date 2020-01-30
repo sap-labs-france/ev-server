@@ -667,7 +667,7 @@ export default class TransactionStorage {
     params: {
       search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+      errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption' | 'missing_user')[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
@@ -763,6 +763,17 @@ export default class TransactionStorage {
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
+        }
+      });
+    }
+    // Used only in the error type : missing_user
+    if (params.errorType && params.errorType.includes('missing_user')) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+          localField: 'siteAreaID',
+          foreignField: '_id',
+          as: 'siteAreas'
         }
       });
     }
@@ -1037,6 +1048,12 @@ export default class TransactionStorage {
           { $match: { 'stop.price': { $lte: 0 } } },
           { $match: { 'stop.totalConsumption': { $gt: 0 } } },
           { $addFields: { 'errorCode': 'missing_price' } }
+        ];
+      case 'missing_user':
+        return [
+          { $match: { userID: null } },
+          { $match: { 'siteAreas.accessControl': { '$eq': true } } },
+          { $addFields: { 'errorCode': 'missing_user' } }
         ];
       default:
         return [];
