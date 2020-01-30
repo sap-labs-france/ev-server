@@ -98,6 +98,22 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
 
+    if (!cdr.total_cost) {
+      cdr.total_cost = 0;
+    }
+
+    if (!cdr.total_energy) {
+      cdr.total_energy = 0;
+    }
+
+    if (!cdr.total_time) {
+      cdr.total_time = 0;
+    }
+
+    if (!cdr.total_parking_time) {
+      cdr.total_parking_time = 0;
+    }
+
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, cdr.id);
 
     if (!transaction) {
@@ -140,9 +156,6 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       || !cdr.location
       || !cdr.currency
       || !cdr.charging_periods
-      || !cdr.total_cost
-      || !cdr.total_energy
-      || !cdr.total_time
       || !cdr.last_updated
     ) {
       return false;

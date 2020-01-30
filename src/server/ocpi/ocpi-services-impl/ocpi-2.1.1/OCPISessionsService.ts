@@ -34,6 +34,9 @@ export default class OCPISessionsService {
     if (!session.total_cost) {
       session.total_cost = 0;
     }
+    if (!session.kwh) {
+      session.kwh = 0;
+    }
 
     let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, session.id);
     if (!transaction) {
@@ -107,7 +110,15 @@ export default class OCPISessionsService {
         },
         signedData: '',
       } as Transaction;
-    } else if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
+    }
+
+    if (!transaction.lastMeterValue) {
+      transaction.lastMeterValue = {
+        value: transaction.meterStart,
+        timestamp: transaction.timestamp
+      };
+    }
+    if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
         source: Constants.OCPI_SERVER,

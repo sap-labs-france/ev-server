@@ -387,6 +387,10 @@ export default class Utils {
     return value ? value.replace(/\n/g, '') : '';
   }
 
+  public static escapeSpecialCharsInRegex(value: string): string {
+    return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+  }
+
   public static isEmptyJSon(document) {
     // Empty?
     if (!document) {
