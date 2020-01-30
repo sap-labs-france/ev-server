@@ -717,7 +717,6 @@
 						"AllowOffLineTxForUnknownId":"true",
 						"LocalAuthorizeOffline": "true",
 						"ConnectionTimeOut": "60",						
-						"MeterValuesSampledData": "Energy.Active.Import.Register",
 						"StopTransactionOnEVSideDisconnect": "true"			
 					}
 				}

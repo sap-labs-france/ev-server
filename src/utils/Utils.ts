@@ -15,7 +15,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ChargePointStatus, OCPPVersion, OCPPProtocol } from '../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
@@ -430,30 +430,30 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertToInt(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToInt(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseInt(id);
+      changedValue = parseInt(value);
     }
-    return changedID;
+    return changedValue;
   }
 
-  public static convertToFloat(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToFloat(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseFloat(id);
+      changedValue = parseFloat(value);
     }
-    return changedID;
+    return changedValue;
   }
 
   public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...

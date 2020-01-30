@@ -20,7 +20,6 @@ export default class SettingSecurity {
     };
   }
 
-
   public static filterSettingsRequest(request: any): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
@@ -52,15 +51,13 @@ export default class SettingSecurity {
       } as SettingDBContent;
       // Check Links
       if (request.content.links) {
-        settings.content.links = request.content.links.map((link: SettingLink) => {
-          return {
-            id: link.id,
-            name: link.name,
-            description: link.description,
-            role: link.role,
-            url: link.url
-          }
-        });
+        settings.content.links = request.content.links.map((link: SettingLink) => ({
+          id: link.id,
+          name: link.name,
+          description: link.description,
+          role: link.role,
+          url: link.url
+        }));
       }
       // Handle different config types
       switch (request.content.type) {
@@ -92,13 +89,13 @@ export default class SettingSecurity {
             settings.content.ocpi.cpo = {
               countryCode: sanitize(request.content.ocpi.cpo.countryCode),
               partyID: sanitize(request.content.ocpi.cpo.partyID)
-            }
+            };
           }
           if (request.content.ocpi.emsp) {
             settings.content.ocpi.emsp = {
               countryCode: sanitize(request.content.ocpi.emsp.countryCode),
               partyID: sanitize(request.content.ocpi.emsp.partyID)
-            }
+            };
           }
           break;
         case RefundSettingsType.CONCUR:
@@ -113,9 +110,9 @@ export default class SettingSecurity {
               expenseTypeCode: sanitize(request.content.concur.expenseTypeCode),
               policyId: sanitize(request.content.concur.policyId),
               reportName: sanitize(request.content.concur.reportName),
-            }
+            };
           } else {
-            settings.content.concur = { } as ConcurRefundSetting;            
+            settings.content.concur = { } as ConcurRefundSetting;
           }
           break;
         case PricingSettingsType.CONVERGENT_CHARGING:
@@ -131,9 +128,9 @@ export default class SettingSecurity {
             settings.content.simple = {
               price: sanitize(request.content.simple.price),
               currency: sanitize(request.content.simple.currency),
-            };            
+            };
           } else {
-            settings.content.simple = { } as SimplePricingSetting;            
+            settings.content.simple = { } as SimplePricingSetting;
           }
           break;
         case BillingSettingsType.STRIPE:

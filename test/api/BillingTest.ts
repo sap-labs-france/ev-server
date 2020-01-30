@@ -9,7 +9,7 @@ import Cypher from '../../src/utils/Cypher';
 import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, StripeBillingSetting, SettingDB, BillingSettingsType } from '../../src/types/Setting';
+import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
 import chaiSubset from 'chai-subset';

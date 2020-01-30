@@ -1,4 +1,4 @@
-import { OCPPVersion, OCPPProtocol } from "./OCPPServer";
+import { OCPPProtocol, OCPPVersion } from './OCPPServer';
 
 export interface OCPPHeader {
   ocppVersion?: OCPPVersion;

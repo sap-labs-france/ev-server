@@ -2,7 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
-import { OCPPVersion, OCPPProtocol } from './ocpp/OCPPServer';
+import { OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;

@@ -1,4 +1,4 @@
-import { AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RoamingSettings, SettingDB, RefundSettingsType, AnalyticsSettingsType, RoamingSettingsType } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, RoamingSettingsType, SettingDB } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
