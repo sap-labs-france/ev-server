@@ -9,6 +9,7 @@ import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
+import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -226,7 +227,7 @@ export default class Logging {
     // Log Backend Error
     } else if (exception instanceof BackendError) {
       Logging._logActionBackendExceptionMessage(tenantID, action, exception);
-      statusCode = Constants.HTTP_GENERAL_ERROR;
+      statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
@@ -235,7 +236,7 @@ export default class Logging {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
-    res.status(statusCode ? statusCode : Constants.HTTP_GENERAL_ERROR).send({
+    res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
       'message': Utils.hideShowMessage(exception.message)
     });
     next();

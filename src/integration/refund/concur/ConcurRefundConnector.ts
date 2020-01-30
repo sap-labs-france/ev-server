@@ -9,6 +9,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import { HTTPError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -37,7 +38,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     axiosRetry(axios,
       {
         retries: 3,
-        retryCondition: (error) => error.response.status === Constants.HTTP_GENERAL_ERROR,
+        retryCondition: (error) => error.response.status === HTTPError.GENERAL_ERROR,
         retryDelay: (retryCount, error) => {
           try {
             if (error.config.method === 'post') {
@@ -168,7 +169,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (e) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not granted for ${userId}`,
         module: MODULE_NAME,
         method: 'GetAccessToken',
@@ -306,7 +307,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
     throw new AppError({
       source: Constants.CENTRAL_SERVER,
-      errorCode: Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
+      errorCode: HTTPError.CONCUR_CITY_UNKNOWN_ERROR,
       message: `The city '${site.address.city}' of the station is unknown to Concur`,
       module: MODULE_NAME,
       method: 'getLocation',
@@ -347,7 +348,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create Quick Expense',
         module: MODULE_NAME,
         method: 'createQuickExpense',
@@ -395,7 +396,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -429,7 +430,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -462,7 +463,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       }
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to get Report details with ID '${reportId}'`,
         module: MODULE_NAME,
         method: 'getExpenseReport',
@@ -484,7 +485,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to get expense Reports',
         module: MODULE_NAME,
         method: 'getExpenseReports',
@@ -523,7 +524,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not refreshed (ID: '${userId}')`,
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -539,7 +540,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     if (!connection) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
+        errorCode: HTTPError.CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         message: `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',

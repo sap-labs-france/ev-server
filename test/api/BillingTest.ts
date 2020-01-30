@@ -1,4 +1,5 @@
 import chai, { expect } from 'chai';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import Billing from '../../src/integration/billing/Billing';
 import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
@@ -164,7 +165,7 @@ describe('Billing Service', function() {
 
       it('Should not be able to test connection to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
       it('Should not be able to create a user', async () => {
@@ -184,7 +185,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
         const usersAfter = await billingImpl.getUsers();
         expect(usersAfter.length).to.be.eq(usersBefore.length);
@@ -200,7 +201,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.pop();
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
         const usersAfter = await billingImpl.getUsers();
         expect(usersAfter.length).to.be.eq(usersBefore.length);

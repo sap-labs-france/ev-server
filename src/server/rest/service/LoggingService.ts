@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -16,10 +18,10 @@ export default class LoggingService {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_LOGGINGS,
+          action: Action.LIST,
+          entity: Entity.LOGGINGS,
           module: 'LoggingService',
           method: 'handleGetLoggings'
         });
@@ -83,10 +85,10 @@ export default class LoggingService {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_LOGGINGS,
+          action: Action.LIST,
+          entity: Entity.LOGGINGS,
           module: 'LoggingService',
           method: 'handleGetLoggingsExport'
         });
@@ -144,10 +146,10 @@ export default class LoggingService {
       // Check auth
       if (!Authorizations.canReadLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_READ,
-          entity: Constants.ENTITY_LOGGING,
+          action: Action.READ,
+          entity: Entity.LOGGING,
           module: 'LoggingService',
           method: 'handleGetLogging'
         });

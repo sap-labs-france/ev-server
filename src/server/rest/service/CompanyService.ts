@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -15,7 +17,7 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_DELETE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleDeleteCompany');
+      Action.DELETE, Entity.COMPANY, 'CompanyService', 'handleDeleteCompany');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Check Mandatory fields
@@ -23,10 +25,10 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_COMPANY,
+        action: Action.DELETE,
+        entity: Entity.COMPANY,
         module: 'CompanyService',
         method: 'handleDeleteCompany',
         value: companyID
@@ -54,7 +56,7 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompany');
+      Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     // ID is mandatory
@@ -62,10 +64,10 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_COMPANY,
+        action: Action.READ,
+        entity: Entity.COMPANY,
         module: 'CompanyService',
         method: 'handleGetCompany',
         value: filteredRequest.ID
@@ -86,7 +88,7 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompanyLogo');
+      Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Charge Box is mandatory
@@ -94,10 +96,10 @@ export default class CompanyService {
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_COMPANY,
+        action: Action.READ,
+        entity: Entity.COMPANY,
         module: 'CompanyService',
         method: 'handleGetCompanyLogo',
         value: companyID
@@ -116,14 +118,14 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
+      Action.LIST, Entity.COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_COMPANIES,
+        action: Action.LIST,
+        entity: Entity.COMPANIES,
         module: 'CompanyService',
         method: 'handleGetCompanies'
       });
@@ -152,14 +154,14 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
+      Action.CREATE, Entity.COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_COMPANY,
+        action: Action.CREATE,
+        entity: Entity.COMPANY,
         module: 'CompanyService',
         method: 'handleCreateCompany'
       });
@@ -192,16 +194,16 @@ export default class CompanyService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleUpdateCompany');
+      Action.UPDATE, Entity.COMPANY, 'CompanyService', 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     // Check auth
     if (!Authorizations.canUpdateCompany(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_COMPANY,
+        action: Action.UPDATE,
+        entity: Entity.COMPANY,
         module: 'CompanyService',
         method: 'handleUpdateCompany',
         value: filteredRequest.id

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
+import { Action } from '../../../types/Authorization';
 import i18n from 'i18n-js';
 import moment from 'moment';
 import Stripe from 'stripe';
@@ -57,7 +58,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'No secret key provided for connection to Stripe'
       });
     }
@@ -77,7 +78,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: `Error occured when connecting to Stripe: ${error.message}`,
         detailedMessages: error
       });
@@ -86,7 +87,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'Error occured when connecting to Stripe: Invalid key'
       });
     }
@@ -225,7 +226,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'StripeBilling', method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: error
@@ -288,7 +289,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'startTransaction',
         message: `Billing error in Start Transaction: ${error.message}`,
         detailedMessages: error
@@ -316,7 +317,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Update Transaction: ${error.message}`,
         detailedMessages: error
@@ -476,7 +477,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Stop Transaction: ${error.message}`,
         detailedMessages: error
@@ -629,7 +630,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: user,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_DELETE,
+        action: Action.DELETE,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: `Billing error in Stop Transaction: ${error.message}`,
         detailedMessages: error
@@ -647,7 +648,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'createUser',
-        action: Constants.ACTION_CREATE,
+        action: Action.CREATE,
         user: user,
         message: 'Cannot create the user'
       });
@@ -664,7 +665,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'updateUser',
-        action: Constants.ACTION_CREATE,
+        action: Action.CREATE,
         user: user,
         message: 'Cannot update the user'
       });
@@ -681,7 +682,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'deleteUser',
-        action: Constants.ACTION_CREATE,
+        action: Action.CREATE,
         user: user,
         message: 'Cannot delete the user'
       });
@@ -697,7 +698,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'updateUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.CREATE,
             user: user,
             message: 'Cannot delete the User'
           });
@@ -778,7 +779,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
           detailedMessages: error
@@ -809,7 +810,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
           detailedMessages: error
@@ -828,7 +829,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     //     throw new BackendError({
     //       source: Constants.CENTRAL_SERVER,
     //       module: 'StripeBilling', method: 'modifyUser',
-    //       action: Constants.ACTION_CREATE,
+    //       action: Action.CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
     //       detailedMessages: error
@@ -875,7 +876,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'modifyUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: error
@@ -893,7 +894,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'modifyUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: error
@@ -937,7 +938,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
           detailedMessages: error
@@ -958,7 +959,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkIfStripeIsInitialized',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'No connection to Stripe available'
       });
     }
