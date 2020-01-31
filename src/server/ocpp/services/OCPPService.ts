@@ -13,7 +13,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { Connector, PowerLimitUnits, ChargerVendor } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
@@ -1214,14 +1214,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-        id: '666',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.timestamp,
-        value: transaction.meterStart,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '666',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.timestamp,
+          value: transaction.meterStart,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
@@ -1454,14 +1454,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-        id: '6969',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.stop.timestamp,
-        value: transaction.stop.meterStop,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '6969',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);

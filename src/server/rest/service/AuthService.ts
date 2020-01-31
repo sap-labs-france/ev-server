@@ -1,4 +1,4 @@
-import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import User, { Status } from '../../../types/User';
 import axios from 'axios';
 import { Handler, NextFunction, Request, Response } from 'express';

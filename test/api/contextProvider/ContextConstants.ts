@@ -1,20 +1,20 @@
 import faker from 'faker';
-import { PricingSettingsType, RefundSettingsType, SmartChargingSettingsType, BillingSettingsType, RoamingSettingsType, AnalyticsSettingsType, PricingSettings, SimplePricingSetting, SettingDBContent } from '../../../src/types/Setting';
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SimplePricingSetting, SmartChargingSettingsType } from '../../../src/types/Setting';
 
 export interface TenantDefinition {
   id: string;
   subdomain: string;
   tenantName: string;
   componentSettings?: {
-    pricing?: { content?: SettingDBContent }
-    ocpi?: { content?: SettingDBContent },
-    organization?: { content?: SettingDBContent },
-    statistics?: { content?: SettingDBContent },
-    refund?: { content?: SettingDBContent },
-    analytics?: { content?: SettingDBContent },
-    smartCharging?: { content?: SettingDBContent },
-    billing?: { content?: SettingDBContent },
-  }
+    pricing?: { content?: SettingDBContent };
+    ocpi?: { content?: SettingDBContent };
+    organization?: { content?: SettingDBContent };
+    statistics?: { content?: SettingDBContent };
+    refund?: { content?: SettingDBContent };
+    analytics?: { content?: SettingDBContent };
+    smartCharging?: { content?: SettingDBContent };
+    billing?: { content?: SettingDBContent };
+  };
 }
 
 export default class CONTEXTS {

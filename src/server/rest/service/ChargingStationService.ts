@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPUserError, HTTPError } from  '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';

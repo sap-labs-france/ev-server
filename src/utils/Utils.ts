@@ -1,5 +1,5 @@
-import { SettingDBContent, PricingContentType, RefundContentType, BillingContentType, SmartChargingContentType } from '../types/Setting';
-import { HTTPUserError, HTTPError } from '../types/HTTPError';
+import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { HTTPError, HTTPUserError } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
