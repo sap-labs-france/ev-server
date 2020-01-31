@@ -1,20 +1,20 @@
 import chai, { expect } from 'chai';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import chaiSubset from 'chai-subset';
 import Billing from '../../src/integration/billing/Billing';
-import CONTEXTS from './contextProvider/ContextConstants';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import User from '../../src/types/User';
+import Constants from '../../src/utils/Constants';
+import Cypher from '../../src/utils/Cypher';
+import config from '../config';
+import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import Constants from '../../src/utils/Constants';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import Cypher from '../../src/utils/Cypher';
-import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
-import User from '../../src/types/User';
-import chaiSubset from 'chai-subset';
-import config from '../config';
 
 chai.use(chaiSubset);
 
