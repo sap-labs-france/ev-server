@@ -26,13 +26,13 @@ export default class CompanyStorage {
     return company;
   }
 
-  public static async getCompanyLogo(tenantID: string, id: string): Promise<{id: string; logo: string}> {
+  public static async getCompanyLogo(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const companyLogoMDB = await global.database.getCollection<{_id: ObjectID; logo: string}>(tenantID, 'companylogos')
+    const companyLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'companylogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanyLogo', uniqueTimerID, { id });
@@ -74,7 +74,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
+    params: { search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -85,20 +85,17 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({_id?: ObjectID; $or?: any[]}|undefined) = {};
+    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
     // Build filter
     if (params.companyID) {
       filters._id = Utils.convertToObjectID(params.companyID);
     } else if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } },
-          { 'address.city': { $regex: params.search, $options: 'i' } },
-          { 'address.country': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'address.city': { $regex: searchRegex, $options: 'i' } },
+        { 'address.country': { $regex: searchRegex, $options: 'i' } }
+      ];
     }
     // Create Aggregation
     const aggregation = [];
@@ -144,8 +141,10 @@ export default class CompanyStorage {
     // Company Logo
     if (params.withLogo) {
       DatabaseUtils.pushCollectionLookupInAggregation('companylogos',
-        { tenantID, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'companylogos', oneToOneCardinality: true }
+        {
+          tenantID, aggregation, localField: '_id', foreignField: '_id',
+          asField: 'companylogos', oneToOneCardinality: true
+        }
       );
       // Rename
       DatabaseUtils.renameField(aggregation, 'companylogos.logo', 'logo');
@@ -176,7 +175,10 @@ export default class CompanyStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const companies = await global.database.getCollection<any>(tenantID, 'companies')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID,
