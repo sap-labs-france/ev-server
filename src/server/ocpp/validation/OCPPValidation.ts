@@ -1,3 +1,4 @@
+import { Action } from '../../../types/Authorization';
 import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
@@ -71,7 +72,7 @@ export default class OCPPValidation extends SchemaValidator {
         module: 'OCPPValidation',
         method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        action: Constants.ACTION_START_TRANSACTION
+        action: Action.START_TRANSACTION
       });
     }
   }

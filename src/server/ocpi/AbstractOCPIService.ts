@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIUtils from './OCPIUtils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -80,7 +81,7 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
+        source: Constants.OCPI_SERVER,
         module: 'AbstractOCPIService',
         method: 'restService',
         message: 'Regex did not match.'
@@ -201,7 +202,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' is not enabled for OCPI`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -224,7 +225,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -238,7 +239,7 @@ export default abstract class AbstractOCPIService {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: action,
-          message: `>> OCPI Request ${req.originalUrl}`,
+          message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: action,
           detailedMessages: req.body
         });
@@ -249,7 +250,7 @@ export default abstract class AbstractOCPIService {
             source: Constants.OCPI_SERVER,
             module: MODULE_NAME,
             method: action,
-            message: `<< OCPI Response ${req.originalUrl}`,
+            message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: action,
             detailedMessages: response
           });
@@ -272,14 +273,14 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_NOT_IMPLEMENTED_ERROR,
+          errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${action} not implemented`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } catch (error) {
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
-      let errorCode = Constants.HTTP_GENERAL_ERROR;
+      let errorCode = HTTPError.GENERAL_ERROR;
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;
       }

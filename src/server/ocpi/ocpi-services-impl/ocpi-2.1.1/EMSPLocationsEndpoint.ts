@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import ChargingStation from '../../../../types/ChargingStation';
+import { HTTPError } from '../../../../types/HTTPError';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
@@ -68,7 +69,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'patchLocationRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -131,7 +132,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'updateLocationRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });

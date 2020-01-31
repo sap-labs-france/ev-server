@@ -1,3 +1,4 @@
+import { Action } from '../../../types/Authorization';
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
@@ -12,7 +13,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { Connector, PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { Connector, PowerLimitUnits, ChargerVendor } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
@@ -134,8 +135,8 @@ export default class OCPPService {
         // Existing Charging Station: Update
         // Check if same vendor and model
         if ((chargingStation.chargePointVendor !== bootNotification.chargePointVendor ||
-            chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
-            (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
+          chargingStation.chargePointModel !== bootNotification.chargePointModel) ||
+          (chargingStation.chargePointSerialNumber && bootNotification.chargePointSerialNumber &&
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber)) {
           // Not the same Charging Station!
           throw new BackendError({
@@ -270,7 +271,7 @@ export default class OCPPService {
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
       if (statusNotification.connectorId === 0) {
         // Ignore EBEE Charging Station
-        if (chargingStation.chargePointVendor !== Constants.CHARGER_VENDOR_EBEE) {
+        if (chargingStation.chargePointVendor !== ChargerVendor.EBEE) {
           // Log
           Logging.logInfo({
             tenantID: headers.tenantID,
@@ -378,8 +379,8 @@ export default class OCPPService {
     // Check Inactivity
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
-        statusNotification.status === ChargePointStatus.AVAILABLE &&
-        statusNotification.hasOwnProperty('timestamp')) {
+      statusNotification.status === ChargePointStatus.AVAILABLE &&
+      statusNotification.hasOwnProperty('timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
@@ -411,9 +412,9 @@ export default class OCPPService {
           });
         }
       }
-    // OCPP 1.6: Charging --> Available
+      // OCPP 1.6: Charging --> Available
     } else if (connector.status === ChargePointStatus.CHARGING &&
-        statusNotification.status === ChargePointStatus.AVAILABLE) {
+      statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
@@ -437,8 +438,8 @@ export default class OCPPService {
   private async checkStatusNotificationOngoingTransaction(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector, bothConnectorsUpdated: boolean) {
     // Check the status
     if (!bothConnectorsUpdated &&
-        connector.activeTransactionID > 0 &&
-        statusNotification.status === ChargePointStatus.AVAILABLE) {
+      connector.activeTransactionID > 0 &&
+      statusNotification.status === ChargePointStatus.AVAILABLE) {
       // Cleanup ongoing transactions on the connector
       await this.stopOrDeleteActiveTransactions(
         tenantID, chargingStation.id, statusNotification.connectorId);
@@ -620,7 +621,7 @@ export default class OCPPService {
       // Set SoC
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
-      // Set Consumption
+        // Set Consumption
       } else {
         consumption.consumption = transaction.currentConsumptionWh;
         consumption.instantPower = Math.round(transaction.currentConsumption);
@@ -665,7 +666,7 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isConsumptionMeterValue(meterValue)) {
+        OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         if (consumption) {
@@ -958,7 +959,7 @@ export default class OCPPService {
 
   private filterMeterValuesOnCharger(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPNormalizedMeterValues) {
     // Clean up Sample.Clock meter value
-    if (chargingStation.chargePointVendor !== Constants.CHARGER_VENDOR_ABB ||
+    if (chargingStation.chargePointVendor !== ChargerVendor.ABB ||
       chargingStation.ocppVersion !== OCPPVersion.VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
@@ -1213,14 +1214,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-          id: '666',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.timestamp,
-          value: transaction.meterStart,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '666',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
@@ -1274,7 +1275,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_START_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Action.START_TRANSACTION, error);
       return {
         'transactionId': 0,
         'status': OCPPAuthorizationStatus.INVALID
@@ -1378,7 +1379,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: headers.tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleDataTransfer',
-        action: Constants.ACTION_DATA_TRANSFER, message: 'Data Transfer has been saved'
+        action: Action.DATA_TRANSFER, message: 'Data Transfer has been saved'
       });
       // Return
       return {
@@ -1388,7 +1389,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_DATA_TRANSFER, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Action.DATA_TRANSFER, error);
       return {
         'status': OCPPDataTransferStatus.REJECTED
       };
@@ -1427,7 +1428,7 @@ export default class OCPPService {
           source: chargingStation.id,
           module: 'OCPPService', method: 'handleStopTransaction',
           message: `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          action: Constants.ACTION_STOP_TRANSACTION,
+          action: Action.STOP_TRANSACTION,
           user: (alternateUser ? alternateUser : user),
           actionOnUser: (alternateUser ? (user ? user : null) : null)
         });
@@ -1453,14 +1454,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-          id: '6969',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.stop.timestamp,
-          value: transaction.stop.meterStop,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '6969',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.stop.timestamp,
+        value: transaction.stop.meterStop,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
@@ -1476,7 +1477,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: headers.tenantID,
         source: chargingStation.id, module: 'OCPPService', method: 'handleStopTransaction',
-        action: Constants.ACTION_STOP_TRANSACTION,
+        action: Action.STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : (user ? user : null)),
         actionOnUser: (alternateUser ? (user ? user : null) : null),
         message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`
@@ -1489,7 +1490,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Action.STOP_TRANSACTION, error);
       // Error
       return { 'status': OCPPAuthorizationStatus.INVALID };
     }

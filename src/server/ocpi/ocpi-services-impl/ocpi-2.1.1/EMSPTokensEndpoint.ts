@@ -1,11 +1,13 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
+import { Status } from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import uuid = require('uuid');
 import Utils from '../../../../utils/Utils';
@@ -91,7 +93,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -104,7 +106,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing LocationReference',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
@@ -114,7 +116,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing EVSE Id.',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
@@ -124,7 +126,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -137,7 +139,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
       });
@@ -149,7 +151,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'UNKNOWN USER',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
       });
@@ -164,10 +166,10 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       allowedStatus = 'NOT_ALLOWED';
     } else {
       switch (user.status) {
-        case Constants.USER_STATUS_ACTIVE:
+        case Status.ACTIVE:
           allowedStatus = 'ALLOWED';
           break;
-        case Constants.USER_STATUS_BLOCKED:
+        case Status.BLOCKED:
           allowedStatus = 'BLOCKED';
           break;
         default:

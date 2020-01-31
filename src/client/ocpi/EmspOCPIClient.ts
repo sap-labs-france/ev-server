@@ -23,7 +23,6 @@ import moment from 'moment';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import AppError from '../../exception/AppError';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -372,17 +371,19 @@ export default class EmspOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: 'OcpiGetLocations',
-      message: `Found location ${location.name} with id ${location.id}`,
+      message: `Processing location ${location.name} with id ${location.id}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'processLocation',
       detailedMessage: location
     });
     let site: Site;
-    site = sites.find((value) => value.name === location.operator.name);
+    const siteName = location.operator && location.operator.name ? location.operator.name
+      : OCPIUtils.buildSiteName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+    site = sites.find((value) => value.name === siteName);
     if (!site) {
       site = {
-        name: location.operator.name,
+        name: siteName,
         createdOn: new Date(),
         companyID: company.id,
         issuer: false,
