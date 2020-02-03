@@ -96,14 +96,11 @@ export default class TenantStorage {
     if (params.tenantID) {
       filters._id = Utils.convertToObjectID(params.tenantID);
     } else if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } },
-          { 'subdomain': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'subdomain': { $regex: searchRegex, $options: 'i' } }
+      ];
     }
     // Name
     if (params.tenantName) {
@@ -168,7 +165,10 @@ export default class TenantStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
 
     // Debug
