@@ -26,6 +26,7 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
+import { TransactionInErrorType } from '../../../types/InError';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -426,7 +427,7 @@ export default class TransactionService {
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime
     },
-    { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -869,9 +870,9 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price', 'missing_user'];
+      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_PRICE, TransactionInErrorType.MISSING_USER];
     } else {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_user'];
+      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
@@ -933,7 +934,7 @@ export default class TransactionService {
         result.inError++;
         specificError.notFound++;
         specificError.notFoundIDs.push(transactionId);
-      // Already Refunded
+        // Already Refunded
       } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
         result.inError++;
         specificError.refunded++;

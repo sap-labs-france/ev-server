@@ -90,7 +90,6 @@ export default interface Transaction {
   currentTotalConsumption: number;
   currentSignedData?: string;
   uniqueId?: string;
-  errorCode?: number;
   values?: Consumption[];
   billingData?: BillingTransactionData;
   ocpiSession?: OCPISession;

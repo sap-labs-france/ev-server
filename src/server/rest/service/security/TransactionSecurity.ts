@@ -11,6 +11,7 @@ import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
 import RefundReport from '../../../../types/Refund';
+import { TransactionInError } from '../../../../types/InError';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -103,7 +104,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken) {
     let filteredTransaction;
     if (!transaction) {
       return null;
@@ -113,9 +114,9 @@ export default class TransactionSecurity {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
-      if (transaction.errorCode) {
+      if (transaction.hasOwnProperty('errorCode')) {
         filteredTransaction.uniqueId = transaction.uniqueId;
-        filteredTransaction.errorCode = transaction.errorCode;
+        (filteredTransaction as TransactionInError).errorCode = (transaction as TransactionInError).errorCode;
       }
       filteredTransaction.chargeBoxID = transaction.chargeBoxID;
       filteredTransaction.siteID = transaction.siteID;
@@ -198,7 +199,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;

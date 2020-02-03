@@ -10,6 +10,7 @@ import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../../../types/InError';
 
 export default class ChargingStationSecurity {
 
@@ -28,7 +29,7 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation | ChargingStationInError {
     let filteredChargingStation: ChargingStation;
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
@@ -103,7 +104,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
-    const filteredChargingStations: ChargingStation[] = [];
+    const filteredChargingStations: ChargingStation[] | ChargingStationInError[] = [];
     // Check
     if (!chargingStations.result) {
       return null;

@@ -20,6 +20,7 @@ import UtilsService from './UtilsService';
 import fs from 'fs';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import { UserInErrorType } from '../../../types/InError';
 
 export default class UserService {
 
@@ -821,7 +822,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['inactive_user', 'unassigned_user', 'inactive_user_account'])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [UserInErrorType.NOT_ACTIVE, UserInErrorType.NOT_ASSIGNED, UserInErrorType.INACTIVE_USER_ACCOUNT])
       },
       {
         limit: filteredRequest.Limit,
