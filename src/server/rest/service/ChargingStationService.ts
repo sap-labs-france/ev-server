@@ -1,7 +1,7 @@
-import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPUserError, HTTPError } from  '../../../types/HTTPError';
+import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -26,9 +26,7 @@ import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
-import global from '../../../types/GlobalType';
 import sanitize from 'mongo-sanitize';
-import { ObjectID } from 'mongodb';
 
 export default class ChargingStationService {
 
@@ -614,11 +612,12 @@ export default class ChargingStationService {
   }
 
   public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
-    // TODO: Filter
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
     // Open a download stream and pipe it in the response
-    const bucket = global.database.createGridFSBucket('default.firmware');
-    if (req.query.fileName) {
-      const filename = req.query.fileName;
+    const bucket = ChargingStationStorage.getFirmwareBucket();
+    if (filteredRequest.fileName) {
+      const filename = filteredRequest.fileName;
       res.writeHead(200, {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': 'attachment; filename=' + filename

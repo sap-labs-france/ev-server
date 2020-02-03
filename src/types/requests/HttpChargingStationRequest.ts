@@ -47,3 +47,7 @@ export interface HttpIsAuthorizedRequest {
   Arg2: any;
   Arg3: any;
 }
+
+export interface HttpChargingStationGetFirmwareRequest {
+  fileName: string;
+}

@@ -1,15 +1,15 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingStation';
-import { DataResult } from '../../../../types/DataResult';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import Authorizations from '../../../../authorization/Authorizations';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationSecurity {
 
@@ -379,6 +379,13 @@ export default class ChargingStationSecurity {
     if (filteredRequest.Action === 'StopTransaction') {
       filteredRequest.Action = 'RemoteStopTransaction';
     }
+    return filteredRequest;
+  }
+
+  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
+    const filteredRequest: HttpChargingStationGetFirmwareRequest = {
+      fileName: sanitize(request.fileName),
+    };
     return filteredRequest;
   }
 }
