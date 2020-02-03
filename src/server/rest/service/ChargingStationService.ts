@@ -1,33 +1,33 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPUserError, HTTPError } from  '../../../types/HTTPError';
+import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { ChargingStationConfiguration, OCPPParams } from '../../../types/ChargingStation';
-import { DataResult } from '../../../types/DataResult';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import { ChargingStationInErrorType } from '../../../types/InError';
+import fs from 'fs';
+import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationService {
 
@@ -39,7 +39,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingSTationsToSiteArea', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -136,15 +136,15 @@ export default class ChargingStationService {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
     // Update Power Max
-    if (filteredRequest.hasOwnProperty('maximumPower')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     // Update Current Type
-    if (filteredRequest.hasOwnProperty('currentType')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'currentType')) {
       chargingStation.currentType = filteredRequest.currentType;
     }
     // Update Cannot Charge in Parallel
-    if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'cannotChargeInParallel')) {
       chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
     // Update Site Area
@@ -155,7 +155,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = null;
     }
     // Update Site Area
-    if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'powerLimitUnit')) {
       chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
@@ -474,7 +474,7 @@ export default class ChargingStationService {
         chargingStationName: chargingStation.id
       });
     }
-    const dataToExport = ChargingStationService.convertOCCPParamsToCSV(ocppParams);
+    const dataToExport = ChargingStationService.convertOCPPParamsToCSV(ocppParams);
     // Build export
     const filename = 'exported-occp-params.csv';
     fs.writeFile(filename, dataToExport, (err) => {
@@ -612,11 +612,55 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
+    if (!filteredRequest.FileName) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The firmware FileName is mandatory',
+        module: 'ChargingStationService',
+        method: 'handleGetFirmware'
+      });
+    }
+    // Open a download stream and pipe it in the response
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
+    // Set headers
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
+    // Write chunks
+    bucketStream.on('data', (chunk) => {
+      res.write(chunk);
+    });
+    // Handle Errors
+    bucketStream.on('error', (error) => {
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'FirmwareDownload',
+        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
+        module: 'ChargingStationService', method: 'handleGetFirmware',
+        detailedMessages: error,
+      });
+      res.sendStatus(404);
+    });
+    // End of download
+    bucketStream.on('end', () => {
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'FirmwareDownload',
+        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+        module: 'ChargingStationService', method: 'handleGetFirmware',
+      });
+      res.end();
+    });
+  }
+
   public static async handleAction(command: OCPPChargingStationCommand, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
@@ -700,7 +744,7 @@ export default class ChargingStationService {
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      if (req.body.hasOwnProperty('loadAllConnectors')) {
+      if (Utils.hasOwnProperty(req.body, 'loadAllConnectors')) {
         filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
@@ -801,7 +845,7 @@ export default class ChargingStationService {
         method: 'handleActionSetMaxIntensitySocket',
         action: action,
         source: chargingStation.id,
-        message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
+        message: `Max Intensity Socket has been set to '${filteredRequest.maxIntensity}'`
       });
       // Change the config
       result = await OCPPUtils.requestChangeChargingStationConfiguration(req.user.tenantID, chargingStation,
@@ -1082,7 +1126,7 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static convertOCCPParamsToCSV(configurations: OCPPParams[]): string {
+  private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
     let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
     for (const config of configurations) {
       for (const params of config.params.configuration) {
@@ -1098,7 +1142,7 @@ export default class ChargingStationService {
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
     I18nManager.switchLanguage(loggedUser.language);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Logitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${I18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${I18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
@@ -1253,7 +1297,6 @@ export default class ChargingStationService {
         method: 'handleChargingStationCommand',
         user: user,
       });
-
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

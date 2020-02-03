@@ -1,17 +1,18 @@
-import moment from 'moment';
-import BackendError from '../../exception/BackendError';
-import UtilsService from '../../server/rest/service/UtilsService';
 import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
-import TenantStorage from './TenantStorage';
-import fs from 'fs';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
+import { DataResult } from '../../types/DataResult';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
+import Logging from '../../utils/Logging';
+import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
+import UtilsService from '../../server/rest/service/UtilsService';
+import fs from 'fs';
+import global from '../../types/GlobalType';
+import moment from 'moment';
 
 export default class ChargingStationStorage {
 
@@ -625,6 +626,13 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
+    // Get the bucket
+    const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
+    // Get the file
+    return bucket.openDownloadStreamByName(filename);
   }
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
