@@ -1,5 +1,6 @@
-import { ChargingProfile, ChargingSchedule, PowerLimitUnits } from '../ChargingStation';
+import { ChargingProfile, ChargingSchedule, } from '../../types/ChargingProfile';
 import { KeyValue } from '../GlobalType';
+import { PowerLimitUnits } from '../ChargingStation';
 
 export enum OCPPChargingStationCommand {
   CLEAR_CACHE = 'ClearCache',

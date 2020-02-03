@@ -1,5 +1,7 @@
-import ChargingStation, { ChargingProfile } from '../../../types/ChargingStation';
+
 import { Action } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationVendor from '../ChargingStationVendor';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';

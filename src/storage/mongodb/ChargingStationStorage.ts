@@ -1,7 +1,8 @@
 import moment from 'moment';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector, ChargingProfile } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';

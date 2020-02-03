@@ -1,4 +1,5 @@
-import ChargingStation, { ChargingProfile } from '../../types/ChargingStation';
+import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStation from '../../types/ChargingStation';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;

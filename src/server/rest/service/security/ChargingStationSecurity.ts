@@ -1,6 +1,7 @@
+import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingProfile';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod, ChargingProfile } from '../../../../types/ChargingStation';
+import ChargingStation from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
