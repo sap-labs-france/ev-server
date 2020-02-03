@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPUserError, HTTPError } from  '../../../types/HTTPError';
+import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -13,7 +13,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { ChargingStationConfiguration, OCPPParams } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, OCPPParams, ChargingProfile } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -254,6 +254,165 @@ export default class ChargingStationService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
+  }
+
+
+  public static async handleUpdateChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    // Check
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleUpdateChargingProfile', req.user);
+
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SET_CHARGING_PROFILE,
+        entity: Entity.CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleUpdateChargingProfile',
+        value: chargingStation.id
+      });
+    }
+    // Check if charging profile is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
+        module: 'ChargingStationService',
+        method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
+    }
+
+    // Get Vendor Instance
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    if (!chargingStationVendor) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
+    }
+
+    // Set charging profile
+    const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
+
+    // Update
+    if (status === Constants.OCPP_RESPONSE_ACCEPTED) {
+      await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
+    }
+
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
+      user: req.user, module: 'ChargingStationService',
+      method: 'handleUpdateChargingProfile',
+      message: 'Charging Profile has been updated successfully',
+      action: action, detailedMessages: {
+        'chargingProfile': filteredRequest,
+        'chargingStation': chargingStation.id,
+      }
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleDeleteChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+
+    // Check existence
+    const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
+    // Get
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+    // Check
+    UtilsService.assertObjectExists(chargingStationID, `ChargingStation '${chargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+
+    let siteID = null;
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    }
+
+    // Check Auth
+    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SET_CHARGING_PROFILE,
+        entity: Entity.CHARGING_STATION,
+        module: 'ChargingStationService',
+        method: 'handleDeleteChargingProfile',
+        value: chargingStation.id
+      });
+    }
+    // Check if charging profile is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
+        module: 'ChargingStationService',
+        method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
+    }
+
+    // Get Vendor Instance
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    if (!chargingStationVendor) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
+    }
+
+    // Clear charging profile
+    const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, {} as ChargingProfile);
+
+    // Update
+    if (status === 'Accepted') {
+      await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
+    }
+
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
+      user: req.user, module: 'ChargingStationService',
+      method: 'handleDeleteChargingProfile',
+      message: 'Charging Profile has been cleared successfully',
+      action: action, detailedMessages: {
+        'chargingStation': chargingStation.id,
+      }
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+
   }
 
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {

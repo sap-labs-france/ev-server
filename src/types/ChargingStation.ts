@@ -150,12 +150,18 @@ export interface ChargingStationCapabilities {
 }
 
 export interface ChargingProfile {
+  chargingStationID: string;
+  connectorID?: string;
+  profile: Profile;
+}
+
+export interface Profile {
   chargingProfileId: number;
   transactionId?: number;
   stackLevel: number;
   chargingProfilePurpose: ChargingProfilePurposeType;
   chargingProfileKind: ChargingProfileKindType;
-  recurrencyKind: RecurrencyKindType;
+  recurrencyKind?: RecurrencyKindType;
   validFrom?: Date;
   validTo?: Date;
   chargingSchedule: ChargingSchedule;

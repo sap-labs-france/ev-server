@@ -94,6 +94,9 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile) {
-    throw new Error('Method not implemented.');
+    console.log('Method for setting Charging Profile for Schneider needs be implemented');
+    return Constants.OCPP_RESPONSE_ACCEPTED;
+
+    // Throw new Error('Method not implemented.');
   }
 }

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector, ChargingProfile } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -624,6 +624,35 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+
+  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<string> {
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const chargingProfileFilter = {
+      chargingStationID: chargingProfile.chargingStationID
+    };
+    const chargingProfileMDB: ChargingProfile = chargingProfile;
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
+      chargingProfileFilter,
+      { $set: chargingProfileMDB },
+      { upsert: true });
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+    return 'success';
+  }
+
+  public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profile
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
   }
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
