@@ -384,10 +384,9 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
-    const filteredRequest: HttpChargingStationGetFirmwareRequest = {
+    return {
       fileName: sanitize(request.fileName),
     };
-    return filteredRequest;
   }
 }
 

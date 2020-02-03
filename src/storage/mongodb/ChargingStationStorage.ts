@@ -5,7 +5,7 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import { GridFSBucket } from 'mongodb';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import Logging from '../../utils/Logging';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
@@ -628,9 +628,11 @@ export default class ChargingStationStorage {
     return configuration;
   }
 
-  public static getFirmwareBucket(): GridFSBucket {
-    const bucket = global.database.createGridFSBucket('default.firmware');
-    return bucket;
+  public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
+    // Get the bucket
+    const bucket: GridFSBucket = global.database.createGridFSBucket('default.firmwares');
+    // Get the file
+    return bucket.openDownloadStreamByName(filename);
   }
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {

@@ -615,17 +615,22 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    // Open a download stream and pipe it in the response
-    const bucket = ChargingStationStorage.getFirmwareBucket();
-    if (filteredRequest.fileName) {
-      const filename = filteredRequest.fileName;
-      res.writeHead(200, {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=' + filename
+    if (!filteredRequest.fileName) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The firmware Filename is mandatory',
+        module: 'ChargingStationService',
+        method: 'handleGetFirmware'
       });
-      const stream = bucket.openDownloadStreamByName(filename);
-      stream.pipe(res);
     }
+    // Open a download stream and pipe it in the response
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.fileName);
+    res.writeHead(200, {
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename=' + filteredRequest.fileName
+    });
+    bucketStream.pipe(res);
     next();
   }
 
