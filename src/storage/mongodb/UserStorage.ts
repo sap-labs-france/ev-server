@@ -21,6 +21,7 @@ import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
 import moment from 'moment';
+import { UserInError, UserInErrorType } from '../../types/InError';
 
 export default class UserStorage {
 
@@ -802,7 +803,7 @@ export default class UserStorage {
 
   public static async getUsersInError(tenantID: string,
     params: { search?: string; roles?: string[]; errorTypes?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -844,7 +845,7 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if (type === 'unassigned_user' && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
+      if (type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
         continue;
       }
       array.push(`$${type}`);
@@ -1092,12 +1093,12 @@ export default class UserStorage {
 
   private static getUserInErrorFacet(tenantID: string, errorType: string) {
     switch (errorType) {
-      case 'inactive_user':
+      case UserInErrorType.NOT_ACTIVE:
         return [
           { $match: { status: { $ne: Status.ACTIVE } } },
           { $addFields: { 'errorCode': 'inactive_user' } }
         ];
-      case 'unassigned_user': {
+      case UserInErrorType.NOT_ASSIGNED: {
         return [
           {
             $lookup: {
@@ -1108,10 +1109,10 @@ export default class UserStorage {
             }
           },
           { $match: { sites: { $size: 0 } } },
-          { $addFields: { 'errorCode': 'unassigned_user' } }
+          { $addFields: { 'errorCode': UserInErrorType.NOT_ASSIGNED } }
         ];
       }
-      case 'inactive_user_account': {
+      case UserInErrorType.INACTIVE_USER_ACCOUNT: {
         const someMonthsAgo = moment().subtract(6, 'months').toDate();
         if (moment(someMonthsAgo).isValid()) {
           return [
@@ -1124,7 +1125,7 @@ export default class UserStorage {
 
             },
             {
-              $addFields: { 'errorCode': 'inactive_user_account' }
+              $addFields: { 'errorCode': UserInErrorType.INACTIVE_USER_ACCOUNT }
             }
           ];
         }
