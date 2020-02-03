@@ -288,7 +288,11 @@ export default {
             break;
           // FirmwareDownload
           case 'FirmwareDownload':
-            await ChargingStationService.handleGetFirmware(action, req, res, next);
+            try {
+              await ChargingStationService.handleGetFirmware(action, req, res, next);
+            } catch (error) {
+              Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            }
             break;
           default:
             // Delegate

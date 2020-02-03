@@ -630,7 +630,7 @@ export default class ChargingStationStorage {
 
   public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
     // Get the bucket
-    const bucket: GridFSBucket = global.database.createGridFSBucket('default.firmwares');
+    const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
     // Get the file
     return bucket.openDownloadStreamByName(filename);
   }

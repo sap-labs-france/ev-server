@@ -290,7 +290,7 @@ export default class MongoDBStorage {
     }
   }
 
-  public createGridFSBucket(name: string): GridFSBucket {
+  public getGridFSBucket(name: string): GridFSBucket {
     return new GridFSBucket(this.db, { bucketName: name });
   }
 

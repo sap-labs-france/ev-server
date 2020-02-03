@@ -615,23 +615,45 @@ export default class ChargingStationService {
   public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
-    if (!filteredRequest.fileName) {
+    if (!filteredRequest.FileName) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The firmware Filename is mandatory',
+        message: 'The firmware FileName is mandatory',
         module: 'ChargingStationService',
         method: 'handleGetFirmware'
       });
     }
     // Open a download stream and pipe it in the response
-    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.fileName);
-    res.writeHead(200, {
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': 'attachment; filename=' + filteredRequest.fileName
+    const bucketStream = ChargingStationStorage.getChargingStationFirmware(filteredRequest.FileName);
+    // Set headers
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', 'attachment; filename=' + filteredRequest.FileName);
+    // Write chunks
+    bucketStream.on('data', (chunk) => {
+      res.write(chunk);
     });
-    bucketStream.pipe(res);
-    next();
+    // Handle Errors
+    bucketStream.on('error', (error) => {
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'FirmwareDownload',
+        message: `Firmware '${filteredRequest.FileName}' has not been found!`,
+        module: 'ChargingStationService', method: 'handleGetFirmware',
+        detailedMessages: error,
+      });
+      res.sendStatus(404);
+    });
+    // End of download
+    bucketStream.on('end', () => {
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'FirmwareDownload',
+        message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
+        module: 'ChargingStationService', method: 'handleGetFirmware',
+      });
+      res.end();
+    });
   }
 
   public static async handleAction(command: OCPPChargingStationCommand, req: Request, res: Response, next: NextFunction) {
