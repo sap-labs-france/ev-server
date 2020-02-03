@@ -136,15 +136,15 @@ export default class ChargingStationService {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
     // Update Power Max
-    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'maximumPower')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     // Update Current Type
-    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'currentType')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'currentType')) {
       chargingStation.currentType = filteredRequest.currentType;
     }
     // Update Cannot Charge in Parallel
-    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'cannotChargeInParallel')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'cannotChargeInParallel')) {
       chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
     // Update Site Area
@@ -155,7 +155,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = null;
     }
     // Update Site Area
-    if (Object.prototype.hasOwnProperty.call(filteredRequest, 'powerLimitUnit')) {
+    if (Utils.hasOwnProperty(filteredRequest, 'powerLimitUnit')) {
       chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
@@ -717,7 +717,7 @@ export default class ChargingStationService {
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      if (Object.prototype.hasOwnProperty.call(req.body, 'loadAllConnectors')) {
+      if (Utils.hasOwnProperty(req.body, 'loadAllConnectors')) {
         filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
