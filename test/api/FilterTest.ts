@@ -7,6 +7,7 @@ import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import TestData from './client/utils/TestData';
+import { ChargingStationInErrorType } from '../types/InError';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -53,7 +54,7 @@ describe('Filters with multiple values tests', function() {
     });
 
     it('Charging stations in Error: Check that multi-filtering based on error types works', async () => {
-      const read = await testData.centralService.chargingStationApi.readAllInError({ 'ErrorType' : 'missingSettings|connectionBroken|connectorError|missingSiteArea' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.chargingStationApi.readAllInError({ 'ErrorType' : ChargingStationInErrorType.MISSING_SETTINGS + '|' + ChargingStationInErrorType.CONNECTION_BROKEN+ '|' + ChargingStationInErrorType.CONNECTOR_ERROR + '|' + ChargingStationInErrorType.MISSING_SITE_AREA }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 

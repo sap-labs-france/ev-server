@@ -31,7 +31,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
   connectors: Connector[];
-  errorCode?: string;
   currentIPAddress?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;

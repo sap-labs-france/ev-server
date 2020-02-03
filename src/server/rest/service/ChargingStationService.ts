@@ -27,6 +27,7 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import { ChargingStationInErrorType } from '../../../types/InError';
 
 export default class ChargingStationService {
 
@@ -537,9 +538,9 @@ export default class ChargingStationService {
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError', 'missingSiteArea']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR , ChargingStationInErrorType.MISSING_SITE_AREA]);
     } else {
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR]);
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,

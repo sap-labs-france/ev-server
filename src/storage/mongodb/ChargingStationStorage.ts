@@ -11,6 +11,7 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
 import fs from 'fs';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 
 export default class ChargingStationStorage {
 
@@ -287,7 +288,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
-    dbParams: DbParams): Promise<DataResult<ChargingStation>> {
+    dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -341,7 +342,7 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'ChargingStationStorage',
@@ -686,7 +687,7 @@ export default class ChargingStationStorage {
 
   private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
-      case 'missingSettings':
+      case ChargingStationInErrorType.MISSING_SETTINGS:
         return [{
           $match: {
             $or: [
@@ -702,24 +703,24 @@ export default class ChargingStationStorage {
             ]
           }
         },
-        { $addFields: { 'errorCode': 'missingSettings' } }
+        { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
-      case 'connectionBroken': {
+      case ChargingStationInErrorType.CONNECTION_BROKEN: {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
-          { $addFields: { 'errorCode': 'connectionBroken' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }
-      case 'connectorError':
+      case ChargingStationInErrorType.CONNECTOR_ERROR:
         return [
           { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
-          { $addFields: { 'errorCode': 'connectorError' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTOR_ERROR } }
         ];
-      case 'missingSiteArea':
+      case ChargingStationInErrorType.MISSING_SITE_AREA:
         return [
           { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
-          { $addFields: { 'errorCode': 'missingSiteArea' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SITE_AREA } }
         ];
       default:
         return [];
