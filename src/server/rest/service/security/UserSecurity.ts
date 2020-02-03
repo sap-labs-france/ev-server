@@ -7,6 +7,7 @@ import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import { UserInError } from '../../../../types/InError';
 
 export default class UserSecurity {
 
@@ -140,7 +141,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterUserResponse(user: User, loggedUser: UserToken): User {
+  static filterUserResponse(user: User | UserInError, loggedUser: UserToken): User {
     const filteredUser: User = {} as User;
     if (!user) {
       return null;
@@ -168,7 +169,9 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        filteredUser.errorCode = user.errorCode;
+        if (user.hasOwnProperty('errorCode')) {
+          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -190,7 +193,9 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        filteredUser.errorCode = user.errorCode;
+        if (user.hasOwnProperty('errorCode')) {
+          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -217,7 +222,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users: DataResult<User>, loggedUser: UserToken): void {
+  static filterUsersResponse(users: DataResult<User | UserInError>, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;

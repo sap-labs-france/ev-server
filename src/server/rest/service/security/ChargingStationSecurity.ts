@@ -2,6 +2,7 @@ import ChargingStation, { ChargingSchedule, ChargingSchedulePeriod } from '../..
 import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import Authorizations from '../../../../authorization/Authorizations';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import { ChargingStationInError } from '../../../../types/InError';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
@@ -28,7 +29,7 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation | ChargingStationInError {
     let filteredChargingStation: ChargingStation;
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
@@ -103,7 +104,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
-    const filteredChargingStations: ChargingStation[] = [];
+    const filteredChargingStations: ChargingStation[] | ChargingStationInError[] = [];
     // Check
     if (!chargingStations.result) {
       return null;
