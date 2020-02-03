@@ -1,4 +1,5 @@
 import Constants from '../../utils/Constants';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
@@ -46,7 +47,7 @@ export default abstract class OCPIClient {
       }
     } catch (error) {
       pingResult.message = error.message;
-      pingResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      pingResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -88,7 +89,7 @@ export default abstract class OCPIClient {
       unregisterResult.statusText = 'OK';
     } catch (error) {
       unregisterResult.message = error.message;
-      unregisterResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -148,7 +149,7 @@ export default abstract class OCPIClient {
       registerResult.statusText = 'OK';
     } catch (error) {
       registerResult.message = error.message;
-      registerResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result

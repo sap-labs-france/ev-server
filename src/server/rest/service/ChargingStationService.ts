@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPUserError, HTTPError } from  '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -33,7 +35,7 @@ export default class ChargingStationService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea');
+      Action.UPDATE, Entity.CHARGING_STATION, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check mandatory fields
@@ -41,7 +43,7 @@ export default class ChargingStationService {
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Station\'s IDs must be provided',
         module: 'ChargingStationService',
         method: 'handleAssignChargingStationsToSiteArea',
@@ -55,10 +57,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
         module: 'ChargingStationService',
         method: 'handleAssignChargingStationsToSiteArea',
         value: filteredRequest.siteAreaID
@@ -73,10 +75,10 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_CHARGING_STATION,
+          action: Action.UPDATE,
+          entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleAssignChargingStationsToSiteArea',
           value: chargingStationID
@@ -120,10 +122,10 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.UPDATE,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleUpdateChargingStationParams',
         value: chargingStation.id
@@ -214,10 +216,10 @@ export default class ChargingStationService {
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_POWER_LIMITATION,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.POWER_LIMITATION,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleChargingStationLimitPower',
         value: chargingStation.id
@@ -227,8 +229,8 @@ export default class ChargingStationService {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new AppError({
         source: chargingStation.id,
-        action: Constants.ACTION_POWER_LIMITATION,
-        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `Charging Station '${chargingStation.id}' does not support power limitation`,
         module: 'ChargingStationService',
         method: 'handleChargingStationLimitPower',
@@ -240,8 +242,8 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Constants.ACTION_POWER_LIMITATION,
-        errorCode: Constants.HTTP_FEATURE_NOT_SUPPORTED_ERROR,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available for limiting the charge of the Charging Station '${chargingStation.id}'`,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
@@ -268,10 +270,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleGetChargingStationConfiguration',
         value: chargingStation.id
@@ -291,10 +293,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleRequestChargingStationConfiguration',
         value: filteredRequest.chargeBoxID
@@ -334,10 +336,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canDeleteChargingStation(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.DELETE,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleDeleteChargingStation',
         value: chargingStationID
@@ -347,7 +349,7 @@ export default class ChargingStationService {
     if (chargingStation.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Charging Station with ID '${chargingStationID}' is already deleted`,
         module: 'ChargingStationService',
         method: 'handleDeleteChargingStation',
@@ -360,7 +362,7 @@ export default class ChargingStationService {
         if (transaction && !transaction.stop) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
+            errorCode: HTTPError.EXISTING_TRANSACTION_ERROR,
             message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
             module: 'ChargingStationService',
             method: 'handleDeleteChargingStation',
@@ -406,10 +408,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        action: Action.READ,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleGetChargingStation',
         value: filteredRequest.ID
@@ -424,7 +426,7 @@ export default class ChargingStationService {
     if (chargingStation.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
         module: 'ChargingStationService',
         method: 'handleGetChargingStation',
@@ -453,10 +455,10 @@ export default class ChargingStationService {
       // Check all chargers
       if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.site.id)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_EXPORT_PARAMS,
-          entity: Constants.ENTITY_CHARGING_STATION,
+          action: Action.EXPORT_PARAMS,
+          entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleChargingStationsOCPPParamsExport',
         });
@@ -518,10 +520,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_CHARGING_STATIONS,
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
         module: 'ChargingStationService',
         method: 'handleGetChargingStations'
       });
@@ -531,7 +533,7 @@ export default class ChargingStationService {
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
+        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
@@ -566,10 +568,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_CHARGING_STATIONS,
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
         module: 'ChargingStationService',
         method: 'handleGetStatusNotifications'
       });
@@ -590,10 +592,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_CHARGING_STATIONS,
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
         module: 'ChargingStationService',
         method: 'handleGetBootNotifications'
       });
@@ -626,7 +628,7 @@ export default class ChargingStationService {
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           message: 'Transaction ID is mandatory',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -644,7 +646,7 @@ export default class ChargingStationService {
       if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+          errorCode: HTTPUserError.NO_BADGE_ERROR,
           message: 'The user does not have any badge',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -671,7 +673,7 @@ export default class ChargingStationService {
       if (!filteredRequest.args || !filteredRequest.args.tagID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+          errorCode: HTTPUserError.NO_BADGE_ERROR,
           message: 'The user does not have any badge',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -688,10 +690,10 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command, chargingStation)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
           action: command,
-          entity: Constants.ENTITY_CHARGING_STATION,
+          entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleAction',
           value: chargingStation.id
@@ -728,10 +730,10 @@ export default class ChargingStationService {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command, chargingStation)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
           action: command,
-          entity: Constants.ENTITY_CHARGING_STATION,
+          entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleAction',
           value: chargingStation.id
@@ -766,10 +768,10 @@ export default class ChargingStationService {
     // Get the Config
     if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration', chargingStation)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: action,
-        entity: Constants.ENTITY_CHARGING_STATION,
+        entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleActionSetMaxIntensitySocket',
         value: filteredRequest.chargeBoxID
@@ -808,7 +810,7 @@ export default class ChargingStationService {
       // Invalid value
       throw new AppError({
         source: chargingStation.id,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`,
         module: 'ChargingStationService',
         method: 'handleActionSetMaxIntensitySocket',
@@ -831,7 +833,7 @@ export default class ChargingStationService {
     if (!filteredRequest.Action) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: 'The Action is mandatory',
         module: 'ChargingStationService',
         method: 'handleIsAuthorized',
@@ -849,7 +851,7 @@ export default class ChargingStationService {
         if (!filteredRequest.Arg1) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: 'The Charging Station ID is mandatory',
             module: 'ChargingStationService',
             method: 'handleIsAuthorized',
@@ -864,7 +866,7 @@ export default class ChargingStationService {
           // Not Found!
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
             module: 'ChargingStationService',
             method: 'handleIsAuthorized',
@@ -899,7 +901,7 @@ export default class ChargingStationService {
         if (!filteredRequest.Arg1) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: 'The Charging Station ID is mandatory',
             module: 'ChargingStationService',
             method: 'handleIsAuthorized',
@@ -914,7 +916,7 @@ export default class ChargingStationService {
           // Not Found!
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
             module: 'ChargingStationService',
             method: 'handleIsAuthorized',
@@ -929,7 +931,7 @@ export default class ChargingStationService {
           // Not Found!
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `User with ID '${filteredRequest.Arg1}' does not exist`,
             module: 'ChargingStationService',
             method: 'handleIsAuthorized',
@@ -953,7 +955,7 @@ export default class ChargingStationService {
         if (!chargingStation.siteArea) {
           throw new AppError({
             source: chargingStation.id,
-            errorCode: Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
+            errorCode: HTTPAuthError.CHARGER_WITH_NO_SITE_AREA_ERROR,
             message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
             module: 'ChargingStationService',
             method: 'checkConnectorsActionAuthorizations',
@@ -966,7 +968,7 @@ export default class ChargingStationService {
         if (!chargingStation.siteArea.site) {
           throw new AppError({
             source: chargingStation.id,
-            errorCode: Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
+            errorCode: HTTPAuthError.SITE_AREA_WITH_NO_SITE_ERROR,
             message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
             module: 'ChargingStationService',
             method: 'checkConnectorsActionAuthorizations',
@@ -1015,7 +1017,7 @@ export default class ChargingStationService {
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         message: `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         module: 'ChargingStationService',
         method: 'isStopTransactionAuthorized',
@@ -1040,10 +1042,10 @@ export default class ChargingStationService {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_CHARGING_STATIONS,
+        action: Action.LIST,
+        entity: Entity.CHARGING_STATIONS,
         module: 'ChargingStationService',
         method: 'handleGetChargingStations',
       });
@@ -1245,7 +1247,7 @@ export default class ChargingStationService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: command,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
         module: 'ChargingStationService',
         method: 'handleChargingStationCommand',
@@ -1256,7 +1258,7 @@ export default class ChargingStationService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: command,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' error ${JSON.stringify(error, null, ' ')}`,
         module: 'ChargingStationService',
         method: 'handleChargingStationCommand',

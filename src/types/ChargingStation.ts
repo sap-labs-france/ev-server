@@ -139,7 +139,7 @@ export enum ConnectorType {
   TYPE_1 = 'T1',
   TYPE_1_CCS = 'T1CCS',
   DOMESTIC = 'D',
-  UNKNOWN = 'U'
+  UNKNOWN = 'U',
 }
 
 export interface ChargingStationCapabilities {
@@ -176,24 +176,24 @@ export interface ChargingSchedulePeriod {
 
 export enum ChargingRateUnitType {
   WATT = 'W',
-  AMPERE = 'A'
+  AMPERE = 'A',
 }
 
 export enum ChargingProfileKindType {
   ABSOLUTE = 'Absolute',
   RECURRING = 'Recurring',
-  RELATIVE = 'Relative'
+  RELATIVE = 'Relative',
 }
 
 export enum ChargingProfilePurposeType {
   CHARGE_POINT_MAX_PROFILE = 'ChargePointMaxProfile',
   TX_DEFAULT_PROFILE = 'TxDefaultProfile',
-  TX_PROFILE = 'TxProfile'
+  TX_PROFILE = 'TxProfile',
 }
 
 export enum RecurrencyKindType {
   DAILY = 'Daily',
-  WEEKLY = 'Weekly'
+  WEEKLY = 'Weekly',
 }
 
 export interface ChargingStationConfiguration {
@@ -208,3 +208,9 @@ export type OCPPParams = {
   chargingStationName: string;
   params: ChargingStationConfiguration;
 };
+
+export enum ChargerVendor {
+  EBEE = 'Bender GmbH Co. KG',
+  SCHNEIDER = 'Schneider Electric',
+  ABB = 'ABB',
+}

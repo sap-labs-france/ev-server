@@ -5,6 +5,7 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import OCPIUtils from '../../OCPIUtils';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Utils from '../../../../utils/Utils';
@@ -31,6 +32,13 @@ export default class OCPISessionsService {
       });
     }
 
+    if (!session.total_cost) {
+      session.total_cost = 0;
+    }
+    if (!session.kwh) {
+      session.kwh = 0;
+    }
+
     let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, session.id);
     if (!transaction) {
       const user = await UserStorage.getUser(tenantId, session.auth_id);
@@ -39,7 +47,7 @@ export default class OCPISessionsService {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'updateSession',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `No user found for auth_id ${session.auth_id}`,
           detailedMessages: session,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
@@ -54,7 +62,7 @@ export default class OCPISessionsService {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'updateSession',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: session,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
@@ -65,7 +73,7 @@ export default class OCPISessionsService {
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'updateSession',
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: session,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
@@ -103,7 +111,15 @@ export default class OCPISessionsService {
         },
         signedData: '',
       } as Transaction;
-    } else if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
+    }
+
+    if (!transaction.lastMeterValue) {
+      transaction.lastMeterValue = {
+        value: transaction.meterStart,
+        timestamp: transaction.timestamp
+      };
+    }
+    if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
         source: Constants.OCPI_SERVER,

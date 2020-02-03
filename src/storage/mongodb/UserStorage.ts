@@ -1,3 +1,4 @@
+import User, { Status } from '../../types/User';
 import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
@@ -12,9 +13,9 @@ import Eula from '../../types/Eula';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site, { SiteUser } from '../../types/Site';
+import { Role } from '../../types/Authorization';
 import Tag from '../../types/Tag';
 import TenantStorage from './TenantStorage';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
@@ -533,20 +534,16 @@ export default class UserStorage {
       filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
       // Filter by other properties
     } else if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        filters.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     // Email
     if (params.email) {
@@ -823,20 +820,16 @@ export default class UserStorage {
       match.$and.push({ role: { '$in': params.roles } });
     }
     if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        match.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        match.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      match.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block
@@ -1092,8 +1085,8 @@ export default class UserStorage {
         sendOfflineChargingStations: false,
         sendBillingUserSynchronizationFailed: false
       },
-      role: Constants.ROLE_BASIC,
-      status: Constants.USER_STATUS_PENDING,
+      role: Role.BASIC,
+      status: Status.PENDING,
       tags: []
     };
   }
@@ -1102,8 +1095,8 @@ export default class UserStorage {
     switch (errorType) {
       case UserInErrorType.NOT_ACTIVE:
         return [
-          { $match: { status: { $ne: Constants.USER_STATUS_ACTIVE } } },
-          { $addFields: { 'errorCode': UserInErrorType.NOT_ACTIVE } }
+          { $match: { status: { $ne: Status.ACTIVE } } },
+          { $addFields: { 'errorCode': 'inactive_user' } }
         ];
       case UserInErrorType.NOT_ASSIGNED: {
         return [

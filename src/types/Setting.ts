@@ -184,3 +184,23 @@ export interface StripeBillingSetting extends BillingSetting {
   currency: string;
   taxID: string;
 }
+
+export enum PricingContentType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
+}
+
+export enum RefundContentType {
+  CONCUR = 'concur',
+  GIREVE = 'gireve',
+  OCPI = 'ocpi',
+  SAC = 'sac',
+}
+
+export enum BillingContentType {
+  STRIPE = 'stripe',
+}
+
+export enum SmartChargingContentType {
+  SAP_SMART_CHARGING = 'sapSmartCharging',
+}

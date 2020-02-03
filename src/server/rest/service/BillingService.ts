@@ -1,23 +1,26 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingSecurity from './security/BillingSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
-import BillingSecurity from './security/BillingSecurity';
+
 
 export default class BillingService {
 
   public static async handleGetBillingConnection(action: string, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
-        entity: Constants.ENTITY_USER,
+        action: Action.CHECK_CONNECTION_BILLING,
+        entity: Entity.USER,
         module: 'BillingService',
         method: 'handleGetBillingConnection',
       });
@@ -27,7 +30,7 @@ export default class BillingService {
       !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing or Pricing not active in this Tenant',
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
@@ -39,10 +42,10 @@ export default class BillingService {
     if (billingImpl) {
       if (!Authorizations.canCheckConnectionBilling(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_CHECK_CONNECTION_BILLING,
-          entity: Constants.ENTITY_BILLING,
+          action: Action.CHECK_CONNECTION_BILLING,
+          entity: Entity.BILLING,
           module: 'BillingService',
           method: 'handleGetBillingConnection',
         });
@@ -81,10 +84,10 @@ export default class BillingService {
   public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-        entity: Constants.ENTITY_USER,
+        action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER,
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
       });
@@ -94,11 +97,11 @@ export default class BillingService {
       !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing or Pricing not active in this Tenant',
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         user: req.user
       });
     }
@@ -112,10 +115,10 @@ export default class BillingService {
   public static async handleGetBillingTaxes(action: string, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canReadBillingTaxes(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ_BILLING_TAXES,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ_BILLING_TAXES,
+        entity: Entity.USER,
         module: 'BillingService',
         method: 'handleGetBillingTaxes',
       });
@@ -126,7 +129,7 @@ export default class BillingService {
         !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing or Pricing not active in this Tenant',
         module: 'BillingService',
         method: 'handleSynchronizeUsers',
@@ -140,7 +143,7 @@ export default class BillingService {
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing settings are not configured',
         module: 'BillingService',
         method: 'handleGetBillingTaxes',

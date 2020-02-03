@@ -1,19 +1,20 @@
 import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import Billing from '../../src/integration/billing/Billing';
-import CONTEXTS from './contextProvider/ContextConstants';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import User from '../../src/types/User';
+import Constants from '../../src/utils/Constants';
+import Cypher from '../../src/utils/Cypher';
+import config from '../config';
+import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import Constants from '../../src/utils/Constants';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import Cypher from '../../src/utils/Cypher';
-import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
-import User from '../../src/types/User';
-import chaiSubset from 'chai-subset';
-import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -164,7 +165,7 @@ describe('Billing Service', function() {
 
       it('Should not be able to test connection to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
       it('Should not be able to create a user', async () => {
@@ -184,7 +185,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.push(fakeUser);
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
         const usersAfter = await billingImpl.getUsers();
         expect(usersAfter.length).to.be.eq(usersBefore.length);
@@ -200,7 +201,7 @@ describe('Billing Service', function() {
           false
         );
         testData.createdUsers.pop();
-        expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
         const usersAfter = await billingImpl.getUsers();
         expect(usersAfter.length).to.be.eq(usersBefore.length);

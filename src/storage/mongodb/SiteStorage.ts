@@ -324,13 +324,9 @@ export default class SiteStorage {
     if (params.siteID) {
       filters._id = Utils.convertToObjectID(params.siteID);
     } else if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+      filters.$or = [
+        { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+      ];
     }
     // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {

@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -14,7 +16,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_DELETE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
+      Action.DELETE, Entity.SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
@@ -26,10 +28,10 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.DELETE,
+        entity: Entity.SITE_AREA,
         module: 'SiteAreaService',
         method: 'handleDeleteSiteArea',
         value: siteAreaID
@@ -54,7 +56,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
+      Action.READ, Entity.SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
@@ -67,10 +69,10 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.READ,
+        entity: Entity.SITE_AREA,
         module: 'SiteAreaService',
         method: 'handleGetSiteArea',
         value: filteredRequest.ID
@@ -88,7 +90,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
+      Action.READ, Entity.SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Charge Box is mandatory
@@ -99,10 +101,10 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.READ,
+        entity: Entity.SITE_AREA,
         module: 'SiteAreaService',
         method: 'handleGetSiteAreaImage',
         value: siteAreaID
@@ -120,14 +122,14 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_LIST, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
+      Action.LIST, Entity.SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_SITE_AREAS,
+        action: Action.LIST,
+        entity: Entity.SITE_AREAS,
         module: 'SiteAreaService',
         method: 'handleGetSiteAreas'
       });
@@ -157,7 +159,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_CREATE, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
+      Action.CREATE, Entity.SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check
@@ -165,10 +167,10 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.CREATE,
+        entity: Entity.SITE_AREA,
         module: 'SiteAreaService',
         method: 'handleCreateSiteArea'
       });
@@ -197,7 +199,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
+      Action.UPDATE, Entity.SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Get
@@ -207,10 +209,10 @@ export default class SiteAreaService {
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE_AREA,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
         module: 'SiteAreaService',
         method: 'handleUpdateSiteArea',
         value: filteredRequest.id

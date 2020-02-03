@@ -1,3 +1,4 @@
+import { Action, Entity } from '../../types/Authorization';
 import CentralRestServer from '../../server/rest/CentralRestServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -23,12 +24,12 @@ export default class MongoDBStorageNotification {
     if (operation) {
       switch (operation) {
         case 'insert':
-          return Constants.ACTION_CREATE;
+          return Action.CREATE;
         case 'update':
         case 'replace':
-          return Constants.ACTION_UPDATE;
+          return Action.UPDATE;
         case 'delete':
-          return Constants.ACTION_DELETE;
+          return Action.DELETE;
       }
     }
     return null;
@@ -166,12 +167,12 @@ export default class MongoDBStorageNotification {
           break;
         case 'update': // Update
           if (changeEvent.updateDescription && changeEvent.updateDescription.updatedFields && changeEvent.updateDescription.updatedFields.stop) {
-            notification.type = Constants.ENTITY_TRANSACTION_STOP;
+            notification.type = Entity.TRANSACTION_STOP;
           }
           break;
         case 'replace': // Replace
           if (changeEvent.fullDocument && changeEvent.fullDocument.stop) {
-            notification.type = Constants.ENTITY_TRANSACTION_STOP;
+            notification.type = Entity.TRANSACTION_STOP;
           }
           break;
       }
@@ -186,13 +187,13 @@ export default class MongoDBStorageNotification {
     if (metervaluesID) {
       const notification: any = {};
       // Insert/Create?
-      if (action === Constants.ACTION_CREATE) {
+      if (action === Action.CREATE) {
         notification.id = changeEvent.fullDocument.transactionId;
-        notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
+        notification.type = Entity.TRANSACTION_METER_VALUES;
         notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID;
         notification.connectorId = changeEvent.fullDocument.connectorId;
         // Notify, Force Transaction Update
-        this.centralRestServer.notifyTransaction(tenantID, Constants.ACTION_UPDATE, notification);
+        this.centralRestServer.notifyTransaction(tenantID, Action.UPDATE, notification);
       }
     } else {
       MongoDBStorageNotification.handleInvalidChange(tenantID, 'meterValues', changeEvent);

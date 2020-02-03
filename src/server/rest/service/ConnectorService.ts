@@ -1,5 +1,6 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import HttpStatusCodes from 'http-status-codes';
 import AbstractConnector from '../../../integration/AbstractConnector';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -8,6 +9,7 @@ import ConcurRefundConnector from '../../../integration/refund/concur/ConcurRefu
 import ConnectionValidator from '../validation/ConnectionValidator';
 import ConnectorSecurity from './security/ConnectorSecurity';
 import Constants from '../../../utils/Constants';
+import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 
 const MODULE_NAME = 'ConnectorService';
@@ -21,7 +23,7 @@ export default class ConnectorService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Connection\'s ID must be provided',
         module: MODULE_NAME,
         method: 'handleGetConnection',
@@ -32,10 +34,10 @@ export default class ConnectorService {
     // Check auth
     if (!Authorizations.canReadConnection(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_CONNECTION,
+        action: Action.READ,
+        entity: Entity.CONNECTION,
         module: MODULE_NAME,
         method: 'handleGetConnection',
         value: filteredRequest.ID
@@ -46,7 +48,7 @@ export default class ConnectorService {
     if (!connection) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Connection with ID '${filteredRequest.ID}' does not exist`,
         module: MODULE_NAME,
         method: 'handleGetConnection',
@@ -66,10 +68,10 @@ export default class ConnectorService {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_CONNECTIONS,
+        action: Action.LIST,
+        entity: Entity.CONNECTIONS,
         module: MODULE_NAME,
         method: 'handleGetConnections'
       });
@@ -90,10 +92,10 @@ export default class ConnectorService {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_CONNECTION,
+        action: Action.CREATE,
+        entity: Entity.CONNECTION,
         module: MODULE_NAME,
         method: 'handleCreateConnection'
       });
@@ -125,10 +127,10 @@ export default class ConnectorService {
     // Check auth
     if (!Authorizations.canDeleteConnection(req.user, filteredRequest.userId)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_CONNECTION,
+        action: Action.DELETE,
+        entity: Entity.CONNECTION,
         module: MODULE_NAME,
         method: 'handleDeleteConnection',
         value: filteredRequest.connectorId
@@ -139,7 +141,7 @@ export default class ConnectorService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The userId must be provided',
         module: MODULE_NAME,
         method: 'handleDeleteConnection',
@@ -151,7 +153,7 @@ export default class ConnectorService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The connectorId must be provided',
         module: MODULE_NAME,
         method: 'handleDeleteConnection',
@@ -165,7 +167,7 @@ export default class ConnectorService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Connection [${filteredRequest.connectorId},${filteredRequest.userId}] does not exist`,
         module: MODULE_NAME,
         method: 'handleDeleteConnection',

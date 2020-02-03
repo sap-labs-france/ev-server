@@ -106,14 +106,9 @@ export default class SiteAreaStorage {
       filters._id = Utils.convertToObjectID(params.siteAreaID);
       // Otherwise check if search is present
     } else if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': params.search },
-          { 'name': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+      filters.$or = [
+        { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
+      ];
     }
     // Set Site thru a filter in the dashboard
     if (params.siteIDs && Array.isArray(params.siteIDs)) {

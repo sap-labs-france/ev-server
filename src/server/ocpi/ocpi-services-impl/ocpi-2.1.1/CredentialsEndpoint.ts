@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
@@ -107,7 +108,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR
       });
@@ -140,7 +141,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'OCPI Endpoint not available or wrong token',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
       });
@@ -248,7 +249,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
         detailedMessages: error.stack

@@ -44,3 +44,11 @@ export interface UserSite {
   siteAdmin: boolean;
   siteOwner: boolean;
 }
+
+export enum Status {
+  PENDING = 'P',
+  ACTIVE = 'A',
+  INACTIVE = 'I',
+  BLOCKED = 'B',
+  LOCKED = 'L',
+}
