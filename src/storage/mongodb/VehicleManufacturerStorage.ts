@@ -63,7 +63,10 @@ export default class VehicleManufacturerStorage {
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Get
     const result = await VehicleManufacturerStorage.getVehicleManufacturers(
-      tenantID, { vehicleManufacturerID: id, withVehicles: true }, Constants.DB_PARAMS_SINGLE_RECORD);
+      tenantID, {
+        vehicleManufacturerID: id,
+        withVehicles: true
+      }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
     return result.count > 0 ? result.result[0] : null;
@@ -111,7 +114,7 @@ export default class VehicleManufacturerStorage {
 
   // Delegate
   public static async getVehicleManufacturers(tenantID: string,
-    params: {search?: string; withVehicles?: boolean; vehicleType?: string; vehicleManufacturerID?: string},
+    params: { search?: string; withVehicles?: boolean; vehicleType?: string; vehicleManufacturerID?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<VehicleManufacturer>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
@@ -127,18 +130,8 @@ export default class VehicleManufacturerStorage {
     if (params.vehicleManufacturerID) {
       filters._id = Utils.convertToObjectID(params.vehicleManufacturerID);
     } else if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } }
-        ];
-      }
-    }
-    if (params.search) {
-      // Build filter
       filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
     }
     // Create Aggregation
@@ -152,8 +145,10 @@ export default class VehicleManufacturerStorage {
     // With Vehicles
     if (params.withVehicles || params.vehicleType) {
       DatabaseUtils.pushVehicleLookupInAggregation(
-        { tenantID, aggregation, localField: '_id', foreignField: 'vehicleManufacturerID',
-          asField: 'vehicles' });
+        {
+          tenantID, aggregation, localField: '_id', foreignField: 'vehicleManufacturerID',
+          asField: 'vehicles'
+        });
     }
     // Type?
     if (params.vehicleType) {
@@ -207,10 +202,16 @@ export default class VehicleManufacturerStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection<VehicleManufacturer>(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, {
+      params,
+      dbParams
+    });
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ?

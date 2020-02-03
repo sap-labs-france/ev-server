@@ -533,20 +533,16 @@ export default class UserStorage {
       filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
       // Filter by other properties
     } else if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        filters.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     // Email
     if (params.email) {
@@ -823,20 +819,16 @@ export default class UserStorage {
       match.$and.push({ role: { '$in': params.roles } });
     }
     if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        match.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        match.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      match.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block
