@@ -303,7 +303,7 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
@@ -383,7 +383,7 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
