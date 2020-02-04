@@ -79,8 +79,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this._sendMessage(this._buildRequest(OCPPChargingStationCommand.GET_DIAGNOSTICS, params));
   }
 
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
-    await this._sendMessage(this._buildRequest(OCPPChargingStationCommand.UPDATE_FIRMWARE, params));
+  public updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+    return this._sendMessage(this._buildRequest(OCPPChargingStationCommand.UPDATE_FIRMWARE, params));
   }
 
   private async _openConnection(): Promise<any> {

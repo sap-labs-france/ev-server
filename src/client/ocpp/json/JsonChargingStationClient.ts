@@ -73,6 +73,6 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
-    await this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.UPDATE_FIRMWARE);
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.UPDATE_FIRMWARE);
   }
 }

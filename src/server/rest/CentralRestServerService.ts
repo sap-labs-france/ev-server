@@ -176,6 +176,7 @@ class RequestMapper {
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
+          FirmwareDownload: ChargingStationService.handleGetFirmware.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),
@@ -274,7 +275,7 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req: Request, res: Response, next: NextFunction): void {
+  async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -287,6 +288,17 @@ export default {
           case 'Ping':
             res.sendStatus(200);
             break;
+          // FirmwareDownload
+          case 'FirmwareDownload':
+            try {
+              await ChargingStationService.handleGetFirmware(action, req, res, next);
+            } catch (error) {
+              Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            }
+            break;
+          default:
+            // Delegate
+            UtilsService.handleUnknownAction(action, req, res, next);
         }
         break;
     }

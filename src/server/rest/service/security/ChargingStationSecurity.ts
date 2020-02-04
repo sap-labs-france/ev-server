@@ -1,11 +1,11 @@
-import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingProfile';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStation from '../../../../types/ChargingStation';
+import ChargingStation, { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
+import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -29,7 +29,7 @@ export default class ChargingStationSecurity {
     };
   }
 
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): ChargingStation | ChargingStationInError {
     let filteredChargingStation: ChargingStation;
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
@@ -104,7 +104,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
-    const filteredChargingStations: ChargingStation[] = [];
+    const filteredChargingStations: ChargingStation[] | ChargingStationInError[] = [];
     // Check
     if (!chargingStations.result) {
       return null;
@@ -397,6 +397,12 @@ export default class ChargingStationSecurity {
       filteredRequest.Action = 'RemoteStopTransaction';
     }
     return filteredRequest;
+  }
+
+  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
+    return {
+      FileName: sanitize(request.FileName),
+    };
   }
 }
 
