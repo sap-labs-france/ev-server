@@ -629,7 +629,7 @@ export default class ChargingStationStorage {
     return configuration;
   }
 
-  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<string> {
+  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -642,7 +642,6 @@ export default class ChargingStationStorage {
       { $set: chargingProfileMDB },
       { upsert: true });
     Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
-    return 'success';
   }
 
   public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
