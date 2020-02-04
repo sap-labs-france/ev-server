@@ -1,33 +1,33 @@
-import { Action, Entity } from '../../../types/Authorization';
-import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
+import fs from 'fs';
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import { DataResult } from '../../../types/DataResult';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
+import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationService {
 
@@ -1278,13 +1278,25 @@ export default class ChargingStationService {
       }
       // Ok?
       if (result) {
-        Logging.logInfo({
-          tenantID: tenantID, source: chargingStation.id, user: user,
-          module: 'ChargingStationService', method: 'handleChargingStationCommand',
-          action: command,
-          message: `OCPP Command '${command}' has been executed`,
-          detailedMessages: { params, result }
-        });
+        // OCPP Command with status
+        if (Utils.hasOwnProperty(result, 'status') && result.status !== OCPPStatus.ACCEPTED) {
+          Logging.logError({
+            tenantID: tenantID, source: chargingStation.id, user: user,
+            module: 'ChargingStationService', method: 'handleChargingStationCommand',
+            action: command,
+            message: `OCPP Command '${command}' has failed`,
+            detailedMessages: { params, result }
+          });
+        } else {
+          // OCPP Command with no status
+          Logging.logInfo({
+            tenantID: tenantID, source: chargingStation.id, user: user,
+            module: 'ChargingStationService', method: 'handleChargingStationCommand',
+            action: command,
+            message: `OCPP Command '${command}' has been executed`,
+            detailedMessages: { params, result }
+          });
+        }
         return result;
       }
       // Throw error
