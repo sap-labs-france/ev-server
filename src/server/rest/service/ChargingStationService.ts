@@ -18,7 +18,7 @@ import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -245,7 +245,7 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available for limiting the charge of the Charging Station '${chargingStation.id}'`,
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
       });
@@ -267,7 +267,6 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleUpdateChargingProfile', req.user);
-
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
@@ -298,7 +297,6 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
@@ -306,30 +304,27 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         user: req.user
       });
     }
-
     // Set charging profile
     const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-
     // Update
-    if (status === Constants.OCPP_RESPONSE_ACCEPTED) {
+    if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
       await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
     }
-
     // Log
-    Logging.logSecurityInfo({
+    Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       user: req.user, module: 'ChargingStationService',
       method: 'handleUpdateChargingProfile',
       message: 'Charging Profile has been updated successfully',
-      action: action, detailedMessages: {
-        'chargingProfile': filteredRequest,
-        'chargingStation': chargingStation.id,
+      action: action,
+      detailedMessages: {
+        'chargingProfile': filteredRequest
       }
     });
     // Ok
@@ -338,7 +333,6 @@ export default class ChargingStationService {
   }
 
   public static async handleDeleteChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
-
     // Check existence
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Get
@@ -346,14 +340,12 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(chargingStationID, `ChargingStation '${chargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
-
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
     }
-
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
       throw new AppAuthError({
@@ -378,7 +370,6 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
@@ -386,35 +377,29 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available for setting a charging profile of the Charging Station '${chargingStation.id}'`,
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         user: req.user
       });
     }
-
     // Clear charging profile
     const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, {} as ChargingProfile);
-
     // Update
-    if (status === 'Accepted') {
+    if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
       await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
     }
-
     // Log
-    Logging.logSecurityInfo({
+    Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
       user: req.user, module: 'ChargingStationService',
       method: 'handleDeleteChargingProfile',
       message: 'Charging Profile has been cleared successfully',
-      action: action, detailedMessages: {
-        'chargingStation': chargingStation.id,
-      }
+      action: action
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-
   }
 
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
