@@ -63,11 +63,11 @@ export default class Constants {
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
 
-  public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
-  public static readonly STATS_GROUP_BY_USAGE = 'U';
-  public static readonly STATS_GROUP_BY_INACTIVITY = 'I';
-  public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
-  public static readonly STATS_GROUP_BY_PRICING = 'P';
+  // public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
+  // public static readonly STATS_GROUP_BY_USAGE = 'U';
+  // public static readonly STATS_GROUP_BY_INACTIVITY = 'I';
+  // public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
+  // public static readonly STATS_GROUP_BY_PRICING = 'P';
 
   // Entities
   // public static readonly ENTITY_SITE = 'Site';
@@ -110,11 +110,6 @@ export default class Constants {
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';
-
-  public static readonly WITH_CHARGING_STATIONS = true; // Not used
-  public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
-  public static readonly WITH_SITE = true; // Not used
-  public static readonly WITHOUT_SITE = false; // Not used
 
   public static readonly VEHICLE_TYPE_CAR = 'C';
 
@@ -355,6 +350,4 @@ export default class Constants {
     'verificationToken': 0
   };
 
-  public static readonly MOBILE_OS_ANDROID = 'android'; // Not used
-  public static readonly MOBILE_OS_IOS = 'ios'; // Not used
 }

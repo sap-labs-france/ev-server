@@ -7,6 +7,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { StatsGroupBy } from '../../../types/Statistic';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
 import User from '../../../types/User';
@@ -39,7 +40,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+        req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -74,7 +75,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+        req.user.tenantID, filter, StatsGroupBy.USAGE);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -109,7 +110,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+        req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -144,7 +145,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
+        req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -179,7 +180,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
+        req.user.tenantID, filter, StatsGroupBy.PRICING);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -214,7 +215,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+        req.user.tenantID, filter, StatsGroupBy.CONSUMPTION);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -249,7 +250,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+        req.user.tenantID, filter, StatsGroupBy.USAGE);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -284,7 +285,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+        req.user.tenantID, filter, StatsGroupBy.INACTIVITY);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -319,7 +320,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
+        req.user.tenantID, filter, StatsGroupBy.TRANSACTIONS);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -354,7 +355,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
+        req.user.tenantID, filter, StatsGroupBy.PRICING);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -417,22 +418,22 @@ export default class StatisticService {
       let groupBy: string;
       switch (filteredRequest.DataType) {
         case 'Consumption':
-          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
+          groupBy = StatsGroupBy.CONSUMPTION;
           break;
         case 'Usage':
-          groupBy = Constants.STATS_GROUP_BY_USAGE;
+          groupBy = StatsGroupBy.USAGE;
           break;
         case 'Inactivity':
-          groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
+          groupBy = StatsGroupBy.INACTIVITY;
           break;
         case 'Transactions':
-          groupBy = Constants.STATS_GROUP_BY_TRANSACTIONS;
+          groupBy = StatsGroupBy.TRANSACTIONS;
           break;
         case 'Pricing':
-          groupBy = Constants.STATS_GROUP_BY_PRICING;
+          groupBy = StatsGroupBy.PRICING;
           break;
         default:
-          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
+          groupBy = StatsGroupBy.CONSUMPTION;
       }
       let method: string;
       if (filteredRequest.DataCategory === 'C') {
