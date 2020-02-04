@@ -3,11 +3,11 @@
 //
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import { ChargingStationInErrorType } from '../../src/types/InError';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import TestData from './client/utils/TestData';
-import { ChargingStationInErrorType } from '../types/InError';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
