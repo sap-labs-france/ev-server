@@ -1,13 +1,13 @@
-import cluster from 'cluster';
-import mongoUriBuilder from 'mongo-uri-builder';
-import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
-import urlencode from 'urlencode';
+import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import RunLock from './../../utils/Locking';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
-import BackendError from '../../exception/BackendError';
 import Utils from '../../utils/Utils';
+import cluster from 'cluster';
+import mongoUriBuilder from 'mongo-uri-builder';
+import urlencode from 'urlencode';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -71,7 +71,7 @@ export default class MongoDBStorage {
 
           if (await indexCreationLock.tryAcquire()) {
             // Create Index
-            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
 
             // Release the index creation RunLock
             await indexCreationLock.release();
@@ -288,6 +288,10 @@ export default class MongoDBStorage {
     for (const tenantId of tenantIds) {
       await this.checkAndCreateTenantDatabase(tenantId);
     }
+  }
+
+  public getGridFSBucket(name: string): GridFSBucket {
+    return new GridFSBucket(this.db, { bucketName: name });
   }
 
   async start(): Promise<void> {

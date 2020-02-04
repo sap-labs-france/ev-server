@@ -71,6 +71,10 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
+  public static hasOwnProperty(object: object, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(object, key);
+  }
+
   public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
     switch (inactivityStatus) {
       case InactivityStatus.INFO:

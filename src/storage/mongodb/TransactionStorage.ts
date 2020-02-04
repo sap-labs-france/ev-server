@@ -9,7 +9,7 @@ import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
-import { TransactionInErrorType, TransactionInError } from '../../types/InError';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
