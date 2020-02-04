@@ -3,7 +3,7 @@ import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector, ChargingProfile } from '../../types/ChargingStation';
+import ChargingStation, { ChargingProfile, ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
