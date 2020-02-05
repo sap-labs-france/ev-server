@@ -28,6 +28,11 @@ export interface OCPPResetCommandResult {
   status: OCPPResetStatus;
 }
 
+export enum OCPPStatus {
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected'
+}
+
 export enum OCPPResetStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected'
@@ -186,10 +191,10 @@ export enum OCPPAvailabilityStatus {
 
 export interface OCPPGetDiagnosticsCommandParam extends OCPPCommandParam {
   location: string;
-  retries: number;
-  retryInterval: number;
-  startTime: Date;
-  stopTime: Date;
+  retries?: number;
+  retryInterval?: number;
+  startTime?: Date;
+  stopTime?: Date;
 }
 
 export interface OCPPGetDiagnosticsCommandResult {
@@ -198,7 +203,7 @@ export interface OCPPGetDiagnosticsCommandResult {
 
 export interface OCPPUpdateFirmwareCommandParam extends OCPPCommandParam {
   location: string;
-  retries: number;
+  retries?: number;
   retrieveDate: Date;
-  retryInterval: number;
+  retryInterval?: number;
 }

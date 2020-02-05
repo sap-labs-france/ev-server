@@ -1140,7 +1140,7 @@ export default class OCPPService {
         tenantID: headers.tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleFirmwareStatusNotification',
         action: 'FirmwareStatusNotification',
-        message: 'Firmware Status Notification has been saved'
+        message: `Firmware Status Notification '${firmwareStatusNotification.status}' has been saved`
       });
       // Return
       return {};
