@@ -311,10 +311,7 @@ export default class ChargingStationService {
     }
     // Set charging profile
     const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-    // Update
-    if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
-      await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
-    } else {
+    if (status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
@@ -324,6 +321,8 @@ export default class ChargingStationService {
         user: req.user
       });
     }
+    // Save
+    await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
     // Log
     Logging.logInfo({
       tenantID: req.user.tenantID,
@@ -332,9 +331,7 @@ export default class ChargingStationService {
       method: 'handleUpdateChargingProfile',
       message: 'Charging Profile has been updated successfully',
       action: action,
-      detailedMessages: {
-        'chargingProfile': filteredRequest
-      }
+      detailedMessages: { 'chargingProfile': filteredRequest }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -393,10 +390,7 @@ export default class ChargingStationService {
     }
     // Clear charging profile
     const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, {} as ChargingProfile);
-    // Update
-    if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
-      await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
-    } else {
+    if (status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
@@ -406,6 +400,8 @@ export default class ChargingStationService {
         user: req.user
       });
     }
+    // Delete
+    await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
     // Log
     Logging.logInfo({
       tenantID: req.user.tenantID,
