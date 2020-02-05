@@ -1,4 +1,6 @@
-import ChargingStation, { ChargingProfile } from '../../types/ChargingStation';
+import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStation from '../../types/ChargingStation';
+import { OCPPSetCompositeScheduleStatus } from '../../types/ocpp/OCPPClient';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
@@ -11,5 +13,5 @@ export default abstract class ChargingStationVendor {
 
   public abstract async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation, ocppParamName: string, ocppParamValue);
 
-  public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile);
+  public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus>;
 }
