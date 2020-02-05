@@ -318,7 +318,7 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
-        errorCode: HTTPError.CHARGING_PROFILE_NOT_EXCEPTED,
+        errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         message: `The profile has not been accepted by the charging station '${chargingStation.id}', status: '${status}'`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         user: req.user
@@ -400,7 +400,7 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
-        errorCode: HTTPError.CHARGING_PROFILE_NOT_EXCEPTED,
+        errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         message: `Deleting Charging Profiles for Charging Station '${chargingStation.id}' failed, status: '${status}'`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         user: req.user
