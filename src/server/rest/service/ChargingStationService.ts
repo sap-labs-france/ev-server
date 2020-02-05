@@ -314,6 +314,15 @@ export default class ChargingStationService {
     // Update
     if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
       await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
+    } else {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.CHARGING_PROFILE_NOT_EXCEPTED,
+        message: `The profile has not been accepted by the charging station '${chargingStation.id}', status: '${status}'`,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
     }
     // Log
     Logging.logInfo({
@@ -387,6 +396,15 @@ export default class ChargingStationService {
     // Update
     if (status === OCPPSetCompositeScheduleStatus.ACCEPTED) {
       await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
+    } else {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.CHARGING_PROFILE_NOT_EXCEPTED,
+        message: `Deleting Charging Profiles for Charging Station '${chargingStation.id}' failed, status: '${status}'`,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        user: req.user
+      });
     }
     // Log
     Logging.logInfo({
@@ -683,7 +701,7 @@ export default class ChargingStationService {
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR , ChargingStationInErrorType.MISSING_SITE_AREA]);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
     } else {
       _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR]);
     }

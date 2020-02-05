@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod } from '../../../../types/ChargingProfile';
+import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
 import ChargingStation from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
@@ -12,6 +12,8 @@ import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import { filter } from 'bluebird';
+
 
 export default class ChargingStationSecurity {
 
@@ -83,7 +85,7 @@ export default class ChargingStationSecurity {
           'type': connector.type,
           'power': connector.power,
           'numberOfConnectedPhase': connector.numberOfConnectedPhase,
-          'currentType' : connector.currentType,
+          'currentType': connector.currentType,
           'voltage': connector.voltage,
           'amperage': connector.amperage
         };
@@ -233,15 +235,74 @@ export default class ChargingStationSecurity {
 
   public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
     // Set
-    const filteredRequest: any = {};
-    if (request.hasOwnProperty('profile')) {
-      filteredRequest.profile = sanitize(request.profile);
+    const filteredRequest: ChargingProfile = {} as ChargingProfile;
+
+    if (request.hasOwnProperty('chargingStationID')) {
+      filteredRequest.chargingStationID = sanitize(request.chargingStationID);
     }
     if (request.hasOwnProperty('connectorID')) {
       filteredRequest.connectorID = sanitize(request.connectorID);
     }
-    if (request.hasOwnProperty('chargingStationID')) {
-      filteredRequest.chargingStationID = sanitize(request.chargingStationID);
+    if (request.hasOwnProperty('profile')) {
+      filteredRequest.profile = {} as Profile;
+      if (request.profile.hasOwnProperty('chargingProfileId')) {
+        filteredRequest.profile.chargingProfileId = sanitize(request.profile.chargingProfileId);
+      }
+      if (request.profile.hasOwnProperty('transactionId')) {
+        filteredRequest.profile.transactionId = sanitize(request.profile.transactionId);
+      }
+      if (request.profile.hasOwnProperty('stackLevel')) {
+        filteredRequest.profile.stackLevel = sanitize(request.profile.stackLevel);
+      }
+      if (request.profile.hasOwnProperty('chargingProfilePurpose')) {
+        filteredRequest.profile.chargingProfilePurpose = sanitize(request.profile.chargingProfilePurpose);
+      }
+      if (request.profile.hasOwnProperty('chargingProfileKind')) {
+        filteredRequest.profile.chargingProfileKind = sanitize(request.profile.chargingProfileKind);
+      }
+      if (request.profile.hasOwnProperty('recurrencyKind')) {
+        filteredRequest.profile.recurrencyKind = sanitize(request.profile.recurrencyKind);
+      }
+      if (request.profile.hasOwnProperty('validFrom')) {
+        filteredRequest.profile.validFrom = sanitize(request.profile.validFrom);
+      }
+      if (request.profile.hasOwnProperty('validTo')) {
+        filteredRequest.profile.validTo = sanitize(request.profile.validTo);
+      }
+      if (request.profile.hasOwnProperty('chargingSchedule')) {
+        filteredRequest.profile.chargingSchedule = {} as ChargingSchedule;
+        if (request.profile.chargingSchedule.hasOwnProperty('duration')) {
+          filteredRequest.profile.chargingSchedule.duration = sanitize(request.profile.chargingSchedule.duration);
+        }
+        if (request.profile.chargingSchedule.hasOwnProperty('startSchedule')) {
+          filteredRequest.profile.chargingSchedule.startSchedule = sanitize(request.profile.chargingSchedule.startSchedule);
+        }
+        if (request.profile.chargingSchedule.hasOwnProperty('chargingRateUnit')) {
+          filteredRequest.profile.chargingSchedule.chargingRateUnit = sanitize(request.profile.chargingSchedule.chargingRateUnit);
+        }
+        if (request.profile.chargingSchedule.hasOwnProperty('minChargeRate')) {
+          filteredRequest.profile.chargingSchedule.minChargeRate = sanitize(request.profile.chargingSchedule.minChargeRate);
+        }
+        if (request.profile.chargingSchedule.hasOwnProperty('chargingSchedulePeriod')) {
+          filteredRequest.profile.chargingSchedule.chargingSchedulePeriod = [];
+          // Check
+          for (const chargingSchedulePeriod of request.profile.chargingSchedule.chargingSchedulePeriod) {
+            const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
+            // Check
+            if (chargingSchedulePeriod.hasOwnProperty('startPeriod')) {
+              chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
+            }
+            if (chargingSchedulePeriod.hasOwnProperty('limit')) {
+              chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
+            }
+            if (chargingSchedulePeriod.hasOwnProperty('numberPhases')) {
+              chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
+            }
+            // Add
+            filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.push(chargingSchedulePeriodNew);
+          }
+        }
+      }
     }
     return filteredRequest;
   }
