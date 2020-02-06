@@ -1,18 +1,19 @@
-import ChargingStation, { ChargingProfile, ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
-import Logging from '../../utils/Logging';
-import TenantStorage from './TenantStorage';
-import Utils from '../../utils/Utils';
-import UtilsService from '../../server/rest/service/UtilsService';
 import fs from 'fs';
-import global from '../../types/GlobalType';
 import moment from 'moment';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
+import BackendError from '../../exception/BackendError';
+import UtilsService from '../../server/rest/service/UtilsService';
+import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 export default class ChargingStationStorage {
 
@@ -637,6 +638,33 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const chargingProfileFilter = {
+      chargingStationID: chargingProfile.chargingStationID
+    };
+    const chargingProfileMDB: ChargingProfile = chargingProfile;
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
+      chargingProfileFilter,
+      { $set: chargingProfileMDB },
+      { upsert: true });
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+  }
+
+  public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profile
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
   }
 
   public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {

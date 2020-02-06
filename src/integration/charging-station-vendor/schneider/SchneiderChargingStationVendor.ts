@@ -1,14 +1,15 @@
-import ChargingStation, { ChargingProfile } from '../../../types/ChargingStation';
-import { Action } from '../../../types/Authorization';
-import ChargingStationVendor from '../ChargingStationVendor';
+
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
-import { OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import Constants from '../../../utils/Constants';
-import Utils from '../../../utils/Utils';
-import Logging from '../../../utils/Logging';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { Action } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStation from '../../../types/ChargingStation';
+import { OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus } from '../../../types/ocpp/OCPPClient';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import ChargingStationVendor from '../ChargingStationVendor';
 
 export default class SchneiderChargingStationVendor extends ChargingStationVendor {
   private static OCPP_PARAM_FOR_CHARGE_LIMITATION = 'maxintensitysocket';
@@ -93,7 +94,8 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
   }
 
-  public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile) {
-    throw new Error('Method not implemented.');
+  public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus> {
+    console.log('Method for setting Charging Profile for Schneider needs be implemented');
+    return OCPPSetCompositeScheduleStatus.ACCEPTED;
   }
 }

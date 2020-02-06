@@ -141,10 +141,18 @@ export default class Configuration {
   static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
-    if (centralSystemRestService && Configuration.isCloudFoundry()) {
-      // CF Environment: Override
-      centralSystemRestService.port = _appEnv.port;
-      centralSystemRestService.host = _appEnv.bind;
+    if (centralSystemRestService) {
+      if (Configuration.isCloudFoundry()) {
+        // CF Environment: Override
+        centralSystemRestService.port = _appEnv.port;
+        centralSystemRestService.host = _appEnv.bind;
+      }
+      if (!centralSystemRestService.webSocketSingleNotificationIntervalSecs) {
+        centralSystemRestService.webSocketSingleNotificationIntervalSecs = 1;
+      }
+      if (!centralSystemRestService.webSocketListNotificationIntervalSecs) {
+        centralSystemRestService.webSocketListNotificationIntervalSecs = 5;
+      }
     }
     // Read conf
     return centralSystemRestService;
