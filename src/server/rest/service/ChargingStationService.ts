@@ -258,7 +258,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingProfile(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingProfiles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
     // Check
@@ -271,12 +271,12 @@ export default class ChargingStationService {
         action: Action.GET_CHARGING_PROFILE,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleGetChargingProfile',
+        method: 'handleGetChargingProfiles',
         value: filteredRequest.ChargeBoxID
       });
     }
-    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, filteredRequest.ChargeBoxID);
-    res.json(chargingProfile);
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID, filteredRequest.ChargeBoxID);
+    res.json(chargingProfiles);
     next();
   }
 

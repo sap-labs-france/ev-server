@@ -17,17 +17,6 @@ import TenantStorage from './TenantStorage';
 
 export default class ChargingStationStorage {
 
-  public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
-
-    const chargingProfile = await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOne(
-      { 'chargingStationID': id });
-    // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingProfile', uniqueTimerID, { id });
-    return chargingProfile;
-  }
-
   public static async updateChargingStationTemplatesFromFile() {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'updateChargingStationTemplatesFromFile');
@@ -638,6 +627,17 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  public static async getChargingProfiles(tenantID: string, id: string): Promise<ChargingProfile[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
+
+    const chargingProfiles = await global.database.getCollection<any>(tenantID, 'chargingprofiles').find(
+      { 'chargingStationID': id }).toArray();
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfiles', uniqueTimerID, { id });
+    return chargingProfiles;
   }
 
   public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
