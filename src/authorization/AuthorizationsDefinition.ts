@@ -37,7 +37,7 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
           'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'ExportParams'], attributes: ['*']
+          'GetDiagnostics', 'UpdateFirmware', 'ExportParams', 'ChangeAvailability'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
