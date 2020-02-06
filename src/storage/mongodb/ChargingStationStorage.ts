@@ -1,4 +1,4 @@
-import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import ChargingStation, { ChargingProfile, ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -15,6 +15,17 @@ import global from '../../types/GlobalType';
 import moment from 'moment';
 
 export default class ChargingStationStorage {
+
+  public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
+
+    const chargingProfile = await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOne(
+      { 'chargingStationID': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfile', uniqueTimerID, { id });
+    return chargingProfile;
+  }
 
   public static async updateChargingStationTemplatesFromFile() {
     // Debug

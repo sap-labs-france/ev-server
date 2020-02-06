@@ -59,6 +59,7 @@ export enum Action {
   REFUND_TRANSACTION = 'RefundTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
+  GET_CHARGING_PROFILE = 'GetChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
