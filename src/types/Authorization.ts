@@ -68,6 +68,7 @@ export enum Action {
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
   POWER_LIMITATION = 'PowerLimitation',
+  SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',
 }
 

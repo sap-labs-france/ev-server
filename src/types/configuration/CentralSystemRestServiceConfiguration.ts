@@ -5,7 +5,8 @@ export default interface CentralSystemRestServiceConfiguration {
   userTokenKey: string;
   userTokenLifetimeHours: number;
   userDemoTokenLifetimeDays: number;
-  webSocketNotificationIntervalSecs: number;
+  webSocketListNotificationIntervalSecs: number;
+  webSocketSingleNotificationIntervalSecs: number;
   passwordWrongNumberOfTrial: number;
   passwordBlockedWaitTimeMin: number;
   captchaSecretKey: string;
