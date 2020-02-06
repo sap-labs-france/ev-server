@@ -13,6 +13,9 @@ import expressTools from '../ExpressTools';
 import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
+import socketioJwt from 'socketio-jwt';
+import UserToken from '../../types/UserToken';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -20,7 +23,8 @@ export default class CentralRestServer {
   private static centralSystemRestConfig;
   private static restHttpServer;
   private static socketIO;
-  private static currentNotifications: ChangeNotification[] = [];
+  private static changeNotifications: ChangeNotification[] = [];
+  private static singleChangeNotifications: SingleChangeNotification[] = [];
   private chargingStationConfig: any;
   private express: express.Application;
 
@@ -80,30 +84,6 @@ export default class CentralRestServer {
     return CentralRestServer.restHttpServer;
   }
 
-  private static socketIOListenCb() {
-    // Log
-    const logMsg = `REST SocketIO Server listening on '${CentralRestServer.centralSystemRestConfig.protocol}://${CentralRestServer.restHttpServer.address().address}:${CentralRestServer.restHttpServer.address().port}'`;
-    Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: MODULE_NAME,
-      method: 'start', action: 'Startup',
-      message: logMsg
-    });
-    // eslint-disable-next-line no-console
-    console.log(logMsg + `${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-
-    // Check and send notification
-    setInterval(() => {
-      // Send
-      for (let i = CentralRestServer.currentNotifications.length - 1; i >= 0; i--) {
-        // Notify all Web Sockets
-        CentralRestServer.socketIO.to(CentralRestServer.currentNotifications[i].tenantID).emit(CentralRestServer.currentNotifications[i].entity, CentralRestServer.currentNotifications[i]);
-        // Remove
-        CentralRestServer.currentNotifications.splice(i, 1);
-      }
-    }, CentralRestServer.centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
-  }
-
   startSocketIO() {
     // Log
     const logMsg = 'Starting REST SocketIO Server...';
@@ -117,25 +97,48 @@ export default class CentralRestServer {
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
     CentralRestServer.socketIO = socketio(CentralRestServer.restHttpServer);
+    CentralRestServer.socketIO.use((socket, next) => {
+      if (socket.request.headers.cookie) {
+        return next();
+      }
+      next(new Error('Authentication error'));
+    });
+    CentralRestServer.socketIO.use(socketioJwt.authorize({
+      secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
+      handshake: true,
+      decodedPropertyName: 'decoded_token',
+    }));
     // Handle Socket IO connection
     CentralRestServer.socketIO.on('connection', (socket) => {
-      socket.join(socket.handshake.query.tenantID);
-      // Handle Socket IO connection
-      socket.on('disconnect', () => {
-        // Nothing to do
-      });
+      const userToken: UserToken = socket.decoded_token;
+      if (!userToken || !userToken.tenantID) {
+        socket.close();
+      } else {
+        socket.join(userToken.tenantID);
+        // Handle Socket IO connection
+        socket.on('disconnect', () => {
+          // Nothing to do
+        });
+      }
     });
 
-    // Check and send notification
+    // Check and send notification change for single record
     setInterval(() => {
       // Send
-      for (let i = CentralRestServer.currentNotifications.length - 1; i >= 0; i--) {
-        // Notify all Web Sockets
-        CentralRestServer.socketIO.to(CentralRestServer.currentNotifications[i].tenantID).emit(CentralRestServer.currentNotifications[i].entity, CentralRestServer.currentNotifications[i]);
-        // Remove
-        CentralRestServer.currentNotifications.splice(i, 1);
+      while (CentralRestServer.singleChangeNotifications.length > 0) {
+        const notification = CentralRestServer.singleChangeNotifications.shift();
+        CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
       }
-    }, CentralRestServer.centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    }, CentralRestServer.centralSystemRestConfig.webSocketSingleNotificationIntervalSecs * 1000);
+
+    // Check and send notification change for list
+    setInterval(() => {
+      // Send
+      while (CentralRestServer.changeNotifications.length > 0) {
+        const notification = CentralRestServer.changeNotifications.shift();
+        CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
+      }
+    }, CentralRestServer.centralSystemRestConfig.webSocketListNotificationIntervalSecs * 1000);
   }
 
   // Start the server
@@ -150,14 +153,14 @@ export default class CentralRestServer {
       SessionHashService.rebuildUserHashID(tenantID, data.id);
     }
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.USER,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.USERS
     });
@@ -165,14 +168,14 @@ export default class CentralRestServer {
 
   notifyVehicle(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.VEHICLE,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.VEHICLES
     });
@@ -180,14 +183,14 @@ export default class CentralRestServer {
 
   notifyVehicleManufacturer(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.VEHICLE_MANUFACTURER,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.VEHICLE_MANUFACTURERS
     });
@@ -200,14 +203,14 @@ export default class CentralRestServer {
       SessionHashService.rebuildTenantHashID(data.id);
     }
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.TENANT,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.TENANTS
     });
@@ -215,14 +218,14 @@ export default class CentralRestServer {
 
   notifySite(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.SITE,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.SITES
     });
@@ -230,14 +233,14 @@ export default class CentralRestServer {
 
   notifySiteArea(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.SITE_AREA,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.SITE_AREAS
     });
@@ -245,14 +248,14 @@ export default class CentralRestServer {
 
   notifyCompany(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.COMPANY,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.COMPANIES
     });
@@ -260,14 +263,14 @@ export default class CentralRestServer {
 
   notifyTransaction(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.TRANSACTION,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.TRANSACTIONS
     });
@@ -275,14 +278,14 @@ export default class CentralRestServer {
 
   notifyChargingStation(tenantID: string, action: string, data) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.CHARGING_STATION,
       'action': action,
       'data': data
     });
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.CHARGING_STATIONS
     });
@@ -290,37 +293,53 @@ export default class CentralRestServer {
 
   notifyLogging(tenantID: string, action: string) {
     // Add in buffer
-    this.addNotificationInBuffer({
+    this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.LOGGINGS,
       'action': action
     });
   }
 
-  private addNotificationInBuffer(notification: ChangeNotification) {
+  private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
     // Add in buffer
-    for (const currentNotification of CentralRestServer.currentNotifications) {
+    for (const currentNotification of CentralRestServer.changeNotifications) {
       // Same Entity and Action?
       if (currentNotification.tenantID === notification.tenantID &&
         currentNotification.entity === notification.entity &&
         currentNotification.action === notification.action) {
         // Yes
         dups = true;
-        // Data provided: Check Id and Type
-        if (currentNotification.data && notification.data &&
-          (currentNotification.data.id !== notification.data.id ||
-            currentNotification.data.type !== notification.data.type)) {
-          dups = false;
-        } else {
-          break;
-        }
+        break;
       }
     }
     // Found dups?
     if (!dups) {
       // No: Add it
-      CentralRestServer.currentNotifications.push(notification);
+      CentralRestServer.changeNotifications.push(notification);
+    }
+  }
+
+  private addSingleChangeNotificationInBuffer(notification: SingleChangeNotification) {
+    let dups = false;
+    // Add in buffer
+    for (const currentNotification of CentralRestServer.singleChangeNotifications) {
+      // Same Entity and Action?
+      if (currentNotification.tenantID === notification.tenantID &&
+        currentNotification.entity === notification.entity &&
+        currentNotification.action === notification.action &&
+        currentNotification.data.id === notification.data.id &&
+        currentNotification.data.type === notification.data.type
+      ) {
+        // Yes
+        dups = true;
+        break;
+      }
+    }
+    // Found dups?
+    if (!dups) {
+      // No: Add it
+      CentralRestServer.singleChangeNotifications.push(notification);
     }
   }
 }
