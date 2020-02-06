@@ -1034,7 +1034,7 @@ export default class TransactionStorage {
           { $match: { 'activeDuration': { $gt: 0 } } },
           { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
           { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } } },
-          { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
+          { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.05] }, '$averagePower'] }, 0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
         ];
