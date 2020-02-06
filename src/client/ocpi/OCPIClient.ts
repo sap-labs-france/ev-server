@@ -1,10 +1,11 @@
 import Constants from '../../utils/Constants';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
 
@@ -12,9 +13,9 @@ export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
   protected role: string;
-  protected settings: OcpiSettings;
+  protected settings: OcpiSetting;
 
-  protected constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint, role: string) {
+  protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
     if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
@@ -46,7 +47,7 @@ export default abstract class OCPIClient {
       }
     } catch (error) {
       pingResult.message = error.message;
-      pingResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      pingResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -88,7 +89,7 @@ export default abstract class OCPIClient {
       unregisterResult.statusText = 'OK';
     } catch (error) {
       unregisterResult.message = error.message;
-      unregisterResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -126,6 +127,7 @@ export default abstract class OCPIClient {
 
       // Set available endpoints
       this.ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(services.data.data);
+      this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
 
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
@@ -147,7 +149,7 @@ export default abstract class OCPIClient {
       registerResult.statusText = 'OK';
     } catch (error) {
       registerResult.message = error.message;
-      registerResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -169,8 +171,7 @@ export default abstract class OCPIClient {
 
     const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
@@ -199,8 +200,7 @@ export default abstract class OCPIClient {
 
     const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
@@ -252,7 +252,7 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials');
 
-    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
+    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({
@@ -282,6 +282,8 @@ export default abstract class OCPIClient {
 
     return respOcpiCredentials;
   }
+
+  async abstract triggerJobs();
 
   protected getLocalCountryCode(): string {
     if (!this.settings[this.role]) {

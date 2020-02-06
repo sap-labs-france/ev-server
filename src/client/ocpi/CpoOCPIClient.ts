@@ -1,6 +1,6 @@
 import OCPIClient from './OCPIClient';
 import Tenant from '../../types/Tenant';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import axios from 'axios';
@@ -11,10 +11,13 @@ import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
+import ChargingStation from '../../types/ChargingStation';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 
 export default class CpoOCPIClient extends OCPIClient {
-  constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint) {
+  constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
 
     if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {
@@ -43,8 +46,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const response = await axios.get(tokensUrl,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Token ${this.ocpiEndpoint.token}`
         },
         timeout: 10000
       });
@@ -53,6 +55,23 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.data) {
       Logging.logDebug(`${response.data.length} Tokens retrieved`);
     }
+  }
+
+  async patchChargingStationStatus(chargingStation: ChargingStation, status: ChargePointStatus) {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new Error('Charging Station must be associated to a site area');
+    }
+    if (!chargingStation.issuer) {
+      throw new Error('Only charging Station issued locally can be exposed to IOP');
+    }
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+    await this.patchEVSEStatus(siteID, chargingStation.id ,OCPIMapping.convertStatus2OCPIStatus(status));
   }
 
   /**
@@ -269,5 +288,11 @@ export default class CpoOCPIClient extends OCPIClient {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
+  }
+
+  async triggerJobs(): Promise<any> {
+    return {
+      locations: await this.sendEVSEStatuses()
+    };
   }
 }

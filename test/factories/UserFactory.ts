@@ -1,5 +1,6 @@
 import faker from 'faker';
 import { Factory } from 'rosie';
+import UserNotifications from '../types/UserNotifications';
 
 const userFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())
@@ -12,6 +13,23 @@ const userFactory = Factory.define('user')
       repeatPassword: password
     };
   })
+  .attr('notifications', (): UserNotifications => ({
+    sendSessionStarted: true,
+    sendOptimalChargeReached: true,
+    sendEndOfCharge: true,
+    sendEndOfSession: true,
+    sendUserAccountStatusChanged: true,
+    sendNewRegisteredUser: false,
+    sendUnknownUserBadged: false,
+    sendChargingStationStatusError: false,
+    sendChargingStationRegistered: false,
+    sendOcpiPatchStatusError: false,
+    sendSmtpAuthError: false,
+    sendUserAccountInactivity: false,
+    sendPreparingSessionNotStarted: false,
+    sendOfflineChargingStations: false,
+    sendBillingUserSynchronizationFailed: false
+  }))
   .attr('role', 'B')
   .attr('status', 'A')
   .attr('locale', 'en_US')

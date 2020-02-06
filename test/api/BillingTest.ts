@@ -1,19 +1,20 @@
 import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import Billing from '../../src/integration/billing/Billing';
-import CONTEXTS from './contextProvider/ContextConstants';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import User from '../../src/types/User';
+import Constants from '../../src/utils/Constants';
+import Cypher from '../../src/utils/Cypher';
+import config from '../config';
+import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import Constants from '../../src/utils/Constants';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import Cypher from '../../src/utils/Cypher';
-import Factory from '../factories/Factory';
 import SiteContext from './contextProvider/SiteContext';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { BillingSetting, StripeBillingSettings } from '../../src/types/Setting';
 import TenantContext from './contextProvider/TenantContext';
-import User from '../../src/types/User';
-import chaiSubset from 'chai-subset';
-import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -26,7 +27,7 @@ const billingSettings = {
   currency: config.get('billing.currency'),
   immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
   periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-} as StripeBillingSettings;
+} as StripeBillingSetting;
 
 let billingImpl: Billing<BillingSetting>;
 
@@ -69,7 +70,8 @@ describe('Billing Service', function() {
       if (tenant.id) {
         const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
         expect(tenantBillingSettings.data.count).to.be.eq(1);
-        const componentSetting = tenantBillingSettings.data.result[0];
+        const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+        componentSetting.content.type = BillingSettingsType.STRIPE;
         componentSetting.content.stripe = { ...billingSettings };
         componentSetting.sensitiveData = ['content.stripe.secretKey'];
         await testData.userService.settingApi.update(componentSetting);
@@ -83,8 +85,8 @@ describe('Billing Service', function() {
     });
 
     it('Should connect to Billing Provider', async () => {
-      const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-      expect(response.status).to.be.eq(200);
+      const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+      expect(response.data).containSubset({ connectionIsValid: true });
       expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
     });
 
@@ -122,87 +124,88 @@ describe('Billing Service', function() {
       const usersAfter = await billingImpl.getUsers();
       expect(usersAfter.length).to.be.eq(usersBefore.length - 1);
     });
-  });
 
-  describe('With basic user', () => {
-    before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-      testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-      expect(testData.userContext).to.not.be.null;
-      testData.centralUserService = new CentralServerService(
-        testData.tenantContext.getTenant().subdomain,
-        testData.centralUserContext
-      );
-      if (testData.userContext === testData.centralUserContext) {
-        // Reuse the central user service (to avoid double login)
-        testData.userService = testData.centralUserService;
-      } else {
-        testData.userService = new CentralServerService(
+    describe('With basic user', () => {
+      before(async () => {
+        testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
+        testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        expect(testData.userContext).to.not.be.null;
+        testData.centralUserService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,
-          testData.userContext
+          testData.centralUserContext
         );
-      }
-      expect(testData.userService).to.not.be.null;
-      const tenant = testData.tenantContext.getTenant();
-      if (tenant.id) {
-        const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-        expect(tenantBillingSettings.data.count).to.be.eq(1);
-        const componentSetting = tenantBillingSettings.data.result[0];
-        componentSetting.content.stripe = { ...billingSettings };
-        componentSetting.sensitiveData = ['content.stripe.secretKey'];
-        await testData.userService.settingApi.update(componentSetting);
-
-        billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-        billingImpl = new StripeBilling(tenant.id, billingSettings);
-        expect(billingImpl).to.not.be.null;
-      } else {
-        throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
-      }
-    });
-
-    it('Should not be able to test connection to Billing Provider', async () => {
-      const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
-    });
-
-    it('Should not be able to create a user', async () => {
-      const fakeUser = {
-        ...Factory.user.build(),
-        billingData: {
-          method: 'immediate'
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
         }
-      } as User;
+        expect(testData.userService).to.not.be.null;
+        const tenant = testData.tenantContext.getTenant();
+        if (tenant.id) {
+          const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+          expect(tenantBillingSettings.data.count).to.be.eq(1);
+          const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+          componentSetting.content.type = BillingSettingsType.STRIPE;
+          componentSetting.content.stripe = { ...billingSettings };
+          componentSetting.sensitiveData = ['content.stripe.secretKey'];
+          await testData.userService.settingApi.update(componentSetting);
 
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
+          billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
+          billingImpl = new StripeBilling(tenant.id, billingSettings);
+          expect(billingImpl).to.not.be.null;
+        } else {
+          throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
+        }
+      });
 
-      const response = await testData.userService.createEntity(
-        testData.userService.userApi,
-        fakeUser,
-        false
-      );
-      testData.createdUsers.push(fakeUser);
-      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+      it('Should not be able to test connection to Billing Provider', async () => {
+        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      });
 
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length);
-    });
+      it('Should not be able to create a user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+          billingData: {
+            method: 'immediate'
+          }
+        } as User;
 
-    it('Should not be able to delete a user', async () => {
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
+        const usersBefore = await billingImpl.getUsers();
+        expect(usersBefore).to.not.be.null;
 
-      const response = await testData.userService.deleteEntity(
-        testData.userService.userApi,
-        { id: 0 },
-        false
-      );
-      testData.createdUsers.pop();
-      expect(response.status).to.be.eq(Constants.HTTP_AUTH_ERROR);
+        const response = await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser,
+          false
+        );
+        testData.createdUsers.push(fakeUser);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length);
+        const usersAfter = await billingImpl.getUsers();
+        expect(usersAfter.length).to.be.eq(usersBefore.length);
+      });
+
+      it('Should not be able to delete a user', async () => {
+        const usersBefore = await billingImpl.getUsers();
+        expect(usersBefore).to.not.be.null;
+
+        const response = await testData.userService.deleteEntity(
+          testData.userService.userApi,
+          { id: 0 },
+          false
+        );
+        testData.createdUsers.pop();
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+
+        const usersAfter = await billingImpl.getUsers();
+        expect(usersAfter.length).to.be.eq(usersBefore.length);
+      });
     });
   });
 });

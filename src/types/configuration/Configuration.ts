@@ -19,16 +19,20 @@ import AdvancedConfiguration from './AdvancedConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import LoggingConfiguration from './LoggingConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
+import HealthCheckConfiguration from './HealthCheckConfiguration';
+import MigrationConfiguration from './MigrationConfiguration';
+import OCPIEndpointConfiguration from './OCPIEndpointConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;
-  Cluster: ClusterConfiguration;
+  Cluster?: ClusterConfiguration;
   CentralSystemServer: CentralSystemServerConfiguration;
   CentralSystems: CentralSystemConfiguration[];
   CentralSystemRestService: CentralSystemRestServiceConfiguration;
   CentralSystemFrontEnd: CentralSystemFrontEndConfiguration;
   WSDLEndpoint: WSDLEndpointConfiguration;
   JsonEndpoint: JsonEndpointConfiguration;
+  OCPIEndpoint: OCPIEndpointConfiguration;
   WSClient: WSClientConfiguration;
   OCPIService: OCPIServiceConfiguration;
   ODataService: ODataServiceConfiguration;
@@ -42,4 +46,6 @@ export interface Configuration {
   Advanced: AdvancedConfiguration;
   Scheduler: SchedulerConfiguration;
   Logging: LoggingConfiguration;
+  HealthCheck?: HealthCheckConfiguration;
+  Migration?: MigrationConfiguration;
 }

@@ -1,3 +1,5 @@
+import { Action, Entity, Role } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -6,7 +8,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting, { SettingContent } from '../../../types/Setting';
+import { SettingDB, SettingDBContent } from '../../../types/Setting';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
@@ -23,29 +25,29 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const id = TenantSecurity.filterTenantRequestByID(req.query);
+    UtilsService.assertIdIsProvided(id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.DELETE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
-        value: filteredRequest.ID
+        value: id
       });
     }
     // Get
-    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
+    const tenant = await TenantStorage.getTenant(id);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
@@ -55,14 +57,8 @@ export default class TenantService {
     }
     // Delete
     await TenantStorage.deleteTenant(tenant.id);
-    if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
-      Logging.logWarning({
-        tenantID: req.user.tenantID,
-        module: MODULE_NAME, method: 'deleteTenantDatabase',
-        message: `Deleting collections for tenant ${tenant.id}`
-      });
-      await TenantStorage.deleteTenantDB(tenant.id);
-    }
+    // Remove collection
+    await TenantStorage.deleteTenantDB(tenant.id);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
@@ -83,10 +79,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.READ,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleGetTenant',
         value: tenantID
@@ -108,10 +104,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TENANTS,
+        action: Action.LIST,
+        entity: Entity.TENANTS,
         module: MODULE_NAME,
         method: 'handleGetTenants'
       });
@@ -133,10 +129,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.CREATE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleCreateTenant'
       });
@@ -149,7 +145,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -162,7 +158,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -187,7 +183,7 @@ export default class TenantService {
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Role.ADMIN);
     // Save User Status
     await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
     // Save User Account Verification
@@ -233,10 +229,10 @@ export default class TenantService {
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TENANT,
+        action: Action.UPDATE,
+        entity: Entity.TENANT,
         module: MODULE_NAME,
         method: 'handleUpdateTenant',
         value: tenantUpdate.id
@@ -279,7 +275,7 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
+      const newSettingContent: SettingDBContent = Utils.createDefaultSettingContent(
         {
           ...tenant.components[componentName],
           name: componentName
@@ -287,20 +283,20 @@ export default class TenantService {
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: Setting = {
+          const newSetting: SettingDB = {
             identifier: componentName,
             content: newSettingContent
-          } as Setting;
+          } as SettingDB;
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, newSetting);
+          await SettingStorage.saveSettings(tenant.id, newSetting);
         } else {
           currentSetting.content = newSettingContent;
           currentSetting.lastChangedOn = new Date();
           currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await SettingStorage.saveSetting(tenant.id, currentSetting);
+          await SettingStorage.saveSettings(tenant.id, currentSetting);
         }
       }
     }

@@ -9,6 +9,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import { HTTPError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -18,6 +19,7 @@ import BackendError from '../../../exception/BackendError';
 import Company from '../../../types/Company';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import RefundConnector from '../RefundConnector';
+import { RefundStatus, RefundType } from '../../../types/Refund';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -36,7 +38,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     axiosRetry(axios,
       {
         retries: 3,
-        retryCondition: (error) => error.response.status === Constants.HTTP_GENERAL_ERROR,
+        retryCondition: (error) => error.response.status === HTTPError.GENERAL_ERROR,
         retryDelay: (retryCount, error) => {
           try {
             if (error.config.method === 'post') {
@@ -167,7 +169,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (e) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not granted for ${userId}`,
         module: MODULE_NAME,
         method: 'GetAccessToken',
@@ -201,13 +203,13 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           const locationId = await this.getLocation(tenantID, connection, site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
-            transaction.refundData = { refundId: entryId, type: 'quick', refundedAt: new Date() };
+            transaction.refundData = { refundId: entryId, type: RefundType.QUICK, refundedAt: new Date() };
           } else {
             const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, userId);
             transaction.refundData = {
               refundId: entryId,
-              type: 'report',
-              status: Constants.REFUND_STATUS_SUBMITTED,
+              type: RefundType.REPORT,
+              status: RefundStatus.SUBMITTED,
               reportId: expenseReportId,
               refundedAt: new Date()
             };
@@ -238,7 +240,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       if (report) {
         // Approved
         if (report.ApprovalStatusCode === 'A_APPR') {
-          transaction.refundData.status = Constants.REFUND_STATUS_APPROVED;
+          transaction.refundData.status = RefundStatus.APPROVED;
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
@@ -246,7 +248,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
-          return Constants.REFUND_STATUS_APPROVED;
+          return RefundStatus.APPROVED;
         }
         Logging.logDebug({
           tenantID: tenantID,
@@ -256,7 +258,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         });
       } else {
         // Cancelled
-        transaction.refundData.status = Constants.REFUND_STATUS_CANCELLED;
+        transaction.refundData.status = RefundStatus.CANCELLED;
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
@@ -264,7 +266,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
-        return Constants.REFUND_STATUS_CANCELLED;
+        return RefundStatus.CANCELLED;
       }
     }
   }
@@ -272,8 +274,8 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
   canBeDeleted(transaction: Transaction): boolean {
     if (transaction.refundData && transaction.refundData.status) {
       switch (transaction.refundData.status) {
-        case Constants.REFUND_STATUS_CANCELLED:
-        case Constants.REFUND_STATUS_NOT_SUBMITTED:
+        case RefundStatus.CANCELLED:
+        case RefundStatus.NOT_SUBMITTED:
           return true;
         default:
           return false;
@@ -305,7 +307,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
     throw new AppError({
       source: Constants.CENTRAL_SERVER,
-      errorCode: Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
+      errorCode: HTTPError.CONCUR_CITY_UNKNOWN_ERROR,
       message: `The city '${site.address.city}' of the station is unknown to Concur`,
       module: MODULE_NAME,
       method: 'getLocation',
@@ -346,7 +348,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create Quick Expense',
         module: MODULE_NAME,
         method: 'createQuickExpense',
@@ -394,7 +396,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -428,7 +430,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -461,7 +463,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       }
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to get Report details with ID '${reportId}'`,
         module: MODULE_NAME,
         method: 'getExpenseReport',
@@ -483,7 +485,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to get expense Reports',
         module: MODULE_NAME,
         method: 'getExpenseReports',
@@ -522,7 +524,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not refreshed (ID: '${userId}')`,
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -538,7 +540,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     if (!connection) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
+        errorCode: HTTPError.CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         message: `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',

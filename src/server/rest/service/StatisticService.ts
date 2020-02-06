@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
@@ -19,14 +21,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetChargingStationConsumptionStatistics'
         });
@@ -54,14 +56,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetChargingStationUsageStatistics'
         });
@@ -89,14 +91,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetChargingStationInactivityStatistics'
         });
@@ -124,14 +126,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetChargingStationTransactionsStatistics'
         });
@@ -159,14 +161,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetChargingStationPricingStatistics'
         });
@@ -194,14 +196,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetUserConsumptionStatistics'
         });
@@ -229,14 +231,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetUserUsageStatistics'
         });
@@ -264,14 +266,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetUserInactivityStatistics'
         });
@@ -299,14 +301,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetUserTransactionsStatistics'
         });
@@ -334,14 +336,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetUserPricingStatistics'
         });
@@ -369,10 +371,10 @@ export default class StatisticService {
       // Check auth
       if (!Authorizations.canListChargingStations(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetCurrentMetrics'
         });
@@ -395,14 +397,14 @@ export default class StatisticService {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
+        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TRANSACTIONS,
+          action: Action.LIST,
+          entity: Entity.TRANSACTIONS,
           module: 'StatisticService',
           method: 'handleGetStatisticsExport'
         });
@@ -674,7 +676,7 @@ export default class StatisticService {
         }
       }
       if (dataCategory === 'C') {
-        // Sort by charger and month
+        // Sort by Charging Station and month
         transactions.sort((rec1, rec2) => {
           if (rec1._id.chargeBox > rec2._id.chargeBox) {
             return 1;
@@ -682,7 +684,7 @@ export default class StatisticService {
           if (rec1._id.chargeBox < rec2._id.chargeBox) {
             return -1;
           }
-          // Charger is the same, now compare month
+          // Charging Station is the same, now compare month
           if (rec1._id.month > rec2._id.month) {
             return 1;
           }

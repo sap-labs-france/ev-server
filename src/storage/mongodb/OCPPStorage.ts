@@ -1,6 +1,6 @@
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
-import { OCPPBootNotification } from '../../types/ocpp/OCPPBootNotification';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
@@ -9,30 +9,42 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class OCPPStorage {
-  static async saveAuthorize(tenantID, authorize) {
+  static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveAuthorize');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Set the ID
     const timestamp = Utils.convertToDate(authorize.timestamp);
-    authorize.id = Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`);
-    // Set the User
-    if (authorize.user) {
-      authorize.userID = Utils.convertToObjectID(authorize.user.id);
-    }
     // Insert
     await global.database.getCollection<any>(tenantID, 'authorizes')
       .insertOne({
-        _id: authorize.id,
+        _id: Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
         tagID: authorize.idTag,
         chargeBoxID: authorize.chargeBoxID,
-        userID: authorize.userID,
+        userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
         timestamp: timestamp,
         timezone: authorize.timezone
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
+  }
+
+  static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveHeartbeat');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const timestamp = Utils.convertToDate(heartbeat.timestamp);
+    // Insert
+    await global.database.getCollection<any>(tenantID, 'heartbeats')
+      .insertOne({
+        _id: Cypher.hash(`${heartbeat.chargeBoxID}~${timestamp.toISOString()}`),
+        chargeBoxID: heartbeat.chargeBoxID,
+        timestamp: timestamp,
+        timezone: heartbeat.timezone
+      });
+    // Debug
+    Logging.traceEnd('OCPPStorage', 'saveHeartbeat', uniqueTimerID);
   }
 
   static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
@@ -51,7 +63,7 @@ export default class OCPPStorage {
       filters.timestamp = {};
       filters.timestamp.$gte = new Date(params.dateFrom);
     }
-    // Charger
+    // Charging Station
     if (params.chargeBoxID) {
       filters.chargeBoxID = params.chargeBoxID;
     }
@@ -130,7 +142,7 @@ export default class OCPPStorage {
       filters.timestamp = {};
       filters.timestamp.$lte = new Date(params.dateBefore);
     }
-    // Charger
+    // Charging Station
     if (params.chargeBoxID) {
       filters.chargeBoxID = params.chargeBoxID;
     }
@@ -174,7 +186,7 @@ export default class OCPPStorage {
     return statusNotifications;
   }
 
-  static async saveStatusNotification(tenantID: string, statusNotificationToSave) {
+  static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
     // Check Tenant
@@ -192,39 +204,17 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveConfiguration(tenantID: string, configuration) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveConfiguration');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Modify
-    await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
-      '_id': configuration.chargeBoxID
-    }, {
-      $set: {
-        configuration: configuration.configuration,
-        timestamp: Utils.convertToDate(configuration.timestamp)
-      }
-    }, {
-      upsert: true,
-      returnOriginal: false
-    });
-    // Debug
-    Logging.traceEnd('OCPPStorage', 'saveConfiguration', uniqueTimerID);
-  }
-
-  static async saveDataTransfer(tenantID: string, dataTransfer) {
+  static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDataTransfer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
-    dataTransfer.id = Cypher.hash(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'datatransfers')
       .insertOne({
-        _id: dataTransfer.id,
+        _id: Cypher.hash(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`),
         vendorId: dataTransfer.vendorId,
         messageId: dataTransfer.messageId,
         data: dataTransfer.data,
@@ -236,7 +226,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotification) {
+  static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveBootNotification');
     // Check Tenant
@@ -279,7 +269,7 @@ export default class OCPPStorage {
       }]
     };
 
-    // Charger ID
+    // Charging Station ID
     if (params.chargeBoxID) {
       filters.$and.push({
         '_id': params.chargeBoxID
@@ -334,18 +324,16 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveDiagnosticsStatusNotification(tenantID, diagnosticsStatusNotification) {
+  static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDiagnosticsStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Set the ID
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
-    diagnosticsStatusNotification.id = Cypher.hash(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'diagnosticsstatusnotifications')
       .insertOne({
-        _id: diagnosticsStatusNotification.id,
+        _id: Cypher.hash(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
         chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
         status: diagnosticsStatusNotification.status,
         timestamp: timestamp,
@@ -355,18 +343,17 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
-  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification) {
+  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveFirmwareStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
-    firmwareStatusNotification.id = Cypher.hash(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'firmwarestatusnotifications')
       .insertOne({
-        _id: firmwareStatusNotification.id,
+        _id: Cypher.hash(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`),
         chargeBoxID: firmwareStatusNotification.chargeBoxID,
         status: firmwareStatusNotification.status,
         timestamp: timestamp,
@@ -376,7 +363,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
-  static async saveMeterValues(tenantID: string, meterValuesToSave) {
+  static async saveMeterValues(tenantID: string, meterValuesToSave: OCPPNormalizedMeterValues) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
     // Check

@@ -1,25 +1,26 @@
 import moment from 'moment-timezone';
-import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import ChargingStation from '../../../types/ChargingStation';
+import Consumption from '../../../types/Consumption';
+import { PricedConsumption } from '../../../types/Pricing';
+import { ConvergentChargingPricingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Pricing from '../Pricing';
+import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
 import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/RateRequest';
 import { RateResult } from './model/RateResult';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
-import Transaction from '../../../types/Transaction';
-import Consumption from '../../../types/Consumption';
-import { ConvergentChargingPricingSettings } from '../../../types/Setting';
-import { PricedConsumption } from '../../../types/Pricing';
-import Constants from '../../../utils/Constants';
+import { RefundStatus } from '../../../types/Refund';
 
-export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSettings> {
+export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
 
-  constructor(tenantId: string, setting: ConvergentChargingPricingSettings, transaction: Transaction) {
+  constructor(tenantId: string, setting: ConvergentChargingPricingSetting, transaction: Transaction) {
     super(tenantId, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
   }
@@ -66,7 +67,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.name, consumptionData.userID, Constants.REFUND_STATUS_CANCELLED, 30000, 'ALL_TRANSACTION_AND_RECURRING',
+      siteArea.name, consumptionData.userID, RefundStatus.CANCELLED, 30000, 'ALL_TRANSACTION_AND_RECURRING',
       false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
@@ -147,7 +148,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
     Logging.logError({
       tenantID: this.tenantId,
-      source: chargingStation, module: 'ConvergentCharging',
+      source: chargingStation.id, module: 'ConvergentCharging',
       method: 'handleError', action: action,
       message: chargingResult.message,
       detailedMessages: {
@@ -157,9 +158,10 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     });
     if (chargingResult.status === 'error') {
       if (chargingStation) {
-        await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
-          tagID: this.transaction.tagID,
-          connectorID: consumptionData.connectorId
+        // Execute OCPP Command
+        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+        await chargingStationClient.remoteStopTransaction({
+          transactionId: this.transaction.id
         });
       }
     }
@@ -175,11 +177,14 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
               case 'CSMS_INFO':
                 chargingStation = await ChargingStationStorage.getChargingStation(this.tenantId, this.transaction.chargeBoxID);
                 if (chargingStation) {
-                  await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'setChargingProfile', {
-                    chargingProfileId: 42,
-                    transactionId: consumptionData.transactionId,
-                    message: JSON.stringify(notification)
-                  });
+                  // TODO: To fill proper parameters
+                  // // Get the client
+                  // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+                  // // Set Charging Profile
+                  // await chargingStationClient.setChargingProfile({
+                  //   csChargingProfiles: null,
+                  //   connectorId: null
+                  // });
                 }
                 break;
             }

@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
+import { HTTPError } from '../../../types/HTTPError';
 import HttpStatus from 'http-status-codes';
 
 export default class SchemaValidator {
@@ -31,7 +32,7 @@ export default class SchemaValidator {
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: concatenatedError.message,
         module: this.moduleName,
         method: 'validate',

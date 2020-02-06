@@ -9,11 +9,13 @@ import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
+import { HTTPError } from '../types/HTTPError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import { NextFunction, Request, Response } from 'express';
+import { Log, LogLevel, LogType } from '../types/Log';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -48,19 +50,6 @@ const obs = new PerformanceObserver((items): void => {
 });
 obs.observe({ entryTypes: ['measure'] });
 
-const LogLevel = {
-  'INFO': 'I',
-  'DEBUG': 'D',
-  'WARNING': 'W',
-  'ERROR': 'E',
-  'NONE': 'NONE',
-  'DEFAULT': 'DEFAULT'
-};
-
-const LoggingType = {
-  'SECURITY': 'S',
-  'REGULAR': 'R'
-};
 export default class Logging {
   // Log Debug
   public static logDebug(log): void {
@@ -89,7 +78,7 @@ export default class Logging {
     return uniqueID;
   }
 
-  public static addStatistic(name, duration): void {
+  public static addStatistic(name: string, duration: number): void {
     let currentStatistics;
     if (_traceStatistics[name]) {
       currentStatistics = _traceStatistics[name];
@@ -109,7 +98,7 @@ export default class Logging {
   }
 
   // Debug DB
-  public static traceEnd(module, method, uniqueID, params = {}): void {
+  public static traceEnd(module: string, method: string, uniqueID: string, params = {}): void {
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
@@ -117,43 +106,43 @@ export default class Logging {
   }
 
   // Log Info
-  public static logInfo(log): void {
+  public static logInfo(log: Log): void {
     log.level = LogLevel.INFO;
     Logging._log(log);
   }
 
   // Log Security Info
-  public static logSecurityInfo(log): void {
-    log.type = LoggingType.SECURITY;
+  public static logSecurityInfo(log: Log): void {
+    log.type = LogType.SECURITY;
     Logging.logInfo(log);
   }
 
   // Log Warning
-  public static logWarning(log): void {
+  public static logWarning(log: Log): void {
     log.level = LogLevel.WARNING;
     Logging._log(log);
   }
 
   // Log Security Warning
-  public static logSecurityWarning(log): void {
-    log.type = LoggingType.SECURITY;
+  public static logSecurityWarning(log: Log): void {
+    log.type = LogType.SECURITY;
     Logging.logWarning(log);
   }
 
   // Log Error
-  public static logError(log): void {
+  public static logError(log: Log): void {
     log.level = LogLevel.ERROR;
     Logging._log(log);
   }
 
   // Log Security Error
-  public static logSecurityError(log): void {
-    log.type = LoggingType.SECURITY;
+  public static logSecurityError(log: Log): void {
+    log.type = LogType.SECURITY;
     Logging.logError(log);
   }
 
   // Log
-  public static logReceivedAction(module, tenantID, chargeBoxID, action, payload): void {
+  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: string, payload: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -166,7 +155,7 @@ export default class Logging {
   }
 
   // Log
-  public static logSendAction(module, tenantID, chargeBoxID, action, args): void {
+  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: string, args: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -179,7 +168,7 @@ export default class Logging {
   }
 
   // Log
-  public static logReturnedAction(module, tenantID, chargeBoxID, action, detailedMessages): void {
+  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: string, detailedMessages: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -192,8 +181,8 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User|string): void {
-    const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
+  public static logException(error: Error, action: string, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
+    const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
     } else if (error instanceof AppError) {
@@ -238,7 +227,7 @@ export default class Logging {
     // Log Backend Error
     } else if (exception instanceof BackendError) {
       Logging._logActionBackendExceptionMessage(tenantID, action, exception);
-      statusCode = Constants.HTTP_GENERAL_ERROR;
+      statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
@@ -247,7 +236,7 @@ export default class Logging {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
-    res.status(statusCode ? statusCode : Constants.HTTP_GENERAL_ERROR).send({
+    res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
       'message': Utils.hideShowMessage(exception.message)
     });
     next();
@@ -261,10 +250,10 @@ export default class Logging {
     return LoggingStorage.getLogs(tenantID, params, dbParams);
   }
 
-  private static _logActionExceptionMessage(tenantID, action, exception): void {
+  private static _logActionExceptionMessage(tenantID: string, action: string, exception: any): void {
     Logging.logError({
       tenantID: tenantID,
-      user: exception.user, // TODO: Added this to remove exception while logging, careful
+      user: exception.user,
       source: exception.source,
       module: exception.module,
       method: exception.method,
@@ -317,7 +306,7 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionBadRequestExceptionMessage(tenantID, action, exception): void {
+  private static _logActionBadRequestExceptionMessage(tenantID: string, action: string, exception: any): void {
     Logging.logSecurityError({
       tenantID: tenantID,
       user: exception.user,
@@ -349,7 +338,8 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action: string, source: string, module: string, method: string, tenantID: string, user: UserToken|User|string): object {
+  private static _buildLog(error, action: string, source: string, module: string,
+    method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
       return {
@@ -384,26 +374,20 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _format(detailedMessage): string {
+  private static _format(detailedMessage: any): string {
     // JSON?
     if (typeof detailedMessage === 'object') {
       try {
         // Check that every detailedMessages is parsed
         return JSON.stringify(detailedMessage, null, ' ');
       } catch (err) {
-        // Log
-        Logging.logWarning({
-          module: 'Logging',
-          method: '_format',
-          message: `Error when formatting a Log (stringify): '${err.message}'`,
-          detailedMessages: detailedMessage
-        });
+        // Do nothing
       }
     }
   }
 
   // Log
-  private static async _log(log): Promise<void> {
+  private static async _log(log: Log): Promise<void> {
     let moduleConfig = null;
     // Default Log Level
     let logLevel = _loggingConfig.logLevel ? _loggingConfig.logLevel : LogLevel.DEBUG;
@@ -457,7 +441,7 @@ export default class Logging {
         break;
     }
     // Do not log to DB simple string messages
-    if (log.simpleMessage) {
+    if (log['simpleMessage']) {
       return;
     }
     // Log Level
@@ -511,10 +495,10 @@ export default class Logging {
     }
     // Check Type
     if (!log.type) {
-      log.type = LoggingType.REGULAR;
+      log.type = LogType.REGULAR;
     }
     // First char always in Uppercase
-    if (log.message && log.message.length > 0) {
+    if (typeof log.message === 'string' && log.message && log.message.length > 0) {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
     // Log

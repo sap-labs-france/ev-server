@@ -1,34 +1,40 @@
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from './../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
 import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
-import RefundReport from '../../types/RefundReport';
+import DatabaseUtils from './DatabaseUtils';
+import { TransactionInErrorType, TransactionInError } from '../../types/InError';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
+    await this.deleteTransactions(tenantID, [transaction.id]);
+  }
+
+  public static async deleteTransactions(tenantID: string, transactionsIDs: number[]): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<Transaction>(tenantID, 'transactions')
-      .findOneAndDelete({ '_id': transaction.id });
+    const result = await global.database.getCollection<Transaction>(tenantID, 'transactions')
+      .deleteMany({ '_id': { $in: transactionsIDs } });
     // Delete Meter Values
     await global.database.getCollection<any>(tenantID, 'metervalues')
-      .deleteMany({ 'transactionId': transaction.id });
+      .deleteMany({ 'transactionId': { $in: transactionsIDs } });
     // Delete Consumptions
-    ConsumptionStorage.deleteConsumptions(tenantID, transaction.id);
+    await ConsumptionStorage.deleteConsumptions(tenantID, transactionsIDs);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transactionsIDs });
+    return result.deletedCount;
   }
 
-  public static async saveTransaction(tenantID: string, transactionToSave: Partial<Transaction>): Promise<number> {
+  public static async saveTransaction(tenantID: string, transactionToSave: Transaction): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
@@ -116,8 +122,6 @@ export default class TransactionStorage {
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
         status: transactionToSave.billingData.status,
-        errorCode: transactionToSave.billingData.errorCode,
-        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
@@ -137,6 +141,12 @@ export default class TransactionStorage {
       if (!transactionMDB.billingData.invoiceItem) {
         delete transactionMDB.billingData.invoiceItem;
       }
+    }
+    if (transactionToSave.ocpiSession) {
+      transactionMDB.ocpiSession = transactionToSave.ocpiSession;
+    }
+    if (transactionToSave.ocpiCdr) {
+      transactionMDB.ocpiCdr = transactionToSave.ocpiCdr;
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
@@ -210,7 +220,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -250,10 +260,12 @@ export default class TransactionStorage {
     // Filter?
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
+    } else if (params.ocpiSessionId) {
+      filterMatch['ocpiSession.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -288,7 +300,7 @@ export default class TransactionStorage {
     }
     // Inactivity Status
     if (params.inactivityStatus) {
-      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus }
+      filterMatch['stop.inactivityStatus'] = { $in: params.inactivityStatus };
     }
     // Site's area ID
     if (params.siteAreaIDs) {
@@ -304,7 +316,7 @@ export default class TransactionStorage {
     }
     // Refund status
     if (params.refundStatus && params.refundStatus.length > 0) {
-      const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
+      const statuses = params.refundStatus.map((status) => status === RefundStatus.NOT_SUBMITTED ? null : status);
       filterMatch['refundData.status'] = {
         $in: statuses
       };
@@ -363,10 +375,10 @@ export default class TransactionStorage {
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
-            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 1, 0] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, 1] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
+            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, 1] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -656,9 +668,9 @@ export default class TransactionStorage {
     params: {
       search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-      errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+      errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE)[];
     },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -672,7 +684,7 @@ export default class TransactionStorage {
     // Filter?
     if (params.search) {
       match.$or = [
-        { '_id': parseInt(params.search) },
+        { '_id': Utils.convertToInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
@@ -715,19 +727,24 @@ export default class TransactionStorage {
     aggregation.push({
       $match: match
     });
-    // Charger?
-    if (params.withChargeBoxes) {
+    // Charging Station?
+    if (params.withChargeBoxes ||
+        (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
-      DatabaseUtils.pushChargingStationLookupInAggregation(
-        {
-          tenantID, aggregation: toSubRequests, localField: 'chargeBoxID', foreignField: '_id',
-          asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-        });
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID,
+        aggregation: aggregation,
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        asField: 'chargeBox',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false
+      });
     }
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID,
-      aggregation: toSubRequests,
+      aggregation: aggregation,
       asField: 'user',
       localField: 'userID',
       foreignField: '_id',
@@ -743,16 +760,17 @@ export default class TransactionStorage {
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
     });
-    // Build lookups to fetch chargers from transactions
-    // used only in the error type : average_consumption_greater_than_connector_capacity
-    if (params.errorType && params.errorType.includes('average_consumption_greater_than_connector_capacity')) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'chargeBoxID',
-          foreignField: '_id',
-          as: 'chargeBox'
-        }
+    // Used only in the error type : missing_user
+    if (params.errorType && params.errorType.includes(TransactionInErrorType.MISSING_USER)) {
+      // Site Area
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID,
+        aggregation: aggregation,
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        asField: 'siteArea',
+        oneToOneCardinality: true,
+        objectIDFields: ['createdBy', 'lastChangedBy']
       });
     }
     // Build facets for each type of error if any
@@ -761,14 +779,14 @@ export default class TransactionStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = this._buildTransactionsInErrorFacet(type);
+        facets.$facet[type] = this.getTransactionsInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
       aggregation.push({ $unwind: { 'path': '$allItems' } });
       aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-      // Add a unique identifier as we may have the same charger several time
+      // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
     aggregation = aggregation.concat(toSubRequests);
@@ -833,6 +851,22 @@ export default class TransactionStorage {
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionId: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
+    // Found?
+    if (transactionsMDB && transactionsMDB.count > 0) {
+      return transactionsMDB.result[0];
+    }
+    return null;
+  }
+
+  public static async getOCPITransaction(tenantID: string, sessionId: string): Promise<Transaction> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getOCPITransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delegate work
+    const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { ocpiSessionId: sessionId }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getOCPITransaction', uniqueTimerID, { sessionId });
     // Found?
     if (transactionsMDB && transactionsMDB.count > 0) {
       return transactionsMDB.result[0];
@@ -959,20 +993,20 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
-  private static _buildTransactionsInErrorFacet(errorType: string) {
+  private static getTransactionsInErrorFacet(errorType: string) {
     switch (errorType) {
-      case 'long_inactivity':
+      case TransactionInErrorType.LONG_INACTIVITY:
         return [
           { $addFields: { 'totalInactivity': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } } },
           { $match: { 'totalInactivity': { $gte: 86400 } } },
-          { $addFields: { 'errorCode': 'long_inactivity' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.LONG_INACTIVITY } }
         ];
-      case 'no_consumption':
+      case TransactionInErrorType.NO_CONSUMPTION:
         return [
           { $match: { 'stop.totalConsumption': { $lte: 0 } } },
-          { $addFields: { 'errorCode': 'no_consumption' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.NO_CONSUMPTION } }
         ];
-      case 'negative_inactivity':
+      case TransactionInErrorType.NEGATIVE_ACTIVITY:
         return [
           {
             $match: {
@@ -982,34 +1016,50 @@ export default class TransactionStorage {
               ]
             }
           },
-          { $addFields: { 'errorCode': 'negative_inactivity' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.NEGATIVE_ACTIVITY } }
         ];
-      case 'negative_duration':
+      case TransactionInErrorType.NEGATIVE_DURATION:
         return [
           { $match: { 'stop.totalDurationSecs': { $lt: 0 } } },
-          { $addFields: { 'errorCode': 'negative_duration' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.NEGATIVE_DURATION } }
         ];
-      case 'incorrect_starting_date':
+      case TransactionInErrorType.INVALID_START_DATE:
         return [
           { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-          { $addFields: { 'errorCode': 'incorrect_starting_date' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.INVALID_START_DATE } }
         ];
-      case 'average_consumption_greater_than_connector_capacity':
+      case TransactionInErrorType.OVER_CONSUMPTION:
         return [
           { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
           { $match: { 'activeDuration': { $gt: 0 } } },
-          { $addFields: { connectors: { $arrayElemAt: ['$chargeBox.connectors', 0] } } },
-          { $addFields: { connectorPower: { $arrayElemAt: ['$connectors.power', { $subtract: ['$connectorId', 1] }] } } },
+          { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
           { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } } },
-          { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connectorPower', '$averagePower'] }, 0] } } },
+          { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
-          { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
         ];
-      case 'missing_price':
+      case TransactionInErrorType.MISSING_PRICE:
         return [
           { $match: { 'stop.price': { $lte: 0 } } },
           { $match: { 'stop.totalConsumption': { $gt: 0 } } },
-          { $addFields: { 'errorCode': 'missing_price' } }
+          { $addFields: { 'errorCode': TransactionInErrorType.MISSING_PRICE } }
+        ];
+      case TransactionInErrorType.MISSING_USER:
+        return [
+          {
+            $match: {
+              $and: [
+                {
+                  $or: [
+                    { 'userID': null },
+                    { 'user': null },
+                  ]
+                },
+                { 'siteArea.accessControl': { '$eq': true } }
+              ]
+            }
+          },
+          { $addFields: { 'errorCode': TransactionInErrorType.MISSING_USER } }
         ];
       default:
         return [];

@@ -77,7 +77,7 @@ export default class UtilsSecurity {
       filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
     } else {
       // Parse
-      filteredRequest.Limit = parseInt(sanitize(request.Limit));
+      filteredRequest.Limit = Utils.convertToInt(sanitize(request.Limit));
       if (isNaN(filteredRequest.Limit)) {
         filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
         // Negative limit?
@@ -94,7 +94,7 @@ export default class UtilsSecurity {
       filteredRequest.Skip = 0;
     } else {
       // Parse
-      filteredRequest.Skip = parseInt(sanitize(request.Skip));
+      filteredRequest.Skip = Utils.convertToInt(sanitize(request.Skip));
       if (isNaN(filteredRequest.Skip)) {
         filteredRequest.Skip = 0;
         // Negative?

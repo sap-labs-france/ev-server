@@ -1,3 +1,5 @@
+import { HTTPAuthError, HTTPUserError, HTTPError } from '../../../types/HTTPError';
+import User, { Status } from '../../../types/User';
 import axios from 'axios';
 import { Handler, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -12,11 +14,11 @@ import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
-import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { Role } from '../../../types/Authorization';
 import Utils from '../../../utils/Utils';
 import AuthSecurity from './security/AuthSecurity';
 import Tag from '../../../types/Tag';
@@ -58,7 +60,7 @@ export default class AuthService {
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleLogIn',
@@ -70,7 +72,7 @@ export default class AuthService {
     if (!filteredRequest.email) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -79,7 +81,7 @@ export default class AuthService {
     if (!filteredRequest.password) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Password is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -88,7 +90,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EULA_ERROR,
+        errorCode: HTTPUserError.EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -98,7 +100,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
         module: 'AuthService',
         method: 'handleLogIn'
@@ -107,7 +109,7 @@ export default class AuthService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleLogIn'
@@ -116,7 +118,7 @@ export default class AuthService {
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
-      if (user.status === Constants.USER_STATUS_LOCKED) {
+      if (user.status === Status.LOCKED) {
         // Yes: Check date to reset pass
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
@@ -127,7 +129,7 @@ export default class AuthService {
             message: 'User has been unlocked after a period of time can try to login again'
           });
           // Save User Status
-          await UserStorage.saveUserStatus(req.user.tenantID, user.id, Constants.USER_STATUS_ACTIVE);
+          await UserStorage.saveUserStatus(req.user.tenantID, user.id, Status.ACTIVE);
           // Init User Password
           await UserStorage.saveUserPassword(req.user.tenantID, user.id,
             { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
@@ -139,7 +141,7 @@ export default class AuthService {
           // Return data
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_USER_LOCKED_ERROR,
+            errorCode: HTTPUserError.LOCKED_ERROR,
             message: 'User is locked',
             module: 'AuthService',
             method: 'handleLogIn'
@@ -163,11 +165,10 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleGetEndUserLicenseAgreement'
@@ -178,7 +179,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EULA_ERROR,
+        errorCode: HTTPUserError.EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -188,7 +189,7 @@ export default class AuthService {
     if (!filteredRequest.captcha) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -200,7 +201,7 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -208,7 +209,7 @@ export default class AuthService {
     } else if (response.data.score < 0.5) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha score is too low',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -221,7 +222,7 @@ export default class AuthService {
     if (user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -242,17 +243,18 @@ export default class AuthService {
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
     // Save User Status
     if (tenantID === Constants.DEFAULT_TENANT) {
-      await UserStorage.saveUserRole(tenantID, newUser.id, Constants.ROLE_SUPER_ADMIN);
+      await UserStorage.saveUserRole(tenantID, newUser.id, Role.SUPER_ADMIN);
     } else {
-      await UserStorage.saveUserRole(tenantID, newUser.id, Constants.ROLE_BASIC);
+      await UserStorage.saveUserRole(tenantID, newUser.id, Role.BASIC);
     }
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, newUser.id, Constants.USER_STATUS_PENDING);
+    await UserStorage.saveUserStatus(tenantID, newUser.id, Status.PENDING);
 
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
       deleted: false,
-      issuer: true
+      issuer: true,
+      lastChangedOn: new Date()
     };
     await UserStorage.saveUserTags(tenantID, newUser.id, [tag]);
 
@@ -321,7 +323,7 @@ export default class AuthService {
     if (!filteredRequest.captcha) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: 'AuthService',
         method: 'handleUserPasswordReset'
@@ -334,7 +336,7 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The reCaptcha is invalid',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -342,7 +344,7 @@ export default class AuthService {
     } else if (response.data.score < 0.5) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -354,7 +356,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' does not exist`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
@@ -364,7 +366,7 @@ export default class AuthService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
@@ -383,7 +385,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/reset-password?hash=' + resetHash;
+      '/#/define-password?hash=' + resetHash;
     // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
@@ -407,7 +409,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with password reset hash '${filteredRequest.hash}' does not exist`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
@@ -417,7 +419,7 @@ export default class AuthService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
@@ -452,11 +454,10 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleUserPasswordReset',
@@ -480,7 +481,7 @@ export default class AuthService {
     if (!filteredRequest.Tenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
         module: 'AuthService',
         method: 'handleCheckEndUserLicenseAgreement'
@@ -491,7 +492,7 @@ export default class AuthService {
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
         module: 'AuthService',
         method: 'handleCheckEndUserLicenseAgreement'
@@ -501,7 +502,7 @@ export default class AuthService {
     if (!filteredRequest.Email) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
         module: 'AuthService',
         method: 'handleCheckEndUserLicenseAgreement'
@@ -537,7 +538,7 @@ export default class AuthService {
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleGetEndUserLicenseAgreement',
@@ -558,13 +559,12 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
+    const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
         action: action
@@ -574,7 +574,7 @@ export default class AuthService {
     if (tenantID === Constants.DEFAULT_TENANT) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot verify email in the Super Tenant',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -585,7 +585,7 @@ export default class AuthService {
     if (!filteredRequest.Email) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -596,7 +596,7 @@ export default class AuthService {
     if (!filteredRequest.VerificationToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Verification Token is mandatory',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -609,7 +609,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.Email}' does not exist`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -620,7 +620,7 @@ export default class AuthService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.Email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -628,10 +628,10 @@ export default class AuthService {
       });
     }
     // Check if account is already active
-    if (user.status === Constants.USER_STATUS_ACTIVE) {
+    if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -642,7 +642,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
+        errorCode: HTTPAuthError.INVALID_TOKEN_ERROR,
         message: 'Wrong Verification Token',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -652,9 +652,9 @@ export default class AuthService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
+    await UserStorage.saveUserStatus(tenantID, user.id, Status.ACTIVE);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user, req);
+      const billingData = await billingImpl.updateUser(user);
       await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
     }
     // Save User Verification Account
@@ -682,7 +682,7 @@ export default class AuthService {
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -693,7 +693,7 @@ export default class AuthService {
     if (tenantID === Constants.DEFAULT_TENANT) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -704,7 +704,7 @@ export default class AuthService {
     if (!filteredRequest.email) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -715,7 +715,7 @@ export default class AuthService {
     if (!filteredRequest.captcha) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -729,7 +729,7 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -738,7 +738,7 @@ export default class AuthService {
     } else if (response.data.score < 0.5) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is too low',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -751,7 +751,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.email}' does not exist`,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -762,7 +762,7 @@ export default class AuthService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -770,10 +770,10 @@ export default class AuthService {
       });
     }
     // Check if account is already active
-    if (user.status === Constants.USER_STATUS_ACTIVE) {
+    if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -840,7 +840,7 @@ export default class AuthService {
     if (passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Too many attempts, lock user
       // Save User Status
-      await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_LOCKED);
+      await UserStorage.saveUserStatus(tenantID, user.id, Status.LOCKED);
       // Save User Blocked Date
       await UserStorage.saveUserPassword(tenantID, user.id,
         {
@@ -850,7 +850,7 @@ export default class AuthService {
       // Log
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_LOCKED_ERROR,
+        errorCode: HTTPUserError.LOCKED_ERROR,
         message: 'User is locked',
         module: 'AuthService',
         method: 'checkUserLogin',
@@ -863,7 +863,7 @@ export default class AuthService {
       // Log
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
         module: 'AuthService',
         method: 'checkUserLogin',
@@ -930,7 +930,7 @@ export default class AuthService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
         module: 'AuthService',
         method: 'checkUserLogin',
@@ -945,10 +945,10 @@ export default class AuthService {
     // Check new and old version of hashing the password
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
-      if (user.status === Constants.USER_STATUS_PENDING) {
+      if (user.status === Status.PENDING) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_ACCOUNT_PENDING_ERROR,
+          errorCode: HTTPUserError.ACCOUNT_PENDING_ERROR,
           message: 'Account is pending! User must activate his account in his email',
           module: 'AuthService',
           method: 'checkUserLogin',
@@ -956,10 +956,10 @@ export default class AuthService {
         });
       }
       // Check if the account is active
-      if (user.status !== Constants.USER_STATUS_ACTIVE) {
+      if (user.status !== Status.ACTIVE) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_USER_ACCOUNT_INACTIVE_ERROR,
+          errorCode: HTTPUserError.ACCOUNT_INACTIVE_ERROR,
           message: `Account is not active ('${user.status}')`,
           module: 'AuthService',
           method: 'checkUserLogin',

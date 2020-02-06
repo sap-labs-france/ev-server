@@ -1,3 +1,4 @@
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
@@ -24,7 +25,7 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: module,
         method: method,
@@ -38,7 +39,7 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: errorMsg,
         module: module,
         method: method,
@@ -58,7 +59,7 @@ export default class UtilsService {
         action: action,
         module: module,
         method: method,
-        errorCode: Constants.HTTP_AUTH_ERROR
+        errorCode: HTTPAuthError.ERROR
       });
     }
   }

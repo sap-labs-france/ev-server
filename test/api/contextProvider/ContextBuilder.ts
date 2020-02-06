@@ -7,6 +7,7 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import global from '../../../src/types/GlobalType';
+import { ComponentType, SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import Site from '../../../src/types/Site';
 import User from '../../../src/types/User';
 import Constants from '../../../src/utils/Constants';
@@ -64,13 +65,6 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * It will first destroy all Unit Test tenants
-   * Then it will create new ones with the minimum entities
-   * All definition is coming from ContextConstants.js
-   *
-   * @memberof ContextBuilder
-   */
   async prepareContexts() {
     await this.init();
     await this.destroy();
@@ -82,15 +76,6 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * Private method
-   * It will build the necessary tenants
-   * Precondition: The tenant MUST not exist already in the DB
-   *
-   * @param {*} tenantContextDef
-   * @returns
-   * @memberof ContextBuilder
-   */
   async buildTenantContext(tenantContextDef: any) {
     // Build component list
     const components = {};
@@ -126,9 +111,7 @@ export default class ContextBuilder {
     buildTenant.components = components;
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
-    console.log('CREATE tenant context ' + buildTenant.id +
-      ' ' + buildTenant.subdomain);
-
+    console.log('CREATE tenant context ' + buildTenant.id + ' ' + buildTenant.subdomain);
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
       'name': 'Admin',
@@ -147,34 +130,30 @@ export default class ContextBuilder {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tags);
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
-
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
-
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
       const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       expect(allSettings.status).to.equal(200);
-      for (const setting in tenantContextDef.componentSettings) {
+      for (const componentSettingKey in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === componentSettingKey);
         }
         if (!foundSetting) {
           // Create new settings
-          const settingInput = {
-            identifier: setting,
-            content: tenantContextDef.componentSettings[setting].content
+          const settingInput: SettingDB = {
+            identifier: componentSettingKey as ComponentType,
+            content: tenantContextDef.componentSettings[componentSettingKey].content as SettingDBContent
           };
-          console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
-          const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
-            settingInput);
+          console.log(`CREATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
         } else {
-          console.log(`UPDATE settings for ${setting} in tenant ${buildTenant.name}`);
-          foundSetting.content = tenantContextDef.componentSettings[setting].content;
-          const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
-            foundSetting);
+          console.log(`UPDATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
+          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
         }
       }
     }

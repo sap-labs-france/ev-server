@@ -4,6 +4,7 @@ import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
+import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
@@ -12,9 +13,12 @@ import CleanupAllTransactions from './tasks/CleanupAllTransactions';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
-import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
-import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
+import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
+import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
+import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
+import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -45,7 +49,10 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new CleanupMeterValuesTask());
       currentMigrationTasks.push(new RenameTagPropertiesTask());
       currentMigrationTasks.push(new AddInactivityStatusInTransactions());
-      // currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
+      currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
+      currentMigrationTasks.push(new AddIssuerFieldTask());
+      currentMigrationTasks.push(new CleanupOrphanBadgeTask());
+      currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

@@ -1,12 +1,12 @@
+import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import BackendError from '../../../exception/BackendError';
+import OCPPError from '../../../exception/OcppError';
+import { OCPPProtocol } from '../../../types/ocpp/OCPPServer';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
-import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
-import OCPPError from '../../../exception/OcppError';
+import JsonChargingStationService from './services/JsonChargingStationService';
 import WSConnection from './WSConnection';
-import AppError from '../../../exception/AppError';
 
 const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
@@ -48,7 +48,7 @@ export default class JsonWSConnection extends WSConnection {
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol),
-        ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
+        ocppProtocol: OCPPProtocol.JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
         token: this.getToken(),

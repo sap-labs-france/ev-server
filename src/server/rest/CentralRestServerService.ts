@@ -20,6 +20,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
+import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -51,8 +52,10 @@ class RequestMapper {
             if (action === 'StopTransaction') {
               action = 'RemoteStopTransaction';
             }
+            // Type it
+            const chargingStationCommand: OCPPChargingStationCommand = action as OCPPChargingStationCommand;
             // Delegate
-            await ChargingStationService.handleAction(action, req, res, next);
+            await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
           'ChargingStationClearCache',
           'ChargingStationGetConfiguration',
@@ -92,10 +95,15 @@ class RequestMapper {
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
+          OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
+          OcpiEndpointPullCdrs: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
+          OcpiEndpointPullLocations: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
+          OcpiEndpointPullSessions: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
+          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
@@ -110,6 +118,7 @@ class RequestMapper {
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
+          ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
           RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           StatusNotifications: ChargingStationService.handleGetStatusNotifications.bind(this),
@@ -165,12 +174,13 @@ class RequestMapper {
           ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
-          ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
+          FirmwareDownload: ChargingStationService.handleGetFirmware.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),
+          BillingTaxes: BillingService.handleGetBillingTaxes.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),
@@ -188,6 +198,8 @@ class RequestMapper {
           UserUpdate: UserService.handleUpdateUser.bind(this),
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
+          ChargingStationLimitPower: ChargingStationService.handleChargingStationLimitPower.bind(this),
+          ChargingProfileUpdate: ChargingStationService.handleUpdateChargingProfile.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
@@ -218,9 +230,11 @@ class RequestMapper {
           SiteAreaDelete: SiteAreaService.handleDeleteSiteArea.bind(this),
           CompanyDelete: CompanyService.handleDeleteCompany.bind(this),
           ChargingStationDelete: ChargingStationService.handleDeleteChargingStation.bind(this),
+          ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           VehicleDelete: VehicleService.handleDeleteVehicle.bind(this),
           VehicleManufacturerDelete: VehicleManufacturerService.handleDeleteVehicleManufacturer.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
+          TransactionsDelete: TransactionService.handleDeleteTransactions.bind(this),
           IntegrationConnectionDelete: ConnectorService.handleDeleteConnection.bind(this),
           SettingDelete: SettingService.handleDeleteSetting.bind(this),
           OcpiEndpointDelete: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
@@ -261,7 +275,7 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req: Request, res: Response, next: NextFunction): void {
+  async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -274,6 +288,17 @@ export default {
           case 'Ping':
             res.sendStatus(200);
             break;
+          // FirmwareDownload
+          case 'FirmwareDownload':
+            try {
+              await ChargingStationService.handleGetFirmware(action, req, res, next);
+            } catch (error) {
+              Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            }
+            break;
+          default:
+            // Delegate
+            UtilsService.handleUnknownAction(action, req, res, next);
         }
         break;
     }
@@ -301,7 +326,6 @@ export default {
       // Execute
       await handleRequest(action, req, res, next);
     } catch (error) {
-      // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

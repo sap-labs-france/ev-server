@@ -1,14 +1,19 @@
-import cron from 'node-cron';
+import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
-import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
+import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
+import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
-import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
-import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import cron from 'node-cron';
+import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
+import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
+import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
+import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -55,8 +60,23 @@ export default class SchedulerManager {
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
             break;
+          case 'OCPIGetCdrsTask':
+            schedulerTask = new OCPIGetCdrsTask();
+            break;
+          case 'OCPIGetLocationsTask':
+            schedulerTask = new OCPIGetLocationsTask();
+            break;
+          case 'OCPIGetSessionsTask':
+            schedulerTask = new OCPIGetSessionsTask();
+            break;
+          case 'OCPIGetTokensTask':
+            schedulerTask = new OCPIGetTokensTask();
+            break;
           case 'SynchronizeRefundTransactionsTask':
             schedulerTask = new SynchronizeRefundTransactionsTask();
+            break;
+          case 'SynchronizeBillingUsersTask':
+            schedulerTask = new SynchronizeBillingUsersTask();
             break;
           default:
             Logging.logError({
@@ -87,4 +107,3 @@ export default class SchedulerManager {
     }
   }
 }
-

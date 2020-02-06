@@ -1,12 +1,13 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
 import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import Tag from '../../../../types/Tag';
 import User from '../../../../types/User';
+import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
-import UserNotifications from '../../../../types/UserNotifications';
-import Tag from '../../../../types/Tag';
+import sanitize from 'mongo-sanitize';
+import { UserInError } from '../../../../types/InError';
 
 export default class UserSecurity {
 
@@ -140,7 +141,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterUserResponse(user: User, loggedUser: UserToken): User {
+  static filterUserResponse(user: User | UserInError, loggedUser: UserToken): User {
     const filteredUser: User = {} as User;
     if (!user) {
       return null;
@@ -168,7 +169,9 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        filteredUser.errorCode = user.errorCode;
+        if (user.hasOwnProperty('errorCode')) {
+          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -190,7 +193,9 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        filteredUser.errorCode = user.errorCode;
+        if (user.hasOwnProperty('errorCode')) {
+          (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -217,7 +222,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users: DataResult<User>, loggedUser: UserToken): void {
+  static filterUsersResponse(users: DataResult<User | UserInError>, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;
@@ -245,23 +250,23 @@ export default class UserSecurity {
     return filteredTag;
   }
 
-  static filterNotificationsRequest(notifications): UserNotifications {
-    const filtered: any = {};
-    if (notifications) {
-      filtered.sendSessionStarted = UtilsSecurity.filterBoolean(notifications.sendSessionStarted);
-      filtered.sendOptimalChargeReached = UtilsSecurity.filterBoolean(notifications.sendOptimalChargeReached);
-      filtered.sendEndOfCharge = UtilsSecurity.filterBoolean(notifications.sendEndOfCharge);
-      filtered.sendEndOfSession = UtilsSecurity.filterBoolean(notifications.sendEndOfSession);
-      filtered.sendUserAccountStatusChanged = UtilsSecurity.filterBoolean(notifications.sendUserAccountStatusChanged);
-      filtered.sendNewRegisteredUser = UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser);
-      filtered.sendUnknownUserBadged = UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged);
-      filtered.sendChargingStationStatusError = UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError);
-      filtered.sendChargingStationRegistered = UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered);
-      filtered.sendOcpiPatchStatusError = UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError);
-      filtered.sendSmtpAuthError = UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError);
-      filtered.sendOfflineChargingStations = UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations);
-      filtered.sendPreparingSessionNotStarted = UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted);
-    }
-    return filtered;
+  static filterNotificationsRequest(notifications: UserNotifications): UserNotifications {
+    return {
+      sendSessionStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionStarted) : false,
+      sendOptimalChargeReached: notifications ? UtilsSecurity.filterBoolean(notifications.sendOptimalChargeReached) : false,
+      sendEndOfCharge: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndOfCharge) : false,
+      sendEndOfSession: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndOfSession) : false,
+      sendUserAccountStatusChanged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountStatusChanged) : false,
+      sendNewRegisteredUser: notifications ? UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser) : false,
+      sendUnknownUserBadged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged) : false,
+      sendChargingStationStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError) : false,
+      sendChargingStationRegistered: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered) : false,
+      sendOcpiPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError) : false,
+      sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
+      sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
+      sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
+      sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
+      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false
+    };
   }
 }
