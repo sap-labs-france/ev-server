@@ -429,7 +429,7 @@ export default class TransactionService {
       startDateTime: filteredRequest.StartDateTime,
       endDateTime: filteredRequest.EndDateTime
     },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);

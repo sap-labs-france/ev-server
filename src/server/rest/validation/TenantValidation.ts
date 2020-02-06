@@ -2,7 +2,7 @@ import fs from 'fs';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
-import { HTTPError} from '../../../types/HTTPError';
+import { HTTPError } from '../../../types/HTTPError';
 import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../types/Tenant';
 

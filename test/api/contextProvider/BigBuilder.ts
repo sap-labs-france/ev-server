@@ -8,7 +8,7 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import global from '../../../src/types/GlobalType';
-import { PricingSettingsType, RoamingSettingsType, SettingDB, ComponentType } from '../../../src/types/Setting';
+import { ComponentType, PricingSettingsType, RoamingSettingsType, SettingDB } from '../../../src/types/Setting';
 import Site from '../../../src/types/Site';
 import User from '../../../src/types/User';
 import Constants from '../../../src/utils/Constants';
