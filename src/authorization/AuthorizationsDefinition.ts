@@ -222,7 +222,7 @@ const GRANTS = {
         action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams'],
+          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams', 'ChangeAvailability'],
         attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
