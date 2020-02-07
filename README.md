@@ -225,8 +225,9 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketListNotificationIntervalSecs": 5,
-    "webSocketSingleNotificationIntervalSecs": 1,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "debug": false
   }
 ```
@@ -241,8 +242,9 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketListNotificationIntervalSecs": 5,
-    "webSocketSingleNotificationIntervalSecs": 1,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "debug": false
   }
 ```
