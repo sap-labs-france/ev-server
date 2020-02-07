@@ -60,6 +60,10 @@ export enum PowerLimitUnits {
   AMPERE = 'A'
 }
 
+export enum StaticLimitAmps {
+  MIN_LIMIT = 8,
+}
+
 export interface Connector {
   id?: string;
   connectorId: number;
