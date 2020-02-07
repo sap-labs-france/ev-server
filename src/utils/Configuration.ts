@@ -147,11 +147,11 @@ export default class Configuration {
         centralSystemRestService.port = _appEnv.port;
         centralSystemRestService.host = _appEnv.bind;
       }
-      if (!centralSystemRestService.webSocketSingleNotificationIntervalSecs) {
-        centralSystemRestService.webSocketSingleNotificationIntervalSecs = 1;
+      if (!centralSystemRestService.socketIOSingleNotificationIntervalSecs) {
+        centralSystemRestService.socketIOSingleNotificationIntervalSecs = 1;
       }
-      if (!centralSystemRestService.webSocketListNotificationIntervalSecs) {
-        centralSystemRestService.webSocketListNotificationIntervalSecs = 5;
+      if (!centralSystemRestService.socketIOListNotificationIntervalSecs) {
+        centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
       }
     }
     // Read conf
