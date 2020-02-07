@@ -14,7 +14,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation, { OCPPParams } from '../../../types/ChargingStation';
+import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
@@ -203,6 +203,18 @@ export default class ChargingStationService {
   public static async handleChargingStationLimitPower(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
+    // Check
+    if (filteredRequest.ampLimitValue < StaticLimitAmps.MIN_LIMIT) {
+      throw new AppError({
+        source: filteredRequest.chargeBoxID,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Limitation to ${filteredRequest.ampLimitValue} Amps is too low, min required is ${StaticLimitAmps.MIN_LIMIT} Amps`,
+        module: 'ChargingStationService',
+        method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Check
@@ -232,7 +244,7 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `Charging Station '${chargingStation.id}' does not support power limitation`,
+        message: `Charging Station does not support power limitation`,
         module: 'ChargingStationService',
         method: 'handleChargingStationLimitPower',
         user: req.user
