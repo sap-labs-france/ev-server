@@ -176,7 +176,7 @@ class RequestMapper {
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
-          FirmwareDownload: ChargingStationService.handleGetFirmware.bind(this),
+          // FirmwareDownload: ChargingStationService.handleGetFirmware.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),

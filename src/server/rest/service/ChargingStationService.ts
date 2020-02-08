@@ -244,7 +244,7 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `Charging Station does not support power limitation`,
+        message: 'Charging Station does not support power limitation',
         module: 'ChargingStationService',
         method: 'handleChargingStationLimitPower',
         user: req.user
