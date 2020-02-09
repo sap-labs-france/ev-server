@@ -182,8 +182,7 @@ export default class Utils {
           connector.status === ChargePointStatus.OCCUPIED) {
           connectorStats.chargingConnectors++;
           // Faulted?
-        } else if (connector.status === ChargePointStatus.FAULTED ||
-          connector.status === ChargePointStatus.OCCUPIED) {
+        } else if (connector.status === ChargePointStatus.FAULTED) {
           connectorStats.faultedConnectors++;
           // Preparing?
         } else if (connector.status === ChargePointStatus.PREPARING) {

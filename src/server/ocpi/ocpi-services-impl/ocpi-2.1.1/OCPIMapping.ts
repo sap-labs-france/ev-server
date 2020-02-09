@@ -2,7 +2,7 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import ChargingStation, { Connector } from '../../../../types/ChargingStation';
+import ChargingStation, { Connector, ConnectorType } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
@@ -345,21 +345,21 @@ export default class OCPIMapping {
    * Convert OCPI Connector type to connector type
    * @param {OCPIConnectorType} ocpi connector type
    */
-  static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): string {
+  static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
     switch (ocpiConnectorType) {
       case OCPIConnectorType.CHADEMO:
-        return Constants.CONNECTOR_TYPES.CHADEMO;
+        return ConnectorType.CHADEMO;
       case OCPIConnectorType.IEC_62196_T2:
-        return Constants.CONNECTOR_TYPES.IEC_62196_T2;
+        return ConnectorType.TYPE_2;
       case OCPIConnectorType.IEC_62196_T2_COMBO:
-        return Constants.CONNECTOR_TYPES.IEC_62196_T2_COMBO;
+        return ConnectorType.COMBO_CCS;
       case OCPIConnectorType.IEC_62196_T3:
       case OCPIConnectorType.IEC_62196_T3A:
-        return Constants.CONNECTOR_TYPES.TYPE_3C;
+        return ConnectorType.TYPE_3C;
       case OCPIConnectorType.IEC_62196_T1:
-        return Constants.CONNECTOR_TYPES.TYPE_1;
+        return ConnectorType.TYPE_1;
       case OCPIConnectorType.IEC_62196_T1_COMBO:
-        return Constants.CONNECTOR_TYPES.TYPE_1_CCS;
+        return ConnectorType.TYPE_1_CCS;
       case OCPIConnectorType.DOMESTIC_A:
       case OCPIConnectorType.DOMESTIC_B:
       case OCPIConnectorType.DOMESTIC_C:
@@ -372,9 +372,9 @@ export default class OCPIMapping {
       case OCPIConnectorType.DOMESTIC_J:
       case OCPIConnectorType.DOMESTIC_K:
       case OCPIConnectorType.DOMESTIC_L:
-        return Constants.CONNECTOR_TYPES.DOMESTIC;
+        return ConnectorType.DOMESTIC;
       default:
-        return Constants.CONNECTOR_TYPES.UNKNOWN;
+        return ConnectorType.UNKNOWN;
     }
   }
 
@@ -432,7 +432,7 @@ export default class OCPIMapping {
    * Convert internal status to OCPI Status
    * @param {*} status
    */
-  static convertOCPIStatus2Status(status: OCPIEvseStatus): string {
+  static convertOCPIStatus2Status(status: OCPIEvseStatus): ChargePointStatus {
     switch (status) {
       case OCPIEvseStatus.AVAILABLE:
         return ChargePointStatus.AVAILABLE;
