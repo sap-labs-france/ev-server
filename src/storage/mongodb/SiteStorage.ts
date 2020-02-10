@@ -338,7 +338,6 @@ export default class SiteStorage {
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
-
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;

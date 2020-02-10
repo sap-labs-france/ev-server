@@ -131,7 +131,6 @@ export default class ChargingStationStorage {
     if (params.issuer === true || params.issuer === false) {
       filters.$and.push({ 'issuer': params.issuer });
     }
-
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -631,8 +630,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenantID: string, id: string): Promise<ChargingProfile[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
-
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     const chargingProfiles = await global.database.getCollection<any>(tenantID, 'chargingprofiles').find(
       { 'chargingStationID': id }).toArray();
     // Debug
