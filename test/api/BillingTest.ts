@@ -108,6 +108,18 @@ describe('Billing Service', function() {
       expect(user).to.containSubset({ email: fakeUser.email });
     });
 
+    it('Should update a user', async () => {
+      testData.createdUsers[0].firstName = 'Test';
+      testData.createdUsers[0].name = 'Name';
+      await testData.userService.updateEntity(
+        testData.userService.userApi,
+        testData.createdUsers[0]
+      );
+
+      const billingUser = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
+      expect(billingUser.name).to.be.eq(testData.createdUsers[0].firstName + ' ' + testData.createdUsers[0].name);
+    });
+
     it('Should delete a user', async () => {
 
       await testData.userService.deleteEntity(
