@@ -3,10 +3,11 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import { PricingSettingsType } from '../../src/types/Setting';
+import { InactivityStatus } from '../../src/types/Transaction';
 import User from '../../src/types/User';
 import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
-import { InactivityStatus } from '../../src/types/Transaction';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 
@@ -450,7 +451,7 @@ export default class OCPPCommonTests {
         'totalDurationSecs': moment.duration(moment(this.transactionCurrentTime).diff(this.newTransaction.timestamp)).asSeconds(),
         'price': this.totalPrice,
         'priceUnit': 'EUR',
-        'pricingSource': 'simple',
+        'pricingSource': PricingSettingsType.SIMPLE,
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),

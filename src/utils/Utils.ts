@@ -1,3 +1,6 @@
+import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { HTTPError, HTTPUserError } from '../types/HTTPError';
+import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
 import fs from 'fs';
@@ -14,18 +17,18 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
-import { SettingDBContent } from '../types/Setting';
+import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
-import User from '../types/User';
+import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import Tag from '../types/Tag';
+import { Role } from '../types/Authorization';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -66,6 +69,10 @@ export default class Utils {
       return InactivityStatus.WARNING;
     }
     return InactivityStatus.ERROR;
+  }
+
+  public static hasOwnProperty(object: object, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(object, key);
   }
 
   public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
@@ -161,28 +168,27 @@ export default class Utils {
         connectorStats.totalConnectors++;
         // Not Available?
         if (chargingStation.inactive ||
-          connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
+          connector.status === ChargePointStatus.UNAVAILABLE) {
           connectorStats.unavailableConnectors++;
           // Available?
-        } else if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        } else if (connector.status === ChargePointStatus.AVAILABLE) {
           connectorStats.availableConnectors++;
           // Suspended?
-        } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
-          connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
+        } else if (connector.status === ChargePointStatus.SUSPENDED_EV ||
+          connector.status === ChargePointStatus.SUSPENDED_EVSE) {
           connectorStats.suspendedConnectors++;
           // Charging?
-        } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
-          connector.status === Constants.CONN_STATUS_OCCUPIED) {
+        } else if (connector.status === ChargePointStatus.CHARGING ||
+          connector.status === ChargePointStatus.OCCUPIED) {
           connectorStats.chargingConnectors++;
           // Faulted?
-        } else if (connector.status === Constants.CONN_STATUS_FAULTED ||
-          connector.status === Constants.CONN_STATUS_OCCUPIED) {
+        } else if (connector.status === ChargePointStatus.FAULTED) {
           connectorStats.faultedConnectors++;
           // Preparing?
-        } else if (connector.status === Constants.CONN_STATUS_PREPARING) {
+        } else if (connector.status === ChargePointStatus.PREPARING) {
           connectorStats.preparingConnectors++;
           // Finishing?
-        } else if (connector.status === Constants.CONN_STATUS_FINISHING) {
+        } else if (connector.status === ChargePointStatus.FINISHING) {
           connectorStats.finishingConnectors++;
         }
       }
@@ -192,7 +198,7 @@ export default class Utils {
           continue;
         }
         // Check if Available
-        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        if (!chargingStation.inactive && connector.status === ChargePointStatus.AVAILABLE) {
           connectorStats.availableChargers++;
           break;
         }
@@ -210,7 +216,7 @@ export default class Utils {
         if (!connector) {
           continue;
         }
-        if (connector.status !== Constants.CONN_STATUS_AVAILABLE) {
+        if (connector.status !== ChargePointStatus.AVAILABLE) {
           lockAllConnectors = true;
           break;
         }
@@ -221,14 +227,14 @@ export default class Utils {
           if (!connector) {
             continue;
           }
-          if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          if (connector.status === ChargePointStatus.AVAILABLE) {
             // Check OCPP Version
-            if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
+            if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
               // Set OCPP 1.5 Occupied
-              connector.status = Constants.CONN_STATUS_OCCUPIED;
+              connector.status = ChargePointStatus.OCCUPIED;
             } else {
               // Set OCPP 1.6 Unavailable
-              connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+              connector.status = ChargePointStatus.UNAVAILABLE;
             }
           }
         }
@@ -354,6 +360,22 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
+  static convertToBoolean(value: any) {
+    let result = false;
+    // Check boolean
+    if (value) {
+      // Check the type
+      if (typeof value === 'boolean') {
+        // Already a boolean
+        result = value;
+      } else {
+        // Convert
+        result = (value === 'true');
+      }
+    }
+    return result;
+  }
+
   public static convertToDate(date: any): Date {
     // Check
     if (!date) {
@@ -364,6 +386,14 @@ export default class Utils {
       return new Date(date);
     }
     return date;
+  }
+
+  public static replaceSpecialCharsInCSVValueParam(value: string): string {
+    return value ? value.replace(/\n/g, '') : '';
+  }
+
+  public static escapeSpecialCharsInRegex(value: string): string {
+    return value ? value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
   }
 
   public static isEmptyJSon(document) {
@@ -409,33 +439,33 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertToInt(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToInt(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseInt(id);
+      changedValue = parseInt(value);
     }
-    return changedID;
+    return changedValue;
   }
 
-  public static convertToFloat(id: any): number {
-    let changedID = id;
-    if (!id) {
+  public static convertToFloat(value: any): number {
+    let changedValue = value;
+    if (!value) {
       return 0;
     }
     // Check
-    if (typeof id === 'string') {
+    if (typeof value === 'string') {
       // Create Object
-      changedID = parseFloat(id);
+      changedValue = parseFloat(value);
     }
-    return changedID;
+    return changedValue;
   }
 
-  public static convertUserToObjectID(user: User): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -507,18 +537,19 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  public static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+  public static buildOCPPServerURL(tenantID: string, ocppVersion: OCPPVersion, ocppProtocol: OCPPProtocol, token?: string): string {
     let ocppUrl;
+    const version = ocppVersion === OCPPVersion.VERSION_16 ? 'OCPP16' : 'OCPP15';
     switch (ocppProtocol) {
-      case Constants.OCPP_PROTOCOL_JSON:
+      case OCPPProtocol.JSON:
         ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
         if (token) {
           ocppUrl += `/${token}`;
         }
         return ocppUrl;
-      case Constants.OCPP_PROTOCOL_SOAP:
+      case OCPPProtocol.SOAP:
       default:
-        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/${version}?TenantID=${tenantID}`;
         if (token) {
           ocppUrl += `%26Token=${token}`;
         }
@@ -543,6 +574,12 @@ export default class Utils {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
+  }
+
+  public static async buildEvseBillingSettingsURL(tenantID: string): Promise<string> {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
+    return _evseBaseURL + '/settings#billing';
   }
 
   public static isServerInProductionMode(): boolean {
@@ -575,7 +612,7 @@ export default class Utils {
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
-      recordLimit = parseInt(recordLimit);
+      recordLimit = Utils.convertToInt(recordLimit);
     }
     // Not provided?
     if (isNaN(recordLimit) || recordLimit < 0 || recordLimit === 0) {
@@ -589,11 +626,15 @@ export default class Utils {
   }
 
   public static roundTo(number, scale) {
-    return parseFloat(number.toFixed(scale));
+    return Utils.convertToFloat(number.toFixed(scale));
   }
 
   public static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
+  }
+
+  public static firstLetterInLowerCase(value): string {
+    return value[0].toLowerCase() + value.substring(1);
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -607,7 +648,7 @@ export default class Utils {
   public static checkRecordSkip(recordSkip: number | string): number {
     // String?
     if (typeof recordSkip === 'string') {
-      recordSkip = parseInt(recordSkip);
+      recordSkip = Utils.convertToInt(recordSkip);
     }
     // Not provided?
     if (isNaN(recordSkip) || recordSkip < 0) {
@@ -631,13 +672,13 @@ export default class Utils {
 
   public static getRoleNameFromRoleID(roleID) {
     switch (roleID) {
-      case Constants.ROLE_BASIC:
+      case Role.BASIC:
         return 'Basic';
-      case Constants.ROLE_DEMO:
+      case Role.DEMO:
         return 'Demo';
-      case Constants.ROLE_ADMIN:
+      case Role.ADMIN:
         return 'Admin';
-      case Constants.ROLE_SUPER_ADMIN:
+      case Role.SUPER_ADMIN:
         return 'Super Admin';
       default:
         return 'Unknown';
@@ -702,17 +743,15 @@ export default class Utils {
 
   public static getStatusDescription(status: string): string {
     switch (status) {
-      case Constants.USER_STATUS_PENDING:
+      case Status.PENDING:
         return 'Pending';
-      case Constants.USER_STATUS_LOCKED:
+      case Status.LOCKED:
         return 'Locked';
-      case Constants.USER_STATUS_BLOCKED:
+      case Status.BLOCKED:
         return 'Blocked';
-      case Constants.USER_STATUS_ACTIVE:
+      case Status.ACTIVE:
         return 'Active';
-      case Constants.USER_STATUS_DELETED:
-        return 'Deleted';
-      case Constants.USER_STATUS_INACTIVE:
+      case Status.INACTIVE:
         return 'Inactive';
       default:
         return 'Unknown';
@@ -727,7 +766,7 @@ export default class Utils {
     if (req.method !== 'POST' && !ocpiEndpoint.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint ID is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid'
@@ -736,7 +775,7 @@ export default class Utils {
     if (!ocpiEndpoint.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint name is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
@@ -746,7 +785,7 @@ export default class Utils {
     if (!ocpiEndpoint.role) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint role is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
@@ -756,7 +795,7 @@ export default class Utils {
     if (!ocpiEndpoint.baseUrl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
@@ -766,7 +805,7 @@ export default class Utils {
     if (!ocpiEndpoint.localToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint local token is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
@@ -776,7 +815,7 @@ export default class Utils {
     if (!ocpiEndpoint.token) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint token is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
@@ -789,7 +828,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: 'SiteService',
         method: '_checkIfSiteValid',
@@ -799,7 +838,7 @@ export default class Utils {
     if (!filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
         module: 'SiteService',
         method: '_checkIfSiteValid',
@@ -809,7 +848,7 @@ export default class Utils {
     if (!filteredRequest.companyID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
         module: 'SiteService',
         method: '_checkIfSiteValid',
@@ -822,7 +861,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
         module: 'SiteAreaService',
         method: '_checkIfSiteAreaValid',
@@ -832,7 +871,7 @@ export default class Utils {
     if (!filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
         module: 'SiteAreaService',
         method: '_checkIfSiteAreaValid',
@@ -842,7 +881,7 @@ export default class Utils {
     if (!filteredRequest.siteID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: 'SiteAreaService',
         method: '_checkIfSiteAreaValid',
@@ -855,7 +894,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory',
         module: 'CompanyService',
         method: 'checkIfCompanyValid',
@@ -865,7 +904,7 @@ export default class Utils {
     if (!filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
         module: 'CompanyService',
         method: 'checkIfCompanyValid',
@@ -879,7 +918,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle ID is mandatory',
         module: 'VehicleService',
         method: 'checkIfVehicleValid',
@@ -889,7 +928,7 @@ export default class Utils {
     if (!filteredRequest.type) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle Type is mandatory',
         module: 'VehicleService',
         method: 'checkIfVehicleValid',
@@ -899,7 +938,7 @@ export default class Utils {
     if (!filteredRequest.model) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle Model is mandatory',
         module: 'VehicleService',
         method: 'checkIfVehicleValid',
@@ -909,7 +948,7 @@ export default class Utils {
     if (!filteredRequest.vehicleManufacturerID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle Manufacturer is mandatory',
         module: 'VehicleService',
         method: 'checkIfVehicleValid',
@@ -923,7 +962,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle Manufacturer ID is mandatory',
         module: 'VehicleManufacturer',
         method: 'checkIfVehicleManufacturerValid',
@@ -933,7 +972,7 @@ export default class Utils {
     if (!filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Vehicle Manufacturer Name is mandatory',
         module: 'VehicleManufacturer',
         method: 'checkIfVehicleManufacturerValid',
@@ -952,7 +991,7 @@ export default class Utils {
             // Tag already used!
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
-              errorCode: Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+              errorCode: HTTPUserError.TAG_ID_ALREADY_USED_ERROR,
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
               module: 'Utils',
               method: 'checkIfUserTagsAreValid',
@@ -969,7 +1008,7 @@ export default class Utils {
     if (!tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tenant is mandatory',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -980,7 +1019,7 @@ export default class Utils {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID is mandatory',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -990,20 +1029,20 @@ export default class Utils {
     // Creation?
     if (req.method === 'POST') {
       if (!filteredRequest.role) {
-        filteredRequest.role = Constants.ROLE_BASIC;
+        filteredRequest.role = Role.BASIC;
       }
     } else if (!Authorizations.isAdmin(req.user)) {
       filteredRequest.role = user.role;
     }
     if (req.method === 'POST' && !filteredRequest.status) {
-      filteredRequest.status = Constants.USER_STATUS_BLOCKED;
+      filteredRequest.status = Status.BLOCKED;
     }
     // Creation?
-    if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
+    if ((filteredRequest.role !== Role.BASIC) && (filteredRequest.role !== Role.DEMO) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1012,10 +1051,10 @@ export default class Utils {
       });
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Role.SUPER_ADMIN) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot have the Super Admin role in this Tenant',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1024,11 +1063,11 @@ export default class Utils {
       });
     }
     // Only Admin and Super Admin can use role different from Basic
-    if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
+    if ((filteredRequest.role === Role.ADMIN || filteredRequest.role === Role.SUPER_ADMIN) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1039,7 +1078,7 @@ export default class Utils {
     if (!filteredRequest.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Last Name is mandatory',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1050,7 +1089,7 @@ export default class Utils {
     if (req.method === 'POST' && !filteredRequest.email) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Email is mandatory',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1061,7 +1100,7 @@ export default class Utils {
     if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User Email ${filteredRequest.email} is not valid`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1072,7 +1111,7 @@ export default class Utils {
     if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is not valid',
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1083,7 +1122,7 @@ export default class Utils {
     if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User Phone ${filteredRequest.phone} is not valid`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1094,7 +1133,7 @@ export default class Utils {
     if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User Mobile ${filteredRequest.mobile} is not valid`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1105,7 +1144,7 @@ export default class Utils {
     if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User I-Number ${filteredRequest.iNumber} is not valid`,
         module: 'UserService',
         method: 'checkIfUserValid',
@@ -1117,7 +1156,7 @@ export default class Utils {
       if (!Utils._areTagsValid(filteredRequest.tags)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `User Tags ${filteredRequest.tags} is/are not valid`,
           module: 'UserService',
           method: 'checkIfUserValid',
@@ -1129,7 +1168,7 @@ export default class Utils {
     if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `User Plate ID ${filteredRequest.plateID} is not valid`,
         module: 'UserService',
         method: 'checkIfUserValid',

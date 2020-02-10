@@ -1,9 +1,10 @@
 import fs from 'fs';
 import AppError from '../../../exception/AppError';
-import global from '../../../types/GlobalType';
-import Tenant from '../../../types/Tenant';
 import Constants from '../../../utils/Constants';
+import global from '../../../types/GlobalType';
+import { HTTPError } from '../../../types/HTTPError';
 import SchemaValidator from './SchemaValidator';
+import Tenant from '../../../types/Tenant';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
@@ -45,7 +46,7 @@ export default class TenantValidator extends SchemaValidator {
           tenant.components.smartCharging.active && !tenant.components.organization.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Organization must be active to use the Smart Charging component',
           module: this.moduleName, method: 'validateTenantUpdate'
         });
@@ -55,7 +56,7 @@ export default class TenantValidator extends SchemaValidator {
           tenant.components.billing.active && !tenant.components.pricing.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Billing component',
           module: this.moduleName, method: 'validateTenantUpdate'
         });
@@ -65,7 +66,7 @@ export default class TenantValidator extends SchemaValidator {
           tenant.components.refund.active && !tenant.components.pricing.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Pricing must be active to use the Refund component',
           module: this.moduleName, method: 'validateTenantUpdate'
         });

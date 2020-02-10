@@ -1,7 +1,6 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import { NextFunction, Request, Response } from 'express';
 import { Configuration } from '../../../../types/configuration/Configuration';
-import Constants from '../../../../utils/Constants';
 
 const VERSION = '2.0';
 

@@ -1,11 +1,11 @@
-import {AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, RoamingSettings, PricingSettings, PricingSettingsType, RefundSettings, SettingDB} from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, RoamingSettingsType, SettingDB } from '../../types/Setting';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import {DataResult} from '../../types/DataResult';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import {ObjectID} from 'mongodb';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -98,6 +98,7 @@ export default class SettingStorage {
       analyticsSettings.sensitiveData = settings.result[0].sensitiveData;
       // SAP Analytics
       if (config.sac) {
+        analyticsSettings.type = AnalyticsSettingsType.SAC;
         analyticsSettings.sac = {
           timezone: config.sac.timezone ? config.sac.timezone : '',
           mainUrl: config.sac.mainUrl ? config.sac.mainUrl : '',
@@ -111,16 +112,17 @@ export default class SettingStorage {
     const refundSettings = {
       identifier: ComponentType.REFUND
     } as RefundSettings;
-
     const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       refundSettings.id = settings.result[0].id;
       refundSettings.sensitiveData = settings.result[0].sensitiveData;
       if (config.concur) {
+        refundSettings.type = RefundSettingsType.CONCUR;
         refundSettings.concur = {
           authenticationUrl: config.concur.authenticationUrl ? config.concur.authenticationUrl : '',
           apiUrl: config.concur.apiUrl ? config.concur.apiUrl : '',
+          appUrl: config.concur.appUrl ? config.concur.appUrl : '',
           clientId: config.concur.clientId ? config.concur.clientId : '',
           clientSecret: config.concur.clientSecret ? config.concur.clientSecret : '',
           paymentTypeId: config.concur.paymentTypeId ? config.concur.paymentTypeId : '',
@@ -149,7 +151,7 @@ export default class SettingStorage {
       if (config.simple) {
         pricingSettings.type = PricingSettingsType.SIMPLE;
         pricingSettings.simple = {
-          price: config.simple.price ? parseFloat(config.simple.price + '') : 0,
+          price: config.simple.price ? Utils.convertToFloat(config.simple.price + '') : 0,
           currency: config.simple.currency ? config.simple.currency : '',
         };
       }
@@ -218,7 +220,8 @@ export default class SettingStorage {
           advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
           immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
-          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0)
+          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0),
+          taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null,
         };
       }
       return billingSettings;

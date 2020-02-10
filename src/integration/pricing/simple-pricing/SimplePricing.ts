@@ -3,6 +3,7 @@ import Transaction from '../../../types/Transaction';
 import Consumption from '../../../types/Consumption';
 import { SimplePricingSetting } from '../../../types/Setting';
 import { PricedConsumption } from '../../../types/Pricing';
+import Utils from '../../../utils/Utils';
 
 export default class SimplePricing extends Pricing<SimplePricingSetting> {
   constructor(tenantId: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
@@ -25,8 +26,8 @@ export default class SimplePricing extends Pricing<SimplePricingSetting> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {
-      amount = parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(6));
-      roundedAmount = parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(2));
+      amount = Utils.convertToFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(6));
+      roundedAmount = Utils.convertToFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(2));
     } else {
       amount = 0;
       roundedAmount = 0;

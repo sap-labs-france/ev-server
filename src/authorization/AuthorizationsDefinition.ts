@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import Constants from '../utils/Constants';
 import BackendError from '../exception/BackendError';
+import Constants from '../utils/Constants';
 
 const GRANTS = {
   superAdmin: {
@@ -37,7 +37,7 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
           'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*']
+          'GetDiagnostics', 'UpdateFirmware', 'ExportParams', 'ChangeAvailability'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
@@ -51,7 +51,10 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
-      { resource: 'Billing', action: ['CheckBillingConnection', 'SynchronizeBilling'] },
+      {
+        resource: 'Billing',
+        action: ['CheckBillingConnection', 'SynchronizeUsersBilling', 'ReadBillingTaxes']
+      },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
@@ -59,7 +62,7 @@ const GRANTS = {
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
-        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses', 'SendTokens'],
+        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'TriggerJob'],
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
@@ -215,10 +218,12 @@ const GRANTS = {
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {
-        resource: 'ChargingStation', action: ['Update', 'Delete',
+        resource: 'ChargingStation',
+        action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction'], attributes: ['*'],
+          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams', 'ChangeAvailability'],
+        attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {

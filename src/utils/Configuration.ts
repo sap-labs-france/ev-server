@@ -25,6 +25,9 @@ import LocalesConfiguration from '../types/configuration/LocalesConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
 import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
+import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
+import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
+import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -138,10 +141,18 @@ export default class Configuration {
   static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
-    if (centralSystemRestService && Configuration.isCloudFoundry()) {
-      // CF Environment: Override
-      centralSystemRestService.port = _appEnv.port;
-      centralSystemRestService.host = _appEnv.bind;
+    if (centralSystemRestService) {
+      if (Configuration.isCloudFoundry()) {
+        // CF Environment: Override
+        centralSystemRestService.port = _appEnv.port;
+        centralSystemRestService.host = _appEnv.bind;
+      }
+      if (!centralSystemRestService.socketIOSingleNotificationIntervalSecs) {
+        centralSystemRestService.socketIOSingleNotificationIntervalSecs = 1;
+      }
+      if (!centralSystemRestService.socketIOListNotificationIntervalSecs) {
+        centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
+      }
     }
     // Read conf
     return centralSystemRestService;
@@ -186,6 +197,11 @@ export default class Configuration {
   // Central System Json config
   static getJsonEndpointConfig(): JsonEndpointConfiguration {
     return Configuration.getConfig().JsonEndpoint;
+  }
+
+  // Central System OCPI config
+  static getOCPIEndpointConfig(): OCPIEndpointConfiguration {
+    return Configuration.getConfig().OCPIEndpoint;
   }
 
   // Central System Front-End config
@@ -271,4 +287,27 @@ export default class Configuration {
     }
     return Configuration.getConfig().WSClient;
   }
+
+  static getHealthCheckConfig(): HealthCheckConfiguration {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().HealthCheck) {
+      Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
+    }
+    if (!Configuration.getConfig().HealthCheck.enabled) {
+      Configuration.getConfig().HealthCheck.enabled = true;
+    }
+    return Configuration.getConfig().HealthCheck;
+  }
+
+  static getMigrationConfig(): MigrationConfiguration {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().Migration) {
+      Configuration.getConfig().Migration = {} as MigrationConfiguration;
+    }
+    if (!Configuration.getConfig().Migration.active) {
+      Configuration.getConfig().Migration.active = false;
+    }
+    return Configuration.getConfig().Migration;
+  }
 }
+

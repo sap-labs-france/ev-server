@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -17,7 +19,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturerID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle Manufacturer\'s ID must be provided',
         module: 'VehicleManufacturerService',
         method: 'handleDeleteVehicleManufacturer',
@@ -27,10 +29,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canDeleteVehicleManufacturer(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        action: Action.DELETE,
+        entity: Entity.VEHICLE_MANUFACTURER,
         module: 'VehicleManufacturerService',
         method: 'handleDeleteVehicleManufacturer',
         value: vehicleManufacturerID
@@ -41,7 +43,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Vehicle Manufacturer with ID '${vehicleManufacturerID}' does not exist`,
         module: 'VehicleManufacturerService',
         method: 'handleDeleteVehicleManufacturer',
@@ -68,7 +70,7 @@ export default class VehicleManufacturerService {
     if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle Manufacturer\'s ID must be provided',
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturer',
@@ -78,10 +80,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        action: Action.READ,
+        entity: Entity.VEHICLE_MANUFACTURER,
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturer',
         value: filteredRequest.ID
@@ -92,7 +94,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`,
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturer',
@@ -112,10 +114,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canListVehicleManufacturers(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURERS,
+        action: Action.LIST,
+        entity: Entity.VEHICLE_MANUFACTURERS,
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturer'
       });
@@ -138,10 +140,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        action: Action.CREATE,
+        entity: Entity.VEHICLE_MANUFACTURER,
         module: 'VehicleManufacturerService',
         method: 'handleCreateVehicleManufacturer'
       });
@@ -184,10 +186,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canUpdateVehicleManufacturer(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        action: Action.UPDATE,
+        entity: Entity.VEHICLE_MANUFACTURER,
         module: 'VehicleManufacturerService',
         method: 'handleUpdateVehicleManufacturer',
         value: filteredRequest.id
@@ -198,7 +200,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'VehicleManufacturerService',
         method: 'handleUpdateVehicleManufacturer',
@@ -237,7 +239,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturerID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Vehicle Manufacturer\'s ID must be provided',
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturerLogo',
@@ -247,10 +249,10 @@ export default class VehicleManufacturerService {
     // Check auth
     if (!Authorizations.canReadVehicleManufacturer(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        action: Action.READ,
+        entity: Entity.VEHICLE_MANUFACTURER,
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturerLogo',
         value: vehicleManufacturerID
@@ -261,7 +263,7 @@ export default class VehicleManufacturerService {
     if (!vehicleManufacturer) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Vehicle Manufacturer with ID '${vehicleManufacturerID}' does not exist anymore`,
         module: 'VehicleManufacturerService',
         method: 'handleGetVehicleManufacturerLogo',

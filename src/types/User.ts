@@ -31,7 +31,6 @@ export default interface User extends CreatedUpdatedProps {
   passwordBlockedUntil: Date;
   verificationToken?: string;
   verifiedAt?: Date;
-  errorCode?: string;
   tags?: Tag[];
   billingData?: BillingUserData;
   mobileOs: string;
@@ -44,4 +43,12 @@ export interface UserSite {
   siteID: string;
   siteAdmin: boolean;
   siteOwner: boolean;
+}
+
+export enum Status {
+  PENDING = 'P',
+  ACTIVE = 'A',
+  INACTIVE = 'I',
+  BLOCKED = 'B',
+  LOCKED = 'L',
 }

@@ -1,6 +1,5 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CredentialsEndpoint from './CredentialsEndpoint';
-import CPOLocationsEndpoint from './CPOLocationsEndpoint';
 import { Configuration } from '../../../../types/configuration/Configuration';
 import Constants from '../../../../utils/Constants';
 import EMSPLocationsEndpoint from './EMSPLocationsEndpoint';

@@ -25,6 +25,7 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreasRequest(request: any): HttpSiteAreasRequest {
     const filteredRequest: HttpSiteAreasRequest = {
+      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
       WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),

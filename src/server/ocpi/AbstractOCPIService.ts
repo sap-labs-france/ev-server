@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIUtils from './OCPIUtils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
@@ -9,6 +10,8 @@ import AppError from '../../exception/AppError';
 import AppAuthError from '../../exception/AppAuthError';
 import { Configuration } from '../../types/configuration/Configuration';
 import Tenant from '../../types/Tenant';
+import HttpStatusCodes from 'http-status-codes';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 
 const MODULE_NAME = 'AbstractOCPIService';
 
@@ -78,7 +81,7 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
+        source: Constants.OCPI_SERVER,
         module: 'AbstractOCPIService',
         method: 'restService',
         message: 'Regex did not match.'
@@ -133,7 +136,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
         });
@@ -141,8 +144,8 @@ export default abstract class AbstractOCPIService {
 
       // Get token
       let decodedToken: { tenant: string; tid: string };
+      const token = req.headers.authorization.split(' ')[1];
       try {
-        const token = req.headers.authorization.split(' ')[1];
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new AppError({
@@ -150,7 +153,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -169,8 +172,22 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+
+      const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+      // Check if endpoint is found
+      if (!ocpiEndpoint) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'processEndpointAction',
+          action: action,
+          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          message: 'Invalid token',
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
@@ -185,7 +202,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' is not enabled for OCPI`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -208,7 +225,7 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
@@ -217,8 +234,38 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
-        Logging.logDebug(`Request ${action} with path ${req.path}`);
-        await endpoint.process(req, res, next, tenant, options);
+        Logging.logDebug({
+          tenantID: tenant.id,
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: action,
+          message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
+          action: action,
+          detailedMessages: req.body
+        });
+        const response = await endpoint.process(req, res, next, tenant, ocpiEndpoint, options);
+        if (response) {
+          Logging.logDebug({
+            tenantID: tenant.id,
+            source: Constants.OCPI_SERVER,
+            module: MODULE_NAME,
+            method: action,
+            message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
+            action: action,
+            detailedMessages: response
+          });
+          res.json(response);
+        } else {
+          Logging.logWarning({
+            tenantID: tenant.id,
+            source: Constants.OCPI_SERVER,
+            module: MODULE_NAME,
+            method: action,
+            message: `<< OCPI Endpoint ${req.originalUrl} not implemented`,
+            action: action
+          });
+          res.sendStatus(501);
+        }
       } else {
         // pragma res.sendStatus(501);
         throw new AppError({
@@ -226,14 +273,14 @@ export default abstract class AbstractOCPIService {
           module: MODULE_NAME,
           method: 'processEndpointAction',
           action: action,
-          errorCode: Constants.HTTP_NOT_IMPLEMENTED_ERROR,
+          errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${action} not implemented`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } catch (error) {
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
-      let errorCode = Constants.HTTP_GENERAL_ERROR;
+      let errorCode = HTTPError.GENERAL_ERROR;
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;
       }

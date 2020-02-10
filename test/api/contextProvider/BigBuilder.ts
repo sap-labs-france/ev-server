@@ -1,40 +1,41 @@
-import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
 import { ObjectID } from 'mongodb';
-import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Constants from '../../../src/utils/Constants';
-import CONTEXTS from './ContextConstants';
-import Factory from '../../factories/Factory';
-import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
-import Site from '../../../src/types/Site';
-import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
-import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import TenantContext from './TenantContext';
-import TenantFactory from '../../factories/TenantFactory';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
-import User from '../../../src/types/User';
-import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import global from '../../../src/types/GlobalType';
+import { ComponentType, PricingSettingsType, RoamingSettingsType, SettingDB } from '../../../src/types/Setting';
+import Site from '../../../src/types/Site';
+import User from '../../../src/types/User';
+import Constants from '../../../src/utils/Constants';
 import Utils from '../../../src/utils/Utils';
+import config from '../../config';
+import Factory from '../../factories/Factory';
+import TenantFactory from '../../factories/TenantFactory';
+import UserFactory from '../../factories/UserFactory';
+import CentralServerService from '../client/CentralServerService';
+import CONTEXTS, { TenantDefinition } from './ContextConstants';
+import SiteAreaContext from './SiteAreaContext';
+import SiteContext from './SiteContext';
+import TenantContext from './TenantContext';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
 const NBR_SITES = 5; // Number of sites PER company
 const NBR_SITEAREAS = 5; // Number of site areas per site
 const NBR_CHARGINGSTATIONS = 5; // Number of charging stations per site area
-const BIG_CONTEXT = [{
+const BIG_CONTEXT: TenantDefinition[] = [{
   tenantName: 'Big',
   id: 'b1b1b1b1b1b1b1b1b1b1b1b1',
   subdomain: 'big',
   componentSettings: {
     pricing: {
-      type: 'simple',
       content: {
+        type: PricingSettingsType.SIMPLE,
         simple: {
           price: 1,
           currency: 'EUR'
@@ -42,14 +43,22 @@ const BIG_CONTEXT = [{
       },
     },
     ocpi: {
-      type: 'gireve',
       content: {
-        countryCode: 'FR',
-        partyId: 'UT',
-        businessDetails: {
-          name: 'Test OCPI',
-          website: 'http://www.uttest.net'
-        }
+        type: RoamingSettingsType.GIREVE,
+        ocpi: {
+          cpo: {
+            countryCode: 'FR',
+            partyID: 'UT',
+          },
+          emsp: {
+            countryCode: 'FR',
+            partyID: 'UT',
+          },
+          businessDetails: {
+            name: 'Test OCPI',
+            website: 'http://www.uttest.net'
+          }
+        },
       }
     },
     organization: {},
@@ -204,8 +213,8 @@ export default class ContextBuilder {
         }
         if (!foundSetting) {
           // Create new settings
-          const settingInput = {
-            identifier: setting,
+          const settingInput: SettingDB = {
+            identifier: setting as ComponentType,
             content: tenantContextDef.componentSettings[setting].content
           };
           console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);

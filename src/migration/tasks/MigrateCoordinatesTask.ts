@@ -4,6 +4,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 export default class MigrateCoordinatesTask extends MigrationTask {
   async migrate() {
@@ -26,8 +27,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       if (company.address && company.address.hasOwnProperty('longitude') && company.address.hasOwnProperty('latitude')) {
         if (company.address.longitude && company.address.latitude) {
           company.address.coordinates = [
-            parseFloat(company.address.longitude),
-            parseFloat(company.address.latitude)
+            Utils.convertToFloat(company.address.longitude),
+            Utils.convertToFloat(company.address.latitude)
           ];
         }
         delete company.address.longitude;
@@ -59,8 +60,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       if (site.address && site.address.hasOwnProperty('longitude') && site.address.hasOwnProperty('latitude')) {
         if (site.address.longitude && site.address.latitude) {
           site.address.coordinates = [
-            parseFloat(site.address.longitude),
-            parseFloat(site.address.latitude)
+            Utils.convertToFloat(site.address.longitude),
+            Utils.convertToFloat(site.address.latitude)
           ];
         }
         delete site.address.longitude;
@@ -92,8 +93,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       if (sitearea.address && sitearea.address.hasOwnProperty('longitude') && sitearea.address.hasOwnProperty('latitude')) {
         if (sitearea.address.longitude && sitearea.address.latitude) {
           sitearea.address.coordinates = [
-            parseFloat(sitearea.address.longitude),
-            parseFloat(sitearea.address.latitude)
+            Utils.convertToFloat(sitearea.address.longitude),
+            Utils.convertToFloat(sitearea.address.latitude)
           ];
         }
         delete sitearea.address.longitude;
@@ -125,8 +126,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       if (user.address && user.address.hasOwnProperty('longitude') && user.address.hasOwnProperty('latitude')) {
         if (user.address.longitude && user.address.latitude) {
           user.address.coordinates = [
-            parseFloat(user.address.longitude),
-            parseFloat(user.address.latitude)
+            Utils.convertToFloat(user.address.longitude),
+            Utils.convertToFloat(user.address.latitude)
           ];
         }
         delete user.address.longitude;
@@ -158,8 +159,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       if (chargingstation.hasOwnProperty('longitude') && chargingstation.hasOwnProperty('latitude')) {
         if (chargingstation.longitude && chargingstation.latitude) {
           chargingstation.coordinates = [
-            parseFloat(chargingstation.longitude),
-            parseFloat(chargingstation.latitude)
+            Utils.convertToFloat(chargingstation.longitude),
+            Utils.convertToFloat(chargingstation.latitude)
           ];
         }
         delete chargingstation.longitude;

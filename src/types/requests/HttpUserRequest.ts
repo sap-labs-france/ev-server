@@ -58,7 +58,7 @@ export interface HttpRegisterUserRequest extends HttpLoginRequest {
 
 export interface HttpVerifyEmailRequest {
   Email: string;
-  tenant: string;
+  Tenant: string;
   VerificationToken: string;
 }
 

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
@@ -9,6 +10,8 @@ import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -25,17 +28,12 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
-        await this.postCredentials(req, res, next, tenant);
-        break;
+        return await this.postCredentials(req, res, next, tenant);
       case 'DELETE':
-        await this.deleteCredentials(req, res, next, tenant);
-        break;
-      default:
-        res.sendStatus(501);
-        break;
+        return await this.deleteCredentials(req, res, next, tenant);
     }
   }
 
@@ -43,7 +41,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
    * Registration process initiated by IOP
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {
@@ -82,14 +80,13 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     ocpiEndpoint.backgroundPatchJob = false;
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
-    // Respond with credentials
-    res.json(OCPIUtils.success());
+    return OCPIUtils.success();
   }
 
   /**
    * Registration process initiated by IOP
    */
-  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     // Get payload
     const credential = req.body;
 
@@ -111,7 +108,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR
       });
@@ -144,7 +141,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'OCPI Endpoint not available or wrong token',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
       });
@@ -174,8 +171,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         },
         timeout: 10000
       });
@@ -226,8 +222,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         }
       });
 
@@ -254,7 +249,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         module: MODULE_NAME,
         method: 'postCredentials',
         action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
         detailedMessages: error.stack
@@ -286,7 +281,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Respond with credentials
-    res.json(OCPIUtils.success(respCredential));
+    return OCPIUtils.success(respCredential);
   }
 }
 

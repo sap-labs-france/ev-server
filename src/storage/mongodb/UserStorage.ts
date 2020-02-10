@@ -1,3 +1,4 @@
+import User, { Status } from '../../types/User';
 import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
@@ -12,42 +13,18 @@ import Eula from '../../types/Eula';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site, { SiteUser } from '../../types/Site';
+import { Role } from '../../types/Authorization';
 import Tag from '../../types/Tag';
 import TenantStorage from './TenantStorage';
-import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
 import moment from 'moment';
-
+import { UserInError, UserInErrorType } from '../../types/InError';
 
 export default class UserStorage {
 
-  public static getLatestEndUserLicenseAgreement(language = 'en'): string {
-    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
-    let eulaText = null;
-    try {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
-    } catch (e) {
-      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
-    }
-    // Build Front End URL
-    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
-    // Parse the auth and replace values
-    eulaText = Mustache.render(
-      eulaText,
-      {
-        'chargeAngelsURL': frontEndURL
-      }
-    );
-    // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, { language });
-    return eulaText;
-  }
 
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
@@ -67,7 +44,7 @@ export default class UserStorage {
       language = 'en';
     }
     // Get current eula
-    const currentEula = UserStorage.getLatestEndUserLicenseAgreement(language);
+    const currentEula = UserStorage.getEndUserLicenseAgreementFromFile(language);
     // Read DB
     const eulasMDB = await global.database.getCollection<Eula>(tenantID, 'eulas')
       .find({ 'language': language })
@@ -143,7 +120,19 @@ export default class UserStorage {
       .toArray();
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
-      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      if (tagsMDB[0].userID) {
+        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      }
+
+      if (!user) {
+        Logging.logError({
+          tenantID: tenantID,
+          module: 'UserStorage',
+          method: 'getUserByTagId',
+          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
+          detailedMessages: tagsMDB[0]
+        });
+      }
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
@@ -281,6 +270,23 @@ export default class UserStorage {
       address: userToSave.address,
       iNumber: userToSave.iNumber,
       costCenter: userToSave.costCenter,
+      notifications: {
+        sendSessionStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionStarted) : false,
+        sendOptimalChargeReached: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOptimalChargeReached) : false,
+        sendEndOfCharge: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfCharge) : false,
+        sendEndOfSession: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendEndOfSession) : false,
+        sendUserAccountStatusChanged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountStatusChanged) : false,
+        sendNewRegisteredUser: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendNewRegisteredUser) : false,
+        sendUnknownUserBadged: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUnknownUserBadged) : false,
+        sendChargingStationStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationStatusError) : false,
+        sendChargingStationRegistered: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendChargingStationRegistered) : false,
+        sendOcpiPatchStatusError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOcpiPatchStatusError) : false,
+        sendSmtpAuthError: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSmtpAuthError) : false,
+        sendUserAccountInactivity: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendUserAccountInactivity) : false,
+        sendPreparingSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendPreparingSessionNotStarted) : false,
+        sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
+        sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
+      },
       deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
@@ -308,6 +314,8 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
       await global.database.getCollection<any>(tenantID, 'tags')
@@ -526,20 +534,16 @@ export default class UserStorage {
       filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
       // Filter by other properties
     } else if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        filters.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     // Email
     if (params.email) {
@@ -705,7 +709,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -717,8 +721,21 @@ export default class UserStorage {
 
     // Create Aggregation
     const aggregation = [];
-    if (params && params.hasOwnProperty('issuer')) {
-      aggregation.push({ $match: { 'issuer': params.issuer } });
+    if (params) {
+      const filters = [];
+      if (params.issuer === true || params.issuer === false) {
+        filters.push({ 'issuer': params.issuer });
+      }
+      if (params.dateFrom && moment(params.dateFrom).isValid()) {
+        filters.push({ 'lastChangedOn': { $gte: new Date(params.dateFrom) } });
+      }
+      if (params.dateTo && moment(params.dateTo).isValid()) {
+        filters.push({ 'lastChangedOn': { $lte: new Date(params.dateTo) } });
+      }
+
+      if (filters.length > 0) {
+        aggregation.push({ $match: { $and: filters } });
+      }
     }
 
     // Limit records?
@@ -747,7 +764,7 @@ export default class UserStorage {
       });
     } else {
       aggregation.push({
-        $sort: { id: -1 }
+        $sort: { lastChangedOn: 1 }
       });
     }
     // Skip
@@ -763,7 +780,8 @@ export default class UserStorage {
       $project: {
         id: '$_id',
         _id: 0,
-        userID: { $toString: '$userID' }
+        userID: { $toString: '$userID' },
+        lastChangedOn: 1
       }
     });
     // Read DB
@@ -785,7 +803,7 @@ export default class UserStorage {
 
   public static async getUsersInError(tenantID: string,
     params: { search?: string; roles?: string[]; errorTypes?: string[] },
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -802,20 +820,16 @@ export default class UserStorage {
       match.$and.push({ role: { '$in': params.roles } });
     }
     if (params.search) {
-      // Search is an ID?
-      if (ObjectID.isValid(params.search)) {
-        match.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        match.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tags.id': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      match.$and.push({
+        '$or': [
+          { 'name': { $regex: searchRegex, $options: 'i' } },
+          { 'firstName': { $regex: searchRegex, $options: 'i' } },
+          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+          { 'email': { $regex: searchRegex, $options: 'i' } },
+          { 'plateID': { $regex: searchRegex, $options: 'i' } }
+        ]
+      });
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block
@@ -828,27 +842,18 @@ export default class UserStorage {
     // are not assigned yet to at least one site.
     // If the organization component is not active then the system just looks for non active users.
     const facets: any = { $facet: {} };
-    if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
-      const array = [];
-      params.errorTypes.forEach((type) => {
-        array.push(`$${type}`);
-        facets.$facet[type] = UserStorage._buildUserInErrorFacet(tenantID, type);
-      });
-      aggregation.push(facets);
-      // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { usersInError: { $setUnion: array } } });
-    } else {
-      aggregation.push({
-        '$facet': {
-          'unactive_user': [
-            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields: { 'errorCode': 'unactive_user' } },
-          ]
-        }
-      });
-      // Take out the facet name from the result
-      aggregation.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
+    const array = [];
+    const tenant = await TenantStorage.getTenant(tenantID);
+    for (const type of params.errorTypes) {
+      if (type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
+        continue;
+      }
+      array.push(`$${type}`);
+      facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
+    aggregation.push(facets);
+    // Manipulate the results to convert it to an array of document on root level
+    aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     // Finish the preparation of the result
     aggregation.push({ $unwind: '$usersInError' });
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
@@ -1069,26 +1074,31 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
+        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false
-      } as UserNotifications,
-      role: Constants.ROLE_BASIC,
-      status: Constants.USER_STATUS_PENDING,
+        sendSmtpAuthError: false,
+        sendUserAccountInactivity: false,
+        sendPreparingSessionNotStarted: false,
+        sendOfflineChargingStations: false,
+        sendBillingUserSynchronizationFailed: false
+      },
+      role: Role.BASIC,
+      status: Status.PENDING,
       tags: []
     };
   }
 
-  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
+  private static getUserInErrorFacet(tenantID: string, errorType: string) {
     switch (errorType) {
-      case 'unactive_user':
+      case UserInErrorType.NOT_ACTIVE:
         return [
-          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-          { $addFields: { 'errorCode': 'unactive_user' } }
+          { $match: { status: { $ne: Status.ACTIVE } } },
+          { $addFields: { 'errorCode': 'inactive_user' } }
         ];
-      case 'unassigned_user': {
+      case UserInErrorType.NOT_ASSIGNED: {
         return [
           {
             $lookup: {
@@ -1099,11 +1109,57 @@ export default class UserStorage {
             }
           },
           { $match: { sites: { $size: 0 } } },
-          { $addFields: { 'errorCode': 'unassigned_user' } }
+          { $addFields: { 'errorCode': UserInErrorType.NOT_ASSIGNED } }
         ];
+      }
+      case UserInErrorType.INACTIVE_USER_ACCOUNT: {
+        const someMonthsAgo = moment().subtract(6, 'months').toDate();
+        if (moment(someMonthsAgo).isValid()) {
+          return [
+            {
+              $match: {
+                $and: [
+                  { eulaAcceptedOn: { $lte: someMonthsAgo } },
+                  { role: 'B' }]
+              }
+
+            },
+            {
+              $addFields: { 'errorCode': UserInErrorType.INACTIVE_USER_ACCOUNT }
+            }
+          ];
+        }
+
+        return [];
+
       }
       default:
         return [];
     }
+  }
+
+  private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
+    const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
+    let eulaText = null;
+    try {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
+    } catch (e) {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
+    }
+    // Build Front End URL
+    const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+      _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
+    // Parse the auth and replace values
+    eulaText = Mustache.render(
+      eulaText,
+      {
+        'chargeAngelsURL': frontEndURL
+      }
+    );
+    // Debug
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
+    return eulaText;
   }
 }

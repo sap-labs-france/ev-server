@@ -14,18 +14,26 @@ export enum ComponentType {
 export interface Setting {
   id?: string;
   identifier: ComponentType;
-  sensitiveData: string[];
+  sensitiveData?: string[];
+  category?: 'business' | 'technical';
 }
 
 // Database Settings interface
 export interface SettingDB extends CreatedUpdatedProps, Setting {
-  category?: 'business' | 'technical';
   content: SettingDBContent;
+}
+
+export interface SettingLink {
+  id: string;
+  name: string;
+  description: string;
+  role: string;
+  url: string;
 }
 
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | NotificationsSettingsType | SmartChagingSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -34,15 +42,6 @@ export interface SettingDBContent {
   links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
-  notifications?: NotificationsSettings;
-}
-
-export enum NotificationsSettingsType {
-  NOTIFICATIONS = 'notifications'
-}
-
-export interface NotificationsSettings {
-  userInactivity?: boolean;
 }
 
 export enum PricingSettingsType {
@@ -78,29 +77,31 @@ export enum RoamingSettingsType {
 
 export interface RoamingSettings extends Setting {
   identifier: ComponentType.OCPI;
+  type: RoamingSettingsType;
   ocpi?: OcpiSetting;
 }
 
 export interface OcpiSetting {
-  cpo: {
-    countryCode: string;
-    partyID: string;
-  };
-  emsp: {
-    countryCode: string;
-    partyID: string;
-  };
-  businessDetails: {
-    name: string;
-    website: string;
-    logo: {
-      url: string;
-      thumbnail: string;
-      category: string;
-      type: string;
-      width: string;
-      height: string;
-    };
+  cpo: OcpiIdentifier;
+  emsp: OcpiIdentifier;
+  businessDetails: OcpiBusinessDetails;
+}
+
+export interface OcpiIdentifier {
+  countryCode: string;
+  partyID: string;
+}
+
+export interface OcpiBusinessDetails {
+  name: string;
+  website: string;
+  logo?: {
+    url: string;
+    thumbnail: string;
+    category: string;
+    type: string;
+    width: string;
+    height: string;
   };
 }
 
@@ -110,7 +111,9 @@ export enum AnalyticsSettingsType {
 
 export interface AnalyticsSettings extends Setting {
   identifier: ComponentType.ANALYTICS;
+  type: AnalyticsSettingsType;
   sac?: SacAnalyticsSetting;
+  links: SettingLink[];
 }
 
 export interface SacAnalyticsSetting {
@@ -118,20 +121,20 @@ export interface SacAnalyticsSetting {
   timezone: string;
 }
 
-export enum SmartChagingSettingsType {
+export enum SmartChargingSettingsType {
   SAP_SMART_CHARGING = 'sapSmartCharging'
+}
+
+export interface SmartChargingSettings extends Setting {
+  identifier: ComponentType.SMART_CHARGING;
+  type: SmartChargingSettingsType;
+  sapSmartCharging?: SapSmartChargingSetting;
 }
 
 export interface SapSmartChargingSetting {
   optimizerUrl: string;
-}
-
-export interface SettingLink {
-  id: string;
-  name: string;
-  description: string;
-  role: string;
-  url: string;
+  user: string;
+  password: string;
 }
 
 export enum RefundSettingsType {
@@ -147,12 +150,17 @@ export interface RefundSettings extends Setting {
 export interface ConcurRefundSetting {
   authenticationUrl: string;
   apiUrl: string;
+  appUrl: string;
   clientId: string;
   clientSecret: string;
   paymentTypeId: string;
   expenseTypeCode: string;
   policyId: string;
   reportName: string;
+}
+
+export enum BillingSettingsType {
+  STRIPE = 'stripe'
 }
 
 export interface BillingSettings extends Setting{
@@ -174,8 +182,25 @@ export interface StripeBillingSetting extends BillingSetting {
   periodicBillingAllowed: boolean;
   advanceBillingAllowed: boolean;
   currency: string;
+  taxID: string;
 }
 
-export enum BillingSettingsType {
-  STRIPE = 'stripe'
+export enum PricingContentType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
+}
+
+export enum RefundContentType {
+  CONCUR = 'concur',
+  GIREVE = 'gireve',
+  OCPI = 'ocpi',
+  SAC = 'sac',
+}
+
+export enum BillingContentType {
+  STRIPE = 'stripe',
+}
+
+export enum SmartChargingContentType {
+  SAP_SMART_CHARGING = 'sapSmartCharging',
 }

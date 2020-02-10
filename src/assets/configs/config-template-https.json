@@ -36,11 +36,12 @@
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketNotificationIntervalSecs": 2,
+    "socketIO": false,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-    "socketIO": false,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -88,6 +89,9 @@
     "baseUrl": ""
   },
   "JsonEndpoint": {
+    "baseUrl": ""
+  },
+  "OCPIEndpoint": {
     "baseUrl": ""
   },
   "Storage": {
@@ -157,6 +161,9 @@
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
   },
+  "Migration": {
+    "active": true
+  },
   "Scheduler": {
     "active": true,
     "tasks": [
@@ -173,6 +180,30 @@
         "name": "OCPIPatchLocationsTask",
         "active": true,
         "periodicity": "0-59/5 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetCdrsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetLocationsTask",
+        "active": true,
+        "periodicity": "0 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetSessionsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetTokensTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
         "config": {}
       },
       {

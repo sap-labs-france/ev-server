@@ -1,11 +1,14 @@
+import fs from 'fs';
 import moment from 'moment';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
-import ChargingStation, { ChargingStationTemplate } from '../../types/ChargingStation';
-import Connector from '../../types/Connector';
+import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -13,6 +16,25 @@ import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
 
 export default class ChargingStationStorage {
+
+  public static async updateChargingStationTemplatesFromFile() {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'updateChargingStationTemplatesFromFile');
+    // Read File
+    const chargingStationTemplates =
+      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/templates/charging-stations.json`, 'utf8'));
+    // Update Templates
+    for (const chargingStationTemplate of chargingStationTemplates) {
+      try {
+        // Save
+        await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
+      } catch (error) {
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'updateChargingStationTemplatesFromFile', error);
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'updateChargingStationTemplatesFromFile', uniqueTimerID);
+  }
 
   public static async getChargingStationTemplates(chargePointVendor?: string): Promise<ChargingStationTemplate[]> {
     // Debug
@@ -68,7 +90,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date;},
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean; },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -105,6 +127,11 @@ export default class ChargingStationStorage {
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
       filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
+
+    if (params.issuer === true || params.issuer === false) {
+      filters.$and.push({ 'issuer': params.issuer });
+    }
+
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -205,7 +232,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsMDB);
+    this.cleanAndUpdateConnectors(chargingStationsMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -263,7 +290,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
-    dbParams: DbParams): Promise<DataResult<ChargingStation>> {
+    dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -317,7 +344,7 @@ export default class ChargingStationStorage {
     const facets: any = { $facet: {} };
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'ChargingStationStorage',
@@ -329,14 +356,14 @@ export default class ChargingStationStorage {
       const array = [];
       params.errorType.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = ChargingStationStorage._buildChargerInErrorFacet(type);
+        facets.$facet[type] = ChargingStationStorage.getChargerInErrorFacet(type);
       });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
       aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
       aggregation.push({ $unwind: '$chargersInError' });
       aggregation.push({ $replaceRoot: { newRoot: '$chargersInError' } });
-      // Add a unique identifier as we may have the same charger several time
+      // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
     // Count Records
@@ -380,7 +407,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this._cleanConnectors(chargingStationsFacetMDB);
+    this.cleanAndUpdateConnectors(chargingStationsFacetMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -391,7 +418,7 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(tenantID: string, chargingStationToSave: Partial<ChargingStation>): Promise<string> {
+  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
@@ -413,6 +440,7 @@ export default class ChargingStationStorage {
           connector.power = Utils.convertToInt(connector.power);
           connector.voltage = Utils.convertToInt(connector.voltage);
           connector.amperage = Utils.convertToInt(connector.amperage);
+          connector.numberOfConnectedPhase = Utils.convertToInt(connector.numberOfConnectedPhase);
           connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
           connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
         }
@@ -421,6 +449,7 @@ export default class ChargingStationStorage {
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
+      issuer: chargingStationToSave.issuer,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
@@ -437,17 +466,19 @@ export default class ChargingStationStorage {
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
       lastHeartBeat: chargingStationToSave.lastHeartBeat,
       deleted: chargingStationToSave.deleted,
-      inactive: chargingStationToSave.inactive,
       lastReboot: chargingStationToSave.lastReboot,
       chargingStationURL: chargingStationToSave.chargingStationURL,
-      numberOfConnectedPhase: chargingStationToSave.numberOfConnectedPhase,
       maximumPower: chargingStationToSave.maximumPower,
       cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      currentType: chargingStationToSave.currentType,
+      currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
-      currentIPAddress: chargingStationToSave.currentIPAddress
+      ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
+      ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
+      ocppVendorParameters: chargingStationToSave.ocppVendorParameters
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
@@ -520,7 +551,7 @@ export default class ChargingStationStorage {
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
-    // Delete Charger
+    // Delete Charging Station
     await global.database.getCollection<any>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (bootnotif, authorize...)
@@ -552,7 +583,28 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  public static async getConfiguration(tenantID: string, chargeBoxID: string): Promise<{id: string; timestamp: Date; configuration: any}> {
+  static async saveConfiguration(tenantID: string, configuration: ChargingStationConfiguration) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify
+    await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
+      '_id': configuration.id
+    }, {
+      $set: {
+        configuration: configuration.configuration,
+        timestamp: Utils.convertToDate(configuration.timestamp)
+      }
+    }, {
+      upsert: true,
+      returnOriginal: false
+    });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
+  }
+
+  public static async getConfiguration(tenantID: string, id: string): Promise<ChargingStationConfiguration> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
@@ -560,7 +612,7 @@ export default class ChargingStationStorage {
     // Read DB
     const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
       .findOne({
-        '_id': chargeBoxID
+        '_id': id
       });
     // Found?
     let configuration = null;
@@ -575,6 +627,40 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const chargingProfileFilter = {
+      chargingStationID: chargingProfile.chargingStationID
+    };
+    const chargingProfileMDB: ChargingProfile = chargingProfile;
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
+      chargingProfileFilter,
+      { $set: chargingProfileMDB },
+      { upsert: true });
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+  }
+
+  public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profile
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
+  }
+
+  public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
+    // Get the bucket
+    const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
+    // Get the file
+    return bucket.openDownloadStreamByName(filename);
   }
 
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
@@ -635,9 +721,9 @@ export default class ChargingStationStorage {
     });
   }
 
-  private static _buildChargerInErrorFacet(errorType: string) {
+  private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
-      case 'missingSettings':
+      case ChargingStationInErrorType.MISSING_SETTINGS:
         return [{
           $match: {
             $or: [
@@ -653,31 +739,31 @@ export default class ChargingStationStorage {
             ]
           }
         },
-        { $addFields: { 'errorCode': 'missingSettings' } }
+        { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
-      case 'connectionBroken': {
+      case ChargingStationInErrorType.CONNECTION_BROKEN: {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
-          { $addFields: { 'errorCode': 'connectionBroken' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }
-      case 'connectorError':
+      case ChargingStationInErrorType.CONNECTOR_ERROR:
         return [
           { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
-          { $addFields: { 'errorCode': 'connectorError' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTOR_ERROR } }
         ];
-      case 'missingSiteArea':
+      case ChargingStationInErrorType.MISSING_SITE_AREA:
         return [
           { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
-          { $addFields: { 'errorCode': 'missingSiteArea' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SITE_AREA } }
         ];
       default:
         return [];
     }
   }
 
-  private static _cleanConnectors(chargingStationsMDB: ChargingStation[]) {
+  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[]) {
     if (chargingStationsMDB.length > 0) {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {

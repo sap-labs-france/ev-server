@@ -1,17 +1,17 @@
-import ejs from 'ejs';
-import email from 'emailjs';
-import fs from 'fs';
+import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import BackendError from '../../exception/BackendError';
-import global from '../../types/GlobalType';
-import Tenant from '../../types/Tenant';
-import User from '../../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
+import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import Utils from '../../utils/Utils';
+import ejs from 'ejs';
+import email from 'emailjs';
+import fs from 'fs';
+import global from '../../types/GlobalType';
 
 export default class EMailNotificationTask implements NotificationTask {
   private server: any;
@@ -102,13 +102,15 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Send it
     return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
   public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Send it
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
+  }
+
+  public sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, retry = false): Promise<void> {
@@ -153,12 +155,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
-      if (data.tenant) {
-        emailTemplate.tenant = data.tenant;
-      } else if (tenant.id !== Constants.DEFAULT_TENANT) {
-        emailTemplate.tenant = tenant.name;
-      } else {
+      if (tenant.id === Constants.DEFAULT_TENANT) {
         emailTemplate.tenant = Constants.DEFAULT_TENANT;
+      } else {
+        emailTemplate.tenant = tenant.name;
       }
       // Render Base URL
       emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
@@ -227,12 +227,6 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      // Add Admins in BCC from Configuration
-      let adminEmails = null;
-      if (data.adminUsers && data.adminUsers.length > 0) {
-        // Add Admins
-        adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
-      }
       // Send the email
       await this.sendEmail({
         to: user.email,
@@ -242,7 +236,7 @@ export default class EMailNotificationTask implements NotificationTask {
       }, data, tenant, user, severity, retry);
     } catch (error) {
       Logging.logError({
-        tenantID: tenant, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+        tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
         message: 'Error in preparing email for user',

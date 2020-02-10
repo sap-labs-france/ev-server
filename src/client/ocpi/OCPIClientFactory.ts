@@ -7,6 +7,7 @@ import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
@@ -55,5 +56,15 @@ export default class OCPIClientFactory {
       method: 'getEmspOcpiClient',
       message: `EmspOCPIClient is not compatible with endpoint role '${ocpiEndpoint.role}'`
     });
+  }
+
+  static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: string): Promise<OCPIClient> {
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const ocpiEndpoint of ocpiEndpoints.result) {
+      if (ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+        const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+        return client;
+      }
+    }
   }
 }

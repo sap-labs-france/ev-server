@@ -51,16 +51,16 @@ export default class ConsumptionStorage {
     return consumptionMDB._id;
   }
 
-  static async deleteConsumptions(tenantID: string, transactionId: number): Promise<void> {
+  static async deleteConsumptions(tenantID: string, transactionIDs: number[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'deleteConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
-    // Delete
+    // DeleFte
     await global.database.getCollection<any>(tenantID, 'consumptions')
-      .deleteMany({ 'transactionId': transactionId });
+      .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {

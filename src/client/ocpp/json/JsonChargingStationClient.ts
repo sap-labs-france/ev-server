@@ -1,4 +1,5 @@
 import uuid from 'uuid/v4';
+import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingStationCommand, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
@@ -19,88 +20,59 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     this.wsConnection = wsConnection;
   }
 
-  getChargeBoxId() {
+  getChargeBoxId(): string {
     return this.wsConnection.getChargeBoxId();
   }
 
-  remoteStartTransaction(params) {
-    const { tagID, connectorID, chargingProfile: any = {} } = params;
-    const payload: any = {
-      connectorId: connectorID,
-      idTag: tagID
-    };
-    if (this.chargingProfile && Object.getOwnPropertyNames(this.chargingProfile).length > 0) {
-      payload.chargingProfile = this.chargingProfile;
-    }
-    return this.wsConnection.sendMessage(uuid(), payload, 2, 'RemoteStartTransaction');
+  public remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.REMOTE_START_TRANSACTION);
   }
 
-  reset(params) {
-    const { type } = params;
-    return this.wsConnection.sendMessage(uuid(), {
-      type: type
-    }, 2, 'Reset');
+  public reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.RESET);
   }
 
-  clearCache() {
-    return this.wsConnection.sendMessage(uuid(), {}, 2, 'ClearCache');
+  public clearCache(): Promise<OCPPClearCacheCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), {}, 2, OCPPChargingStationCommand.CLEAR_CACHE);
   }
 
-  getConfiguration(params) {
-    const { keys } = params;
-    return this.wsConnection.sendMessage(uuid(), ((!keys) ? {} : {
-      key: keys
-    }), 2, 'GetConfiguration');
+  public getConfiguration(params: OCPPGetConfigurationCommandParam = {}): Promise<OCPPGetConfigurationCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.GET_CONFIGURATION);
   }
 
-  changeConfiguration(params) {
-    const { key, value } = params;
-    return this.wsConnection.sendMessage(uuid(), {
-      key: key,
-      value: value
-    }, 2, 'ChangeConfiguration');
+  public changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.CHANGE_CONFIGURATION);
   }
 
-  remoteStopTransaction(params) {
-    const { transactionId } = params;
-    return this.wsConnection.sendMessage(uuid(), {
-      transactionId: transactionId
-    }, 2, 'RemoteStopTransaction');
+  public remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION);
   }
 
-  unlockConnector(params) {
-    const { connectorId } = params;
-    return this.wsConnection.sendMessage(uuid(), {
-      connectorId: connectorId
-    }, 2, 'UnlockConnector');
+  public unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.UNLOCK_CONNECTOR);
   }
 
-  setChargingProfile(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'SetChargingProfile');
+  public setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.SET_CHARGING_PROFILE);
   }
 
-  getCompositeSchedule(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'GetCompositeSchedule');
+  public getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE);
   }
 
-  genericOCPPCommand(commandName, params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, commandName);
+  public clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.CLEAR_CHARGING_PROFILE);
   }
 
-  clearChargingProfile(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'ClearChargingProfile');
+  public changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.CHANGE_AVAILABILITY);
   }
 
-  changeAvailability(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'ChangeAvailability');
+  public getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.GET_DIAGNOSTICS);
   }
 
-  getDiagnostics(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'GetDiagnostics');
+  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+    return this.wsConnection.sendMessage(uuid(), params, 2, OCPPChargingStationCommand.UPDATE_FIRMWARE);
   }
-
-  updateFirmware(params) {
-    return this.wsConnection.sendMessage(uuid(), params, 2, 'UpdateFirmware');
-  }
-
 }

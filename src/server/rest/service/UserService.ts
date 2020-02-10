@@ -1,38 +1,42 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserNotifications from '../../../types/UserNotifications';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import UserNotifications from '../../../types/UserNotifications';
-import User from '../../../types/User';
+import fs from 'fs';
+import { UserInErrorType } from '../../../types/InError';
 
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
+      Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -43,7 +47,7 @@ export default class UserService {
     if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site\'s IDs must be provided',
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -54,10 +58,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleAssignSitesToUser',
         value: filteredRequest.userID
@@ -68,7 +72,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.userID}' does not exist anymore`,
         module: 'UserService',
         method: 'handleAssignSitesToUser',
@@ -81,7 +85,7 @@ export default class UserService {
       if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `Site with ID '${siteID}' does not exist anymore`,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
@@ -92,10 +96,10 @@ export default class UserService {
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, siteID)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_SITE,
+          action: Action.UPDATE,
+          entity: Entity.SITE,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
           value: siteID
@@ -126,7 +130,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -137,10 +141,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_USER,
+        action: Action.DELETE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleDeleteUser',
         value: id
@@ -150,7 +154,7 @@ export default class UserService {
     if (id === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot delete himself',
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -163,7 +167,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -175,7 +179,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is already deleted`,
         module: 'UserService',
         method: 'handleDeleteUser',
@@ -186,7 +190,18 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      await billingImpl.checkIfUserCanBeDeleted(user);
+      try {
+        await billingImpl.checkIfUserCanBeDeleted(user);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleDeleteUser',
+          action: 'CheckIfUserCanBeDeleted',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
@@ -199,8 +214,52 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     if (billingImpl) {
-      await billingImpl.deleteUser(user);
+      try {
+        await billingImpl.deleteUser(user);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleDeleteUser',
+          action: 'UserDelete',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
+
+    // Synchronize badges with IOP
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    try {
+      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+      if (ocpiClient) {
+        // Invalidate no more used tags
+        for (const tag of user.tags) {
+          if (tag.issuer) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: 'RFID',
+              'auth_id': user.id,
+              'visual_number': user.id,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: 'ALLOWED_OFFLINE',
+              'last_updated': new Date()
+            });
+          }
+        }
+      }
+    } catch (e) {
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        module: 'UserService',
+        method: 'handleUpdateUser',
+        action: 'UserUpdate',
+        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+        detailedMessages: e.message
+      });
+    }
+
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
@@ -224,10 +283,10 @@ export default class UserService {
     if (!filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
-        method: 'handleDeleteUser',
+        method: 'handleUpdateUser',
         user: req.user,
         action: action
       });
@@ -235,10 +294,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleUpdateUser',
         value: filteredRequest.id
@@ -249,7 +308,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -261,7 +320,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -275,7 +334,7 @@ export default class UserService {
     if (userWithEmail && user.id !== userWithEmail.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -298,6 +357,7 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
+    const previousTags = user.tags;
     // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
@@ -305,20 +365,90 @@ export default class UserService {
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user);
-      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      try {
+        const billingData = await billingImpl.updateUser(user);
+        await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
     // Save User password
     if (filteredRequest.password) {
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id,
-        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+        {
+          password: newPasswordHashed,
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: null,
+          passwordBlockedUntil: null
+        });
     }
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.lastChangedOn;
+        tag.lastChangedBy = filteredRequest.lastChangedBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
+
+      // Synchronize badges with IOP
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Invalidate no more used tags
+          for (const previousTag of previousTags) {
+            const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+            if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
+              await ocpiClient.pushToken({
+                uid: previousTag.id,
+                type: 'RFID',
+                'auth_id': filteredRequest.id,
+                'visual_number': filteredRequest.id,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+          // Push new valid tags
+          for (const currentTag of filteredRequest.tags) {
+            const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
+            if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+              await ocpiClient.pushToken({
+                uid: currentTag.id,
+                type: 'RFID',
+                'auth_id': filteredRequest.id,
+                'visual_number': filteredRequest.id,
+                issuer: tenant.name,
+                valid: true,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+        }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+          detailedMessages: e.message
+        });
+      }
+
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -376,7 +506,7 @@ export default class UserService {
     if (!filteredRequest.mobileToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s mobile token ID must be provided',
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -387,10 +517,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
         value: filteredRequest.id
@@ -401,7 +531,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -413,7 +543,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.id}' is logically deleted`,
         module: 'UserService',
         method: 'handleUpdateUserMobileToken',
@@ -447,7 +577,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUser',
@@ -458,10 +588,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUser',
         value: id
@@ -472,7 +602,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUser',
@@ -484,7 +614,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUser',
@@ -508,7 +638,7 @@ export default class UserService {
     if (!filteredRequest.ID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -519,10 +649,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUserImage',
         value: filteredRequest.ID
@@ -533,7 +663,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.ID}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -545,7 +675,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${filteredRequest.ID}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUserImage',
@@ -563,7 +693,7 @@ export default class UserService {
   public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_USER, 'UserService', 'handleGetSites');
+      Action.UPDATE, Entity.USER, 'UserService', 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     // Check Mandatory fields
@@ -571,7 +701,7 @@ export default class UserService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetSites',
@@ -583,7 +713,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.UserID}' does not exist`,
         module: 'UserService',
         method: 'handleGetSites',
@@ -594,10 +724,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.UPDATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetSites',
         value: user.id
@@ -632,10 +762,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_USERS,
+        action: Action.LIST,
+        entity: Entity.USERS,
         module: 'UserService',
         method: 'handleGetUsers'
       });
@@ -645,7 +775,7 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
+        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsers');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
@@ -674,10 +804,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_USERS,
+        action: Action.LIST,
+        entity: Entity.USERS,
         module: 'UserService',
         method: 'handleGetUsersInError'
       });
@@ -687,14 +817,14 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
+        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['unactive_user', 'unassigned_user'])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [UserInErrorType.NOT_ACTIVE, UserInErrorType.NOT_ASSIGNED, UserInErrorType.INACTIVE_USER_ACCOUNT])
       },
       {
         limit: filteredRequest.Limit,
@@ -714,10 +844,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_USER,
+        action: Action.CREATE,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleCreateUser'
       });
@@ -731,7 +861,7 @@ export default class UserService {
     if (foundUser) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleCreateUser',
@@ -752,12 +882,53 @@ export default class UserService {
     if (filteredRequest.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       await UserStorage.saveUserPassword(req.user.tenantID, newUserID,
-        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+        {
+          password: newPasswordHashed,
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: null,
+          passwordBlockedUntil: null
+        });
     }
     // Save Admin Data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
+      filteredRequest.tags.forEach((tag) => {
+        tag.lastChangedOn = filteredRequest.createdOn;
+        tag.lastChangedBy = filteredRequest.createdBy;
+      });
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
+
+      // Synchronize badges with IOP
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          for (const tag of filteredRequest.tags) {
+            if (tag.issuer) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: 'RFID',
+                'auth_id': newUserID,
+                'visual_number': newUserID,
+                issuer: tenant.name,
+                valid: true,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
+          }
+        }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleCreateUser',
+          action: 'UserCreate',
+          message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
+          detailedMessages: e.message
+        });
+      }
+
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
@@ -797,13 +968,25 @@ export default class UserService {
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
       const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-      const billingData = await billingImpl.createUser(user);
-      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      try {
+        const billingData = await billingImpl.createUser(user);
+        await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserCreate',
+          message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
+          detailedMessages: e.message
+        });
+      }
     }
+
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: filteredRequest,
+      user: req.user, actionOnUser: req.user,
       module: 'UserService', method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
@@ -820,7 +1003,7 @@ export default class UserService {
     if (!id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User\'s ID must be provided',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -831,10 +1014,10 @@ export default class UserService {
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_USER,
+        action: Action.READ,
+        entity: Entity.USER,
         module: 'UserService',
         method: 'handleGetUserInvoice',
         value: id
@@ -845,7 +1028,7 @@ export default class UserService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' does not exist anymore`,
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -857,7 +1040,7 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is logically deleted`,
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -868,11 +1051,13 @@ export default class UserService {
     // Get the settings
     const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
     if (!pricingSetting || !pricingSetting.convergentCharging) {
-      Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
+      Logging.logException(
+        new Error('Convergent Charging setting is missing'),
+        'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -892,7 +1077,7 @@ export default class UserService {
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -921,7 +1106,7 @@ export default class UserService {
       if (!invoice) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
+          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
           message: `An error occurred while requesting invoice ${invoiceNumber}`,
           module: 'UserService',
           method: 'handleGetUserInvoice',
@@ -948,7 +1133,7 @@ export default class UserService {
     } catch (e) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
+        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
         message: `An error occurred while requesting invoice ${invoiceNumber}`,
         module: 'UserService',
         method: 'handleGetUserInvoice',

@@ -10,7 +10,8 @@ import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
-import RefundReport from '../../../../types/RefundReport';
+import RefundReport from '../../../../types/Refund';
+import { TransactionInError } from '../../../../types/InError';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -29,16 +30,20 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionRequestByID(request: any): number {
-    return parseInt(sanitize(request.ID));
+    return Utils.convertToInt(sanitize(request.ID));
+  }
+
+  public static filterTransactionRequestByIDs(request: any): number[] {
+    return request.transactionsIDs.map(sanitize);
   }
 
   public static filterTransactionSoftStop(request: any): number {
-    return parseInt(sanitize(request.ID));
+    return Utils.convertToInt(sanitize(request.ID));
   }
 
   public static filterTransactionRequest(request: any): HttpTransactionRequest {
     return {
-      ID: parseInt(sanitize(request.ID))
+      ID: Utils.convertToInt(sanitize(request.ID))
     };
   }
 
@@ -99,7 +104,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken) {
     let filteredTransaction;
     if (!transaction) {
       return null;
@@ -109,9 +114,9 @@ export default class TransactionSecurity {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
-      if (transaction.errorCode) {
+      if (transaction.hasOwnProperty('errorCode')) {
         filteredTransaction.uniqueId = transaction.uniqueId;
-        filteredTransaction.errorCode = transaction.errorCode;
+        (filteredTransaction as TransactionInError).errorCode = (transaction as TransactionInError).errorCode;
       }
       filteredTransaction.chargeBoxID = transaction.chargeBoxID;
       filteredTransaction.siteID = transaction.siteID;
@@ -147,6 +152,8 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
+      filteredTransaction.ocpiSession = transaction.ocpiSession;
+      filteredTransaction.ocpiCdr = transaction.ocpiCdr;
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
@@ -193,7 +200,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction|TransactionInError>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -267,7 +274,7 @@ export default class TransactionSecurity {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
     if (request.hasOwnProperty('TransactionId')) {
-      filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
+      filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
     }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
