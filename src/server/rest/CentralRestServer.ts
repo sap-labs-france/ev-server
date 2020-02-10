@@ -129,7 +129,7 @@ export default class CentralRestServer {
         const notification = CentralRestServer.singleChangeNotifications.shift();
         CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
       }
-    }, CentralRestServer.centralSystemRestConfig.webSocketSingleNotificationIntervalSecs * 1000);
+    }, CentralRestServer.centralSystemRestConfig.socketIOSingleNotificationIntervalSecs * 1000);
 
     // Check and send notification change for list
     setInterval(() => {
@@ -138,7 +138,7 @@ export default class CentralRestServer {
         const notification = CentralRestServer.changeNotifications.shift();
         CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
       }
-    }, CentralRestServer.centralSystemRestConfig.webSocketListNotificationIntervalSecs * 1000);
+    }, CentralRestServer.centralSystemRestConfig.socketIOListNotificationIntervalSecs * 1000);
   }
 
   // Start the server

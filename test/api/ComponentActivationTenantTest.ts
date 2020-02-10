@@ -4,7 +4,7 @@ import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
-import { PricingSettingsType, BillingSettingsType, ComponentType, RoamingSettingsType, RefundSettingsType, AnalyticsSettingsType } from '../../src/types/Setting';
+import { AnalyticsSettingsType, BillingSettingsType, ComponentType, PricingSettingsType, RefundSettingsType, RoamingSettingsType } from '../../src/types/Setting';
 import Billing from '../integration/billing/Billing';
 
 chai.use(chaiSubset);

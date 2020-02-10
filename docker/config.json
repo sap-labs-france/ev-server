@@ -24,8 +24,9 @@
     "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketListNotificationIntervalSecs": 5,
-    "webSocketSingleNotificationIntervalSecs": 1,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
@@ -67,7 +68,7 @@
     "externalProtocol": "http"
   },
   "WSDLEndpoint": {
-    "baseUrl": "http://server:8000"
+    "baseUrl": "http://server:8010"
   },
   "JsonEndpoint": {
     "baseUrl": "ws://server:8000"
@@ -106,6 +107,9 @@
   "Notification": {
     "Email": {
       "enabled": true
+    },
+    "RemotePushNotification": {
+      "enabled": false
     }
   },
   "Authorization": {
@@ -129,6 +133,9 @@
   },
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Migration": {
+    "active": true
   },
   "Scheduler": {
     "active": true,
