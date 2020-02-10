@@ -145,6 +145,10 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
+  public static filterChargingStationProfilesRequest(request: any): HttpChargingStationRequest {
+    return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+  }
+
   public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),

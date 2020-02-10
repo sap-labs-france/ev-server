@@ -260,7 +260,7 @@ export default class ChargingStationService {
 
   public static async handleGetChargingProfiles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
     UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStation', req.user);
     // Check auth
