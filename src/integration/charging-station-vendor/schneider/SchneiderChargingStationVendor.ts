@@ -5,7 +5,7 @@ import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation from '../../../types/ChargingStation';
+import ChargingStation, { ConnectorCurrentLimit } from '../../../types/ChargingStation';
 import { OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus } from '../../../types/ocpp/OCPPClient';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -97,5 +97,9 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus> {
     console.log('Method for setting Charging Profile for Schneider needs be implemented');
     return OCPPSetCompositeScheduleStatus.ACCEPTED;
+  }
+
+  public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    throw new Error('Not yet implemented')
   }
 }

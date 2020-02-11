@@ -90,6 +90,13 @@ export interface Connector {
   currentType?: ConnectorCurrentType;
 }
 
+export interface ConnectorCurrentLimit {
+  chargingStationID: string;
+  connectorID: number;
+  limitAmps: number;
+  limitWatts: number;
+}
+
 export enum ConnectorCurrentType {
   AC = 'AC',
   DC = 'DC'
