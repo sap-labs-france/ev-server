@@ -139,7 +139,7 @@ export default class BillingService {
       });
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
-    const synchronizeAction = await billingImpl.synchronizeUser(user, tenant.id);
+    const synchronizeAction = await billingImpl.synchronizeUser(user.id, tenant.id);
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();

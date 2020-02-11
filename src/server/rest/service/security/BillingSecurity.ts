@@ -39,7 +39,7 @@ export default class BillingSecurity {
 
   static filterSynchronizeUserRequest(request: any): Partial<HttpUserRequest> {
     const filteredUser: Partial<HttpUserRequest> = {};
-    if (request.id) {
+    if (request.UserID) {
       filteredUser.id = sanitize(request.UserID);
     }
     return filteredUser;

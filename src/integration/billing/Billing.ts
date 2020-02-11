@@ -186,6 +186,12 @@ export default abstract class Billing<T extends BillingSetting> {
     return actionsDone;
   }
 
+  /**
+   * Force a synchronization with Billing provider for a given user
+   * This will override the user's BillingData field
+   * @param userID
+   * @param tenantID
+   */
   public async synchronizeUser(userID, tenantID): Promise<BillingUserSynchronizeAction> {
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
@@ -194,7 +200,7 @@ export default abstract class Billing<T extends BillingSetting> {
         source: Constants.CENTRAL_SERVER,
         message: 'Billing settings are not configured',
         module: 'Billing',
-        method: 'synchronizeUsers',
+        method: 'synchronizeUser',
         action: Action.SYNCHRONIZE_BILLING,
       });
     }
