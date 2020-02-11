@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import UserSecurity from "./security/UserSecurity";
 
 
 export default class BillingService {
@@ -107,6 +108,38 @@ export default class BillingService {
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
+    // Ok
+    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleSynchronizeUser(action: string, req: Request, res: Response, next: NextFunction) {
+    const user = BillingSecurity.filterSynchronizeUserRequest(req.body);
+    if (!Authorizations.canSynchronizeUserBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER,
+        module: 'BillingService',
+        method: 'handleSynchronizeUser',
+      });
+    }
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing or Pricing not active in this Tenant',
+        module: 'BillingService',
+        method: 'handleSynchronizeUser',
+        action: Action.SYNCHRONIZE_BILLING,
+        user: req.user
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const synchronizeAction = await billingImpl.synchronizeUser(user, tenant.id);
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();

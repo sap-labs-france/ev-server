@@ -1,6 +1,9 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { BillingTax } from '../../../../types/Billing';
 import UserToken from '../../../../types/UserToken';
+import User from "../../../../types/User";
+import sanitize from "mongo-sanitize";
+import {HttpUserRequest} from "../../../../types/requests/HttpUserRequest";
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -32,5 +35,13 @@ export default class BillingSecurity {
       filteredTax.percentage = tax.percentage;
     }
     return filteredTax;
+  }
+
+  static filterSynchronizeUserRequest(request: any): Partial<HttpUserRequest> {
+    const filteredUser: Partial<HttpUserRequest> = {};
+    if (request.id) {
+      filteredUser.id = sanitize(request.UserID);
+    }
+    return filteredUser;
   }
 }

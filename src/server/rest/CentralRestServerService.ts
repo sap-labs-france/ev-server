@@ -104,6 +104,7 @@ class RequestMapper {
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
           ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
+          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
