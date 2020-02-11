@@ -334,7 +334,6 @@ export default class SiteStorage {
         $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
-
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
