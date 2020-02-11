@@ -33,12 +33,12 @@
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketListNotificationIntervalSecs": 5,
-    "webSocketSingleNotificationIntervalSecs": 1,
+    "socketIO": false,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-    "socketIO": false,
     "debug": false
   },
   "CentralSystemFrontEnd": {

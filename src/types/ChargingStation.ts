@@ -2,7 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
-import { OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import { OCPPProtocol, OCPPVersion, ChargePointStatus } from './ocpp/OCPPServer';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -60,6 +60,10 @@ export enum PowerLimitUnits {
   AMPERE = 'A'
 }
 
+export enum StaticLimitAmps {
+  MIN_LIMIT = 8,
+}
+
 export interface Connector {
   id?: string;
   connectorId: number;
@@ -67,12 +71,12 @@ export interface Connector {
   currentStateOfCharge?: number;
   totalInactivitySecs?: number;
   totalConsumption?: number;
-  status: string;
+  status: ChargePointStatus;
   errorCode?: string;
   info?: string;
   vendorErrorCode?: string;
   power: number;
-  type: string;
+  type: ConnectorType;
   voltage?: number;
   amperage?: number;
   amperageLimit?: number;
@@ -84,6 +88,11 @@ export interface Connector {
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
+}
+
+export interface ConnectorCurrentLimit {
+  limitAmps: number;
+  limitWatts: number;
 }
 
 export enum ConnectorCurrentType {
@@ -137,6 +146,7 @@ export enum ConnectorType {
   COMBO_CCS = 'CCS',
   CHADEMO = 'C',
   TYPE_1 = 'T1',
+  TYPE_3C = 'T3C',
   TYPE_1_CCS = 'T1CCS',
   DOMESTIC = 'D',
   UNKNOWN = 'U',

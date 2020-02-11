@@ -37,7 +37,7 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
           'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'ExportParams'], attributes: ['*']
+          'GetDiagnostics', 'UpdateFirmware', 'ExportParams', 'ChangeAvailability'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
@@ -222,7 +222,7 @@ const GRANTS = {
         action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams'],
+          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams', 'ChangeAvailability'],
         attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },

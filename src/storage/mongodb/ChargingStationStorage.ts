@@ -133,7 +133,6 @@ export default class ChargingStationStorage {
     if (params.issuer === true || params.issuer === false) {
       filters.$and.push({ 'issuer': params.issuer });
     }
-
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -646,7 +645,7 @@ export default class ChargingStationStorage {
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
 
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
