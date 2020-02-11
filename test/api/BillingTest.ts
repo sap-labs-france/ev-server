@@ -142,6 +142,9 @@ describe('Billing Service', function() {
       await testData.userService.billingApi.synchronizeUser({ UserID: fakeUser.id });
       const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
       expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
+      // Delete the created fake user after test
+      billingUserBefore.billingData = billingUserAfter.billingData;
+      await billingImpl.deleteUser(billingUserBefore);
     });
 
     describe('With basic user', () => {
