@@ -93,6 +93,7 @@ class RequestMapper {
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           SettingCreate: SettingService.handleCreateSetting.bind(this),
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
+          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
@@ -104,7 +105,6 @@ class RequestMapper {
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
           ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration.bind(this),
-          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
