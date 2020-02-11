@@ -188,21 +188,6 @@ export default class UserService {
       });
     }
     // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
-      try {
-        await billingImpl.checkIfUserCanBeDeleted(user);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleDeleteUser',
-          action: 'CheckIfUserCanBeDeleted',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
-          detailedMessages: e.message
-        });
-      }
-    }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
@@ -213,6 +198,7 @@ export default class UserService {
     }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
       try {
         await billingImpl.deleteUser(user);
