@@ -104,8 +104,8 @@ describe('Billing Service', function() {
       );
       testData.createdUsers.push(fakeUser);
 
-      const user = await billingImpl.getUserByEmail(fakeUser.email);
-      expect(user).to.containSubset({ email: fakeUser.email });
+      const exists = await billingImpl.userExists(fakeUser);
+      expect(exists).to.be.true;
     });
 
     it('Should update a user', async () => {
@@ -127,8 +127,8 @@ describe('Billing Service', function() {
         { id: testData.createdUsers[0].id }
       );
 
-      const user = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
-      expect(user).to.be.undefined;
+      const exists = await billingImpl.userExists(testData.createdUsers[0]);
+      expect(exists).to.be.false;
       testData.createdUsers.pop();
     });
 
@@ -157,7 +157,7 @@ describe('Billing Service', function() {
       expect(billingUser).to.be.undefined;
 
       const requestingUser = testData.userContext;
-      delete requestingUser.centralServerService;
+      delete requestingUser.centralServerService; // Avoid circular JSON
       Object.assign(requestingUser, { tenantID: testData.tenantContext.getTenant().id });
       await testData.userService.billingApi.synchronizeUsers({ user: requestingUser });
       billingUser = await billingImpl.getUserByEmail(fakeUser.email);
@@ -224,8 +224,8 @@ describe('Billing Service', function() {
       testData.createdUsers.push(fakeUser);
       expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
-      const user = await billingImpl.getUserByEmail(fakeUser.email);
-      expect(user).to.be.undefined;
+      const exists = await billingImpl.userExists(fakeUser);
+      expect(exists).to.be.false;
     });
 
     it('Should not be able to update a user', async () => {
