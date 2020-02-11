@@ -91,8 +91,6 @@ export interface Connector {
 }
 
 export interface ConnectorCurrentLimit {
-  chargingStationID: string;
-  connectorID: number;
   limitAmps: number;
   limitWatts: number;
 }

@@ -15,5 +15,10 @@ export default abstract class ChargingStationVendor {
 
   public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus>;
 
-  public abstract async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit>;
+  public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    return {
+      limitAmps: chargingStation.connectors[connectorID-1].amperageLimit,
+      limitWatts: chargingStation.connectors[connectorID-1].power
+    }
+  }
 }
