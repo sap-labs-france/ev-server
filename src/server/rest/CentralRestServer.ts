@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import ChangeNotification from '../../types/ChangeNotification';
@@ -72,12 +73,14 @@ export default class CentralRestServer {
 
     // Util API
     this.express.use('/client/util', CentralRestServerService.restServiceUtil);
+    // Workaround URL encoding issue
+    this.express.use('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
+      req.url = decodeURIComponent(req.originalUrl);
+      await CentralRestServerService.restServiceUtil(req, res, next);
+    });
 
     // Create HTTP server to serve the express app
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.express);
-
-    // Check if the front-end has to be served also
-    const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
   }
 
   get httpServer() {
