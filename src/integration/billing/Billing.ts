@@ -126,6 +126,7 @@ export default abstract class Billing<T extends BillingSetting> {
             user.billingData.customerID = billingUser.billingData.customerID;
             user.billingData.lastChangedOn = new Date();
             await UserStorage.saveUser(tenantID, user, false);
+            await billingImpl.updateUser(user);
             actionsDone.synchronized++;
             // Log
             Logging.logInfo({
