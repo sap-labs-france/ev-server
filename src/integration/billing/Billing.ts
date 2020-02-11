@@ -189,8 +189,8 @@ export default abstract class Billing<T extends BillingSetting> {
   /**
    * Force a synchronization with Billing provider for a given user
    * This will override the user's BillingData field
-   * @param userID
-   * @param tenantID
+   * @param userID ID of the user
+   * @param tenantID ID of the tenant
    */
   public async synchronizeUser(userID, tenantID): Promise<BillingUserSynchronizeAction> {
     // Get Billing implementation from factory

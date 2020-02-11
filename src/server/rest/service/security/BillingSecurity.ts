@@ -1,9 +1,8 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { BillingTax } from '../../../../types/Billing';
+import { HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
-import User from "../../../../types/User";
-import sanitize from "mongo-sanitize";
-import {HttpUserRequest} from "../../../../types/requests/HttpUserRequest";
+import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {

@@ -10,7 +10,6 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
-import UserSecurity from "./security/UserSecurity";
 
 
 export default class BillingService {
