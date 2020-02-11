@@ -175,6 +175,9 @@ export default class UserSecurity {
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
+        if (user.billingData) {
+          filteredUser.billingData = user.billingData;
+        }
       } else {
         // Set only necessary info
         filteredUser.id = user.id;

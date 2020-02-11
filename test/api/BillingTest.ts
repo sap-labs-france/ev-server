@@ -113,7 +113,8 @@ describe('Billing Service', function() {
       testData.createdUsers[0].name = 'Name';
       await testData.userService.updateEntity(
         testData.userService.userApi,
-        testData.createdUsers[0]
+        testData.createdUsers[0],
+        false
       );
 
       const billingUser = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
@@ -121,7 +122,6 @@ describe('Billing Service', function() {
     });
 
     it('Should delete a user', async () => {
-
       await testData.userService.deleteEntity(
         testData.userService.userApi,
         { id: testData.createdUsers[0].id }
@@ -131,6 +131,38 @@ describe('Billing Service', function() {
       expect(user).to.be.undefined;
       testData.createdUsers.pop();
     });
+
+    /* it('Should synchronize a user', async () => {
+      let fakeUser = {
+        ...Factory.user.build(),
+        billingData: {
+          method: 'immediate'
+        }
+      } as User;
+
+      await testData.userService.createEntity(
+        testData.userService.userApi,
+        fakeUser
+      );
+      const response = await testData.userService.getEntityById(
+        testData.userService.userApi,
+        fakeUser,
+        false
+      );
+      fakeUser = response.data;
+      testData.createdUsers.push(fakeUser);
+
+      await billingImpl.deleteUser(fakeUser);
+      let billingUser = await billingImpl.getUserByEmail(fakeUser.email);
+      expect(billingUser).to.be.undefined;
+
+      const requestingUser = testData.userContext;
+      delete requestingUser.centralServerService;
+      Object.assign(requestingUser, { tenantID: testData.tenantContext.getTenant().id });
+      await testData.userService.billingApi.synchronizeUsers({ user: requestingUser });
+      billingUser = await billingImpl.getUserByEmail(fakeUser.email);
+      expect(billingUser).to.containSubset({ email: fakeUser.email });
+    }); */
   });
 
   describe('With basic user', () => {
@@ -194,6 +226,20 @@ describe('Billing Service', function() {
 
       const user = await billingImpl.getUserByEmail(fakeUser.email);
       expect(user).to.be.undefined;
+    });
+
+    it('Should not be able to update a user', async () => {
+      testData.createdUsers[0].firstName = 'Test';
+      testData.createdUsers[0].name = 'Name';
+      const response = await testData.userService.updateEntity(
+        testData.userService.userApi,
+        testData.createdUsers[0],
+        false
+      );
+
+      expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      const billingUser = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
+      expect(billingUser.name).to.not.be.eq(testData.createdUsers[0].firstName + ' ' + testData.createdUsers[0].name);
     });
 
     it('Should not be able to delete a user', async () => {

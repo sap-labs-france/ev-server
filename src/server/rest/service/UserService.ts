@@ -975,7 +975,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService',
-          method: 'handleUpdateUser',
+          method: 'handleCreateUser',
           action: 'UserCreate',
           message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
           detailedMessages: e.message
@@ -987,7 +987,8 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
-      module: 'UserService', method: 'handleCreateUser',
+      module: 'UserService',
+      method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
     });
