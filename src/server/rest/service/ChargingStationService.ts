@@ -1369,7 +1369,18 @@ export default class ChargingStationService {
             value: params.value
           });
           // Check
-          if (result.status === OCPPConfigurationStatus.ACCEPTED) {
+          if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            // Reboot?
+            if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+              Logging.logWarning({
+                tenantID: tenantID,
+                source: chargingStation.id, user: user, action: command,
+                module: 'ChargingStationService', method: 'handleChargingStationCommand',
+                message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
+                detailedMessages: result
+              });
+            }
             // Refresh Configuration
             await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
             // Check update with Vendor
