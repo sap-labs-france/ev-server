@@ -6,7 +6,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
@@ -145,8 +145,13 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  public static filterChargingStationProfilesRequest(request: any): HttpChargingStationRequest {
-    return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+  public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
+    const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
+    filteredRequest.chargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.connectorID = sanitize(request.connectorID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {

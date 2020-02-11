@@ -29,6 +29,7 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import { filter } from 'bluebird';
 
 export default class ChargingStationService {
 
@@ -262,7 +263,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStation', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleGetChargingStation', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -272,10 +273,12 @@ export default class ChargingStationService {
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleGetChargingProfiles',
-        value: filteredRequest.ChargeBoxID
+        value: filteredRequest.chargeBoxID
       });
     }
-    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
+      { chargingStationID: filteredRequest.chargeBoxID, connectorID: filteredRequest.connectorID },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     res.json(chargingProfiles);
     next();
   }
