@@ -575,68 +575,58 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   }
 
   public async checkIfUserCanBeDeleted(user: User): Promise<boolean> {
-    try {
-      // Check Stripe
-      this.checkIfStripeIsInitialized();
-      // No billing in progress
-      if (!user.billingData || !user.billingData.customerID) {
+    // Check Stripe
+    this.checkIfStripeIsInitialized();
+    // Check connection
+    await this.checkConnection();
+
+    // No billing in progress
+    if (!user.billingData || !user.billingData.customerID) {
+      return true;
+    }
+    // Check connection
+    await this.checkConnection();
+
+    if (this.checkIfTestMode()) {
+      const customer = await this.getCustomerByEmail(user.email);
+      if (customer && !customer.livemode) {
         return true;
       }
-      // Check connection
-      await this.checkConnection();
-
-      if (this.checkIfTestMode()) {
-        const customer = await this.getCustomerByEmail(user.email);
-        if (customer && !customer.livemode) {
-          return true;
-        }
-      }
-      let list = await this.stripe.invoices.list(
-        {
-          customer: user.billingData.customerID,
-          status: 'open',
-        }
-      );
-      if (list && list.data && list.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
-        });
-      }
-      list = await this.stripe.invoices.list(
-        {
-          customer: user.billingData.customerID,
-          status: 'draft',
-        }
-      );
-      if (list && list.data && list.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
-        });
-      }
-      const itemsList = await this.stripe.invoiceItems.list(
-        {
-          customer: user.billingData.customerID,
-          pending: true,
-        }
-      );
-      if (itemsList && itemsList.data && itemsList.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
-        });
-      }
-      return true;
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        user: user,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.DELETE,
-        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-        message: `Billing error in Stop Transaction: ${error.message}`,
-        detailedMessages: error
-      });
-      return false;
     }
+    let list = await this.stripe.invoices.list(
+      {
+        customer: user.billingData.customerID,
+        status: 'open',
+      }
+    );
+    if (list && list.data && list.data.length > 0) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
+      });
+    }
+    list = await this.stripe.invoices.list(
+      {
+        customer: user.billingData.customerID,
+        status: 'draft',
+      }
+    );
+    if (list && list.data && list.data.length > 0) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
+      });
+    }
+    const itemsList = await this.stripe.invoiceItems.list(
+      {
+        customer: user.billingData.customerID,
+        pending: true,
+      }
+    );
+    if (itemsList && itemsList.data && itemsList.data.length > 0) {
+      throw new BackendError({
+        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
+      });
+    }
+    return true;
   }
 
   public async createUser(user: User): Promise<BillingUserData> {
