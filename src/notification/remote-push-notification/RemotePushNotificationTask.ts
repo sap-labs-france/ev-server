@@ -265,7 +265,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Get Message Text
     const title = i18n.t('notifications.billingUserSynchronizationFailed.title');
     const body = i18n.t('notifications.billingUserSynchronizationFailed.body',
-      { nbUsers: data.nbrUsersInError, tenantName: tenant.name });
+      { nbrUsersInError: data.nbrUsersInError, tenantName: tenant.name });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED, title, body, user, {
       'error': data.nbrUsersInError + '',
