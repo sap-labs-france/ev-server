@@ -5,6 +5,7 @@ import { HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/r
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import Utils from '../../../../utils/Utils';
 
 export default class TenantSecurity {
   public static filterTenantRequestByID(request: any): string {
@@ -25,13 +26,65 @@ export default class TenantSecurity {
 
   public static filterTenantRequest(request: any): Partial<Tenant> {
     const filteredRequest: Partial<Tenant> = {};
+    console.log('====================================');
+    console.log(JSON.stringify(request, null, ' '));
+    console.log('====================================');
     if ('id' in request) {
       filteredRequest.id = sanitize(request.id);
     }
     filteredRequest.name = sanitize(request.name);
     filteredRequest.subdomain = sanitize(request.subdomain);
     filteredRequest.email = sanitize(request.email);
-    filteredRequest.components = sanitize(request.components);
+    if (request.components) {
+      filteredRequest.components = {};
+      if (request.components.analytics) {
+        filteredRequest.components.analytics = {
+          active: UtilsSecurity.filterBoolean(request.components.analytics.active),
+          type: sanitize(request.components.analytics.type)
+        };
+      }
+      if (request.components.billing) {
+        filteredRequest.components.billing = {
+          active: UtilsSecurity.filterBoolean(request.components.billing.active),
+          type: sanitize(request.components.billing.type)
+        };
+      }
+      if (request.components.ocpi) {
+        filteredRequest.components.ocpi = {
+          active: UtilsSecurity.filterBoolean(request.components.ocpi.active),
+          type: sanitize(request.components.ocpi.type)
+        };
+      }
+      if (request.components.organization) {
+        filteredRequest.components.organization = {
+          active: UtilsSecurity.filterBoolean(request.components.organization.active)
+        };
+      }
+      if (request.components.pricing) {
+        filteredRequest.components.pricing = {
+          active: UtilsSecurity.filterBoolean(request.components.pricing.active),
+          type: sanitize(request.components.pricing.type)
+        };
+      }
+      if (request.components.refund) {
+        filteredRequest.components.refund = {
+          active: UtilsSecurity.filterBoolean(request.components.refund.active),
+          type: sanitize(request.components.refund.type)
+        };
+      }
+      if (request.components.smartCharging) {
+        filteredRequest.components.smartCharging = {
+          active: UtilsSecurity.filterBoolean(request.components.smartCharging.active),
+          type: sanitize(request.components.smartCharging.type)
+        };
+      }
+      if (request.components.statistics) {
+        filteredRequest.components.statistics = {
+          active: UtilsSecurity.filterBoolean(request.components.statistics.active),
+          type: sanitize(request.components.statistics.type)
+        };
+      }
+    }
     return filteredRequest;
   }
 

@@ -957,14 +957,6 @@ export default class ChargingStationService {
       // Execute it
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
     }
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      source: chargingStation.id, user: req.user, action: command,
-      module: 'ChargingStationService', method: 'handleAction',
-      message: `'${command}' has been executed successfully`,
-      detailedMessages: result
-    });
     // Return
     res.json(result);
     next();
@@ -1369,7 +1361,18 @@ export default class ChargingStationService {
             value: params.value
           });
           // Check
-          if (result.status === OCPPConfigurationStatus.ACCEPTED) {
+          if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            // Reboot?
+            if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+              Logging.logWarning({
+                tenantID: tenantID,
+                source: chargingStation.id, user: user, action: command,
+                module: 'ChargingStationService', method: 'handleChargingStationCommand',
+                message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
+                detailedMessages: result
+              });
+            }
             // Refresh Configuration
             await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
             // Check update with Vendor
@@ -1464,7 +1467,7 @@ export default class ChargingStationService {
             tenantID: tenantID, source: chargingStation.id, user: user,
             module: 'ChargingStationService', method: 'handleChargingStationCommand',
             action: command,
-            message: `OCPP Command '${command}' has been executed`,
+            message: `OCPP Command '${command}' has been executed successfully`,
             detailedMessages: { params, result }
           });
         }
