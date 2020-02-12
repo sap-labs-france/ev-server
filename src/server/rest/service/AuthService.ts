@@ -1,4 +1,4 @@
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HTTPError } from '../../../types/HTTPError';
 import User, { Status } from '../../../types/User';
 import axios from 'axios';
 import { Handler, NextFunction, Request, Response } from 'express';
@@ -90,7 +90,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EULA_ERROR,
+        errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -141,7 +141,7 @@ export default class AuthService {
           // Return data
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPUserError.LOCKED_ERROR,
+            errorCode: HTTPError.USER_LOCKED_ERROR,
             message: 'User is locked',
             module: 'AuthService',
             method: 'handleLogIn'
@@ -179,7 +179,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EULA_ERROR,
+        errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -222,7 +222,7 @@ export default class AuthService {
     if (user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -631,7 +631,7 @@ export default class AuthService {
     if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -642,7 +642,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPAuthError.INVALID_TOKEN_ERROR,
+        errorCode: HTTPError.INVALID_TOKEN_ERROR,
         message: 'Wrong Verification Token',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -773,7 +773,7 @@ export default class AuthService {
     if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -850,7 +850,7 @@ export default class AuthService {
       // Log
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.LOCKED_ERROR,
+        errorCode: HTTPError.USER_LOCKED_ERROR,
         message: 'User is locked',
         module: 'AuthService',
         method: 'checkUserLogin',
@@ -948,7 +948,7 @@ export default class AuthService {
       if (user.status === Status.PENDING) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.ACCOUNT_PENDING_ERROR,
+          errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
           message: 'Account is pending! User must activate his account in his email',
           module: 'AuthService',
           method: 'checkUserLogin',
@@ -959,7 +959,7 @@ export default class AuthService {
       if (user.status !== Status.ACTIVE) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.ACCOUNT_INACTIVE_ERROR,
+          errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
           message: `Account is not active ('${user.status}')`,
           module: 'AuthService',
           method: 'checkUserLogin',

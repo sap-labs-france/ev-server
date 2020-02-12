@@ -1,3 +1,4 @@
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -16,7 +17,6 @@ import { Action, Entity } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
 import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -275,7 +275,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingProfiles', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleGetChargingProfiles', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -867,7 +867,7 @@ export default class ChargingStationService {
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPAuthError.ERROR,
+          errorCode: HTTPError.AUTH_ERROR,
           message: 'Transaction ID is mandatory',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -885,7 +885,7 @@ export default class ChargingStationService {
       if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.NO_BADGE_ERROR,
+          errorCode: HTTPError.USER_NO_BADGE_ERROR,
           message: 'The user does not have any badge',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -912,7 +912,7 @@ export default class ChargingStationService {
       if (!filteredRequest.args || !filteredRequest.args.tagID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.NO_BADGE_ERROR,
+          errorCode: HTTPError.USER_NO_BADGE_ERROR,
           message: 'The user does not have any badge',
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -1194,7 +1194,7 @@ export default class ChargingStationService {
         if (!chargingStation.siteArea) {
           throw new AppError({
             source: chargingStation.id,
-            errorCode: HTTPAuthError.CHARGER_WITH_NO_SITE_AREA_ERROR,
+            errorCode: HTTPError.CHARGER_WITH_NO_SITE_AREA_ERROR,
             message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
             module: 'ChargingStationService',
             method: 'checkConnectorsActionAuthorizations',
@@ -1207,7 +1207,7 @@ export default class ChargingStationService {
         if (!chargingStation.siteArea.site) {
           throw new AppError({
             source: chargingStation.id,
-            errorCode: HTTPAuthError.SITE_AREA_WITH_NO_SITE_ERROR,
+            errorCode: HTTPError.SITE_AREA_WITH_NO_SITE_ERROR,
             message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
             module: 'ChargingStationService',
             method: 'checkConnectorsActionAuthorizations',
@@ -1256,7 +1256,7 @@ export default class ChargingStationService {
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPError.AUTH_ERROR,
         message: `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         module: 'ChargingStationService',
         method: 'isStopTransactionAuthorized',

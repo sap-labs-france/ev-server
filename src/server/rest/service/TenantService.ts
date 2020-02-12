@@ -1,5 +1,5 @@
 import { Action, Entity, Role } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -145,7 +145,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -158,7 +158,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',

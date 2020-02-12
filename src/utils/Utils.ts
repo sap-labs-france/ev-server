@@ -1,5 +1,5 @@
 import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { HTTPError, HTTPUserError } from '../types/HTTPError';
+import { HTTPError } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
@@ -991,7 +991,7 @@ export default class Utils {
             // Tag already used!
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPUserError.TAG_ID_ALREADY_USED_ERROR,
+              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
               module: 'Utils',
               method: 'checkIfUserTagsAreValid',

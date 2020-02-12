@@ -280,9 +280,11 @@ export default abstract class AbstractOCPIService {
       }
     } catch (error) {
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
-      let errorCode = HTTPError.GENERAL_ERROR;
+      let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;
+      } else {
+        errorCode = HTTPError.GENERAL_ERROR;
       }
       res.status(errorCode).json(OCPIUtils.toErrorResponse(error));
     }

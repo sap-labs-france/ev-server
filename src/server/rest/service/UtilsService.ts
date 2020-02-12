@@ -1,7 +1,7 @@
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
+import { HTTPError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
@@ -59,7 +59,7 @@ export default class UtilsService {
         action: action,
         module: module,
         method: method,
-        errorCode: HTTPAuthError.ERROR
+        errorCode: HTTPError.GENERAL_ERROR,
       });
     }
   }
