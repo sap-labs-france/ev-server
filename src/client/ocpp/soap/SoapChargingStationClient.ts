@@ -176,7 +176,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.UNLOCK_CONNECTOR as unknown as Action, [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.UNLOCK_CONNECTOR, [
       { result },
       { envelope }
     ]);
@@ -187,7 +187,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(OCPPChargingStationCommand.RESET);
     // Log
-    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.RESET as unknown as Action,
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.RESET,
       [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.Reset({

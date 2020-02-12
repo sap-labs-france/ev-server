@@ -14,8 +14,6 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
-import { Action } from '../../types/Authorization';
-
 export default class ChargingStationStorage {
 
   public static async updateChargingStationTemplatesFromFile() {
@@ -30,7 +28,7 @@ export default class ChargingStationStorage {
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES_FROM_FILE, error);
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'UpdateChargingStationTemplatesFromFile', error);
       }
     }
     // Debug

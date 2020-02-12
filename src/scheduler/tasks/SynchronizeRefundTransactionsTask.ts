@@ -66,7 +66,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           }
         } catch (error) {
           actionsDone.error++;
-          Logging.logActionExceptionMessage(tenant.id, Action.REFUND_SYNCHRONIZE, error);
+          Logging.logActionExceptionMessage(tenant.id, 'RefundSynchronize', error);
         }
       }
       // Log result

@@ -1,4 +1,3 @@
-import { Role, Action } from '../types/Authorization';
 import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
@@ -7,6 +6,7 @@ import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
+import { Role } from '../types/Authorization';
 import { Source } from '../types/Notification';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
@@ -114,7 +114,7 @@ export default class NotificationHandler {
       return false;
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, Action.HAS_NOTIFICATION, error);
+      Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
     }
   }
 
@@ -133,7 +133,7 @@ export default class NotificationHandler {
       return notifications.count > 0;
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, Action.HAS_NOTIFICATION, error);
+      Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
     }
   }
 
@@ -169,7 +169,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.END_OF_CHARGE, error);
+          Logging.logActionExceptionMessage(tenantID, Source.END_OF_CHARGE, error);
         }
       }
     }
@@ -202,7 +202,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.OPTIMAL_CHARGE_REACHED, error);
+          Logging.logActionExceptionMessage(tenantID, Source.OPTIMAL_CHARGE_REACHED, error);
         }
       }
     }
@@ -235,7 +235,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.END_OF_SESSION, error);
+          Logging.logActionExceptionMessage(tenantID, Source.END_OF_SESSION, error);
         }
       }
     }
@@ -268,7 +268,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.END_OF_SESSION, error);
+          Logging.logActionExceptionMessage(tenantID, Source.END_OF_SESSION, error);
         }
       }
     }
@@ -290,7 +290,7 @@ export default class NotificationHandler {
           await notificationSource.notificationTask.sendRequestPassword(
             sourceData, user, tenant, NotificationSeverity.INFO);
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.REQUEST_PASSWORD, error);
+          Logging.logActionExceptionMessage(tenantID, Source.REQUEST_PASSWORD, error);
         }
       }
     }
@@ -317,7 +317,7 @@ export default class NotificationHandler {
           }
         } catch (error) {
           // Log error
-          Logging.logActionExceptionMessage(tenantID, Action.USER_ACCOUNT_STATUS_CHANGED, error);
+          Logging.logActionExceptionMessage(tenantID, Source.USER_ACCOUNT_STATUS_CHANGED, error);
         }
       }
     }
@@ -340,7 +340,7 @@ export default class NotificationHandler {
           await notificationSource.notificationTask.sendNewRegisteredUser(
             sourceData, user, tenant, NotificationSeverity.INFO);
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.NEW_REGISTERED_USER, error);
+          Logging.logActionExceptionMessage(tenantID, Source.NEW_REGISTERED_USER, error);
         }
       }
     }
@@ -363,7 +363,7 @@ export default class NotificationHandler {
           await notificationSource.notificationTask.sendVerificationEmail(
             sourceData, user, tenant, NotificationSeverity.INFO);
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.VERIFICATION_EMAIL, error);
+          Logging.logActionExceptionMessage(tenantID, Source.VERIFICATION_EMAIL, error);
         }
       }
     }
@@ -395,7 +395,7 @@ export default class NotificationHandler {
                 sourceData, adminUser, tenant, NotificationSeverity.ERROR);
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.CHARGING_STATION_STATUS_ERROR, error);
+            Logging.logActionExceptionMessage(tenantID, Source.CHARGING_STATION_STATUS_ERROR, error);
           }
         }
       }
@@ -424,7 +424,7 @@ export default class NotificationHandler {
                 sourceData, adminUser, tenant, NotificationSeverity.WARNING);
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.CHARGING_STATION_REGISTERED, error);
+            Logging.logActionExceptionMessage(tenantID, Source.CHARGING_STATION_REGISTERED, error);
           }
         }
       }
@@ -454,7 +454,7 @@ export default class NotificationHandler {
             }
           } catch (error) {
             // Log error
-            Logging.logActionExceptionMessage(tenantID, Action.UNKNOWN_USER_BADGED, error);
+            Logging.logActionExceptionMessage(tenantID, Source.UNKNOWN_USER_BADGED, error);
           }
         }
       }
@@ -490,7 +490,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.TRANSACTION_STARTED, error);
+          Logging.logActionExceptionMessage(tenantID, Source.TRANSACTION_STARTED, error);
         }
       }
     }
@@ -525,7 +525,7 @@ export default class NotificationHandler {
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.AUTH_EMAIL_ERROR, error);
+            Logging.logActionExceptionMessage(tenantID, Source.AUTH_EMAIL_ERROR, error);
           }
         }
       }
@@ -566,7 +566,7 @@ export default class NotificationHandler {
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.PATCH_EVSE_STATUS_ERROR, error);
+            Logging.logActionExceptionMessage(tenantID, Source.PATCH_EVSE_STATUS_ERROR, error);
           }
         }
       }
@@ -593,7 +593,7 @@ export default class NotificationHandler {
               sourceData, user, tenant, NotificationSeverity.INFO);
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.USER_ACCOUNT_INACTIVITY, error);
+          Logging.logActionExceptionMessage(tenantID, Source.USER_ACCOUNT_INACTIVITY, error);
         }
       }
     }
@@ -626,7 +626,7 @@ export default class NotificationHandler {
             }
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Action.PREPARING_SESSION_NOT_STARTED, error);
+          Logging.logActionExceptionMessage(tenantID, Source.PREPARING_SESSION_NOT_STARTED, error);
         }
       }
     }
@@ -662,7 +662,7 @@ export default class NotificationHandler {
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.OFFLINE_CHARGING_STATIONS, error);
+            Logging.logActionExceptionMessage(tenantID, Source.OFFLINE_CHARGING_STATIONS, error);
           }
         }
       }
@@ -698,7 +698,7 @@ export default class NotificationHandler {
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Action.BILLING_USER_SYNCHRONIZATION_FAILED, error);
+            Logging.logActionExceptionMessage(tenantID, Source.BILLING_USER_SYNCHRONIZATION_FAILED, error);
           }
         }
       }

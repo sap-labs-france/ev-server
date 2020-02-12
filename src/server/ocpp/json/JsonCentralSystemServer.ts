@@ -104,7 +104,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, Action.WS_CONNECTION, '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+          error, 'WsConnection', '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }

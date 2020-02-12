@@ -215,7 +215,7 @@ export default class Logging {
   // Used to log exception in catch(...) only
   public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
-    if (action === Action.LOGIN && req.body.password) {
+    if (action === 'Login' && req.body.password) {
       req.body.password = '####';
     }
     if (req.user && req.user.tenantID) {
@@ -308,7 +308,7 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionBadRequestExceptionMessage(tenantID: string, action: Action, exception: any): void {
+  private static _logActionBadRequestExceptionMessage(tenantID: string, action: string, exception: any): void {
     Logging.logSecurityError({
       tenantID: tenantID,
       user: exception.user,

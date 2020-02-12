@@ -351,7 +351,7 @@ export default class OCPPUtils {
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, Action.REQUEST_CONFIGURATION, error);
+      Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }

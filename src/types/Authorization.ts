@@ -79,48 +79,12 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
-  UPDATE_CHARGING_STATION_TEMPLATE_MASK = 'UpdateChargingStationTemplatesTask',
-  CHECK_OFFLINE_CHARGING_STATION_TASK = 'CheckOfflineChargingStationsTask',
-  CHECK_PREPARING_SESSION_NOT_STARTED_TASK = 'CheckPreparingSessionNotStartedTask',
-  CHECK_USER_ACCOUNT_INACTIVITY_TASK = 'CheckUserAccountInactivityTask',
-  LOGS_CLEAN_UP = 'LogsCleanUp',
-  REFUND_SYNCHRONIZE = 'RefundSynchronize',
-  OCPI_GET_CDRS = 'OCPIGetCdrs',
+
   OCPI_GET_LOCATIONS = 'OCPIiGetLocations',
-  OCPI_GET_SESSIONS_TASK = 'OCPIGetSessionsTask',
-  OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
-  REQUEST_CONFIGURATION = 'RequestConfiguration',
-  UPDATE_CHARGING_STATION_TEMPLATES_FROM_FILE = 'UpdateChargingStationTemplatesFromFile',
-
-  CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError',
-  CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered',
-  END_OF_CHARGE = 'NotifyEndOfCharge',
-  OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached',
-  END_OF_SESSION = 'NotifyEndOfSession',
-  REQUEST_PASSWORD = 'NotifyRequestPassword',
-  USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged',
-  NEW_REGISTERED_USER = 'NotifyNewRegisteredUser',
-  UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged',
-  TRANSACTION_STARTED = 'NotifyTransactionStarted',
-  VERIFICATION_EMAIL = 'NotifyVerificationEmail',
-  AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer',
-  PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError',
-  USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity',
-  PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
-  OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
-  BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
-  CONNECTORS_ACTION = 'ConnectorsAction',
-
-  HAS_NOTIFICATION = 'HasNotification',
-
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
-
-  WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
-  WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
-  WS_CONNECTION = 'WsConnection',
 
   START_SESSION = 'startSession',
   STOP_SESSION = 'stopSession',
@@ -139,7 +103,5 @@ export enum Action {
   EMPTY_ACTION = '',
   DELETE_CREDENTIALS = 'DELETE credentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
-
-
 }
 

@@ -106,7 +106,7 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, Action.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      Logging.logException(error, 'WsConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
 
       throw new BackendError({
         source: this.getChargingStationID(),

@@ -145,7 +145,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Handle Error Message
       this.wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, Action.WS_REST_CONNECTION_CLOSED, this.chargingStation.id, MODULE_NAME, 'onError', this.tenantID);
+        Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.id, MODULE_NAME, 'onError', this.tenantID);
         // Terminate WS in error
         this._terminateConnection();
       };
@@ -189,7 +189,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          Logging.logException(error, Action.WS_REST_CLIENT_MESSAGE, this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
+          Logging.logException(error, 'WSRestClientMessage', this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
         }
       };
     });
