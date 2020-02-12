@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Action } from '../../../types/Authorization';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import { HTTPError } from '../../../types/HTTPError';
@@ -6,13 +7,14 @@ import Logging from '../../../utils/Logging';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 
+
 export default class UtilsService {
-  static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
+  static handleUnknownAction(action: Action, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
-        'N/A', new Error('No Action has been provided'), req, res, next);
+        Action.N_A, new Error('No Action has been provided'), req, res, next);
     } else {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
@@ -48,7 +50,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertComponentIsActiveFromToken(userToken: UserToken, component: string, action: string, entity: string, module: string, method: string) {
+  public static assertComponentIsActiveFromToken(userToken: UserToken, component: string, action: Action, entity: string, module: string, method: string) {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw

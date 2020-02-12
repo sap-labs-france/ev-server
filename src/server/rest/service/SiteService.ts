@@ -17,7 +17,7 @@ import UtilsService from './UtilsService';
 
 export default class SiteService {
 
-  public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAddUsersToSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -86,7 +86,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteUserAdmin(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteUserAdmin(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -198,7 +198,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteOwner(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteOwner(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -286,7 +286,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleRemoveUsersFromSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRemoveUsersFromSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -344,7 +344,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -412,7 +412,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleDeleteSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -450,7 +450,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -481,7 +481,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -528,7 +528,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSiteImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -559,7 +559,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleCreateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -602,7 +602,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,

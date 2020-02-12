@@ -243,7 +243,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  // static async pushTransactionToRevenueCloud(tenantID: string, action: string, transaction: Transaction, user: User, actionOnUser: User) {
+  // static async pushTransactionToRevenueCloud(tenantID: string, action: Action, transaction: Transaction, user: User, actionOnUser: User) {
   //   // Refund Transaction
   //   const cloudRevenueAuth = new ClientOAuth2({
   //     clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',

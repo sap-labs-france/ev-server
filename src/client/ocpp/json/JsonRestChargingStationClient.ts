@@ -6,6 +6,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import WSClient from '../../WSClient';
 import ChargingStationClient from '../ChargingStationClient';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
@@ -144,7 +145,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Handle Error Message
       this.wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.id, MODULE_NAME, 'onError', this.tenantID);
+        Logging.logException(error, Action.WS_REST_CONNECTION_CLOSED, this.chargingStation.id, MODULE_NAME, 'onError', this.tenantID);
         // Terminate WS in error
         this._terminateConnection();
       };
@@ -188,7 +189,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          Logging.logException(error, 'WSRestClientMessage', this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
+          Logging.logException(error, Action.WS_REST_CLIENT_MESSAGE, this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
         }
       };
     });

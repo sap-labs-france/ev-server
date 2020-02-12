@@ -5,6 +5,7 @@ import global from '../../../types/GlobalType';
 import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import BackendError from '../../../exception/BackendError';
+import { Action } from '../../../types/Authorization';
 
 export default class ERPService extends AbstractSoapClient {
   public execute: any;
@@ -39,7 +40,7 @@ export default class ERPService extends AbstractSoapClient {
         module: 'ERPService',
         method: 'createInvoice',
         message: 'Convergent Invoicing connection is missing',
-        action: 'Billing',
+        action: Action.BILLING,
         user: user
       });
     }
@@ -52,7 +53,7 @@ export default class ERPService extends AbstractSoapClient {
           module: 'ERPService',
           method: 'createInvoice',
           message: result.data.message,
-          action: 'Billing',
+          action: Action.BILLING,
           user: user,
           detailedMessages: result.data
         });
@@ -65,7 +66,7 @@ export default class ERPService extends AbstractSoapClient {
           module: 'ERPService',
           method: 'createInvoice',
           message: 'Unable to create invoice',
-          action: 'Billing',
+          action: Action.BILLING,
           user: user,
           detailedMessages: result.data
         });
@@ -75,7 +76,7 @@ export default class ERPService extends AbstractSoapClient {
         module: 'ERPService',
         method: 'createInvoice',
         message: 'Unable to create invoice',
-        action: 'Billing',
+        action: Action.BILLING,
         user: user,
         detailedMessages: result.data
       });

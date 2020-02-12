@@ -23,7 +23,7 @@ const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(id, MODULE_NAME, 'handleDeleteTenant', req.user);
@@ -72,7 +72,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleGetTenant', req.user);
@@ -100,7 +100,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTenants(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -125,7 +125,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -221,7 +221,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleUpdateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Filter

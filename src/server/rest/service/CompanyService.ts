@@ -13,7 +13,7 @@ import UtilsService from './UtilsService';
 
 export default class CompanyService {
 
-  public static async handleDeleteCompany(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteCompany(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -52,7 +52,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -84,7 +84,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompanyLogo(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompanyLogo(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -114,7 +114,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompanies(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -150,7 +150,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleCreateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -190,7 +190,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,

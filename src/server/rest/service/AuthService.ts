@@ -18,7 +18,7 @@ import UserToken from '../../../types/UserToken';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import { Role } from '../../../types/Authorization';
+import { Role, Action } from '../../../types/Authorization';
 import Utils from '../../../utils/Utils';
 import AuthSecurity from './security/AuthSecurity';
 import Tag from '../../../types/Tag';
@@ -52,7 +52,7 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleLogIn(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
@@ -160,7 +160,7 @@ export default class AuthService {
     }
   }
 
-  public static async handleRegisterUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleRegisterUser(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
@@ -318,7 +318,7 @@ export default class AuthService {
     next();
   }
 
-  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: string, req: Request, res: Response, next: NextFunction) {
+  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: Action, req: Request, res: Response, next: NextFunction) {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
@@ -402,7 +402,7 @@ export default class AuthService {
     next();
   }
 
-  public static async resetUserPassword(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
+  public static async resetUserPassword(tenantID: string, filteredRequest, action: Action, req: Request, res: Response, next: NextFunction) {
     // Get the user
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     // Found?
@@ -450,7 +450,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUserPasswordReset(action: Action, req: Request, res: Response, next: NextFunction) {
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
@@ -474,7 +474,7 @@ export default class AuthService {
     }
   }
 
-  public static async handleCheckEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckEndUserLicenseAgreement(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
     // Check
@@ -529,7 +529,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetEndUserLicenseAgreement(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
     // Get Tenant
@@ -555,7 +555,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleVerifyEmail(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
@@ -673,7 +673,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleResendVerificationEmail(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
     // Get the tenant
@@ -825,12 +825,12 @@ export default class AuthService {
     next();
   }
 
-  public static handleUserLogOut(action: string, req: Request, res: Response, next: NextFunction) {
+  public static handleUserLogOut(action: Action, req: Request, res: Response, next: NextFunction) {
     req.logout();
     res.status(200).send({});
   }
 
-  public static async userLoginWrongPassword(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginWrongPassword(action: Action, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Add wrong trial + 1
     if (isNaN(user.passwordWrongNbrTrials)) {
       user.passwordWrongNbrTrials = 0;
@@ -873,7 +873,7 @@ export default class AuthService {
     }
   }
 
-  public static async userLoginSucceeded(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginSucceeded(action: Action, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Password / Login OK
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -925,7 +925,7 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
-  public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
+  public static async checkUserLogin(action: Action, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
     // User Found?
     if (!user) {
       throw new AppError({

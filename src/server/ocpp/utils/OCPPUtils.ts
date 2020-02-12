@@ -11,6 +11,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPConstants from './OCPPConstants';
 import Utils from '../../../utils/Utils';
+import { Action } from '../../../types/Authorization';
 
 export default class OCPPUtils {
 
@@ -350,7 +351,7 @@ export default class OCPPUtils {
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
+      Logging.logActionExceptionMessage(tenantID, Action.REQUEST_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }

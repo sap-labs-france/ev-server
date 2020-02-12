@@ -5,6 +5,7 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
 import ChargingStationClient from '../ChargingStationClient';
+import { Action } from '../../../types/Authorization';
 
 // Default Module name
 const _moduleName = 'SoapChargingStationClient';
@@ -83,18 +84,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
-  private initSoapHeaders(action) {
-    // Clear the SOAP Headers`
-    this.client.clearSoapHeaders();
-    // Add them
-    this.client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${this.chargingStation.id}</h:chargeBoxIdentity>`);
-    this.client.addSoapHeader('<a:MessageID xmlns:a="http://www.w3.org/2005/08/addressing">urn:uuid:589e13ae-1787-49f8-ab8b-4567327b23c6</a:MessageID>');
-    this.client.addSoapHeader('<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>');
-    this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.chargingStationURL}</a:To>`);
-    this.client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
-    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
-  }
-
   public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
     // Init SOAP Headers with the action
     this.initSoapHeaders(OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION);
@@ -109,7 +98,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION,
+        action: OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${params.transactionId}: ${error.toString()}`,
         detailedMessages: [
@@ -141,7 +130,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.REMOTE_START_TRANSACTION,
+        action: OCPPChargingStationCommand.REMOTE_START_TRANSACTION as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`,
         detailedMessages: [
@@ -175,7 +164,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.UNLOCK_CONNECTOR,
+        action: OCPPChargingStationCommand.UNLOCK_CONNECTOR as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method:  'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
         detailedMessages: [
@@ -187,7 +176,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.UNLOCK_CONNECTOR, [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.UNLOCK_CONNECTOR as unknown as Action, [
       { result },
       { envelope }
     ]);
@@ -198,7 +187,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders(OCPPChargingStationCommand.RESET);
     // Log
-    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.RESET,
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, OCPPChargingStationCommand.RESET as unknown as Action,
       [params, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.Reset({
@@ -208,7 +197,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.RESET,
+        action: OCPPChargingStationCommand.RESET as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
         detailedMessages: [
@@ -239,7 +228,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.CLEAR_CACHE,
+        action: OCPPChargingStationCommand.CLEAR_CACHE as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
         detailedMessages: [
@@ -279,7 +268,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        action: OCPPChargingStationCommand.GET_CONFIGURATION,
+        action: OCPPChargingStationCommand.GET_CONFIGURATION as unknown as Action,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
         detailedMessages: [
@@ -319,7 +308,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       Logging.logError({
         tenantID: this.tenantID,
         source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'changeConfiguration',
-        action: OCPPChargingStationCommand.CHANGE_CONFIGURATION,
+        action: OCPPChargingStationCommand.CHANGE_CONFIGURATION as unknown as Action,
         message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -363,5 +352,17 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   public updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  private initSoapHeaders(action) {
+    // Clear the SOAP Headers`
+    this.client.clearSoapHeaders();
+    // Add them
+    this.client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${this.chargingStation.id}</h:chargeBoxIdentity>`);
+    this.client.addSoapHeader('<a:MessageID xmlns:a="http://www.w3.org/2005/08/addressing">urn:uuid:589e13ae-1787-49f8-ab8b-4567327b23c6</a:MessageID>');
+    this.client.addSoapHeader('<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>');
+    this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.chargingStationURL}</a:To>`);
+    this.client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
+    this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
   }
 }

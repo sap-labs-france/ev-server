@@ -47,6 +47,7 @@ export enum Action {
   UPDATE = 'Update',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
+  LOGIN = 'Login',
   LIST = 'List',
   RESET = 'Reset',
   AUTHORIZE = 'Authorize',
@@ -63,6 +64,7 @@ export enum Action {
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
+  REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
@@ -71,5 +73,89 @@ export enum Action {
   POWER_LIMITATION = 'PowerLimitation',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',
+  RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
+  END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
+  CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
+  VERIFY_EMAIL = 'VerifyEmail',
+  N_A ='N/A',
+  FIRMWARE_DOWNLOAD = 'FirmwareDownload',
+
+  UPDATE_CHARGING_STATION_TEMPLATE_MASK = 'UpdateChargingStationTemplatesTask',
+  CHECK_OFFLINE_CHARGING_STATION_TASK = 'CheckOfflineChargingStationsTask',
+  CHECK_PREPARING_SESSION_NOT_STARTED_TASK = 'CheckPreparingSessionNotStartedTask',
+  CHECK_USER_ACCOUNT_INACTIVITY_TASK = 'CheckUserAccountInactivityTask',
+  LOGS_CLEAN_UP = 'LogsCleanUp',
+  REFUND_SYNCHRONIZE = 'RefundSynchronize',
+  OCPI_GET_CDRS = 'OCPIGetCdrs',
+  OCPI_GET_LOCATIONS = 'OCPIiGetLocations',
+  OCPI_GET_SESSIONS_TASK = 'OCPIGetSessionsTask',
+  OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+
+
+  BOOT_NOTIFICATION = 'BootNotification',
+  HEART_BEAT = 'HeartBeat',
+  STATUS_NOTIFICATION = 'StatusNotification',
+  METER_VALUES = 'MaterValues',
+  DIAGNOSTIC_STATUS_NOTIFICATION = 'DiagnosticStatusNotification',
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
+
+  REQUEST_CONFIGURATION = 'RequestConfiguration',
+  UPDATE_CHARGING_STATION_TEMPLATES_FROM_FILE = 'UpdateChargingStationTemplatesFromFile',
+
+  CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError',
+  CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered',
+  END_OF_CHARGE = 'NotifyEndOfCharge',
+  OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached',
+  END_OF_SESSION = 'NotifyEndOfSession',
+  REQUEST_PASSWORD = 'NotifyRequestPassword',
+  USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged',
+  NEW_REGISTERED_USER = 'NotifyNewRegisteredUser',
+  UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged',
+  TRANSACTION_STARTED = 'NotifyTransactionStarted',
+  VERIFICATION_EMAIL = 'NotifyVerificationEmail',
+  AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer',
+  PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError',
+  USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity',
+  PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
+  OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
+
+  HAS_NOTIFICATION = 'HasNotification',
+
+  SESSION_HASH_SERVICE = 'SessionHashService',
+  ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
+
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
+  GET_DIAGNOSTICS = 'GetDiagnostics',
+  CHANGE_AVAILABILITY = 'ChangeAvailability',
+  UPDATE_FIRMWARE = 'UpdateFirmware',
+
+  WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
+  WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
+  WS_CONNECTION = 'WsConnection',
+
+  CONNECTORS_ACTION = 'ConnectorsAction',
+
+  START_SESSION = 'startSession',
+  STOP_SESSION = 'stopSession',
+  UPDATE_SESSION = 'updateSession',
+
+  REFUND = 'Refund',
+
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+
+  USER_INVOICE = 'UserInvoice',
+
+  BILLING = 'Billing',
+
+  MONGO_DB = 'MongoDB',
+
+  EMPTY_ACTION = '',
+
+  DELETE_CREDENTIALS = 'DELETE credentials',
+  OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
+
+
 }
 

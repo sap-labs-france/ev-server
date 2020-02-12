@@ -33,7 +33,7 @@ import { filter } from 'bluebird';
 
 export default class ChargingStationService {
 
-  public static async handleAssignChargingStationsToSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -88,7 +88,7 @@ export default class ChargingStationService {
       }
     }
     // Save
-    if (action === 'AddChargingStationsToSiteArea') {
+    if (action === Action.ADD_CHARGING_STATION_TO_SITE_AREA) {
       await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     } else {
       await ChargingStationStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
@@ -107,7 +107,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateChargingStationParams(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
     // Check existence
@@ -201,7 +201,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleChargingStationLimitPower(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleChargingStationLimitPower(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
     // Check
@@ -271,7 +271,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingProfiles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingProfiles(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
@@ -295,7 +295,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleUpdateChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
     // Check existence
@@ -374,7 +374,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleDeleteChargingProfile(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check existence
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Get
@@ -452,7 +452,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationConfiguration(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
     // Check
@@ -481,7 +481,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRequestChargingStationConfiguration(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterRequestChargingStationConfigurationRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
@@ -510,7 +510,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteChargingStation(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Check Mandatory fields
@@ -595,7 +595,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStation(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query);
     // Check
@@ -636,12 +636,12 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStations(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     res.json(await ChargingStationService.getChargingStations(req));
     next();
   }
 
-  public static async handleChargingStationsOCPPParamsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleChargingStationsOCPPParamsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = true;
     // Get Charging Stations
@@ -689,7 +689,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     // Build export
@@ -711,7 +711,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationsInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -759,7 +759,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetStatusNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -783,7 +783,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetBootNotifications(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBootNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -807,7 +807,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetFirmware(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetFirmware(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
     if (!filteredRequest.FileName) {
@@ -867,12 +867,12 @@ export default class ChargingStationService {
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.AUTH_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Transaction ID is mandatory',
           module: 'ChargingStationService',
           method: 'handleAction',
           user: req.user,
-          action: command
+          action: command as unknown as Action,
         });
       }
       // Get Transaction
@@ -890,7 +890,7 @@ export default class ChargingStationService {
           module: 'ChargingStationService',
           method: 'handleAction',
           user: req.user,
-          action: command
+          action: command as unknown as Action,
         });
       }
       // Check if user is authorized
@@ -917,7 +917,7 @@ export default class ChargingStationService {
           module: 'ChargingStationService',
           method: 'handleAction',
           user: req.user,
-          action: command
+          action: command as unknown as Action,
         });
       }
       // Check if user is authorized
@@ -927,11 +927,11 @@ export default class ChargingStationService {
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
     } else if (command === OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE) {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, command, chargingStation)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: command,
+          action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -967,11 +967,11 @@ export default class ChargingStationService {
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, command, chargingStation)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: command,
+          action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
           module: 'ChargingStationService',
           method: 'handleAction',
@@ -994,7 +994,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleActionSetMaxIntensitySocket(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleActionSetMaxIntensitySocket(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body);
     // Charge Box is mandatory
@@ -1005,7 +1005,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
       'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     // Get the Config
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration', chargingStation)) {
+    if (!Authorizations.canPerformActionOnChargingStation(req.user, Action.CHANGE_CONFIGURATION, chargingStation)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -1062,7 +1062,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleIsAuthorized(action: Action, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
     let result = [{ 'IsAuthorized': false }];
@@ -1256,7 +1256,7 @@ export default class ChargingStationService {
     if (!transaction) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.AUTH_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         module: 'ChargingStationService',
         method: 'isStopTransactionAuthorized',
@@ -1497,7 +1497,7 @@ export default class ChargingStationService {
       // Throw error
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: command,
+        action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
         module: 'ChargingStationService',
@@ -1507,7 +1507,7 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: command,
+        action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' error ${JSON.stringify(error, null, ' ')}`,
         module: 'ChargingStationService',

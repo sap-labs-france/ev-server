@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import { Action } from '../../types/Authorization';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
@@ -65,7 +66,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           }
         } catch (error) {
           actionsDone.error++;
-          Logging.logActionExceptionMessage(tenant.id, 'RefundSynchronize', error);
+          Logging.logActionExceptionMessage(tenant.id, Action.REFUND_SYNCHRONIZE, error);
         }
       }
       // Log result

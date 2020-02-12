@@ -1,4 +1,5 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import { Action } from '../Authorization';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
   siteAreaID: string;
@@ -47,7 +48,7 @@ export interface HttpChargingStationCommandRequest {
 }
 
 export interface HttpIsAuthorizedRequest {
-  Action: string;
+  Action: Action;
   Arg1: any;
   Arg2: any;
   Arg3: any;

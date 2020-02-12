@@ -10,6 +10,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import { Action } from '../../../types/Authorization';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
@@ -46,7 +47,7 @@ export default class SessionHashService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse('SessionHashService', err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(Action.SESSION_HASH_SERVICE, err, req, res, next);
       return true;
     }
     return false;
