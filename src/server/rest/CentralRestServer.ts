@@ -74,7 +74,7 @@ export default class CentralRestServer {
     // Util API
     this.express.use('/client/util', CentralRestServerService.restServiceUtil);
     // Workaround URL encoding issue
-    this.express.use('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
+    this.express.use('/client%2Futil%2FFirmwareDownload', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
