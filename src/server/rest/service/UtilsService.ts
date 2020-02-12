@@ -9,12 +9,12 @@ import Utils from '../../../utils/Utils';
 
 
 export default class UtilsService {
-  static handleUnknownAction(action: Action, req: Request, res: Response, next: NextFunction) {
+  static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
-        Action.N_A, new Error('No Action has been provided'), req, res, next);
+        'N/A', new Error('No Action has been provided'), req, res, next);
     } else {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(

@@ -69,8 +69,8 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'deleteCredentials',
-        action: Action.DELETE_CREDENTIALS,
         errorCode: 405,
+        action: Action.DELETE_CREDENTIALS,
         message: 'method not allowed if the client was not registered',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
       });

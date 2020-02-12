@@ -278,7 +278,7 @@ export default {
   // eslint-disable-next-line no-unused-vars
   async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1) as Action;
+    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
     switch (req.method) {
       // Create Request
@@ -307,7 +307,7 @@ export default {
 
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1) as Action;
+    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
@@ -317,7 +317,7 @@ export default {
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
-        Action.N_A, new Error(`Unsupported request method ${req.method}`), req, res, next);
+        'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
 

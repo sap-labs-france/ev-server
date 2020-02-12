@@ -213,7 +213,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessageAndSendResponse(action: Action, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
+  public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
     if (action === Action.LOGIN && req.body.password) {
       req.body.password = '####';

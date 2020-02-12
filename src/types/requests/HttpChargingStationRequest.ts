@@ -48,7 +48,7 @@ export interface HttpChargingStationCommandRequest {
 }
 
 export interface HttpIsAuthorizedRequest {
-  Action: Action;
+  Action: string;
   Arg1: any;
   Arg2: any;
   Arg3: any;

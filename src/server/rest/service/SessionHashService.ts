@@ -47,7 +47,7 @@ export default class SessionHashService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(Action.SESSION_HASH_SERVICE, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse('SessionHashService', err, req, res, next);
       return true;
     }
     return false;

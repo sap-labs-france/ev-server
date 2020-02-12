@@ -77,7 +77,6 @@ export enum Action {
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
   CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
   VERIFY_EMAIL = 'VerifyEmail',
-  N_A ='N/A',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
   UPDATE_CHARGING_STATION_TEMPLATE_MASK = 'UpdateChargingStationTemplatesTask',
@@ -91,13 +90,7 @@ export enum Action {
   OCPI_GET_SESSIONS_TASK = 'OCPIGetSessionsTask',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
 
-
   BOOT_NOTIFICATION = 'BootNotification',
-  HEART_BEAT = 'HeartBeat',
-  STATUS_NOTIFICATION = 'StatusNotification',
-  METER_VALUES = 'MaterValues',
-  DIAGNOSTIC_STATUS_NOTIFICATION = 'DiagnosticStatusNotification',
-  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
 
   REQUEST_CONFIGURATION = 'RequestConfiguration',
   UPDATE_CHARGING_STATION_TEMPLATES_FROM_FILE = 'UpdateChargingStationTemplatesFromFile',
@@ -119,23 +112,15 @@ export enum Action {
   PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
+  CONNECTORS_ACTION = 'ConnectorsAction',
 
   HAS_NOTIFICATION = 'HasNotification',
 
-  SESSION_HASH_SERVICE = 'SessionHashService',
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
-
-  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
-  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
-  GET_DIAGNOSTICS = 'GetDiagnostics',
-  CHANGE_AVAILABILITY = 'ChangeAvailability',
-  UPDATE_FIRMWARE = 'UpdateFirmware',
 
   WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
   WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
   WS_CONNECTION = 'WsConnection',
-
-  CONNECTORS_ACTION = 'ConnectorsAction',
 
   START_SESSION = 'startSession',
   STOP_SESSION = 'stopSession',
@@ -152,7 +137,6 @@ export enum Action {
   MONGO_DB = 'MongoDB',
 
   EMPTY_ACTION = '',
-
   DELETE_CREDENTIALS = 'DELETE credentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 

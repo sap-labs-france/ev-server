@@ -6,7 +6,7 @@ import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
 
 
 export default class NotificationService {
-  static async handleGetNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
