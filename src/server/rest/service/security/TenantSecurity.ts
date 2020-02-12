@@ -26,9 +26,6 @@ export default class TenantSecurity {
 
   public static filterTenantRequest(request: any): Partial<Tenant> {
     const filteredRequest: Partial<Tenant> = {};
-    console.log('====================================');
-    console.log(JSON.stringify(request, null, ' '));
-    console.log('====================================');
     if ('id' in request) {
       filteredRequest.id = sanitize(request.id);
     }
@@ -82,6 +79,12 @@ export default class TenantSecurity {
         filteredRequest.components.statistics = {
           active: UtilsSecurity.filterBoolean(request.components.statistics.active),
           type: sanitize(request.components.statistics.type)
+        };
+      }
+      if (request.components.building) {
+        filteredRequest.components.building = {
+          active: UtilsSecurity.filterBoolean(request.components.building.active),
+          type: sanitize(request.components.building.type)
         };
       }
     }

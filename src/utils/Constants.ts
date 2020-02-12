@@ -179,7 +179,8 @@ export default class Constants {
     ORGANIZATION: 'organization',
     STATISTICS: 'statistics',
     ANALYTICS: 'analytics',
-    SMART_CHARGING: 'smartCharging'
+    SMART_CHARGING: 'smartCharging',
+    BUILDING: 'building'
   };
 
   // Ocpi Registering status

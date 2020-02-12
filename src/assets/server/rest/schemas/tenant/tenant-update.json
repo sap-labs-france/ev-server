@@ -83,6 +83,13 @@
                       "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
+              },
+              "building": {
+                "type": "object",
+                "properties": {
+                    "active": { "type": "boolean" },
+                      "type": { "type": "string" }
+                  }
               }
             }
         }
