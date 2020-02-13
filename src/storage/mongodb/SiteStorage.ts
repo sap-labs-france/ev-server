@@ -444,12 +444,7 @@ export default class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, {
-      params,
-      limit,
-      skip,
-      sort: dbParams.sort
-    });
+    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, { params });
     return {
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
