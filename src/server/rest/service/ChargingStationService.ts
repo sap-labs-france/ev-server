@@ -275,7 +275,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleGetChargingProfiles', req.user);
+    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingProfiles', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -285,11 +285,11 @@ export default class ChargingStationService {
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleGetChargingProfiles',
-        value: filteredRequest.chargeBoxID
+        value: filteredRequest.ChargeBoxID
       });
     }
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: filteredRequest.chargeBoxID, connectorID: filteredRequest.connectorID },
+      { chargingStationID: filteredRequest.ChargeBoxID, connectorID: filteredRequest.ConnectorID },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     res.json(chargingProfiles);
     next();

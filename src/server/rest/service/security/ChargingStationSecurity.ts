@@ -148,8 +148,8 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
     const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
-    filteredRequest.chargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.connectorID = sanitize(request.connectorID);
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
