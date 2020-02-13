@@ -33,64 +33,63 @@
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },
-                          "type": { "type": "string" }
-                      }
+                        "type": { "type": "string" }
+                    }
                 },
                 "refund": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },
-                          "type": { "type": "string" }
-                      }
+                        "type": { "type": "string" }
+                    }
                 },
                 "pricing": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },
-                          "type": { "type": "string" }
+                        "type": { "type": "string" }
                     }
                 },
                 "billing": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },
-                          "type": { "type": "string" }
-                      }
+                        "type": { "type": "string" }
+                    }
                 },
                 "organization": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" }
-                      }
+                    }
                 },
                 "statistics": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" }
-                      }
+                    }
                 },
                 "analytics": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },
-                          "type": { "type": "string" }
-                      }
+                        "type": { "type": "string" }
+                    }
                 }
                 ,
                 "smartCharging": {
-                  "type": "object",
-                  "properties": {
+                    "type": "object",
+                    "properties": {
                       "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              },
-              "building": {
-                "type": "object",
-                "properties": {
-                    "active": { "type": "boolean" },
-                      "type": { "type": "string" }
-                  }
-              }
+                },
+                "building": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                }
             }
         }
     },
