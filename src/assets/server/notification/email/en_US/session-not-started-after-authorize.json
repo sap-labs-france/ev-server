@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You badged on the charging station<b>'<%- chargeBoxID %>'</b> but you haven't started a session.",
+      "You badged on the charging station <b>'<%- chargeBoxID %>'</b> but no session has been started.",
       ""
     ],
     "action": {
