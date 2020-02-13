@@ -200,16 +200,28 @@ export default class UserService {
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      try {
-        await billingImpl.deleteUser(user);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
+      if (await billingImpl.checkIfUserCanBeDeleted(user)) {
+        try {
+          await billingImpl.deleteUser(user);
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleDeleteUser',
+            action: 'UserDelete',
+            message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+            detailedMessages: e.message
+          });
+        }
+      } else {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'User cannot delete himself',
           module: 'UserService',
           method: 'handleDeleteUser',
-          action: 'UserDelete',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
-          detailedMessages: e.message
+          user: req.user,
+          action: action
         });
       }
     }

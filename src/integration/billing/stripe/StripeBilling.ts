@@ -511,7 +511,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     // Check connection
     await this.checkConnection();
 
-
     I18nManager.switchLocale(user.locale);
     let customer: Stripe.customers.ICustomer = null;
     if (user.billingData && user.billingData.customerID) {
@@ -531,22 +530,37 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       paymentMethod = customer.default_source;
     }
     if (!paymentMethod && !this.settings.noCardAllowed) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
       });
+      return false;
     }
     const billingMethod = this.retrieveBillingMethod(user);
     if (!billingMethod) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
       });
+      return false;
     }
     if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
       });
+      return false;
     }
     const subscription = (customer.subscriptions && customer.subscriptions.data && customer.subscriptions.data.length > 0)
       ? customer.subscriptions.data[0] : null;
@@ -555,20 +569,35 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       billingPlan = await this.retrieveBillingPlan();
     }
     if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
       });
+      return false;
     }
     if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       const plan = await this.getBillingPlan(billingPlan);
       if (!plan || !plan.id || plan.id !== billingPlan) {
-        throw new BackendError({
+        Logging.logError({
+          tenantID: this.tenantID,
+          action: Action.DELETE,
+          module: 'StripeBilling',
+          method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
         });
+        return false;
       } else if (plan.currency.toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
-        throw new BackendError({
+        Logging.logError({
+          tenantID: this.tenantID,
+          action: Action.DELETE,
+          module: 'StripeBilling',
+          method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan.currency}`
         });
+        return false;
       }
     }
     return true;
@@ -597,27 +626,42 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       status: 'open',
     });
     if (list && list.data && list.data.length > 0) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
+      return false;
     }
     list = await this.stripe.invoices.list({
       customer: user.billingData.customerID,
       status: 'draft',
     });
     if (list && list.data && list.data.length > 0) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
+      return false;
     }
     const itemsList = await this.stripe.invoiceItems.list({
       customer: user.billingData.customerID,
       pending: true,
     });
     if (itemsList && itemsList.data && itemsList.data.length > 0) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.DELETE,
+        module: 'StripeBilling',
+        method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
       });
+      return false;
     }
     return true;
   }
