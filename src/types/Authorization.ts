@@ -47,6 +47,7 @@ export enum Action {
   UPDATE = 'Update',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
+  LOGIN = 'Login',
   LIST = 'List',
   RESET = 'Reset',
   AUTHORIZE = 'Authorize',
@@ -59,9 +60,11 @@ export enum Action {
   REFUND_TRANSACTION = 'RefundTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
+  GET_CHARGING_PROFILE = 'GetChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
+  REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
@@ -70,5 +73,35 @@ export enum Action {
   POWER_LIMITATION = 'PowerLimitation',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',
+  RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
+  END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
+  CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
+  VERIFY_EMAIL = 'VerifyEmail',
+  FIRMWARE_DOWNLOAD = 'FirmwareDownload',
+
+
+  OCPI_GET_LOCATIONS = 'OCPIiGetLocations',
+
+  BOOT_NOTIFICATION = 'BootNotification',
+
+  ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
+
+  START_SESSION = 'startSession',
+  STOP_SESSION = 'stopSession',
+  UPDATE_SESSION = 'updateSession',
+
+  REFUND = 'Refund',
+
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+
+  USER_INVOICE = 'UserInvoice',
+
+  BILLING = 'Billing',
+
+  MONGO_DB = 'MongoDB',
+
+  EMPTY_ACTION = '',
+  DELETE_CREDENTIALS = 'DELETE credentials',
+  OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 }
 

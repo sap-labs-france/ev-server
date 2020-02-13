@@ -12,7 +12,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
-  public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -52,7 +52,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -86,7 +86,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreaImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -118,7 +118,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreas(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreas(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -155,7 +155,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -195,7 +195,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleUpdateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,

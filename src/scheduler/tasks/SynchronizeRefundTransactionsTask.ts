@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import { Action } from '../../types/Authorization';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {

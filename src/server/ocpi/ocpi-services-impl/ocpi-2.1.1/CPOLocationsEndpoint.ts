@@ -14,6 +14,7 @@ import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIEvse } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { Action } from '../../../../types/Authorization';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -66,7 +67,7 @@ const RECORDS_LIMIT = 20;
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'getLocationRequest',
-          action: 'OcpiGetLocations',
+          action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
@@ -82,7 +83,7 @@ const RECORDS_LIMIT = 20;
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'getLocationRequest',
-          action: 'OcpiGetLocations',
+          action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
@@ -98,7 +99,7 @@ const RECORDS_LIMIT = 20;
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
           method: 'getLocationRequest',
-          action: 'OcpiGetLocations',
+          action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site id '${locationId}' not found`,
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR

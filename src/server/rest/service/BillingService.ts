@@ -14,7 +14,7 @@ import Utils from '../../../utils/Utils';
 
 export default class BillingService {
 
-  public static async handleGetBillingConnection(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -81,7 +81,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUsers(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -112,7 +112,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingTaxes(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingTaxes(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canReadBillingTaxes(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,

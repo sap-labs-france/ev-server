@@ -16,6 +16,7 @@ import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/Ra
 import { RateResult } from './model/RateResult';
 import StatefulChargingService from './StatefulChargingService';
 import { RefundStatus } from '../../../types/Refund';
+import { Action } from '../../../types/Authorization';
 
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
@@ -81,7 +82,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('startSession', consumptionData, result);
+    await this.handleError(Action.START_SESSION, consumptionData, result);
     return null;
 
   }
@@ -111,7 +112,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('updateSession', consumptionData, result);
+    await this.handleError(Action.STOP_SESSION, consumptionData, result);
     return null;
 
   }
@@ -138,12 +139,12 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('stopSession', consumptionData, result);
+    await this.handleError(Action.UPDATE_SESSION, consumptionData, result);
     return null;
 
   }
 
-  async handleError(action: string, consumptionData: Consumption, result) {
+  async handleError(action: Action, consumptionData: Consumption, result) {
     const chargingResult = result.data.chargingResult;
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
     Logging.logError({
