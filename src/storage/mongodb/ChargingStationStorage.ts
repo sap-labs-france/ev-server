@@ -716,8 +716,8 @@ export default class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingProfiles', uniqueTimerID, { params, dbParams });
     return {
-      count: (chargingProfilesMDB.length > 0 ?
-        (chargingProfilesMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesMDB[0].count) : 0),
+      count: (chargingProfilesCountMDB.length > 0 ?
+        (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
       result: chargingProfilesMDB
     };
   }
