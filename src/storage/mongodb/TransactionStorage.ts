@@ -1002,12 +1002,12 @@ export default class TransactionStorage {
     await Utils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
-    // Create filters
-    const filters: any = { $and: [{ $or: DatabaseUtils.getNotDeletedFilter() }] };
-    // Filter on status preparing
-    filters.$and.push({ timestamp: { $gt: new Date(params.authorizeDate.toISOString()) } });
-    // Add in aggregation
-    aggregation.push({ $match: filters });
+    // Add filter
+    aggregation.push({
+      $match: {
+        timestamp: { $gt: new Date(params.authorizeDate.toISOString()) }
+      }
+    });
     // Group by tagID
     aggregation.push({
       $group: {
