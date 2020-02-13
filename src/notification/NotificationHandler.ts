@@ -1,4 +1,4 @@
-import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, SessionNotStartedNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -700,6 +700,36 @@ export default class NotificationHandler {
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Source.BILLING_USER_SYNCHRONIZATION_FAILED, error);
           }
+        }
+      }
+    }
+  }
+
+  static async sendSessionNotStarted(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+    sourceData: SessionNotStartedNotification): Promise<void> {
+    // Get the Tenant
+    const tenant = await TenantStorage.getTenant(tenantID);
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+            tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (sourceData.user.notificationsActive && sourceData.user.notifications.sendSessionNotStarted) {
+              // Save
+              await NotificationHandler.saveNotification(
+                tenantID, notificationSource.channel, notificationID,
+                Source.SESSION_NOT_STARTED_AFTER_AUTHORIZE, sourceData.user, chargingStation);
+              // Send
+              await notificationSource.notificationTask.sendSessionNotStarted(sourceData, sourceData.user, tenant, NotificationSeverity.INFO);
+            }
+          }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Source.OPTIMAL_CHARGE_REACHED, error);
         }
       }
     }

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification, SessionNotStartedNotification } from '../../types/UserNotifications';
 import User, { Status } from '../../types/User';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -66,6 +66,21 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.PREPARING_SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId
+    },
+    severity
+    );
+  }
+
+  public sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.sessionNotStarted.title');
+    const body = i18n.t('notifications.sessionNotStarted.body',
+      { chargeBoxID: data.chargeBoxID });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.SESSION_NOT_STARTED_AFTER_AUTHORIZE, title, body, user, {
+      chargeBoxID: data.chargeBoxID,
     },
     severity
     );

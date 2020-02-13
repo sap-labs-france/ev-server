@@ -211,6 +211,15 @@
         "active": true,
         "periodicity": "0 * * * *",
         "config": {}
+      },
+      {
+        "name": "CheckSessionNotStartedAfterAuthorizeTask",
+        "active": true,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "checkPastAuthorizeMins": 60,
+          "sessionShouldBeStartedAfterMins": 10
+        }
       }
     ]
   },
