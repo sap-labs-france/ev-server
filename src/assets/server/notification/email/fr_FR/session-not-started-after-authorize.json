@@ -1,0 +1,37 @@
+{
+  "subject": "'<%- chargeBoxID %>' - Session Non Démarrée",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Session Non Démarrée",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Vous avez badger sur la borne <b>'<%- chargeBoxID %>'</b>,  mais aucune session n'a démarrer ",
+      ""
+    ],
+    "action": {
+      "title": "Voir <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

@@ -29,7 +29,8 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendChargingStationStatusError: true,
             sendChargingStationRegistered: true,
             sendOcpiPatchStatusError: true,
-            sendSmtpAuthError: true
+            sendSmtpAuthError: true,
+            sendSessionNotStarted: true
           };
         } else {
           user.notifications = {
@@ -42,7 +43,9 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendChargingStationStatusError: false,
             sendChargingStationRegistered: false,
             sendOcpiPatchStatusError: false,
-            sendSmtpAuthError: false
+            sendSmtpAuthError: false,
+            sendSessionNotStarted: true
+
           };
         }
       } else {
@@ -56,7 +59,9 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           sendChargingStationStatusError: false,
           sendChargingStationRegistered: false,
           sendOcpiPatchStatusError: false,
-          sendSmtpAuthError: false
+          sendSmtpAuthError: false,
+          sendSessionNotStarted: true
+
         };
       }
       // Update

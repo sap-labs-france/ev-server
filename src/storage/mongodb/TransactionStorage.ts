@@ -10,6 +10,9 @@ import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import moment = require('moment');
+import Authorizations from '../../authorization/Authorizations';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -729,7 +732,7 @@ export default class TransactionStorage {
     });
     // Charging Station?
     if (params.withChargeBoxes ||
-        (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
+      (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID,
@@ -991,6 +994,120 @@ export default class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
+  }
+
+  public static async getNotStartedTransactions(tenantID: string,
+    params: { authorizeDate: Date; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getNotStartedTransactions');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Create filters
+    const filters: any = { $and: [{ $or: DatabaseUtils.getNotDeletedFilter() }] };
+    // Filter on status preparing
+    filters.$and.push({ timestamp: { $gt: new Date(params.authorizeDate.toISOString()) } });
+    // Add in aggregation
+    aggregation.push({ $match: filters });
+    // Group by tagID
+    aggregation.push({
+      $group: {
+        _id: '$tagID',
+        date: {
+          $last: '$timestamp'
+        },
+        chargingStation: {
+          $last: '$chargeBoxID'
+        },
+        userID: {
+          $last: '$userID'
+        }
+      }
+    });
+    // Convert date to milliseconds and add the tolerated amount of time
+    aggregation.push({
+      $addFields: {
+        compareDateInMill: { $add: [{ $toLong: '$date' }, 60000 * params.sessionShouldBeStartedAfterMins] }
+      }
+    });
+    // Convert milliseconds to date
+    aggregation.push({
+      $addFields: {
+        compareDate: { $toDate: '$compareDateInMill' }
+      }
+    });
+    // Lookup for transactions
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+        let: { tagID: '$_id', authDate: '$compareDate' },
+        pipeline: [{
+          $match: {
+            $and: [
+              {
+                $expr:
+                  { $eq: ['$$tagID', '$tagID'] }
+              },
+              {
+                $expr: {
+                  $lte: ['$$authDate', '$timestamp']
+                }
+              }
+            ]
+          }
+        }],
+        as: 'transaction'
+      }
+    });
+    // Lookup for users
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'userID',
+        foreignField: '_id',
+        as: 'user'
+      }
+    });
+    // Lookup for charging station
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+        localField: 'chargingStation',
+        foreignField: '_id',
+        as: 'chargingStation'
+      }
+    });
+    // Get only authorize with no transactions
+    aggregation.push({
+      $match: {
+        transaction: { $size: 0 }
+      }
+    });
+    // Format Data
+    aggregation.push({
+      $project: {
+        _id: 0,
+        tagID: '$_id',
+        authDate: '$date',
+        chargingStation: { $arrayElemAt: ['$chargingStation', 0] },
+        user: { $arrayElemAt: ['$user', 0] }
+      }
+    });
+    // Change ID Charging Station
+    DatabaseUtils.renameDatabaseID(aggregation, 'chargingStation');
+    // Change ID User
+    DatabaseUtils.renameDatabaseID(aggregation, 'user');
+    // Read DB
+    const notifySessionNotStarted: NotifySessionNotStarted[] = await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .toArray();
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
+    return {
+      count: notifySessionNotStarted.length,
+      result: notifySessionNotStarted
+    };
   }
 
   private static getTransactionsInErrorFacet(errorType: string) {
