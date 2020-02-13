@@ -249,7 +249,7 @@ export default class EMailNotificationTask implements NotificationTask {
       });
     }
   }
- /* eslint-disable */
+
   async sendEmail(email, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
     // Create the message
     const messageToSend = {

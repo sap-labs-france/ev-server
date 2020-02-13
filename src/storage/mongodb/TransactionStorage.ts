@@ -1,5 +1,7 @@
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import { NotifySessionNotStarted } from '../../types/Notification';
 import RefundReport, { RefundStatus } from '../../types/Refund';
 import Transaction, { InactivityStatus } from '../../types/Transaction';
 import User from '../../types/User';
@@ -9,10 +11,6 @@ import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-import { NotifySessionNotStarted } from '../../types/Notification';
-import moment = require('moment');
-import Authorizations from '../../authorization/Authorizations';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
