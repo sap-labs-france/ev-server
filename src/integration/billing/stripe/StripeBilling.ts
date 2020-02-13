@@ -766,7 +766,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     I18nManager.switchLocale(user.locale);
     const description = i18n.t('billing.generatedUser', { email: user.email });
-    let customer = await this.getCustomerByEmail(user.email);
+    let customer;
+    if (user.billingData && user.billingData.customerID) {
+      customer = await this.getCustomerByID(user.billingData.customerID);
+    } else {
+      customer = await this.getCustomerByEmail(user.email);
+    }
     if (!customer) {
       try {
         customer = await this.stripe.customers.create({
@@ -792,6 +797,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     if (customer.name !== fullName) {
       dataToUpdate.name = fullName;
+    }
+    if (customer.email !== user.email) {
+      dataToUpdate.email = user.email;
     }
     if (locale &&
         (!customer.preferred_locales ||

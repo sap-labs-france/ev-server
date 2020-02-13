@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import UserStorage from "../../../storage/mongodb/UserStorage";
 
 
 export default class BillingService {
@@ -138,7 +139,8 @@ export default class BillingService {
       });
     }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
-    const synchronizeAction = await billingImpl.synchronizeUser(user.id, tenant.id);
+    const userToSynchronize = await UserStorage.getUserByEmail(user.email, tenant.id);
+    const synchronizeAction = await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
