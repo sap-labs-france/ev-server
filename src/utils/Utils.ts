@@ -1,5 +1,5 @@
 import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { HTTPError, HTTPUserError } from '../types/HTTPError';
+import { HTTPError } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
@@ -243,7 +243,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  // static async pushTransactionToRevenueCloud(tenantID: string, action: string, transaction: Transaction, user: User, actionOnUser: User) {
+  // static async pushTransactionToRevenueCloud(tenantID: string, action: Action, transaction: Transaction, user: User, actionOnUser: User) {
   //   // Refund Transaction
   //   const cloudRevenueAuth = new ClientOAuth2({
   //     clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -991,7 +991,7 @@ export default class Utils {
             // Tag already used!
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPUserError.TAG_ID_ALREADY_USED_ERROR,
+              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
               module: 'Utils',
               method: 'checkIfUserTagsAreValid',

@@ -31,7 +31,7 @@ import UtilsService from './UtilsService';
 import { TransactionInErrorType } from '../../../types/InError';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
@@ -58,7 +58,7 @@ export default class TransactionService {
     }
   }
 
-  public static async handleRefundTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRefundTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
     if (!filteredRequest.transactionIds) {
@@ -140,7 +140,7 @@ export default class TransactionService {
   }
 
 
-  public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUnassignedTransactionsCount(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -175,7 +175,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignTransactionsToUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -210,7 +210,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
@@ -233,7 +233,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleDeleteTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
     // Check auth
@@ -253,7 +253,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleTransactionSoftStop(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleTransactionSoftStop(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
     // Transaction Id is mandatory
@@ -325,7 +325,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetConsumptionFromTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
@@ -374,7 +374,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
@@ -402,7 +402,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetChargingStationTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -438,7 +438,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionYears(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionYears(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Transactions
     const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
     const result: any = {};
@@ -451,7 +451,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsActive(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsActive(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -504,7 +504,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsCompleted(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsCompleted(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -571,7 +571,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsToRefund(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefund(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -635,7 +635,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetRefundReports(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetRefundReports(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -676,7 +676,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -750,7 +750,7 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsToRefundExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefundExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -834,7 +834,7 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
@@ -914,7 +914,7 @@ export default class TransactionService {
     return csv;
   }
 
-  private static async deleteTransactions(action: string, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+  private static async deleteTransactions(action: Action, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
     const transactionsIDsToDelete = [];
     const result: ActionsResponse = {
       inSuccess: 0,

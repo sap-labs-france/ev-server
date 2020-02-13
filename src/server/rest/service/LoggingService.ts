@@ -13,7 +13,7 @@ import UserToken from '../../../types/UserToken';
 import I18nManager from '../../../utils/I18nManager';
 
 export default class LoggingService {
-  static async handleGetLoggings(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggings(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -80,7 +80,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLoggingsExport(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggingsExport(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -137,7 +137,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLogging(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLogging(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query);

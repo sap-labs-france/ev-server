@@ -6,6 +6,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import WSClient from '../../WSClient';
 import ChargingStationClient from '../ChargingStationClient';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {

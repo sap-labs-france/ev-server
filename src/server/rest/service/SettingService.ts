@@ -14,7 +14,7 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import UtilsService from './UtilsService';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleDeleteSetting', req.user);
@@ -47,7 +47,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
@@ -77,7 +77,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettings(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
@@ -108,7 +108,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
@@ -141,7 +141,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);

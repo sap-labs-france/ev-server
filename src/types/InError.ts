@@ -1,11 +1,13 @@
+import { Action } from './Authorization';
 import ChargingStation from './ChargingStation';
 import Transaction from './Transaction';
 import User from './User';
 
+
 export interface ErrorMessage {
   title: string;
   description: string;
-  action: string;
+  action: Action;
 }
 
 export interface InError {

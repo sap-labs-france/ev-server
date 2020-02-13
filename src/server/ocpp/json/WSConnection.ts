@@ -8,6 +8,7 @@ import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -105,7 +106,7 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, 'WSConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      Logging.logException(error, 'WsConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
 
       throw new BackendError({
         source: this.getChargingStationID(),

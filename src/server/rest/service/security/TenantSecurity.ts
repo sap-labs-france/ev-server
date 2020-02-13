@@ -26,9 +26,6 @@ export default class TenantSecurity {
 
   public static filterTenantRequest(request: any): Partial<Tenant> {
     const filteredRequest: Partial<Tenant> = {};
-    console.log('====================================');
-    console.log(JSON.stringify(request, null, ' '));
-    console.log('====================================');
     if ('id' in request) {
       filteredRequest.id = sanitize(request.id);
     }

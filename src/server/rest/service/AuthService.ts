@@ -1,4 +1,4 @@
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HTTPError } from '../../../types/HTTPError';
 import User, { Status } from '../../../types/User';
 import axios from 'axios';
 import { Handler, NextFunction, Request, Response } from 'express';
@@ -18,7 +18,7 @@ import UserToken from '../../../types/UserToken';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import { Role } from '../../../types/Authorization';
+import { Role, Action } from '../../../types/Authorization';
 import Utils from '../../../utils/Utils';
 import AuthSecurity from './security/AuthSecurity';
 import Tag from '../../../types/Tag';
@@ -52,7 +52,7 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleLogIn(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
@@ -90,7 +90,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EULA_ERROR,
+        errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -141,7 +141,7 @@ export default class AuthService {
           // Return data
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPUserError.LOCKED_ERROR,
+            errorCode: HTTPError.USER_LOCKED_ERROR,
             message: 'User is locked',
             module: 'AuthService',
             method: 'handleLogIn'
@@ -160,7 +160,7 @@ export default class AuthService {
     }
   }
 
-  public static async handleRegisterUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleRegisterUser(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
@@ -179,7 +179,7 @@ export default class AuthService {
     if (!filteredRequest.acceptEula) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EULA_ERROR,
+        errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
         module: 'AuthService',
         method: 'handleLogIn'
@@ -222,7 +222,7 @@ export default class AuthService {
     if (user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
         module: 'AuthService',
         method: 'handleRegisterUser'
@@ -318,7 +318,7 @@ export default class AuthService {
     next();
   }
 
-  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: string, req: Request, res: Response, next: NextFunction) {
+  public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: Action, req: Request, res: Response, next: NextFunction) {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
       throw new AppError({
@@ -402,7 +402,7 @@ export default class AuthService {
     next();
   }
 
-  public static async resetUserPassword(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
+  public static async resetUserPassword(tenantID: string, filteredRequest, action: Action, req: Request, res: Response, next: NextFunction) {
     // Get the user
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     // Found?
@@ -450,7 +450,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUserPasswordReset(action: Action, req: Request, res: Response, next: NextFunction) {
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
@@ -474,7 +474,7 @@ export default class AuthService {
     }
   }
 
-  public static async handleCheckEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckEndUserLicenseAgreement(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
     // Check
@@ -529,7 +529,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetEndUserLicenseAgreement(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
     // Get Tenant
@@ -555,7 +555,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleVerifyEmail(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
@@ -631,7 +631,7 @@ export default class AuthService {
     if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -642,7 +642,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPAuthError.INVALID_TOKEN_ERROR,
+        errorCode: HTTPError.INVALID_TOKEN_ERROR,
         message: 'Wrong Verification Token',
         module: 'AuthService',
         method: 'handleVerifyEmail',
@@ -673,7 +673,7 @@ export default class AuthService {
     next();
   }
 
-  public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleResendVerificationEmail(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
     // Get the tenant
@@ -773,7 +773,7 @@ export default class AuthService {
     if (user.status === Status.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.ACCOUNT_ALREADY_ACTIVE_ERROR,
+        errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -825,12 +825,12 @@ export default class AuthService {
     next();
   }
 
-  public static handleUserLogOut(action: string, req: Request, res: Response, next: NextFunction) {
+  public static handleUserLogOut(action: Action, req: Request, res: Response, next: NextFunction) {
     req.logout();
     res.status(200).send({});
   }
 
-  public static async userLoginWrongPassword(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginWrongPassword(action: Action, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Add wrong trial + 1
     if (isNaN(user.passwordWrongNbrTrials)) {
       user.passwordWrongNbrTrials = 0;
@@ -850,7 +850,7 @@ export default class AuthService {
       // Log
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.LOCKED_ERROR,
+        errorCode: HTTPError.USER_LOCKED_ERROR,
         message: 'User is locked',
         module: 'AuthService',
         method: 'checkUserLogin',
@@ -873,7 +873,7 @@ export default class AuthService {
     }
   }
 
-  public static async userLoginSucceeded(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginSucceeded(action: Action, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Password / Login OK
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -925,7 +925,7 @@ export default class AuthService {
     return (tenant ? tenant.id : null);
   }
 
-  public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
+  public static async checkUserLogin(action: Action, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
     // User Found?
     if (!user) {
       throw new AppError({
@@ -948,7 +948,7 @@ export default class AuthService {
       if (user.status === Status.PENDING) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.ACCOUNT_PENDING_ERROR,
+          errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
           message: 'Account is pending! User must activate his account in his email',
           module: 'AuthService',
           method: 'checkUserLogin',
@@ -959,7 +959,7 @@ export default class AuthService {
       if (user.status !== Status.ACTIVE) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPUserError.ACCOUNT_INACTIVE_ERROR,
+          errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
           message: `Account is not active ('${user.status}')`,
           module: 'AuthService',
           method: 'checkUserLogin',

@@ -12,7 +12,7 @@ import VehicleStorage from '../../../storage/mongodb/VehicleStorage';
 
 export default class VehicleService {
 
-  public static async handleDeleteVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteVehicle(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Check Mandatory fields
@@ -63,7 +63,7 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleGetVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetVehicle(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query);
     // Charge Box is mandatory
@@ -110,7 +110,7 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleGetVehicles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetVehicles(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListVehicles(req.user)) {
       throw new AppAuthError({
@@ -136,7 +136,7 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleGetVehicleImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetVehicleImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Charge Box is mandatory
@@ -181,7 +181,7 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleCreateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateVehicle(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateVehicle(req.user)) {
       throw new AppAuthError({
@@ -224,7 +224,7 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleUpdateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateVehicle(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest(req.body);
     // Check Mandatory fields

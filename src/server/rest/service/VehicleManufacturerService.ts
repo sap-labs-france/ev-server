@@ -12,7 +12,7 @@ import VehicleManufacturerStorage from '../../../storage/mongodb/VehicleManufact
 
 export default class VehicleManufacturerService {
 
-  public static async handleDeleteVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteVehicleManufacturer(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const vehicleManufacturerID = VehicleManufacturerSecurity.filterVehicleManufacturerRequestByID(req.query);
     // Check Mandatory fields
@@ -63,7 +63,7 @@ export default class VehicleManufacturerService {
     next();
   }
 
-  public static async handleGetVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetVehicleManufacturer(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query);
     // Charge Box is mandatory
@@ -110,7 +110,7 @@ export default class VehicleManufacturerService {
     next();
   }
 
-  public static async handleGetVehicleManufacturers(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetVehicleManufacturers(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListVehicleManufacturers(req.user)) {
       throw new AppAuthError({
@@ -136,7 +136,7 @@ export default class VehicleManufacturerService {
     next();
   }
 
-  public static async handleCreateVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateVehicleManufacturer(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
       throw new AppAuthError({
@@ -180,7 +180,7 @@ export default class VehicleManufacturerService {
     next();
   }
 
-  public static async handleUpdateVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateVehicleManufacturer(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest(req.body);
     // Check auth
@@ -232,7 +232,7 @@ export default class VehicleManufacturerService {
     next();
   }
 
-  public static async handleGetVehicleManufacturerLogo(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetVehicleManufacturerLogo(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const vehicleManufacturerID = VehicleManufacturerSecurity.filterVehicleManufacturerRequestByID(req.query);
     // Charge Box is mandatory

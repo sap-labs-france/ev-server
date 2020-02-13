@@ -8,6 +8,7 @@ import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
 import urlencode from 'urlencode';
+import { Action } from '../../types/Authorization';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -25,7 +26,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -43,7 +44,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
 
@@ -112,7 +113,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
 
@@ -190,7 +191,7 @@ export default class MongoDBStorage {
           module: 'MongoDBStorage',
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: 'MongoDB'
+          action: Action.MONGO_DB
         });
       }
 
@@ -215,7 +216,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     // Migrate not prefixed collections
@@ -236,7 +237,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     // Get all the collections
