@@ -267,11 +267,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.billingUserSynchronizationFailed.body',
       { nbrUsersInError: data.nbrUsersInError, tenantName: tenant.name });
     // Send Notification
-    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED, title, body, user, {
-      'error': data.nbrUsersInError + '',
-    },
-    severity
-    );
+    return this.sendRemotePushNotificationToUser(tenant, UserNotificationType.BILLING_USER_SYNCHRONIZATION_FAILED,
+      title, body, user, { 'error': data.nbrUsersInError + '', }, severity );
   }
 
   private async sendRemotePushNotificationToUser(tenant: Tenant, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {
