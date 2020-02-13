@@ -2,7 +2,7 @@
   "notifications": {
     "sessionNotStarted": {
       "title": "Session Non Démarrée",
-      "body": "Vous avez badger sur la borne '{{chargeBoxID}}', mais aucune transaction n'a démarrer."
+      "body": "Vous avez badgé sur la borne '{{chargeBoxID}}', mais aucune session n'a été démarrée"
     },
 		"sessionStarted": {
 			"title": "Session Démarrée",
