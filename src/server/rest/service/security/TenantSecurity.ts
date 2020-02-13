@@ -83,8 +83,7 @@ export default class TenantSecurity {
       }
       if (request.components.building) {
         filteredRequest.components.building = {
-          active: UtilsSecurity.filterBoolean(request.components.building.active),
-          type: sanitize(request.components.building.type)
+          active: UtilsSecurity.filterBoolean(request.components.building.active)
         };
       }
     }
