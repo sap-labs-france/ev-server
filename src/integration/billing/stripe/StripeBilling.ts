@@ -579,48 +579,41 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     this.checkIfStripeIsInitialized();
     // Check connection
     await this.checkConnection();
-
     // No billing in progress
     if (!user.billingData || !user.billingData.customerID) {
       return true;
     }
     // Check connection
     await this.checkConnection();
-
     if (this.checkIfTestMode()) {
       const customer = await this.getCustomerByEmail(user.email);
       if (customer && !customer.livemode) {
         return true;
       }
     }
-    let list = await this.stripe.invoices.list(
-      {
-        customer: user.billingData.customerID,
-        status: 'open',
-      }
-    );
+    // Check invoices
+    let list = await this.stripe.invoices.list({
+      customer: user.billingData.customerID,
+      status: 'open',
+    });
     if (list && list.data && list.data.length > 0) {
       throw new BackendError({
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
     }
-    list = await this.stripe.invoices.list(
-      {
-        customer: user.billingData.customerID,
-        status: 'draft',
-      }
-    );
+    list = await this.stripe.invoices.list({
+      customer: user.billingData.customerID,
+      status: 'draft',
+    });
     if (list && list.data && list.data.length > 0) {
       throw new BackendError({
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
     }
-    const itemsList = await this.stripe.invoiceItems.list(
-      {
-        customer: user.billingData.customerID,
-        pending: true,
-      }
-    );
+    const itemsList = await this.stripe.invoiceItems.list({
+      customer: user.billingData.customerID,
+      pending: true,
+    });
     if (itemsList && itemsList.data && itemsList.data.length > 0) {
       throw new BackendError({
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
