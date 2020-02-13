@@ -205,7 +205,7 @@ export interface OfflineChargingStationNotification extends BaseNotification {
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
   nbrUsersInError: number;
   evseDashboardURL: string;
-  evseDashnoardBillingURL: string;
+  evseDashboardBillingURL: string;
 }
 
 export interface NotificationSource {
