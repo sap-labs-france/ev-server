@@ -1101,7 +1101,7 @@ export default class TransactionStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
+    Logging.traceEnd('ChargingStationStorage', 'getNotStartedTransactions', uniqueTimerID);
     return {
       count: notifySessionNotStarted.length,
       result: notifySessionNotStarted
