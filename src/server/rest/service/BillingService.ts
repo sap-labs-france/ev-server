@@ -148,7 +148,7 @@ export default class BillingService {
 
   public static async handleForceUserSynchronization(action: Action, req: Request, res: Response, next: NextFunction) {
     const user = BillingSecurity.filterSynchronizeUserRequest(req.body);
-    if (!Authorizations.canSynchronizeUserBilling(req.user)) {
+    if (!Authorizations.canForceUserSynchronizationBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,

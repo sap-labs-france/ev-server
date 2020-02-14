@@ -556,6 +556,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
   }
 
+  public static canForceUserSynchronizationBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+  }
+
   public static canReadBillingTaxes(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_TAXES);
   }
