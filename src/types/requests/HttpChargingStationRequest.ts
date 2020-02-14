@@ -13,8 +13,8 @@ export interface HttpChargingStationLimitPowerRequest {
 }
 
 export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
-  chargeBoxID: string;
-  connectorID: number;
+  ChargeBoxID: string;
+  ConnectorID: number;
 }
 
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {

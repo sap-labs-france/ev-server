@@ -1,8 +1,8 @@
-import Constants from '../../utils/Constants';
-import global from '../../types/GlobalType';
-import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
+import Constants from '../../utils/Constants';
+import MigrationTask from '../MigrationTask';
+import { Role } from '../../types/Authorization';
 
 export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   async migrate() {
@@ -18,7 +18,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       if (user.notificationsActive) {
-        if (user.role === 'A') {
+        if (user.role === Role.ADMIN) {
           user.notifications = {
             sendSessionStarted: true,
             sendOptimalChargeReached: true,
@@ -29,7 +29,8 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendChargingStationStatusError: true,
             sendChargingStationRegistered: true,
             sendOcpiPatchStatusError: true,
-            sendSmtpAuthError: true
+            sendSmtpAuthError: true,
+            sendSessionNotStarted: true
           };
         } else {
           user.notifications = {
@@ -42,7 +43,9 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendChargingStationStatusError: false,
             sendChargingStationRegistered: false,
             sendOcpiPatchStatusError: false,
-            sendSmtpAuthError: false
+            sendSmtpAuthError: false,
+            sendSessionNotStarted: true
+
           };
         }
       } else {
@@ -56,7 +59,9 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           sendChargingStationStatusError: false,
           sendChargingStationRegistered: false,
           sendOcpiPatchStatusError: false,
-          sendSmtpAuthError: false
+          sendSmtpAuthError: false,
+          sendSessionNotStarted: false
+
         };
       }
       // Update
@@ -69,7 +74,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.1';
+    return '1.2';
   }
 
   getName() {

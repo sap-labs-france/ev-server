@@ -1,3 +1,6 @@
+import User from "./User";
+import ChargingStation from "./ChargingStation";
+
 export enum Source {
   CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered',
@@ -16,5 +19,12 @@ export enum Source {
   PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'NotifySessionNotStartedAfterAuthorize'
 }
 
+export interface NotifySessionNotStarted {
+  chargingStation: ChargingStation;
+  tagID: string;
+  authDate: Date;
+  user: User;
+}

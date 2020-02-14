@@ -757,7 +757,8 @@ export default class Authorizations {
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false
+        sendSmtpAuthError: false,
+        sendSessionNotStarted: false
       } as UserNotifications;
       user.image = '';
       user.iNumber = '';

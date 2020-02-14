@@ -22,3 +22,7 @@ export interface LoggingDatabaseTableCleanupTaskConfig extends TaskConfig {
 export interface CheckUserAccountInactivityTaskConfig extends TaskConfig {
   userAccountInactivityMonths?: number;
 }
+export interface CheckSessionNotStartedAfterAuthorizeTaskConfig extends TaskConfig {
+  sessionShouldBeStartedAfterMins?: number;
+  checkPastAuthorizeMins?: number;
+}

@@ -638,11 +638,10 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenantID: string,
-    params: {
-      chargingStationID?: string; connectorID?: number;
-    } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
-
+      params: {
+        chargingStationID?: string; connectorID?: number;
+      } = {},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     // Check Tenant
@@ -651,7 +650,6 @@ export default class ChargingStationStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-
     // Query by chargingStationID
     const filters: any = {};
     if (params.chargingStationID) {
@@ -668,11 +666,23 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
     // Count Records
     const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
-
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (chargingProfilesCountMDB.length > 0 ? chargingProfilesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Rename ID
@@ -699,14 +709,15 @@ export default class ChargingStationStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
-
+    // Read DB
     const chargingProfilesMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingProfiles', uniqueTimerID, { params, dbParams });
     return {
-      count: (chargingProfilesCountMDB.length > 0 ? chargingProfilesCountMDB[0].count : 0),
+      count: (chargingProfilesCountMDB.length > 0 ?
+        (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
       result: chargingProfilesMDB
     };
   }

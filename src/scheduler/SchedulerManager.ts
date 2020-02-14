@@ -14,6 +14,7 @@ import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
+import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -78,6 +79,10 @@ export default class SchedulerManager {
           case 'SynchronizeBillingUsersTask':
             schedulerTask = new SynchronizeBillingUsersTask();
             break;
+          case 'CheckSessionNotStartedAfterAuthorizeTask':
+            schedulerTask = new CheckSessionNotStartedAfterAuthorizeTask();
+            break;
+
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,

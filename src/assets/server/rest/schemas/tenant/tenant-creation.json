@@ -27,64 +27,70 @@
             "maxLength": 20
         },
         "components": {
-          "type": "object",
-          "properties": {
-              "ocpi": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" },
+            "type": "object",
+            "properties": {
+                "ocpi": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              },
-              "refund": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" },
+                },
+                "refund": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              },
-              "pricing": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" },
-                        "type": { "type": "string" }
-                  }
-              },
-              "billing": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" },
+                },
+                "pricing": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              },
-              "organization": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" }
-                    }
-              },
-              "statistics": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" }
-                    }
-              },
-              "analytics": {
-                  "type": "object",
-                  "properties": {
-                      "active": { "type": "boolean" },
+                },
+                "billing": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              },
-              "smartCharging": {
-                "type": "object",
-                "properties": {
-                    "active": { "type": "boolean" },
-                      "type": { "type": "string" }
-                  }
+                },
+                "organization": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                },
+                "statistics": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                },
+                "analytics": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+                },
+                "smartCharging": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+                },
+                "building": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                }
             }
-          }
-      }
-  },
-  "required": ["name", "email", "subdomain"]
+        }
+    },
+    "required": ["name", "email", "subdomain"]
 }
