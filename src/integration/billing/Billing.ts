@@ -69,9 +69,10 @@ export default abstract class Billing<T extends BillingSetting> {
       for (const userIDChangedInBilling of userIDsChangedInBilling) {
         // Get Billing User
         const billingUser = await this.getUser(userIDChangedInBilling);
+        // Get e-Mobility User
+        const user = await UserStorage.getUserByBillingID(tenantID, userIDChangedInBilling);
+
         if (billingUser) {
-          // Get e-Mobility User
-          const user = await UserStorage.getUserByEmail(tenantID, billingUser.email);
           if (user) {
             const action = await this.synchronizeUser(user, tenantID);
             actionsDone.synchronized += action.synchronized;
@@ -88,9 +89,9 @@ export default abstract class Billing<T extends BillingSetting> {
               message: `Billing user with ID '${userIDChangedInBilling}' and email '${billingUser.email}' does not exist in e-Mobility`
             });
           }
-        } else {
+        } else if (user) {
+          // Only triggers an error if e-Mobility user is not deleted
           actionsDone.error++;
-          // Log
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -109,16 +110,16 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing',
         method: 'synchronizeUsers',
-        message: `${actionsDone.synchronized} e-Mobility user(s) have been synchronized successfully`
+        message: `${actionsDone.synchronized} user(s) have been synchronized successfully`
       });
-    }
-    // Update last synchronization
-    const billingSettings = await SettingStorage.getBillingSettings(tenantID);
-    // Save last synchronization
-    billingSettings.stripe.lastSynchronizedOn = new Date();
-    // Save
-    await SettingStorage.saveBillingSettings(tenantID, billingSettings);
 
+      // Update last synchronization
+      const billingSettings = await SettingStorage.getBillingSettings(tenantID);
+      // Save last synchronization
+      billingSettings.stripe.lastSynchronizedOn = new Date();
+      // Save
+      await SettingStorage.saveBillingSettings(tenantID, billingSettings);
+    }
     return actionsDone;
   }
 

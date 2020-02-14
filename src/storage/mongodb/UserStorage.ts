@@ -173,6 +173,17 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
+  // TODO unit test
+  public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByBillingID');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { billingCustomer: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
+    return user.count > 0 ? user.result[0] : null;
+  }
+
   public static async getUserImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
