@@ -53,7 +53,7 @@ export default abstract class Billing<T extends BillingSetting> {
           userIDsChangedInBilling = userIDsChangedInBilling.filter((id) => id !== billingUser.billingData.customerID);
         }
         actionsDone.synchronized += action.synchronized;
-        actionsDone.error += actionsDone.error;
+        actionsDone.error += action.error;
       }
     }
     // Synchronize e-Mobility User's Billing data
@@ -192,7 +192,7 @@ export default abstract class Billing<T extends BillingSetting> {
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_BILLING,
           module: 'Billing',
-          method: 'synchronizeUser',
+          method: 'forceUserSynchronization',
           message: `Cannot force synchronization of user ${user.email}`,
           detailedMessages: error.message
         });
