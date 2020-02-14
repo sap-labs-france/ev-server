@@ -824,6 +824,53 @@ export default class Utils {
     }
   }
 
+  public static checkIfChargingProfileValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'ChargingStation ID is mandatory',
+        module: 'ChargingStationService',
+        method: 'checkIfChargingProfileValid',
+        user: req.user.id
+      });
+    }
+
+    if (!filteredRequest.profile) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'ChargingProfile is mandatory',
+        module: 'ChargingStationService',
+        method: 'checkIfChargingProfileValid',
+        user: req.user.id
+      });
+    }
+
+    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel || !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind || !filteredRequest.profile.chargingSchedule) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid profile',
+        module: 'ChargingStationService',
+        method: 'checkIfChargingProfileValid',
+        user: req.user.id
+      });
+    }
+
+    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid schedule',
+        module: 'ChargingStationService',
+        method: 'checkIfChargingProfileValid',
+        user: req.user.id
+      });
+    }
+
+  }
+
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({

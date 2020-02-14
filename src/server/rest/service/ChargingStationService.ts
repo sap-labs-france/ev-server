@@ -303,6 +303,8 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleUpdateChargingProfile', req.user);
+    // Check Mandatory fields
+    Utils.checkIfChargingProfileValid(filteredRequest, req);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
