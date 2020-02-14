@@ -124,6 +124,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (customer && customer.email) {
       return {
         email: customer.email,
+        name: customer.name,
         billingData: {
           customerID: customer.id
         }
@@ -139,6 +140,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (request) {
       return {
         email: email,
+        name: request.name,
         billingData: {
           customerID: request.id
         }
