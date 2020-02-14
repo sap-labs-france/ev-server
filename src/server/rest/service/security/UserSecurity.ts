@@ -269,7 +269,8 @@ export default class UserSecurity {
       sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
-      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false
+      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
+      sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
     };
   }
 }

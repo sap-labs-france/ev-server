@@ -16,7 +16,7 @@ import Utils from '../../../utils/Utils';
 import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 
 export default class RegistrationTokenService {
-  static async handleCreateRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleCreateRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenCreateRequest(req.body);
@@ -88,7 +88,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleDeleteRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleDeleteRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
@@ -145,7 +145,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleRevokeRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleRevokeRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
@@ -205,7 +205,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleGetRegistrationTokens(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetRegistrationTokens(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListRegistrationTokens(req.user)) {

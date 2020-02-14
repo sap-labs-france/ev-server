@@ -1,10 +1,10 @@
 {
-  "subject": "Facturation - Synchronisation des Utilisateurs a échoué",
-  "tenant": "<%- tenantID %>",
+  "subject": "'<%- chargeBoxID %>' - Session Not Started",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Facturation - Synchronisation des Utilisateurs a échoué",
+      "title": "Session Not Started",
       "image": {
         "left": {
           "height": 60,
@@ -17,19 +17,21 @@
       }
     },
     "beforeActionLines": [
-      "Cher Administrateur,",
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Impossible de synchroniser <%- nbrUsersInError %> utilisateur(s) avec le système de facturation."
+      "You badged on the charging station <b>'<%- chargeBoxID %>'</b> but no session has been started.",
+      ""
     ],
     "action": {
-      "title": "Voir Réglages",
-      "url": "<%- evseDashboardBillingURL %>"
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
-      "Cordialement,",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {
     }
   }
 }
+

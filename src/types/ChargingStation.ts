@@ -2,7 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
 import { KeyValue } from './GlobalType';
-import { OCPPProtocol, OCPPVersion, ChargePointStatus } from './ocpp/OCPPServer';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -88,6 +88,11 @@ export interface Connector {
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
+}
+
+export interface ConnectorCurrentLimit {
+  limitAmps: number;
+  limitWatts: number;
 }
 
 export enum ConnectorCurrentType {

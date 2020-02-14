@@ -1,5 +1,5 @@
 import { Action, Entity, Role } from '../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import { HTTPAuthError, HTTPError  } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -585,7 +585,7 @@ export default class Authorizations {
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
-    transaction: Transaction, tagID: string, action: string): Promise<User> {
+    transaction: Transaction, tagID: string, action: Action): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
@@ -607,7 +607,7 @@ export default class Authorizations {
         // Reject Site Not Found
         throw new AppError({
           source: chargingStation.id,
-          errorCode: HTTPAuthError.CHARGER_WITH_NO_SITE_AREA_ERROR,
+          errorCode: HTTPError.CHARGER_WITH_NO_SITE_AREA_ERROR,
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
           module: 'Authorizations',
           method: 'isTagIDAuthorizedOnChargingStation'
@@ -627,7 +627,7 @@ export default class Authorizations {
         // Reject Site Not Found
         throw new AppError({
           source: chargingStation.id,
-          errorCode: HTTPAuthError.SITE_AREA_WITH_NO_SITE_ERROR,
+          errorCode: HTTPError.SITE_AREA_WITH_NO_SITE_ERROR,
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
           module: 'Authorizations',
           method: 'checkAndGetUserOnChargingStation'
@@ -670,7 +670,7 @@ export default class Authorizations {
       };
       if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
         throw new AppAuthError({
-          errorCode: HTTPError.GENERAL_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: userToken,
           action: action,
           entity: Entity.CHARGING_STATION,
@@ -761,7 +761,8 @@ export default class Authorizations {
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
-        sendSmtpAuthError: false
+        sendSmtpAuthError: false,
+        sendSessionNotStarted: false
       } as UserNotifications;
       user.image = '';
       user.iNumber = '';

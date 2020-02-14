@@ -1,5 +1,5 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -26,7 +26,7 @@ import { UserInErrorType } from '../../../types/InError';
 
 export default class UserService {
 
-  public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleAssignSitesToUser(action: Action, req: Request, res: Response, next: NextFunction) {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
@@ -123,7 +123,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleDeleteUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // Check Mandatory fields
@@ -275,7 +275,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUser(action: Action, req: Request, res: Response, next: NextFunction) {
     let statusHasChanged = false;
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
@@ -334,7 +334,7 @@ export default class UserService {
     if (userWithEmail && user.id !== userWithEmail.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleUpdateUser',
@@ -499,7 +499,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUserMobileToken(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUserMobileToken(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
     // Check Mandatory fields
@@ -570,7 +570,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUser(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
@@ -631,7 +631,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserImage(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUserImage(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
     // User mandatory
@@ -690,7 +690,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
       Action.UPDATE, Entity.USER, 'UserService', 'handleGetSites');
@@ -758,7 +758,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
@@ -800,7 +800,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsersInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
@@ -840,7 +840,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleCreateUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
@@ -861,7 +861,7 @@ export default class UserService {
     if (foundUser) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `Email '${filteredRequest.email}' already exists`,
         module: 'UserService',
         method: 'handleCreateUser',
@@ -996,7 +996,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserInvoice(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserInvoice(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
@@ -1053,11 +1053,11 @@ export default class UserService {
     if (!pricingSetting || !pricingSetting.convergentCharging) {
       Logging.logException(
         new Error('Convergent Charging setting is missing'),
-        'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
+        Action.USER_INVOICE, Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',
@@ -1073,11 +1073,11 @@ export default class UserService {
       await ratingService.loadChargedItemsToInvoicing();
       invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
     } catch (exception) {
-      Logging.logException(exception, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
+      Logging.logException(exception, Action.USER_INVOICE, Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPAuthError.ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'An issue occurred while creating the invoice',
         module: 'UserService',
         method: 'handleGetUserInvoice',

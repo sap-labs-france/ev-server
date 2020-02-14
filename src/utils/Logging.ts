@@ -1,3 +1,4 @@
+import { Action } from '../types/Authorization';
 import CFLog from 'cf-nodejs-logging-support';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
@@ -16,6 +17,7 @@ import UserToken from '../types/UserToken';
 import Utils from './Utils';
 import { NextFunction, Request, Response } from 'express';
 import { Log, LogLevel, LogType } from '../types/Log';
+
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -213,7 +215,7 @@ export default class Logging {
   // Used to log exception in catch(...) only
   public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
-    if (action === 'login' && req.body.password) {
+    if (action === 'Login' && req.body.password) {
       req.body.password = '####';
     }
     if (req.user && req.user.tenantID) {

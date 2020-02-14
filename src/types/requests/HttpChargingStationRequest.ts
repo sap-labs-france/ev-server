@@ -1,4 +1,5 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import { Action } from '../Authorization';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
   siteAreaID: string;
@@ -9,6 +10,11 @@ export interface HttpChargingStationLimitPowerRequest {
   chargeBoxID: string;
   connectorId: number;
   ampLimitValue: number;
+}
+
+export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
+  ChargeBoxID: string;
+  ConnectorID: number;
 }
 
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {

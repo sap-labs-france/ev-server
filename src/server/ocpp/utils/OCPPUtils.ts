@@ -11,6 +11,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPConstants from './OCPPConstants';
 import Utils from '../../../utils/Utils';
+import { Action } from '../../../types/Authorization';
 
 export default class OCPPUtils {
 

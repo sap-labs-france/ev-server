@@ -12,6 +12,7 @@ import { Configuration } from '../../types/configuration/Configuration';
 import Tenant from '../../types/Tenant';
 import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { Action } from '../../types/Authorization';
 
 const MODULE_NAME = 'AbstractOCPIService';
 
@@ -87,7 +88,7 @@ export default abstract class AbstractOCPIService {
         message: 'Regex did not match.'
       });
     }
-    const action = regexResult[0].substring(1);
+    const action = regexResult[0].substring(1) as Action;
 
     // Set default tenant in case of exception
     req.user = { tenantID: Constants.DEFAULT_TENANT };
@@ -125,7 +126,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Process Endpoint action
    */
-  public async processEndpointAction(action: string, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> {
+  public async processEndpointAction(action: Action, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
 
@@ -280,9 +281,11 @@ export default abstract class AbstractOCPIService {
       }
     } catch (error) {
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
-      let errorCode = HTTPError.GENERAL_ERROR;
+      let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {
         errorCode = error.params.errorCode;
+      } else {
+        errorCode = HTTPError.GENERAL_ERROR;
       }
       res.status(errorCode).json(OCPIUtils.toErrorResponse(error));
     }

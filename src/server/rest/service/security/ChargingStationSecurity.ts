@@ -6,13 +6,14 @@ import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingProfilesRequest, HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import { filter } from 'bluebird';
+import { Action } from '../../../../types/Authorization';
 
 
 export default class ChargingStationSecurity {
@@ -143,6 +144,15 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationConfigurationRequest(request: any): HttpChargingStationRequest {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
+  }
+
+  public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
+    const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
@@ -312,6 +322,32 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
+    };
+  }
+
+  public static filterIsAuthorizedRequest(request: any): HttpIsAuthorizedRequest {
+    const filteredRequest: HttpIsAuthorizedRequest = {
+      Action: sanitize(request.Action),
+      Arg1: sanitize(request.Arg1),
+      Arg2: sanitize(request.Arg2),
+      Arg3: sanitize(request.Arg3)
+    };
+    if (filteredRequest.Action === Action.REMOTE_STOP_TRANSACTION) {
+      filteredRequest.Action = Action.REMOTE_STOP_TRANSACTION;
+    }
+    return filteredRequest;
+  }
+
+  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
+    return {
+      FileName: sanitize(request.FileName),
+    };
+  }
+
   private static filterChargingProfile(request: any): Profile {
     const filteredRequest: Profile = {} as Profile;
     // Check
@@ -378,30 +414,6 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
-    return {
-      chargeBoxID: sanitize(request.chargeBoxID),
-      maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
-    };
-  }
 
-  public static filterIsAuthorizedRequest(request: any): HttpIsAuthorizedRequest {
-    const filteredRequest: HttpIsAuthorizedRequest = {
-      Action: sanitize(request.Action),
-      Arg1: sanitize(request.Arg1),
-      Arg2: sanitize(request.Arg2),
-      Arg3: sanitize(request.Arg3)
-    };
-    if (filteredRequest.Action === 'StopTransaction') {
-      filteredRequest.Action = 'RemoteStopTransaction';
-    }
-    return filteredRequest;
-  }
-
-  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
-    return {
-      FileName: sanitize(request.FileName),
-    };
-  }
 }
 

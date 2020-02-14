@@ -9,13 +9,13 @@ import BillingSecurity from './security/BillingSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import UserStorage from "../../../storage/mongodb/UserStorage";
 
 
 export default class BillingService {
 
-  public static async handleGetBillingConnection(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -82,7 +82,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUsers(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -113,7 +113,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUser(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUser(action: Action, req: Request, res: Response, next: NextFunction) {
     const user = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
@@ -146,7 +146,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingTaxes(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingTaxes(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canReadBillingTaxes(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,

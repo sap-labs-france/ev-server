@@ -13,7 +13,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStation, { ChargerVendor, Connector, PowerLimitUnits, ConnectorType } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
@@ -86,7 +86,7 @@ export default class OCPPService {
             module: 'OCPPService',
             method: 'handleBootNotification',
             message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            action: 'BootNotification'
+            action: Action.BOOT_NOTIFICATION
           });
         }
         const token: RegistrationToken = await RegistrationTokenStorage.getRegistrationToken(headers.tenantID, headers.token);
@@ -96,7 +96,7 @@ export default class OCPPService {
             module: 'OCPPService',
             method: 'handleBootNotification',
             message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            action: 'BootNotification'
+            action: Action.BOOT_NOTIFICATION
           });
         }
         if (token.revocationDate || moment().isAfter(token.revocationDate)) {
@@ -105,7 +105,7 @@ export default class OCPPService {
             module: 'OCPPService',
             method: 'handleBootNotification',
             message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            action: 'BootNotification'
+            action: Action.BOOT_NOTIFICATION
           });
         }
         // New Charging Station: Create
@@ -150,7 +150,7 @@ export default class OCPPService {
                 `Got chargePointModel='${bootNotification.chargePointModel}' but expected '${chargingStation.chargePointModel}'! ` : '') +
               (bootNotification.chargePointSerialNumber !== chargingStation.chargePointSerialNumber ?
                 `Got chargePointSerialNumber='${bootNotification.chargePointSerialNumber ? bootNotification.chargePointSerialNumber : ''}' but expected '${chargingStation.chargePointSerialNumber ? chargingStation.chargePointSerialNumber : ''}'!` : ''),
-            action: 'BootNotification'
+            action: Action.BOOT_NOTIFICATION
           });
         }
         chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
