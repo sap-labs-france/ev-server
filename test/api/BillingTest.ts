@@ -132,38 +132,6 @@ describe('Billing Service', function() {
       testData.createdUsers.pop();
     });
 
-    /* It('Should synchronize a user', async () => {
-      let fakeUser = {
-        ...Factory.user.build(),
-        billingData: {
-          method: 'immediate'
-        }
-      } as User;
-
-      await testData.userService.createEntity(
-        testData.userService.userApi,
-        fakeUser
-      );
-      const response = await testData.userService.getEntityById(
-        testData.userService.userApi,
-        fakeUser,
-        false
-      );
-      fakeUser = response.data;
-      testData.createdUsers.push(fakeUser);
-
-      await billingImpl.deleteUser(fakeUser);
-      let billingUser = await billingImpl.getUserByEmail(fakeUser.email);
-      expect(billingUser).to.be.undefined;
-
-      const requestingUser = testData.userContext;
-      delete requestingUser.centralServerService; // Avoid circular JSON
-      Object.assign(requestingUser, { tenantID: testData.tenantContext.getTenant().id });
-      await testData.userService.billingApi.synchronizeUsers({ user: requestingUser });
-      billingUser = await billingImpl.getUserByEmail(fakeUser.email);
-      expect(billingUser).to.containSubset({ email: fakeUser.email });
-    }); */
-
     it('Should force a user synchronization', async () => {
       const fakeUser = {
         ...Factory.user.build(),
@@ -176,14 +144,21 @@ describe('Billing Service', function() {
         testData.userService.userApi,
         fakeUser
       );
+      testData.createdUsers.push(fakeUser);
       const response = await testData.userService.userApi.getByEmail(fakeUser.email);
       const billingUserBefore = response.data.result[0];
-      await testData.userService.billingApi.synchronizeUser({ UserID: fakeUser.id });
+      await testData.userService.billingApi.forceUserSynchronization({ UserID: fakeUser.id });
       const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
       expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
-      // Delete the created fake user after test
-      billingUserBefore.billingData = billingUserAfter.billingData;
-      await billingImpl.deleteUser(billingUserBefore);
+    });
+
+    after(async () => {
+      for (const user of testData.createdUsers) {
+        await testData.userService.deleteEntity(
+          testData.userService.userApi,
+          user
+        );
+      }
     });
   });
 
@@ -230,7 +205,7 @@ describe('Billing Service', function() {
       expect(response.status).to.be.eq(HTTPAuthError.ERROR);
     });
 
-    it('Should not be able to create a user', async () => {
+    it('Should not create a user', async () => {
       const fakeUser = {
         ...Factory.user.build(),
         billingData: {
@@ -250,7 +225,7 @@ describe('Billing Service', function() {
       expect(exists).to.be.false;
     });
 
-    it('Should not be able to update a user', async () => {
+    it('Should not update a user', async () => {
       testData.createdUsers[0].firstName = 'Test';
       testData.createdUsers[0].name = 'Name';
       const response = await testData.userService.updateEntity(
@@ -264,13 +239,25 @@ describe('Billing Service', function() {
       expect(billingUser.name).to.not.be.eq(testData.createdUsers[0].firstName + ' ' + testData.createdUsers[0].name);
     });
 
-    it('Should not be able to delete a user', async () => {
+    it('Should not delete a user', async () => {
       const response = await testData.userService.deleteEntity(
         testData.userService.userApi,
         { id: 0 },
         false
       );
       testData.createdUsers.pop();
+      expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+    });
+
+    it('Should not force synchronization of a user', async () => {
+      const fakeUser = {
+        ...Factory.user.build(),
+        billingData: {
+          method: 'immediate'
+        }
+      } as User;
+      const response = await testData.userService.billingApi.forceUserSynchronization({ UserID: fakeUser.id });
+
       expect(response.status).to.be.eq(HTTPAuthError.ERROR);
     });
   });

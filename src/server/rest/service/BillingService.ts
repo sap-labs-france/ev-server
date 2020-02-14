@@ -114,7 +114,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeUser(action: Action, req: Request, res: Response, next: NextFunction) {
-    const user = BillingSecurity.filterSynchronizeUserRequest(req.body);
+    const user = BillingSecurity.filterSynchronizeUserRequest(req.body.user);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -141,6 +141,39 @@ export default class BillingService {
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     const userToSynchronize = await UserStorage.getUserByEmail(user.email, tenant.id);
     const synchronizeAction = await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
+    // Ok
+    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleForceUserSynchronization(action: Action, req: Request, res: Response, next: NextFunction) {
+    const user = BillingSecurity.filterSynchronizeUserRequest(req.body);
+    if (!Authorizations.canSynchronizeUserBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER,
+        module: 'BillingService',
+        method: 'handleForceUserSynchronization',
+      });
+    }
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing or Pricing not active in this Tenant',
+        module: 'BillingService',
+        method: 'handleForceUserSynchronization',
+        action: Action.SYNCHRONIZE_BILLING,
+        user: req.user
+      });
+    }
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    const userToSynchronize = await UserStorage.getUser(tenant.id, user.id);
+    const synchronizeAction = await billingImpl.forceUserSynchronization(userToSynchronize, tenant.id);
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();

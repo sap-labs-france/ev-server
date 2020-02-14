@@ -173,7 +173,6 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
-  // TODO unit test
   public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByBillingID');

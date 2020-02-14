@@ -162,6 +162,45 @@ export default abstract class Billing<T extends BillingSetting> {
     }
   }
 
+  /**
+   * Force synchronization for a single user in the Billing system
+   * It will override user's billing data
+   * @param user user to synchronize
+   * @param tenantID ID of the tenant
+   */
+  public async forceUserSynchronization(user: User, tenantID): Promise<BillingUserSynchronizeAction> {
+    // Check
+    const actionsDone = {
+      synchronized: 0,
+      error: 0
+    } as BillingUserSynchronizeAction;
+
+    if (user) {
+      try {
+        const billingUser = await this.userExists(user);
+        if (billingUser) {
+          await this.deleteUser(user);
+        }
+        delete user.billingData;
+        const newBillingData = await this.createUser(user);
+        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+        actionsDone.synchronized++;
+      } catch (error) {
+        actionsDone.error++;
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing',
+          method: 'synchronizeUser',
+          message: `Cannot force synchronization of user ${user.email}`,
+          detailedMessages: error.message
+        });
+      }
+      return actionsDone;
+    }
+  }
+
   async abstract checkConnection();
 
   async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
