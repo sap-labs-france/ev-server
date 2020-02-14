@@ -28,7 +28,8 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { Role } from '../types/Authorization';
+import { Role, Action } from '../types/Authorization';
+import { ChargingProfile } from '../types/ChargingProfile';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -824,51 +825,57 @@ export default class Utils {
     }
   }
 
-  public static checkIfChargingProfileValid(filteredRequest: any, req: Request): void {
+  public static checkIfChargingProfileisValid(filteredRequest: ChargingProfile, req: Request): void {
     if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'ChargingStation ID is mandatory',
-        module: 'ChargingStationService',
-        method: 'checkIfChargingProfileValid',
+        message: 'Charging Station ID is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileisValid',
         user: req.user.id
       });
     }
-
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'ChargingProfile is mandatory',
-        module: 'ChargingStationService',
-        method: 'checkIfChargingProfileValid',
+        message: 'Charging Profile is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileisValid',
         user: req.user.id
       });
     }
-
     if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel || !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind || !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid profile',
-        module: 'ChargingStationService',
-        method: 'checkIfChargingProfileValid',
+        message: 'Invalid Charging Profile',
+        module: 'Utils', method: 'checkIfChargingProfileisValid',
         user: req.user.id
       });
     }
-
     if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Invalid schedule',
-        module: 'ChargingStationService',
-        method: 'checkIfChargingProfileValid',
+        message: `Invalid Charging Profile's Schedule`,
+        module: 'Utils', method: 'checkIfChargingProfileisValid',
         user: req.user.id
       });
     }
-
+    if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Profile's schedule must not be empty`,
+        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        user: req.user.id
+      });
+    }
   }
 
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
