@@ -1,23 +1,26 @@
-import chai, { expect } from 'chai';
+import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import CentralServerService from './client/CentralServerService';
+import ChargingStationContext from './contextProvider/ChargingStationContext';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
+import TenantContext from './contextProvider/TenantContext';
 import OCPPCommonTests from './OCPPCommonTests';
+import SiteAreaContext from './contextProvider/SiteAreaContext';
+import SiteContext from './contextProvider/SiteContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
 class TestData {
-  public tenantContext: any;
+  public tenantContext: TenantContext;
   public centralUserContext: any;
   public ocppCommonTests: OCPPCommonTests;
-  public siteContext: any;
-  public siteAreaContext: any;
-  public chargingStationContext: any;
+  public siteContext: SiteContext;
+  public siteAreaContext: SiteAreaContext;
+  public chargingStationContext: ChargingStationContext;
 }
 
 const testData: TestData = new TestData();

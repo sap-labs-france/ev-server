@@ -129,7 +129,8 @@ export default class ChargingStationStorage {
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
       filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
-    if (Utils.hasOwnProperty(params, 'issuer')) {
+    // Issuer
+    if (params.issuer === true || params.issuer === false) {
       filters.$and.push({ 'issuer': params.issuer });
     }
     // Add Charging Station inactive flag
