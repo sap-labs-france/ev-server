@@ -2,6 +2,7 @@ import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import Utils from '../../utils/Utils';
+import Configuration from '../../utils/Configuration';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -134,6 +135,31 @@ export default class DatabaseUtils {
         }
       });
     }
+  }
+
+  static addChargingStationInactiveFlag(aggregation: any[]) {
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    // Add inactive field
+    aggregation.push({
+      $addFields: {
+        inactive: {
+          $gte: [
+            {
+              $divide: [
+                {
+                  $subtract: [
+                    new Date(), '$lastHeartBeat'
+                  ]
+                },
+                60 * 1000
+              ]
+            },
+            config.heartbeatIntervalSecs * 5
+          ]
+        }
+      }
+    });
   }
 
   static projectFields(aggregation: any[], projectedFields: string[]) {

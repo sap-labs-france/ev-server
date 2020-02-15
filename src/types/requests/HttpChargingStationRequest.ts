@@ -1,5 +1,5 @@
+import { ChargePointStatus } from '../ocpp/OCPPServer';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-import { Action } from '../Authorization';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
   siteAreaID: string;
@@ -21,6 +21,7 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
+  Status?: ChargePointStatus;
   SiteID?: string;
   WithSite?: boolean; // TODO can we please remove this
   SiteAreaID?: string;

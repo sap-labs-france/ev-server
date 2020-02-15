@@ -1,469 +1,408 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
+import AppAuthError from '../../../exception/AppAuthError';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
-import StatisticSecurity from './security/StatisticSecurity';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import User from '../../../types/User';
-import Utils from '../../../utils/Utils';
-import UtilsService from './UtilsService';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
 import I18nManager from '../../../utils/I18nManager';
+import Utils from '../../../utils/Utils';
+import StatisticSecurity from './security/StatisticSecurity';
+import UtilsService from './UtilsService';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetChargingStationConsumptionStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetChargingStationConsumptionStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetChargingStationUsageStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetChargingStationUsageStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetChargingStationInactivityStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetChargingStationInactivityStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetChargingStationTransactionsStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetChargingStationTransactionsStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetChargingStationPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetChargingStationPricingStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetChargingStationPricingStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetUserConsumptionStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetUserConsumptionStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetUserUsageStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetUserUsageStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetUserInactivityStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetUserInactivityStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetUserTransactionsStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetUserTransactionsStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetUserPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetUserPricingStatistics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetUserPricingStatistics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Get Stats
+    const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      req.user.tenantID, filter, Constants.STATS_GROUP_BY_PRICING);
+    // Convert
+    const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+    // Return
+    res.json(transactions);
+    next();
   }
 
   static async handleGetCurrentMetrics(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check auth
-      if (!Authorizations.canListChargingStations(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetCurrentMetrics'
-        });
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
-      // Get Data
-      const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
-      // Return
-      res.json(metrics);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    // Check auth
+    if (!Authorizations.canListChargingStations(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetCurrentMetrics'
+      });
     }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
+    // Get Data
+    const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
+    // Return
+    res.json(metrics);
+    next();
   }
 
   static async handleGetStatisticsExport(action: Action, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(
-        req.user, Constants.COMPONENTS.STATISTICS,
-        Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: req.user,
-          action: Action.LIST,
-          entity: Entity.TRANSACTIONS,
-          module: 'StatisticService',
-          method: 'handleGetStatisticsExport'
-        });
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.STATISTICS,
+      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
+        module: 'StatisticService',
+        method: 'handleGetStatisticsExport'
+      });
+    }
+    // Filter
+    const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
+    // Build filter
+    const filter = StatisticService.buildFilter(filteredRequest, req.user);
+    // Decisions
+    let groupBy: string;
+    switch (filteredRequest.DataType) {
+      case 'Consumption':
+        groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
+        break;
+      case 'Usage':
+        groupBy = Constants.STATS_GROUP_BY_USAGE;
+        break;
+      case 'Inactivity':
+        groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
+        break;
+      case 'Transactions':
+        groupBy = Constants.STATS_GROUP_BY_TRANSACTIONS;
+        break;
+      case 'Pricing':
+        groupBy = Constants.STATS_GROUP_BY_PRICING;
+        break;
+      default:
+        groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
+    }
+    let method: string;
+    if (filteredRequest.DataCategory === 'C') {
+      method = 'getChargingStationStats';
+    } else {
+      method = 'getUserStats';
+    }
+    // Query data
+    const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
+    // Build the result
+    const filename = 'exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv';
+    fs.writeFile(filename, StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
+      filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
+      if (createError) {
+        throw createError;
       }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Decisions
-      let groupBy: string;
-      switch (filteredRequest.DataType) {
-        case 'Consumption':
-          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
-          break;
-        case 'Usage':
-          groupBy = Constants.STATS_GROUP_BY_USAGE;
-          break;
-        case 'Inactivity':
-          groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
-          break;
-        case 'Transactions':
-          groupBy = Constants.STATS_GROUP_BY_TRANSACTIONS;
-          break;
-        case 'Pricing':
-          groupBy = Constants.STATS_GROUP_BY_PRICING;
-          break;
-        default:
-          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
-      }
-      let method: string;
-      if (filteredRequest.DataCategory === 'C') {
-        method = 'getChargingStationStats';
-      } else {
-        method = 'getUserStats';
-      }
-      // Query data
-      const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
-      // Build the result
-      const filename = 'exported-' + filteredRequest.DataType.toLowerCase() + '-statistics.csv';
-      fs.writeFile(filename, StatisticService.convertToCSV(req.user, transactionStatsMDB, filteredRequest.DataCategory,
-        filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-        if (createError) {
-          throw createError;
+      res.download(filename, (downloadError) => {
+        if (downloadError) {
+          throw downloadError;
         }
-        res.download(filename, (downloadError) => {
-          if (downloadError) {
-            throw downloadError;
+        fs.unlink(filename, (unlinkError) => {
+          if (unlinkError) {
+            throw unlinkError;
           }
-          fs.unlink(filename, (unlinkError) => {
-            if (unlinkError) {
-              throw unlinkError;
-            }
-          });
         });
       });
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
+    });
   }
 
   // Only completed transactions

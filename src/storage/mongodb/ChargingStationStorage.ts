@@ -9,6 +9,7 @@ import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -89,7 +90,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
+      search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; status?: ChargePointStatus;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
@@ -128,10 +129,11 @@ export default class ChargingStationStorage {
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
       filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
-
-    if (params.issuer === true || params.issuer === false) {
+    if (Utils.hasOwnProperty(params, 'issuer')) {
       filters.$and.push({ 'issuer': params.issuer });
     }
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -140,6 +142,13 @@ export default class ChargingStationStorage {
     if (params.includeDeleted) {
       filters.$and[0].$or.push({
         'deleted': true
+      });
+    }
+    // With Status
+    if (params.status) {
+      filters.$and.push({
+        'connectors.status': params.status,
+        'inactive': false
       });
     }
     // With no Site Area
@@ -155,11 +164,10 @@ export default class ChargingStationStorage {
         });
       }
       // Site Area
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        {
-          tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
-        });
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      });
     }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs)) {
@@ -259,6 +267,8 @@ export default class ChargingStationStorage {
     const aggregation = [];
     // Create filters
     const filters: any = { $and: [{ $or: DatabaseUtils.getNotDeletedFilter() }] };
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Filter on status preparing
     filters.$and.push({ 'connectors.status': params.connectorStatus });
     // Date before provided
@@ -307,6 +317,8 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
@@ -861,7 +873,7 @@ export default class ChargingStationStorage {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {
           chargingStationMDB.connectors = [];
-          // Clean broken connectors
+        // Clean broken connectors
         } else {
           const cleanedConnectors = [];
           for (const connector of chargingStationMDB.connectors) {
@@ -871,8 +883,6 @@ export default class ChargingStationStorage {
           }
           chargingStationMDB.connectors = cleanedConnectors;
         }
-        // Add Inactive flag
-        chargingStationMDB.inactive = Utils.getIfChargingStationIsInactive(chargingStationMDB);
       }
     }
   }

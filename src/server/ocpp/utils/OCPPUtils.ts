@@ -246,24 +246,6 @@ export default class OCPPUtils {
     }
   }
 
-  public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
-  }
-
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
     return meterValue.attribute
       && meterValue.attribute.context === 'Sample.Periodic'

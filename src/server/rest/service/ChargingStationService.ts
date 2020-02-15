@@ -1,4 +1,3 @@
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -17,6 +16,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
 import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
@@ -29,7 +29,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import { filter } from 'bluebird';
 
 export default class ChargingStationService {
 
@@ -1291,6 +1290,7 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
+        status: filteredRequest.Status,
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
@@ -1303,9 +1303,6 @@ export default class ChargingStationService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       }
     );
-    chargingStations.result.forEach((chargingStation) => {
-      chargingStation.inactive = OCPPUtils.getIfChargingStationIsInactive(chargingStation);
-    });
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Filter

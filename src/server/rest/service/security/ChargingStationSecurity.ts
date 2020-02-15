@@ -1,19 +1,18 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Action } from '../../../../types/Authorization';
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
 import ChargingStation from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpChargingProfilesRequest, HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import { filter } from 'bluebird';
-import { Action } from '../../../../types/Authorization';
 
 
 export default class ChargingStationSecurity {
@@ -180,6 +179,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.Status = sanitize(request.Status);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);

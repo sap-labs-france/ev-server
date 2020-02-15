@@ -116,24 +116,6 @@ export default class Utils {
     return false;
   }
 
-  public static getIfChargingStationIsInactive(chargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
-  }
-
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -155,8 +137,6 @@ export default class Utils {
       }
       // Check connectors
       Utils.checkAndUpdateConnectorsStatus(chargingStation);
-      // Set Inactive flag
-      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
