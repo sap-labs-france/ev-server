@@ -249,7 +249,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this.cleanAndUpdateConnectors(chargingStationsMDB);
+    this.cleanAndUpdateConnectors(chargingStationsMDB, params.connectorStatus);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -874,7 +874,7 @@ export default class ChargingStationStorage {
     }
   }
 
-  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[]) {
+  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[], connectorStatus?: ChargePointStatus) {
     if (chargingStationsMDB.length > 0) {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {
@@ -883,7 +883,8 @@ export default class ChargingStationStorage {
         } else {
           const cleanedConnectors = [];
           for (const connector of chargingStationMDB.connectors) {
-            if (connector) {
+            // TODO: Remove connectorStatus from this method and use MongoDB 4.2 $pull as mentioned above
+            if (connector && (!connectorStatus || connector.status == connectorStatus)) {
               cleanedConnectors.push(connector);
             }
           }
