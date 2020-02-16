@@ -90,7 +90,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: {
-      search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; status?: ChargePointStatus;
+      search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; connectorStatus?: ChargePointStatus;
       siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
@@ -146,9 +146,9 @@ export default class ChargingStationStorage {
       });
     }
     // With Status
-    if (params.status) {
+    if (params.connectorStatus) {
       filters.$and.push({
-        'connectors.status': params.status,
+        'connectors.status': params.connectorStatus,
         'inactive': false
       });
     }
@@ -259,7 +259,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsByConnectorStatus(tenantID: string,
-    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<DataResult<ChargingStation>> {
+    params: { statusChangedBefore?: Date; connectorStatus: ChargePointStatus }): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
     // Check Tenant
@@ -271,7 +271,10 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Filter on status preparing
-    filters.$and.push({ 'connectors.status': params.connectorStatus });
+    filters.$and.push({
+      'connectors.status': params.connectorStatus,
+      'inactive': false
+    });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
       filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
