@@ -446,7 +446,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {

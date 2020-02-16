@@ -23,7 +23,7 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   WithNoSiteArea?: boolean;
   ConnectorStatus?: ChargePointStatus;
   SiteID?: string;
-  WithSite?: boolean; // TODO can we please remove this
+  WithSite?: boolean;
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;

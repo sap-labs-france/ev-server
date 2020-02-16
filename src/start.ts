@@ -122,7 +122,7 @@ export default class Bootstrap {
       });
 
       // FIXME: Attach the socketIO server to the master process for now.
-      //        Load balancing between workers needs to make the client session sticky.
+      // Load balancing between workers needs to make the client session sticky.
       if (Bootstrap.centralSystemRestConfig && Bootstrap.centralSystemRestConfig.socketIO && cluster.isMaster) {
         // -------------------------------------------------------------------------
         // REST Server (Front-End)

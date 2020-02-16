@@ -147,6 +147,8 @@ export default class ChargingStationStorage {
     }
     // With Status
     if (params.connectorStatus) {
+      // TODO: MongoDB 4.2, use for removing connector from collection:
+      // { $pull: { 'connectors': { status: { $ne: 'Available' } } } }
       filters.$and.push({
         'connectors.status': params.connectorStatus,
         'inactive': false
