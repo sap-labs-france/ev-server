@@ -52,7 +52,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
         action: Action.POWER_LIMITATION,
         module: 'SchneiderChargingStationVendor',
         method: 'setPowerLimitation',
-        message: 'The Charging Station has not connector',
+        message: 'The Charging Station has no connector',
         detailedMessages: { maxAmps }
       });
     }
@@ -95,11 +95,20 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus> {
-    console.log('Method for setting Charging Profile for Schneider needs be implemented');
-    return OCPPSetCompositeScheduleStatus.ACCEPTED;
+
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+
+    // Set the Profile
+    const result = await chargingStationClient.setChargingProfile({
+      connectorId: chargingProfile.connectorID,
+      csChargingProfiles: chargingProfile.profile
+    });
+
+    return result.status;
   }
 
   public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
-    throw new Error('Not yet implemented')
+    throw new Error('Not yet implemented');
   }
 }
