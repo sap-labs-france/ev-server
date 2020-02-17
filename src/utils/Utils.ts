@@ -1304,7 +1304,7 @@ export default class Utils {
         }
         break;
 
-      // SAC
+      // Smart Charging
       case Constants.COMPONENTS.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
