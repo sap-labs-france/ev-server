@@ -472,6 +472,7 @@ export default class UserStorage {
       updatedUserMDB.billingData.customerID = billingData.customerID;
       updatedUserMDB.billingData.method = billingData.method;
       updatedUserMDB.billingData.cardID = billingData.cardID;
+      updatedUserMDB.billingData.hasSynchroError = billingData.hasSynchroError;
       if (!updatedUserMDB.billingData.cardID) {
         delete updatedUserMDB.billingData.cardID;
       }
@@ -1108,7 +1109,7 @@ export default class UserStorage {
       case UserInErrorType.NOT_ACTIVE:
         return [
           { $match: { status: { $ne: Status.ACTIVE } } },
-          { $addFields: { 'errorCode': 'inactive_user' } }
+          { $addFields: { 'errorCode': UserInErrorType.NOT_ACTIVE } }
         ];
       case UserInErrorType.NOT_ASSIGNED: {
         return [
@@ -1141,10 +1142,14 @@ export default class UserStorage {
             }
           ];
         }
-
         return [];
-
       }
+      case UserInErrorType.FAILED_BILLING_SYNCHRO:
+        return [
+          { $match: { 'billingData.hasSynchroError': { $eq: true } } },
+          { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
+        ];
+
       default:
         return [];
     }

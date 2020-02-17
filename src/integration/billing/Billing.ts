@@ -56,6 +56,7 @@ export default abstract class Billing<T extends BillingSetting> {
         actionsDone.error += action.error;
       }
     }
+
     // Synchronize e-Mobility User's Billing data
     if (userIDsChangedInBilling && userIDsChangedInBilling.length > 0) {
       Logging.logInfo({
@@ -79,7 +80,6 @@ export default abstract class Billing<T extends BillingSetting> {
             actionsDone.error += action.error;
           } else {
             actionsDone.error++;
-            // Log
             Logging.logError({
               tenantID: tenantID,
               source: Constants.CENTRAL_SERVER,
@@ -92,6 +92,8 @@ export default abstract class Billing<T extends BillingSetting> {
         } else if (user) {
           // Only triggers an error if e-Mobility user is not deleted
           actionsDone.error++;
+          user.billingData.hasSynchroError = true;
+          await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -137,9 +139,9 @@ export default abstract class Billing<T extends BillingSetting> {
 
     if (user) {
       try {
-        const billingUser = await this.userExists(user);
+        const exists = await this.userExists(user);
         let newBillingData: BillingUserData;
-        if (!billingUser) {
+        if (!exists) {
           newBillingData = await this.createUser(user);
         } else {
           newBillingData = await this.updateUser(user);
@@ -147,6 +149,8 @@ export default abstract class Billing<T extends BillingSetting> {
         await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
         actionsDone.synchronized++;
       } catch (error) {
+        user.billingData.hasSynchroError = true;
+        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
         actionsDone.error++;
         Logging.logError({
           tenantID: tenantID,
@@ -154,7 +158,7 @@ export default abstract class Billing<T extends BillingSetting> {
           action: Action.SYNCHRONIZE_BILLING,
           module: 'Billing',
           method: 'synchronizeUser',
-          message: `Cannot force synchronization of user ${user.email}`,
+          message: `Cannot synchronization user ${user.email} with Billing system`,
           detailedMessages: error.message
         });
       }

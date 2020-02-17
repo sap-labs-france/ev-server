@@ -936,7 +936,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       customerID: customer.id,
       cardID: (customer.default_source && typeof (customer.default_source) === 'string' && customer.default_source.substr(0, 4) === 'card') ? customer.default_source : '',
       subscriptionID: subscription && subscription.id ? subscription.id : '',
-      lastChangedOn: new Date()
+      lastChangedOn: new Date(),
+      hasSynchroError: false
     };
   }
 

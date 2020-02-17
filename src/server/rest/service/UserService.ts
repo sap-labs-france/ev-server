@@ -824,7 +824,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [UserInErrorType.NOT_ACTIVE, UserInErrorType.NOT_ASSIGNED, UserInErrorType.INACTIVE_USER_ACCOUNT])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType))
       },
       {
         limit: filteredRequest.Limit,
