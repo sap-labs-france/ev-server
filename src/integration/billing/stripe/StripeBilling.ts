@@ -197,10 +197,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
         }
       } while (request['has_more']);
-
-      if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
-        return collectedCustomerIDs;
-      }
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -210,6 +206,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         detailedMessages: error
       });
     }
+    return collectedCustomerIDs;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {

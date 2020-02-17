@@ -58,14 +58,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
 
     // Synchronize e-Mobility User's Billing data
-    if (userIDsChangedInBilling && userIDsChangedInBilling.length > 0) {
+    let realAmountOfUsersToSynchronize = 0;
+    for (const userIDChangedInBilling of userIDsChangedInBilling) {
+      const user = await UserStorage.getUserByBillingID(tenantID, userIDChangedInBilling);
+      if (user) {
+        realAmountOfUsersToSynchronize++;
+      } else {
+        // Remove non-significant changes
+        userIDsChangedInBilling.splice(userIDsChangedInBilling.indexOf(userIDChangedInBilling), 1);
+      }
+    }
+    if (realAmountOfUsersToSynchronize > 0) {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing',
         method: 'synchronizeUsers',
-        message: `${userIDsChangedInBilling.length} e-Mobility user(s) are going to be synchronized in the Billing system`
+        message: `${realAmountOfUsersToSynchronize} e-Mobility user(s) are going to be synchronized in the Billing system`
       });
       for (const userIDChangedInBilling of userIDsChangedInBilling) {
         // Get Billing User
