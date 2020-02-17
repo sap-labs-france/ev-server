@@ -1304,13 +1304,23 @@ export default class Utils {
         }
         break;
 
-      // Smart Charging
+      // SAC
       case Constants.COMPONENTS.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
             'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
             'sapSmartCharging': {}
+          } as SettingDBContent;
+        }
+        break;
+
+      // BUILDING
+      case Constants.COMPONENTS.BUILDING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Building
+          return {
+            'type': null,
           } as SettingDBContent;
         }
         break;
