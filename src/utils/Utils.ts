@@ -1314,6 +1314,16 @@ export default class Utils {
           } as SettingDBContent;
         }
         break;
+
+      // BUILDING
+      case Constants.COMPONENTS.BUILDING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Building
+          return {
+            'type': null,
+          } as SettingDBContent;
+        }
+        break;
     }
   }
 
