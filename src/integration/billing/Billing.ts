@@ -7,10 +7,12 @@ import Logging from '../../utils/Logging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Transaction from '../../types/Transaction';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import { UserInErrorType } from '../../types/InError';
 
 export default abstract class Billing<T extends BillingSetting> {
 
   // Protected because only used in subclasses at the moment
+  private static MAX_RETRY_SYNCHRONIZATION = 3;
   protected readonly tenantID: string; // Assuming GUID or other string format ID
   protected settings: T;
 
@@ -29,8 +31,13 @@ export default abstract class Billing<T extends BillingSetting> {
       synchronized: 0,
       error: 0
     } as BillingUserSynchronizeAction;
+    // Get users already in Billing synchronization error
+    const usersInBillingError = await UserStorage.getUsersInError(tenantID, { errorTypes: [UserInErrorType.FAILED_BILLING_SYNCHRO] }, Constants.DB_PARAMS_MAX_LIMIT);
+    actionsDone.error = usersInBillingError.result.length;
+
     // Get recently updated customers from Billing application
     let userIDsChangedInBilling = await this.getUpdatedUserIDsInBilling();
+
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
     const usersNotSynchronized = await UserStorage.getUsers(tenantID,
       { 'statuses': [Status.ACTIVE], 'notSynchronizedBillingData': true },
@@ -58,26 +65,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
 
     // Synchronize e-Mobility User's Billing data
-    let realAmountOfUsersToSynchronize = 0;
+    const actualUserToSynchronize: string[] = [];
     for (const userIDChangedInBilling of userIDsChangedInBilling) {
       const user = await UserStorage.getUserByBillingID(tenantID, userIDChangedInBilling);
       if (user) {
-        realAmountOfUsersToSynchronize++;
-      } else {
         // Remove non-significant changes
-        userIDsChangedInBilling.splice(userIDsChangedInBilling.indexOf(userIDChangedInBilling), 1);
+        actualUserToSynchronize.push(userIDChangedInBilling);
       }
     }
-    if (realAmountOfUsersToSynchronize > 0) {
+    if (actualUserToSynchronize.length > 0) {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing',
         method: 'synchronizeUsers',
-        message: `${realAmountOfUsersToSynchronize} e-Mobility user(s) are going to be synchronized in the Billing system`
+        message: `${userIDsChangedInBilling.length} e-Mobility user(s) are going to be synchronized in the Billing system`
       });
-      for (const userIDChangedInBilling of userIDsChangedInBilling) {
+      for (const userIDChangedInBilling of actualUserToSynchronize) {
         // Get Billing User
         const billingUser = await this.getUser(userIDChangedInBilling);
         // Get e-Mobility User
@@ -85,7 +90,13 @@ export default abstract class Billing<T extends BillingSetting> {
 
         if (billingUser) {
           if (user) {
-            const action = await this.synchronizeUser(user, tenantID);
+            let nbTry = 0;
+            let action = {} as BillingUserSynchronizeAction;
+            // Synchronize several times the user in case of fail before setting it in error
+            do {
+              action = await this.synchronizeUser(user, tenantID);
+              nbTry++;
+            } while (nbTry < Billing.MAX_RETRY_SYNCHRONIZATION && action.synchronized === 0);
             actionsDone.synchronized += action.synchronized;
             actionsDone.error += action.error;
           } else {
@@ -124,14 +135,14 @@ export default abstract class Billing<T extends BillingSetting> {
         method: 'synchronizeUsers',
         message: `${actionsDone.synchronized} user(s) have been synchronized successfully`
       });
-
-      // Update last synchronization
-      const billingSettings = await SettingStorage.getBillingSettings(tenantID);
-      // Save last synchronization
-      billingSettings.stripe.lastSynchronizedOn = new Date();
-      // Save
-      await SettingStorage.saveBillingSettings(tenantID, billingSettings);
     }
+
+    // Update last synchronization
+    const billingSettings = await SettingStorage.getBillingSettings(tenantID);
+    // Save last synchronization
+    billingSettings.stripe.lastSynchronizedOn = new Date();
+    // Save
+    await SettingStorage.saveBillingSettings(tenantID, billingSettings);
     return actionsDone;
   }
 
@@ -178,7 +189,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   /**
    * Force synchronization for a single user in the Billing system
-   * It will override user's billing data
+   * It will override the user's billing data
    * @param user user to synchronize
    * @param tenantID ID of the tenant
    */
