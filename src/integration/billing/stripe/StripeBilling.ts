@@ -697,17 +697,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async deleteUser(user: User) {
     // Check Stripe
     this.checkIfStripeIsInitialized();
-    // Check
-    const success = await this.checkIfUserCanBeDeleted(user);
-    if (!success) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'StripeBilling', method: 'deleteUser',
-        action: Action.CREATE,
-        user: user,
-        message: 'Cannot delete the user'
-      });
-    }
+
     if (user.billingData && user.billingData.customerID) {
       const customer = await this.getCustomerByEmail(user.email);
       if (customer && customer.id) {
