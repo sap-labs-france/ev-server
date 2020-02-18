@@ -187,20 +187,25 @@ export default class UserService {
         action: action
       });
     }
-    // For integration with billing
-    if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
-      // Delete from site
-      const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
-        Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => siteUser.site.id
-      );
-      await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
-    }
-    // Delete User
-    await UserStorage.deleteUser(req.user.tenantID, user.id);
+
+    let userCanBeDelete = true;
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      if (await billingImpl.checkIfUserCanBeDeleted(user)) {
+      userCanBeDelete = await billingImpl.checkIfUserCanBeDeleted(user);
+    }
+
+    if (!billingImpl || userCanBeDelete) {
+      if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
+        // Delete from site
+        const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
+          Constants.DB_PARAMS_MAX_LIMIT)).result.map(
+          (siteUser) => siteUser.site.id
+        );
+        await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
+      }
+      // Delete User
+      await UserStorage.deleteUser(req.user.tenantID, user.id);
+      if (billingImpl) {
         try {
           await billingImpl.deleteUser(user);
         } catch (e) {
@@ -213,63 +218,54 @@ export default class UserService {
             detailedMessages: e.message
           });
         }
-      } else {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'User cannot delete himself',
-          module: 'UserService',
-          method: 'handleDeleteUser',
-          user: req.user,
-          action: action
-        });
       }
-    }
 
-    // Synchronize badges with IOP
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    try {
-      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
-      if (ocpiClient) {
-        // Invalidate no more used tags
-        for (const tag of user.tags) {
-          if (tag.issuer) {
-            await ocpiClient.pushToken({
-              uid: tag.id,
-              type: 'RFID',
-              'auth_id': user.id,
-              'visual_number': user.id,
-              issuer: tenant.name,
-              valid: false,
-              whitelist: 'ALLOWED_OFFLINE',
-              'last_updated': new Date()
-            });
+      // Synchronize badges with IOP
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Invalidate no more used tags
+          for (const tag of user.tags) {
+            if (tag.issuer) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: 'RFID',
+                'auth_id': user.id,
+                'visual_number': user.id,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
           }
         }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          detailedMessages: e.message
+        });
       }
-    } catch (e) {
-      Logging.logError({
-        tenantID: req.user.tenantID,
-        module: 'UserService',
-        method: 'handleUpdateUser',
-        action: 'UserUpdate',
-        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-        detailedMessages: e.message
-      });
-    }
 
-    // Delete Connections
-    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: user,
-      module: 'UserService', method: 'handleDeleteUser',
-      message: `User with ID '${user.id}' has been deleted successfully`,
-      action: action
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+      // Delete Connections
+      await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, actionOnUser: user,
+        module: 'UserService', method: 'handleDeleteUser',
+        message: `User with ID '${user.id}' has been deleted successfully`,
+        action: action
+      });
+
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+    }
     next();
   }
 

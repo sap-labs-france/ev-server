@@ -614,12 +614,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     // Check connection
     await this.checkConnection();
-    if (this.checkIfTestMode()) {
-      const customer = await this.getCustomerByEmail(user.email);
-      if (customer && !customer.livemode) {
-        return true;
-      }
-    }
     // Check invoices
     let list = await this.stripe.invoices.list({
       customer: user.billingData.customerID,
