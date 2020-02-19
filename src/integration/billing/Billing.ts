@@ -52,6 +52,25 @@ export default abstract class Billing<T extends BillingSetting> {
         // Synchronize user
         const action = await this.synchronizeUser(user, tenantID);
         // Stats
+        if (action.synchronized > 0) {
+          Logging.logInfo({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Successfully synchronized in the billing system`
+          });
+        } else {
+          Logging.logError({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Failed to synchronize in the billing system`
+          });
+        }
         actionsDone.synchronized += action.synchronized;
         actionsDone.error += action.error;
       }
@@ -105,6 +124,25 @@ export default abstract class Billing<T extends BillingSetting> {
           action = await this.synchronizeUser(user, tenantID);
           nbTry++;
         } while (nbTry < Billing.MAX_RETRY_SYNCHRONIZATION && action.synchronized === 0);
+        if (action.synchronized > 0) {
+          Logging.logInfo({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Successfully synchronized in the billing system`
+          });
+        } else {
+          Logging.logError({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Failed to synchronize in the billing system`
+          });
+        }
         actionsDone.synchronized += action.synchronized;
         actionsDone.error += action.error;
       }
