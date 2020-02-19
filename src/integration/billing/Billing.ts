@@ -135,8 +135,16 @@ export default abstract class Billing<T extends BillingSetting> {
         method: 'synchronizeUsers',
         message: `${actionsDone.synchronized} user(s) have been synchronized successfully`
       });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SYNCHRONIZE_BILLING,
+        module: 'Billing',
+        method: 'synchronizeUsers',
+        message: `No user need to be synchronized`
+      });
     }
-
     // Update last synchronization
     const billingSettings = await SettingStorage.getBillingSettings(tenantID);
     // Save last synchronization
