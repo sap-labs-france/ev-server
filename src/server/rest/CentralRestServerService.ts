@@ -95,7 +95,7 @@ class RequestMapper {
           SettingCreate: SettingService.handleCreateSetting.bind(this),
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
           SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
-          ForceUserSynchronizationForBilling: BillingService.handleForceUserSynchronization.bind(this),
+          ForceUserSynchronizationForBilling: BillingService.handleForceSynchronizeUser.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),

@@ -1,8 +1,8 @@
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { BillingTax } from '../../../../types/Billing';
-import { HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
-import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -36,10 +36,13 @@ export default class BillingSecurity {
     return filteredTax;
   }
 
-  static filterSynchronizeUserRequest(request: any): Partial<HttpUserRequest> {
-    const filteredUser: Partial<HttpUserRequest> = {};
-    if (request.UserID) {
-      filteredUser.id = sanitize(request.UserID);
+  static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {
+    const filteredUser: HttpSynchronizeUserRequest = {} as HttpSynchronizeUserRequest;
+    if (request.id) {
+      filteredUser.id = sanitize(request.id);
+    }
+    if (request.email) {
+      filteredUser.email = sanitize(request.email);
     }
     return filteredUser;
   }
