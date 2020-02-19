@@ -1,20 +1,20 @@
+import * as http from 'http';
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
+import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
 import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {
 
-  constructor(wsConnection, req, wsServer) {
-    // Call super
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     super(wsConnection, req, wsServer);
   }
 
-  async initialize() {
+  public async initialize() {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -32,18 +32,18 @@ export default class JsonRestWSConnection extends WSConnection {
     }
   }
 
-  onError(error) {
+  public onError(event: Event) {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
       module: MODULE_NAME,
       method: 'onError',
       action: 'WSRestServerErrorReceived',
-      message: error
+      message: event
     });
   }
 
-  onClose(code, reason) {
+  public onClose(closeEvent: CloseEvent) {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -51,13 +51,13 @@ export default class JsonRestWSConnection extends WSConnection {
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       method: 'onClose',
       action: 'WSRestServerConnectionClosed',
-      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeRestConnection(this);
   }
 
-  async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload) {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
@@ -76,7 +76,6 @@ export default class JsonRestWSConnection extends WSConnection {
     // Get the client from JSON Server
     const chargingStationClient = global.centralSystemJson.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
-      // Error
       throw new BackendError({
         source: this.getChargingStationID(),
         module: 'JsonRestWSConnection',

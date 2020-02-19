@@ -169,6 +169,10 @@ export default class ChargingStationSecurity {
     return sanitize(request.ID);
   }
 
+  public static filterChargingProfileRequestByID(request: any): string {
+    return sanitize(request.ID);
+  }
+
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
     if (request.Issuer) {

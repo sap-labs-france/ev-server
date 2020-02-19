@@ -4,14 +4,12 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
+import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
-import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import OCPPConstants from './OCPPConstants';
 import Utils from '../../../utils/Utils';
-import { Action } from '../../../types/Authorization';
+import OCPPConstants from './OCPPConstants';
 
 export default class OCPPUtils {
 

@@ -826,7 +826,9 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel || !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind || !filteredRequest.profile.chargingSchedule) {
+    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
+        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+        !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
