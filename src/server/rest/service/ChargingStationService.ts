@@ -397,11 +397,11 @@ export default class ChargingStationService {
     const chargingProfileID = ChargingStationSecurity.filterChargingProfileRequestByID(req.query);
     // Get Profile
     const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, chargingProfileID);
-    UtilsService.assertObjectExists(chargingProfile, `Charging Profile ID '${chargingProfileID}' doesn't exist.`,
+    UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${chargingProfileID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
     // Get Charging Station 
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' doesn't exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
     // Check Component
     let siteID = null;

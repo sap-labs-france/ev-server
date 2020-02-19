@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
