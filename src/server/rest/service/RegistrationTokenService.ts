@@ -1,5 +1,3 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
 import Authorizations from '../../../authorization/Authorizations';
@@ -7,13 +5,16 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import { Action, Entity } from '../../../types/Authorization';
 import DbParams from '../../../types/database/DbParams';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
+import UtilsService from './UtilsService';
 
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -23,16 +24,8 @@ export default class RegistrationTokenService {
       if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && filteredRequest.siteAreaID) {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-        if (!siteArea) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-            message: `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`,
-            module: 'RegistrationTokenService',
-            method: 'handleCreateRegistrationToken',
-            user: req.user
-          });
-        }
+        UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+          'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
           throw new AppAuthError({
@@ -116,17 +109,8 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      if (!registrationToken) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Token with ID '${tokenID}' does not exist anymore`,
-          module: 'RegistrationTokenService',
-          method: 'handleDeleteRegistrationToken',
-          user: req.user
-        });
-      }
-
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+        'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
       await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
       // Log
       Logging.logSecurityInfo({
@@ -173,17 +157,8 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      if (!registrationToken) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Token with ID '${tokenID}' does not exist anymore`,
-          module: 'RegistrationTokenService',
-          method: 'handleRevokeRegistrationToken',
-          user: req.user
-        });
-      }
-
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+        'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
       registrationToken.revocationDate = new Date();
       registrationToken.lastChangedBy = { 'id': req.user.id };
       registrationToken.lastChangedOn = new Date();

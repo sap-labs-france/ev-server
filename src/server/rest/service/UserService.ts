@@ -69,24 +69,15 @@ export default class UserService {
     }
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.userID}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleAssignSitesToUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' doesn't exist anymore.`,
+      'UserService', 'handleAssignSitesToUser', req.user);
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
       if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Site with ID '${siteID}' does not exist anymore`,
+          message: `Site with ID '${siteID}' doesn't exist anymore`,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
           user: req.user,
@@ -164,17 +155,8 @@ export default class UserService {
     }
     // Check user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleDeleteUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleDeleteUser', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -305,17 +287,8 @@ export default class UserService {
     }
     // Get User
     let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'UserService', 'handleUpdateUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -528,17 +501,8 @@ export default class UserService {
     }
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleUpdateUserMobileToken',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'UserService', 'handleUpdateUserMobileToken', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -599,17 +563,8 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -660,17 +615,8 @@ export default class UserService {
     }
     // Get the logged user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.ID}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUserImage',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' doesn't exist anymore.`,
+      'UserService', 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -824,7 +770,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [UserInErrorType.NOT_ACTIVE, UserInErrorType.NOT_ASSIGNED, UserInErrorType.INACTIVE_USER_ACCOUNT])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType))
       },
       {
         limit: filteredRequest.Limit,
@@ -975,7 +921,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService',
-          method: 'handleUpdateUser',
+          method: 'handleCreateUser',
           action: 'UserCreate',
           message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
           detailedMessages: e.message
@@ -987,7 +933,8 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
-      module: 'UserService', method: 'handleCreateUser',
+      module: 'UserService',
+      method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
     });
@@ -1025,17 +972,8 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleGetUserInvoice', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({

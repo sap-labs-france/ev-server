@@ -124,6 +124,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (customer && customer.email) {
       return {
         email: customer.email,
+        name: customer.name,
         billingData: {
           customerID: customer.id
         }
@@ -139,6 +140,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (request) {
       return {
         email: email,
+        name: request.name,
         billingData: {
           customerID: request.id
         }
@@ -169,60 +171,32 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
     const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
-    let stillData = true;
-    let lastEventID: string;
     let events: Stripe.IList<Stripe.events.IEvent>;
-    let skipCustomer: boolean;
-    let lastCustomerID: string;
     const collectedCustomerIDs: string[] = [];
+    const request = {
+      created: { gt: createdSince },
+      limit: StripeBilling.STRIPE_MAX_LIST,
+      type: 'customer.*',
+    };
+
     try {
       // Check Stripe
       this.checkIfStripeIsInitialized();
       // Loop until all users are read
-      while (stillData) {
-        if (lastEventID) {
-          events = await this.stripe.events.list(
-            {
-              created: { gt: createdSince },
-              limit: 20,
-              type: 'customer.*',
-              starting_after: lastEventID
-            }
-          );
-        } else {
-          events = await this.stripe.events.list(
-            {
-              created: { gt: createdSince },
-              limit: 20,
-              type: 'customer.*'
-            }
-          );
-        }
-        if (events.data.length > 0) {
-          for (const evt of events.data) {
-            skipCustomer = false;
-            lastEventID = evt.id;
-            lastCustomerID = evt.data.object.customer ? evt.data.object.customer :
-              ((evt.data.object.object === 'customer') ? evt.data.object.id : null);
-            if (!lastCustomerID) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer && (collectedCustomerIDs.length > 0) &&
-              (collectedCustomerIDs.findIndex((id) => id === lastCustomerID) > -1)) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer) {
-              collectedCustomerIDs.push(lastCustomerID);
+
+      do {
+        events = await this.stripe.events.list(request);
+        for (const evt of events.data) {
+          if (evt.data.object.object === 'customer' && evt.data.object.id) {
+            if (!collectedCustomerIDs.includes(evt.data.object.id)) {
+              collectedCustomerIDs.push(evt.data.object.id);
             }
           }
-          stillData = events.data.length <= 20;
-        } else {
-          stillData = false;
         }
-      }
-      if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
-        return collectedCustomerIDs;
-      }
+        if (request['has_more']) {
+          request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
+        }
+      } while (request['has_more']);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -232,6 +206,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         detailedMessages: error
       });
     }
+    return collectedCustomerIDs;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
@@ -766,7 +741,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     I18nManager.switchLocale(user.locale);
     const description = i18n.t('billing.generatedUser', { email: user.email });
-    let customer = await this.getCustomerByEmail(user.email);
+    let customer;
+    if (user.billingData && user.billingData.customerID) {
+      customer = await this.getCustomerByID(user.billingData.customerID);
+    } else {
+      customer = await this.getCustomerByEmail(user.email);
+    }
     if (!customer) {
       try {
         customer = await this.stripe.customers.create({
@@ -792,6 +772,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     if (customer.name !== fullName) {
       dataToUpdate.name = fullName;
+    }
+    if (customer.email !== user.email) {
+      dataToUpdate.email = user.email;
     }
     if (locale &&
         (!customer.preferred_locales ||
@@ -950,7 +933,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       customerID: customer.id,
       cardID: (customer.default_source && typeof (customer.default_source) === 'string' && customer.default_source.substr(0, 4) === 'card') ? customer.default_source : '',
       subscriptionID: subscription && subscription.id ? subscription.id : '',
-      lastChangedOn: new Date()
+      lastChangedOn: new Date(),
+      hasSynchroError: false
     };
   }
 

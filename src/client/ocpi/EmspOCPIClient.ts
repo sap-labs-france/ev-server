@@ -23,6 +23,7 @@ import moment from 'moment';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import { Action } from '../../types/Authorization';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -473,7 +474,7 @@ export default class EmspOCPIClient extends OCPIClient {
           });
           const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
           chargingStation.siteAreaID = siteArea.id;
-          await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+          await ChargingStationStorage.saveChargingStation(Action.OCPI_GET_LOCATIONS, this.tenant.id, chargingStation);
         }
       }
     }
