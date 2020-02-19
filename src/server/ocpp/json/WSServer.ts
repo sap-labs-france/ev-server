@@ -2,30 +2,25 @@ import cluster from 'cluster';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
-import WebSocket from 'ws';
+import WebSocket, { AddressInfo } from 'ws';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 
 const MODULE_NAME = 'WSServer';
-export default class WSServer extends WebSocket.Server {
-  public clients: any;
-  private httpServer: any;
-  private serverName: string;
-  private serverConfig: any;
-  private keepAliveIntervalValue: number;
-  private keepAliveInterval: any;
 
-  /**
-   * Create a new `WSServer`.
-   *
-   * @param {http.Server} httpServer
-   * @param {String} serverName
-   * @param {Object} serverConfig
-   * @param {Function} verifyClientCb
-   * @param {Function} handleProtocolsCb
-   */
-  public constructor(httpServer, serverName: string, serverConfig, verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { }, handleProtocolsCb: Function = (): void => { }) {
+export default class WSServer extends WebSocket.Server {
+  public clients: Set<WebSocket>;
+  private httpServer: http.Server;
+  private serverName: string;
+  private serverConfig: CentralSystemConfiguration;
+  private keepAliveIntervalValue: number;
+  private keepAliveInterval: NodeJS.Timeout;
+
+  public constructor(httpServer: http.Server, serverName: string, serverConfig: CentralSystemConfiguration,
+      verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
+        void => { }, handleProtocolsCb: Function = (): void => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,
@@ -37,27 +32,27 @@ export default class WSServer extends WebSocket.Server {
     this.serverConfig = serverConfig;
     this.keepAliveIntervalValue = (this.serverConfig.keepaliveinterval ?
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
-    this.on('connection', (ws: any, req: any): void => {
-      ws.isAlive = true;
-      ws.ip = Utils.getRequestIP(req);
+    this.on('connection', (ws: WebSocket, req: http.IncomingMessage): void => {
+      ws['isAlive'] = true;
+      ws['ip'] = Utils.getRequestIP(req);
       ws.on('pong', (): void => {
-        ws.isAlive = true;
+        ws['isAlive'] = true;
       });
     });
     if (!this.keepAliveInterval) {
       this.keepAliveInterval = setInterval((): void => {
-        this.clients.forEach((ws): boolean => {
-          if (ws.isAlive === false) {
+        this.clients.forEach((ws: WebSocket) => {
+          if (ws['isAlive'] === false) {
             // Log
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
               module: MODULE_NAME,
               method: 'constructor',
-              message: `Web Socket from ${ws.ip} do not respond to ping, terminating`
+              message: `Web Socket from ${ws['ip']} do not respond to ping, terminating`
             });
-            return ws.terminate();
+            ws.terminate();
           }
-          ws.isAlive = false;
+          ws['isAlive'] = false;
           ws.ping((): void => { });
         });
       }, this.keepAliveIntervalValue);
@@ -119,10 +114,10 @@ export default class WSServer extends WebSocket.Server {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: 'startListening', action: 'Startup',
-        message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}'`
+        message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}'`
       });
       // eslint-disable-next-line no-console
-      console.log(`${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.log(`${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     });
   }
 }

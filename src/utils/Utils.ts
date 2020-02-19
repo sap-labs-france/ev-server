@@ -805,14 +805,14 @@ export default class Utils {
     }
   }
 
-  public static checkIfChargingProfileisValid(filteredRequest: ChargingProfile, req: Request): void {
+  public static checkIfChargingProfileIsValid(filteredRequest: ChargingProfile, req: Request): void {
     if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Station ID is mandatory',
-        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -822,17 +822,19 @@ export default class Utils {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
-        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
-    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel || !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind || !filteredRequest.profile.chargingSchedule) {
+    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
+        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+        !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
-        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -842,7 +844,7 @@ export default class Utils {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Invalid Charging Profile's Schedule`,
-        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -852,7 +854,7 @@ export default class Utils {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Charging Profile's schedule must not be empty`,
-        module: 'Utils', method: 'checkIfChargingProfileisValid',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
