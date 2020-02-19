@@ -1,5 +1,6 @@
 
 import AbstractODataEntities from './AbstractODataEntities';
+import Utils from "../../../utils/Utils";
 
 export default class ODataBootNotifications extends AbstractODataEntities {
   public buildParams: any;
@@ -29,10 +30,10 @@ export default class ODataBootNotifications extends AbstractODataEntities {
   public convert(object, req) {
     const bootNotification = super.convert(object, req);
     // Convert id name
-    if (bootNotification.hasOwnProperty('_id')) {
+    if (Utils.objectHasProperty(bootNotification, '_id')) {
       bootNotification.id = bootNotification._id;
     }
-    if (bootNotification.hasOwnProperty('timestamp') && bootNotification.timestamp) {
+    if (Utils.objectHasProperty(bootNotification, 'timestamp') && bootNotification.timestamp) {
       // Convert timestamp and build date object
       bootNotification.timestamp = this.convertTimestamp(bootNotification.timestamp, req);
       bootNotification.bootDate = this.buildDateObject(bootNotification.timestamp, req);

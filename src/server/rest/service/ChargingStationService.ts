@@ -137,15 +137,15 @@ export default class ChargingStationService {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
     // Update Power Max
-    if (Utils.hasOwnProperty(filteredRequest, 'maximumPower')) {
+    if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
     // Update Current Type
-    if (Utils.hasOwnProperty(filteredRequest, 'currentType')) {
+    if (Utils.objectHasProperty(filteredRequest, 'currentType')) {
       chargingStation.currentType = filteredRequest.currentType;
     }
     // Update Cannot Charge in Parallel
-    if (Utils.hasOwnProperty(filteredRequest, 'cannotChargeInParallel')) {
+    if (Utils.objectHasProperty(filteredRequest, 'cannotChargeInParallel')) {
       chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
     // Update Site Area
@@ -156,7 +156,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = null;
     }
     // Update Site Area
-    if (Utils.hasOwnProperty(filteredRequest, 'powerLimitUnit')) {
+    if (Utils.objectHasProperty(filteredRequest, 'powerLimitUnit')) {
       chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
@@ -940,7 +940,7 @@ export default class ChargingStationService {
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      if (Utils.hasOwnProperty(req.body, 'loadAllConnectors')) {
+      if (Utils.objectHasProperty(req.body, 'loadAllConnectors')) {
         filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
@@ -1476,7 +1476,7 @@ export default class ChargingStationService {
       // Ok?
       if (result) {
         // OCPP Command with status
-        if (Utils.hasOwnProperty(result, 'status') && result.status !== OCPPStatus.ACCEPTED) {
+        if (Utils.objectHasProperty(result, 'status') && result.status !== OCPPStatus.ACCEPTED) {
           Logging.logError({
             tenantID: tenantID, source: chargingStation.id, user: user,
             module: 'ChargingStationService', method: 'handleChargingStationCommand',

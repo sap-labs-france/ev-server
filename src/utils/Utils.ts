@@ -72,7 +72,7 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static hasOwnProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: object, key: string): boolean {
     return Object.prototype.hasOwnProperty.call(object, key);
   }
 

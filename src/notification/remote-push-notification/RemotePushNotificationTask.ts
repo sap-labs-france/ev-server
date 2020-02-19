@@ -294,7 +294,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     if (!user || !user.mobileToken || user.mobileToken.length === 0) {
       Logging.logWarning({
         tenantID: tenant.id,
-        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
+        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
@@ -315,7 +315,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       // Response is a message ID string.
       Logging.logInfo({
         tenantID: tenant.id,
-        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
+        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
@@ -325,7 +325,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }).catch((error) => {
       Logging.logError({
         tenantID: tenant.id,
-        source: (data && data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : null),
+        source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,

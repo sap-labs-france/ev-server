@@ -288,7 +288,7 @@ export default class UserStorage {
         sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
       },
-      deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
+      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
@@ -434,7 +434,7 @@ export default class UserStorage {
     if (params.plateID) {
       updatedUserMDB.plateID = params.plateID;
     }
-    if (params.hasOwnProperty('notificationsActive')) {
+    if (Utils.objectHasProperty(params, 'notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     if (params.notifications) {

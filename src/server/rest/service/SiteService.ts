@@ -114,7 +114,7 @@ export default class SiteService {
         user: req.user
       });
     }
-    if (!filteredRequest.hasOwnProperty('siteAdmin')) {
+    if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -236,7 +236,7 @@ export default class SiteService {
         user: req.user
       });
     }
-    if (!filteredRequest.hasOwnProperty('siteOwner')) {
+    if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,

@@ -27,7 +27,7 @@ export default class OCPPUtils {
       // Browse filter for extra matching
       for (const filter in chargingStationTemplate.extraFilters) {
         // Check
-        if (chargingStationTemplate.extraFilters.hasOwnProperty(filter)) {
+        if (Utils.objectHasProperty(chargingStationTemplate.extraFilters, filter)) {
           const filterValue: string = chargingStationTemplate.extraFilters[filter];
           if (!(new RegExp(filterValue).test(chargingStation[filter]))) {
             foundTemplate = null;
@@ -49,18 +49,18 @@ export default class OCPPUtils {
     // Copy from template
     if (chargingStationTemplate) {
       // Assign props
-      if (chargingStationTemplate.template.hasOwnProperty('cannotChargeInParallel')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'cannotChargeInParallel')) {
         chargingStation.cannotChargeInParallel = chargingStationTemplate.template.cannotChargeInParallel;
       }
-      if (chargingStationTemplate.template.hasOwnProperty('maximumPower')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'maximumPower')) {
         chargingStation.maximumPower = chargingStationTemplate.template.maximumPower;
       }
-      if (chargingStationTemplate.template.hasOwnProperty('currentType')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'currentType')) {
         chargingStation.currentType = chargingStationTemplate.template.currentType;
       }
       // Handle capabilities
       chargingStation.capabilities = {} as ChargingStationCapabilities;
-      if (chargingStationTemplate.template.hasOwnProperty('capabilities')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'capabilities')) {
         let matchFirmware = true;
         let matchOcpp = true;
         // Search Firmware/Ocpp match
@@ -82,7 +82,7 @@ export default class OCPPUtils {
       }
       // Handle OCPP Advanced Commands
       chargingStation.ocppAdvancedCommands = [];
-      if (chargingStationTemplate.template.hasOwnProperty('ocppAdvancedCommands')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'ocppAdvancedCommands')) {
         let matchFirmware = true;
         let matchOcpp = true;
         // Search Firmware/Ocpp match
@@ -104,7 +104,7 @@ export default class OCPPUtils {
       }
       // Handle OCPP Standard Parameters
       chargingStation.ocppStandardParameters = [];
-      if (chargingStationTemplate.template.hasOwnProperty('ocppStandardParameters')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'ocppStandardParameters')) {
         let matchOcpp = true;
         // Search Firmware/Ocpp match
         for (const ocppStandardParameters of chargingStationTemplate.template.ocppStandardParameters) {
@@ -126,7 +126,7 @@ export default class OCPPUtils {
       }
       // Handle OCPP Vendor Parameters
       chargingStation.ocppVendorParameters = [];
-      if (chargingStationTemplate.template.hasOwnProperty('ocppVendorParameters')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'ocppVendorParameters')) {
         let matchFirmware = true;
         let matchOcpp = true;
         // Search Firmware/Ocpp match
@@ -179,7 +179,7 @@ export default class OCPPUtils {
     // Copy from template
     if (chargingStationTemplate) {
       // Handle connector
-      if (chargingStationTemplate.template.hasOwnProperty('connectors')) {
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'connectors')) {
         // Find the connector in the template
         const templateConnector = chargingStationTemplate.template.connectors.find(
           (connector) => connector.connectorId === connectorID);
@@ -237,7 +237,7 @@ export default class OCPPUtils {
       return;
     }
     for (const connector of chargingStation.connectors) {
-      if (connector.hasOwnProperty('power')) {
+      if (Utils.objectHasProperty(connector, 'power')) {
         maximumPower += connector.power;
       }
     }
