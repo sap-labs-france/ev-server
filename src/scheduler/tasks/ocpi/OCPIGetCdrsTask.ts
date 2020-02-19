@@ -68,7 +68,8 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       tenantID: tenant.id,
       module: 'OCPIGetCdrsTask',
       method: 'patch', action: 'OcpiGetCdrs',
-      message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed)`
+      message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed)`,
+      detailedMessages: result
     });
   }
 }
