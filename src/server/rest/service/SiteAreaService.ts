@@ -20,11 +20,11 @@ export default class SiteAreaService {
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+    UtilsService.assertIdIsProvided(action, siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
     // Found?
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -60,12 +60,12 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes });
     // Found?
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -94,10 +94,10 @@ export default class SiteAreaService {
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertIdIsProvided(action, siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -112,7 +112,7 @@ export default class SiteAreaService {
     }
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Return
     res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
     next();
@@ -205,7 +205,7 @@ export default class SiteAreaService {
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({

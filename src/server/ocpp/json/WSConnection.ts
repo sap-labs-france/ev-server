@@ -101,7 +101,7 @@ export default class WSConnection {
           // Update CF Instance
           chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
           // Save it
-          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
+          await ChargingStationStorage.saveChargingStation(Action.WS_CONNECTION, this.tenantID, chargingStation);
         }
       }
     } catch (error) {

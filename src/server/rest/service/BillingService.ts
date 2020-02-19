@@ -186,8 +186,8 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
         module: 'BillingService', method: 'handleGetBillingConnection',
+        message: 'Billing service is not configured',
         action: action,
         user: req.user
       });
@@ -195,7 +195,7 @@ export default class BillingService {
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     // Sync user
-    const synchronizeAction = await billingImpl.forceUserSynchronization(userToSynchronize, tenant.id);
+    const synchronizeAction = await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
     // Ok
     res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();

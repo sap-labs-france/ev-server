@@ -82,7 +82,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError(Action.START_SESSION, consumptionData, result);
+    await this.handleError(Action.START_TRANSACTION, consumptionData, result);
     return null;
 
   }
@@ -112,7 +112,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError(Action.STOP_SESSION, consumptionData, result);
+    await this.handleError(Action.STOP_TRANSACTION, consumptionData, result);
     return null;
 
   }
@@ -139,7 +139,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError(Action.UPDATE_SESSION, consumptionData, result);
+    await this.handleError(Action.UPDATE_TRANSACTION, consumptionData, result);
     return null;
 
   }

@@ -3,6 +3,7 @@ import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
+import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
@@ -426,13 +427,13 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
+  public static async saveChargingStation(action: Action, tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    UtilsService.assertIdIsProvided(chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
+    UtilsService.assertIdIsProvided(action, chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
     // Build Request
     const chargingStationFilter = {
       _id: chargingStationToSave.id

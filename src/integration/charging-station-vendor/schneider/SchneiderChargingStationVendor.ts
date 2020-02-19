@@ -25,7 +25,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
         connector.amperageLimit = Utils.convertToInt(ocppParamValue);
       }
       // Save it
-      await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(Action.POWER_LIMITATION, tenantID, chargingStation);
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
@@ -91,7 +91,7 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
       connector.amperageLimit = maxAmpsPerConnector;
     }
     // Save it
-    await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+    await ChargingStationStorage.saveChargingStation(Action.POWER_LIMITATION, tenantID, chargingStation);
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetCompositeScheduleStatus> {

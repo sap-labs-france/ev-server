@@ -39,6 +39,7 @@ export interface BillingPartialUser {
 export interface BillingUserSynchronizeAction {
   synchronized: number;
   error: number;
+  billingData?: BillingUserData;
 }
 
 export interface BillingTax {
