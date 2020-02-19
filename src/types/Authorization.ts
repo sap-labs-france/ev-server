@@ -105,3 +105,16 @@ export enum Action {
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 }
 
+export interface AuthorizationContext {
+  tagIDs?: string[];
+  tagID?: string;
+  owner?: string;
+  site?: string;
+  sites?: string[];
+  sitesAdmin?: string[];
+  user?: string;
+  UserID?: string;
+  sitesOwner?: string[];
+  company?: string;
+  companies?: string[];
+}
