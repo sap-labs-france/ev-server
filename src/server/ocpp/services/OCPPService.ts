@@ -1,6 +1,7 @@
-import { Action } from '../../../types/Authorization';
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
@@ -13,11 +14,13 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action } from '../../../types/Authorization';
 import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
+import Tenant from '../../../types/Tenant';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 import User from '../../../types/User';
 import Configuration from '../../../utils/Configuration';
@@ -28,9 +31,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import Tenant from '../../../types/Tenant';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -44,9 +45,9 @@ const DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE: OCPPAttribute = {
   context: OCPPReadingContext.SAMPLE_PERIODIC
 };
 export default class OCPPService {
-  private chargingStationConfig: any;
+  private chargingStationConfig: ChargingStationConfiguration;
 
-  public constructor(chargingStationConfig = null) {
+  public constructor(chargingStationConfig: ChargingStationConfiguration = null) {
     this.chargingStationConfig = chargingStationConfig;
   }
 

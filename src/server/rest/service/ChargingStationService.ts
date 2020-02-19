@@ -1,4 +1,3 @@
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -14,11 +13,11 @@ import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -29,7 +28,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import { filter } from 'bluebird';
 
 export default class ChargingStationService {
 
@@ -211,8 +209,7 @@ export default class ChargingStationService {
         action: Action.POWER_LIMITATION,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue} Amps is too low, min required is ${StaticLimitAmps.MIN_LIMIT} Amps`,
-        module: 'ChargingStationService',
-        method: 'handleChargingStationLimitPower',
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
       });
     }
@@ -234,8 +231,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.POWER_LIMITATION,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
-        method: 'handleChargingStationLimitPower',
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         value: chargingStation.id
       });
     }
@@ -246,8 +242,7 @@ export default class ChargingStationService {
         action: Action.POWER_LIMITATION,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: 'Charging Station does not support power limitation',
-        module: 'ChargingStationService',
-        method: 'handleChargingStationLimitPower',
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
       });
     }
@@ -264,8 +259,28 @@ export default class ChargingStationService {
       });
     }
     // Call the limitation
-    await chargingStationVendor.setPowerLimitation(
+    const result = await chargingStationVendor.setPowerLimitation(
       req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
+    if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+      throw new AppError({
+        source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
+        errorCode: HTTPError.LIMIT_POWER_ERROR,
+        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        message: `Cannot limit the charger's power: '${result.status}'`,
+        detailedMessages: result,
+        user: req.user
+      });
+    }
+    Logging.logInfo({
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
+      action: Action.POWER_LIMITATION,
+      user: req.user,
+      module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+      message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue} Amps`,
+      detailedMessages: result
+    });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -303,6 +318,8 @@ export default class ChargingStationService {
     // Check
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleUpdateChargingProfile', req.user);
+    // Check Mandatory fields
+    Utils.checkIfChargingProfileIsValid(filteredRequest, req);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
@@ -346,14 +363,15 @@ export default class ChargingStationService {
       });
     }
     // Set charging profile
-    const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-    if (status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
+    const result = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
+    if (result.status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `The profile has not been accepted by the charging station '${chargingStation.id}', status: '${status}'`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        message: `Cannot set the charger's charging profile: '${result.status}'`,
+        detailedMessages: result,
         user: req.user
       });
     }
@@ -363,11 +381,11 @@ export default class ChargingStationService {
     Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
-      user: req.user, module: 'ChargingStationService',
-      method: 'handleUpdateChargingProfile',
-      message: 'Charging Profile has been updated successfully',
       action: action,
-      detailedMessages: { 'chargingProfile': filteredRequest }
+      user: req.user,
+      module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+      message: 'Charging Profile has been successfully set',
+      detailedMessages: { chargingProfile: filteredRequest }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -376,12 +394,16 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check existence
-    const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
-    // Get
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-    // Check
-    UtilsService.assertObjectExists(action, chargingStationID, `ChargingStation '${chargingStationID}' doesn't exist.`,
+    const chargingProfileID = ChargingStationSecurity.filterChargingProfileRequestByID(req.query);
+    // Get Profile
+    const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, chargingProfileID);
+    UtilsService.assertObjectExists(chargingProfile, `Charging Profile ID '${chargingProfileID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+    // Get Charging Station 
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+    // Check Component
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
@@ -395,8 +417,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.SET_CHARGING_PROFILE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
-        method: 'handleDeleteChargingProfile',
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         value: chargingStation.id
       });
     }
@@ -407,8 +428,7 @@ export default class ChargingStationService {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
-        module: 'ChargingStationService',
-        method: 'handleUpdateChargingProfile',
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         user: req.user
       });
     }
@@ -420,30 +440,31 @@ export default class ChargingStationService {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
-        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         user: req.user
       });
     }
     // Clear charging profile
-    const status = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, {} as ChargingProfile);
-    if (status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
+    const result = await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
+    if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `Deleting Charging Profiles for Charging Station '${chargingStation.id}' failed, status: '${status}'`,
-        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        message: `Cannot delete the charger's charging profiles: '${result.status}'`,
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
+        detailedMessages: result,
         user: req.user
       });
     }
     // Delete
-    await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingStationID);
+    await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingProfile.id);
     // Log
     Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
-      user: req.user, module: 'ChargingStationService',
-      method: 'handleDeleteChargingProfile',
+      user: req.user,
+      module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
       message: 'Charging Profile has been cleared successfully',
       action: action
     });
@@ -1291,6 +1312,7 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
+        connectorStatus: filteredRequest.ConnectorStatus,
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
@@ -1303,9 +1325,6 @@ export default class ChargingStationService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       }
     );
-    chargingStations.result.forEach((chargingStation) => {
-      chargingStation.inactive = OCPPUtils.getIfChargingStationIsInactive(chargingStation);
-    });
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Filter
@@ -1514,7 +1533,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `OCPP Command '${command}' error ${JSON.stringify(error, null, ' ')}`,
+        message: `OCPP Command '${command}' has failed`,
         module: 'ChargingStationService',
         method: 'handleChargingStationCommand',
         user: user,

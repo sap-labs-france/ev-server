@@ -4,14 +4,12 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
-import { OCPPNormalizedMeterValue, OCPPStatusNotificationRequest } from '../../../types/ocpp/OCPPServer';
+import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
-import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import OCPPConstants from './OCPPConstants';
 import Utils from '../../../utils/Utils';
-import { Action } from '../../../types/Authorization';
+import OCPPConstants from './OCPPConstants';
 
 export default class OCPPUtils {
 
@@ -244,24 +242,6 @@ export default class OCPPUtils {
     if (maximumPower) {
       chargingStation.maximumPower = maximumPower;
     }
-  }
-
-  public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
