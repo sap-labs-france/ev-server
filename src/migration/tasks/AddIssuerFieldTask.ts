@@ -13,6 +13,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
       await this.migrateTenant(tenant, 'companies');
       await this.migrateTenant(tenant, 'sites');
       await this.migrateTenant(tenant, 'siteareas');
+      await this.migrateTenant(tenant, 'users');
     }
   }
 
@@ -37,7 +38,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {

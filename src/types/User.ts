@@ -6,6 +6,7 @@ import { BillingUserData } from './Billing';
 
 export default interface User extends CreatedUpdatedProps {
   id: string;
+  issuer: boolean;
   name: string;
   firstName: string;
   email: string;

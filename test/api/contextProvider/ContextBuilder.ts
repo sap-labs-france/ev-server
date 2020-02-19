@@ -114,6 +114,7 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id + ' ' + buildTenant.subdomain);
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'issuer': true,
       'name': 'Admin',
       'firstName': 'User',
       'email': config.get('admin.username'),

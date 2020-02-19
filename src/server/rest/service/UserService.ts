@@ -873,6 +873,7 @@ export default class UserService {
     await Utils.checkIfUserTagsAreValid(null, filteredRequest.tags, req);
     // Clean request
     delete filteredRequest.passwords;
+    filteredRequest.issuer = true;
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
