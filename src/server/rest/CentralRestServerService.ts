@@ -100,6 +100,7 @@ class RequestMapper {
           OcpiEndpointPullCdrs: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
           OcpiEndpointPullLocations: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
           OcpiEndpointPullSessions: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
+          OcpiEndpointPullTokens: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),

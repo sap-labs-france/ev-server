@@ -303,6 +303,33 @@ export default class OCPIEndpointService {
     next();
   }
 
+  static async handlePullTokensEndpoint(action: Action, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handlePullTokensEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointTriggerJobRequest(req.body);
+    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePullTokensEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, MODULE_NAME, 'handlePullTokensEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+    const result = await ocpiClient.pullTokens(false);
+    // Return result
+    res.json(result);
+    next();
+  }
+
   static async handlePullCdrsEndpoint(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
