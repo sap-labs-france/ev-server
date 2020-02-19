@@ -116,7 +116,7 @@ export default abstract class Billing<T extends BillingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing', method: 'synchronizeUsers',
-        message: `${actionsDone.synchronized} were successfully synchronized, ${actionsDone.error} got errors`
+        message: `${actionsDone.synchronized} user(s) were successfully synchronized, ${actionsDone.error} got errors`
       });
     } else {
       Logging.logInfo({
@@ -195,7 +195,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         module: 'Billing', method: 'forceSynchronizeUser',
-        message: `Forced successfully the synchronization of user '${user.email}'`,
+        message: `Successfully forced the synchronization of the user '${user.email}'`,
       });
     } catch (error) {
       actionsDone.error++;
@@ -205,7 +205,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         module: 'Billing', method: 'forceSynchronizeUser',
-        message: `Cannot force the synchronization of user '${user.email}'`,
+        message: `Failed to force the synchronization of the user '${user.email}'`,
         detailedMessages: error.message
       });
     }
