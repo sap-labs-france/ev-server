@@ -54,6 +54,7 @@ export enum Action {
   CLEAR_CACHE = 'ClearCache',
   DATA_TRANSFER = 'DataTransfer',
   STOP_TRANSACTION = 'StopTransaction',
+  UPDATE_TRANSACTION = 'UpdateTransaction',
   REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
   START_TRANSACTION = 'StartTransaction',
   REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
@@ -79,16 +80,16 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
+  OCPI_GET_LOCATIONS = 'OCPIGetLocations',
+  OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
 
-  OCPI_GET_LOCATIONS = 'OCPIiGetLocations',
+  OCPP_SERVICE = 'OCPPService',
+
+  WS_CONNECTION = 'WSConnection',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
-
-  START_SESSION = 'startSession',
-  STOP_SESSION = 'stopSession',
-  UPDATE_SESSION = 'updateSession',
 
   REFUND = 'Refund',
 
@@ -105,3 +106,16 @@ export enum Action {
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 }
 
+export interface AuthorizationContext {
+  tagIDs?: string[];
+  tagID?: string;
+  owner?: string;
+  site?: string;
+  sites?: string[];
+  sitesAdmin?: string[];
+  user?: string;
+  UserID?: string;
+  sitesOwner?: string[];
+  company?: string;
+  companies?: string[];
+}

@@ -8,6 +8,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 import { UserInError } from '../../../../types/InError';
+import Utils from "../../../../utils/Utils";
 
 export default class UserSecurity {
 
@@ -109,7 +110,7 @@ export default class UserSecurity {
       filteredRequest.email = sanitize(request.email);
     }
     filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
-    if (request.hasOwnProperty('notificationsActive')) {
+    if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }
     if (request.notifications) {
@@ -171,11 +172,14 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if (user.hasOwnProperty('errorCode')) {
+        if (Utils.objectHasProperty(user, 'errorCode')) {
           (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
         }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
+        }
+        if (user.billingData) {
+          filteredUser.billingData = user.billingData;
         }
       } else {
         // Set only necessary info
@@ -196,7 +200,7 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if (user.hasOwnProperty('errorCode')) {
+        if (Utils.objectHasProperty(user, 'errorCode')) {
           (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
         }
         if (user.address) {

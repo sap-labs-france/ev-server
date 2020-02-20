@@ -3,6 +3,7 @@ import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
+import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
@@ -11,6 +12,7 @@ import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
@@ -444,13 +446,13 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
+  public static async saveChargingStation(action: Action, tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    UtilsService.assertIdIsProvided(chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
+    UtilsService.assertIdIsProvided(action, chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
     // Build Request
     const chargingStationFilter = {
       _id: chargingStationToSave.id
@@ -577,6 +579,8 @@ export default class ChargingStationStorage {
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
+    // Delete Charging Profiles
+    await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
     await global.database.getCollection<any>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
@@ -655,11 +659,23 @@ export default class ChargingStationStorage {
     return configuration;
   }
 
+  public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
+    // Query single Site
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID,
+      { chargingProfileID: id },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfile', uniqueTimerID, { id });
+    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+  }
+
   public static async getChargingProfiles(tenantID: string,
       params: {
-        chargingStationID?: string; connectorID?: number;
+        chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
       } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     // Check Tenant
@@ -670,11 +686,15 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
     const filters: any = {};
-    if (params.chargingStationID) {
-      filters.chargingStationID = params.chargingStationID;
-    }
-    if (params.connectorID) {
-      filters.connectorID = params.connectorID;
+    if (params.chargingProfileID) {
+      filters._id = params.chargingProfileID;
+    } else {
+      if (params.chargingStationID) {
+        filters.chargingStationID = params.chargingStationID;
+      }
+      if (params.connectorID) {
+        filters.connectorID = params.connectorID;
+      }
     }
     // Create Aggregation
     const aggregation = [];
@@ -728,7 +748,7 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const chargingProfilesMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+    const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
@@ -740,19 +760,31 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingProfile(tenantID: string, chargingProfile: ChargingProfile): Promise<void> {
+  public static async saveChargingProfile(tenantID: string, chargingProfileToSave: ChargingProfile): Promise<string> {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const chargingProfileFilter = {
-      chargingStationID: chargingProfile.chargingStationID
+    const chargingProfileFilter: any = {};
+    // Build Request
+    if (chargingProfileToSave.id) {
+      chargingProfileFilter._id = Utils.convertToObjectID(chargingProfileToSave.id);
+    } else {
+      chargingProfileFilter._id = 
+        Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
+    }
+    // Properties to save
+    const chargingProfileMDB: any = {
+      _id: chargingProfileFilter._id,
+      chargingStationID: chargingProfileToSave.chargingStationID,
+      connectorID: chargingProfileToSave.connectorID,
+      profile: chargingProfileToSave.profile
     };
-    const chargingProfileMDB: ChargingProfile = chargingProfile;
     await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
       chargingProfileFilter,
       { $set: chargingProfileMDB },
       { upsert: true });
     Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+    return chargingProfileFilter._id;
   }
 
   public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
@@ -762,7 +794,19 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Delete Charging Profile
     await global.database.getCollection<any>(tenantID, 'chargingprofiles')
-      .findOneAndDelete({ 'chargingStationID': id });
+      .findOneAndDelete({ '_id': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
+  }
+
+  public static async deleteChargingProfiles(tenantID: string, chargingStationID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profiles
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': chargingStationID });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
   }

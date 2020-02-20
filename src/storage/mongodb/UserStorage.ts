@@ -173,6 +173,16 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
+  public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByBillingID');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { billingCustomer: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
+    return user.count > 0 ? user.result[0] : null;
+  }
+
   public static async getUserImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
@@ -289,7 +299,7 @@ export default class UserStorage {
         sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
       },
-      deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
+      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
@@ -434,7 +444,7 @@ export default class UserStorage {
     if (params.plateID) {
       updatedUserMDB.plateID = params.plateID;
     }
-    if (params.hasOwnProperty('notificationsActive')) {
+    if (Utils.objectHasProperty(params, 'notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     if (params.notifications) {
@@ -462,6 +472,7 @@ export default class UserStorage {
       updatedUserMDB.billingData.customerID = billingData.customerID;
       updatedUserMDB.billingData.method = billingData.method;
       updatedUserMDB.billingData.cardID = billingData.cardID;
+      updatedUserMDB.billingData.hasSynchroError = billingData.hasSynchroError;
       if (!updatedUserMDB.billingData.cardID) {
         delete updatedUserMDB.billingData.cardID;
       }
@@ -1106,7 +1117,7 @@ export default class UserStorage {
       case UserInErrorType.NOT_ACTIVE:
         return [
           { $match: { status: { $ne: Status.ACTIVE } } },
-          { $addFields: { 'errorCode': 'inactive_user' } }
+          { $addFields: { 'errorCode': UserInErrorType.NOT_ACTIVE } }
         ];
       case UserInErrorType.NOT_ASSIGNED: {
         return [
@@ -1139,10 +1150,14 @@ export default class UserStorage {
             }
           ];
         }
-
         return [];
-
       }
+      case UserInErrorType.FAILED_BILLING_SYNCHRO:
+        return [
+          { $match: { 'billingData.hasSynchroError': { $eq: true } } },
+          { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
+        ];
+
       default:
         return [];
     }

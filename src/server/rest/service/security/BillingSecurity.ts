@@ -1,5 +1,7 @@
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { BillingTax } from '../../../../types/Billing';
+import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 
 export default class BillingSecurity {
@@ -32,5 +34,16 @@ export default class BillingSecurity {
       filteredTax.percentage = tax.percentage;
     }
     return filteredTax;
+  }
+
+  static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {
+    const filteredUser: HttpSynchronizeUserRequest = {} as HttpSynchronizeUserRequest;
+    if (request.id) {
+      filteredUser.id = sanitize(request.id);
+    }
+    if (request.email) {
+      filteredUser.email = sanitize(request.email);
+    }
+    return filteredUser;
   }
 }

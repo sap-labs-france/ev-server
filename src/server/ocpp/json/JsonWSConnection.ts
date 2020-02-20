@@ -1,21 +1,25 @@
+import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
-import { OCPPProtocol } from '../../../types/ocpp/OCPPServer';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationService from './services/JsonChargingStationService';
 import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonWSConnection';
+
 export default class JsonWSConnection extends WSConnection {
+  private chargingStationClient: ChargingStationClient;
+  private chargingStationService: JsonChargingStationService;
+  private headers: OCPPHeader;
 
-  private chargingStationClient: any;
-  private chargingStationService: any;
-  private headers: any;
-
-  constructor(wsConnection, req, chargingStationConfig, wsServer) {
+  constructor(wsConnection: WebSocket, req, chargingStationConfig: ChargingStationConfiguration, wsServer: JsonCentralSystemServer) {
     // Call super
     super(wsConnection, req, wsServer);
     // Check Protocol (required field of OCPP spec)
@@ -39,7 +43,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  async initialize() {
+  public async initialize() {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -47,7 +51,7 @@ export default class JsonWSConnection extends WSConnection {
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
-        ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol),
+        ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol) as OCPPVersion,
         ocppProtocol: OCPPProtocol.JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
@@ -69,30 +73,30 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  onError(error) {
+  public onError(event: Event) {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
       module: MODULE_NAME, method: 'onError',
       action: 'WSJsonErrorReceived',
-      message: error
+      message: event
     });
   }
 
-  onClose(code, reason) {
+  public onClose(closeEvent: CloseEvent) {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
       module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       method: 'onClose', action: 'WSJsonConnectionClose',
-      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+      message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });
     // Remove the connection
     this.wsServer.removeJsonConnection(this);
   }
 
-  async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload) {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
@@ -118,7 +122,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  getChargingStationClient() {
+  public getChargingStationClient(): ChargingStationClient {
     // Only return client if WS is open
     if (this.isWSConnectionOpen()) {
       return this.chargingStationClient;

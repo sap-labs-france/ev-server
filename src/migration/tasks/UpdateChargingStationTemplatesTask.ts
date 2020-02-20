@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
+import Utils from "../../utils/Utils";
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate() {
@@ -43,7 +44,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       }
       // Check Connectors
       for (const connector of chargingStationMDB.connectors) {
-        if (!connector.hasOwnProperty('amperageLimit')) {
+        if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
           connector.amperageLimit = connector.amperage;
           chargingStationUpdated = true;
         }
