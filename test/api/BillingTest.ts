@@ -153,7 +153,7 @@ describe('Billing Service', function() {
         testData.createdUsers.push(fakeUser);
         const response = await testData.userService.userApi.getByEmail(fakeUser.email);
         const billingUserBefore = response.data.result[0];
-        await testData.userService.billingApi.forceUserSynchronization({ UserID: fakeUser.id });
+        await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
         const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
