@@ -12,7 +12,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
-  public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -20,11 +20,11 @@ export default class SiteAreaService {
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+    UtilsService.assertIdIsProvided(action, siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
     // Found?
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -52,7 +52,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -60,12 +60,12 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
     // ID is mandatory
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes });
     // Found?
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -86,7 +86,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreaImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -94,10 +94,10 @@ export default class SiteAreaService {
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertIdIsProvided(action, siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -112,13 +112,13 @@ export default class SiteAreaService {
     }
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Return
     res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
     next();
   }
 
-  public static async handleGetSiteAreas(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreas(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -155,7 +155,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -195,7 +195,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleUpdateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
@@ -205,7 +205,7 @@ export default class SiteAreaService {
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({

@@ -47,21 +47,25 @@ export enum Action {
   UPDATE = 'Update',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
+  LOGIN = 'Login',
   LIST = 'List',
   RESET = 'Reset',
   AUTHORIZE = 'Authorize',
   CLEAR_CACHE = 'ClearCache',
   DATA_TRANSFER = 'DataTransfer',
   STOP_TRANSACTION = 'StopTransaction',
+  UPDATE_TRANSACTION = 'UpdateTransaction',
   REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
   START_TRANSACTION = 'StartTransaction',
   REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
   REFUND_TRANSACTION = 'RefundTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
+  GET_CHARGING_PROFILE = 'GetChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
+  REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
@@ -70,5 +74,48 @@ export enum Action {
   POWER_LIMITATION = 'PowerLimitation',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',
+  RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
+  END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
+  CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
+  VERIFY_EMAIL = 'VerifyEmail',
+  FIRMWARE_DOWNLOAD = 'FirmwareDownload',
+
+  OCPI_GET_LOCATIONS = 'OCPIGetLocations',
+  OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+
+  OCPP_SERVICE = 'OCPPService',
+
+  WS_CONNECTION = 'WSConnection',
+
+  BOOT_NOTIFICATION = 'BootNotification',
+
+  ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
+
+  REFUND = 'Refund',
+
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+
+  USER_INVOICE = 'UserInvoice',
+
+  BILLING = 'Billing',
+
+  MONGO_DB = 'MongoDB',
+
+  EMPTY_ACTION = '',
+  DELETE_CREDENTIALS = 'DELETE credentials',
+  OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 }
 
+export interface AuthorizationContext {
+  tagIDs?: string[];
+  tagID?: string;
+  owner?: string;
+  site?: string;
+  sites?: string[];
+  sitesAdmin?: string[];
+  user?: string;
+  UserID?: string;
+  sitesOwner?: string[];
+  company?: string;
+  companies?: string[];
+}

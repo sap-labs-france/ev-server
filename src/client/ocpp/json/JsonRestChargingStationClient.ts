@@ -1,5 +1,6 @@
 import uuid from 'uuid/v4';
 import ChargingStation from '../../../types/ChargingStation';
+import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingStationCommand, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -9,7 +10,7 @@ import ChargingStationClient from '../ChargingStationClient';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
-  private serverURL: any;
+  private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: any;
   private wsConnection: WSClient;
@@ -108,7 +109,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           protocol: 'rest'
         };
       }
-      const wsClientOptions = {
+      const wsClientOptions: JsonWSClientConfiguration  = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
@@ -174,8 +175,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 source: this.chargingStation.id,
                 method: 'onMessage',
                 action: 'WSRestClientErrorResponse',
-                message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
-                detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
+                message: `${messageJson[3]}`,
+                detailedMessages: messageJson
               });
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });

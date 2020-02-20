@@ -1,5 +1,5 @@
 import { Action, Entity, Role } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError, HTTPUserError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -23,10 +23,10 @@ const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -41,7 +41,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(id);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${id}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -72,10 +72,10 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
@@ -90,7 +90,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -100,7 +100,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTenants(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -125,7 +125,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -145,7 +145,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -158,7 +158,7 @@ export default class TenantService {
     if (foundTenant) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPUserError.EMAIL_ALREADY_EXIST_ERROR,
+        errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -221,7 +221,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleUpdateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Filter
@@ -240,7 +240,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();

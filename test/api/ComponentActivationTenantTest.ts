@@ -80,7 +80,7 @@ describe('Tenant Settings test', function() {
         email: testData.credentials.email,
         subdomain: 'utnothing',
         components: {
-          ocpi: { active: true, type: 'gireve' },
+          ocpi: { active: true, type: RoamingSettingsType.GIREVE },
           organization: { active: false, type: null },
           pricing: { active: false, type: null },
           refund: { active: false, type: null },

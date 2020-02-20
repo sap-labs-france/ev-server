@@ -1,5 +1,5 @@
 import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { HTTPError, HTTPUserError } from '../types/HTTPError';
+import { HTTPError } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
@@ -28,7 +28,8 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { Role } from '../types/Authorization';
+import { Role, Action } from '../types/Authorization';
+import { ChargingProfile } from '../types/ChargingProfile';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -115,24 +116,6 @@ export default class Utils {
     return false;
   }
 
-  public static getIfChargingStationIsInactive(chargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
-  }
-
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -154,8 +137,6 @@ export default class Utils {
       }
       // Check connectors
       Utils.checkAndUpdateConnectorsStatus(chargingStation);
-      // Set Inactive flag
-      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
@@ -243,7 +224,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  // static async pushTransactionToRevenueCloud(tenantID: string, action: string, transaction: Transaction, user: User, actionOnUser: User) {
+  // static async pushTransactionToRevenueCloud(tenantID: string, action: Action, transaction: Transaction, user: User, actionOnUser: User) {
   //   // Refund Transaction
   //   const cloudRevenueAuth = new ClientOAuth2({
   //     clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -465,7 +446,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {
@@ -824,6 +805,61 @@ export default class Utils {
     }
   }
 
+  public static checkIfChargingProfileIsValid(filteredRequest: ChargingProfile, req: Request): void {
+    if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
+        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+        !filteredRequest.profile.chargingSchedule) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid Charging Profile',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Invalid Charging Profile's Schedule`,
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Charging Profile's schedule must not be empty`,
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
@@ -991,7 +1027,7 @@ export default class Utils {
             // Tag already used!
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
-              errorCode: HTTPUserError.TAG_ID_ALREADY_USED_ERROR,
+              errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
               module: 'Utils',
               method: 'checkIfUserTagsAreValid',
@@ -1270,13 +1306,23 @@ export default class Utils {
         }
         break;
 
-      // SAC
+      // Smart Charging
       case Constants.COMPONENTS.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
             'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
             'sapSmartCharging': {}
+          } as SettingDBContent;
+        }
+        break;
+
+      // BUILDING
+      case Constants.COMPONENTS.BUILDING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Building
+          return {
+            'type': null,
           } as SettingDBContent;
         }
         break;

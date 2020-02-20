@@ -1,5 +1,6 @@
 import User from './User';
 import NotificationTask from '../notification/NotificationTask';
+import ChargingStation from './ChargingStation';
 
 export default interface UserNotifications {
   sendSessionStarted: boolean;
@@ -17,6 +18,7 @@ export default interface UserNotifications {
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
   sendBillingUserSynchronizationFailed: boolean;
+  sendSessionNotStarted: boolean;
 }
 
 export type UserNotificationKeys =
@@ -33,7 +35,8 @@ export type UserNotificationKeys =
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
- 'sendBillingUserSynchronizationFailed'
+ 'sendBillingUserSynchronizationFailed' |
+ 'sendSessionNotStarted'
 ;
 
 export enum UserNotificationType {
@@ -50,7 +53,8 @@ export enum UserNotificationType {
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
-  BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed'
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize'
 }
 
 export enum NotificationSeverity {
@@ -205,7 +209,7 @@ export interface OfflineChargingStationNotification extends BaseNotification {
 export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
   nbrUsersInError: number;
   evseDashboardURL: string;
-  evseDashnoardBillingURL: string;
+  evseDashboardBillingURL: string;
 }
 
 export interface NotificationSource {
@@ -222,5 +226,12 @@ export interface Notification {
   sourceDescr: string;
   data: any;
   chargeBoxID: string;
+}
+
+export interface SessionNotStartedNotification extends BaseNotification {
+  chargeBoxID: string;
+  user: User;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 

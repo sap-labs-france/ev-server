@@ -1,20 +1,21 @@
-import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import Billing from '../../src/integration/billing/Billing';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { HTTPAuthError } from '../../src/types/HTTPError';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
-import User from '../../src/types/User';
-import Constants from '../../src/utils/Constants';
-import Cypher from '../../src/utils/Cypher';
-import config from '../config';
-import Factory from '../factories/Factory';
+import chai, { assert, expect } from 'chai';
+import Billing from '../../src/integration/billing/Billing';
+import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import CONTEXTS from './contextProvider/ContextConstants';
+import Constants from '../../src/utils/Constants';
 import ContextProvider from './contextProvider/ContextProvider';
+import Cypher from '../../src/utils/Cypher';
+import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { ObjectID } from 'mongodb';
 import SiteContext from './contextProvider/SiteContext';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
 import TenantContext from './contextProvider/TenantContext';
+import User from '../../src/types/User';
+import chaiSubset from 'chai-subset';
+import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -45,8 +46,7 @@ const testData: TestData = new TestData();
 
 describe('Billing Service', function() {
   this.timeout(1000000);
-
-  describe('With admin user', () => {
+  describe('With component Billing (tenant ut-billing)', () => {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -56,76 +56,119 @@ describe('Billing Service', function() {
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
       );
-      if (testData.userContext === testData.centralUserContext) {
-        // Reuse the central user service (to avoid double login)
-        testData.userService = testData.centralUserService;
-      } else {
-        testData.userService = new CentralServerService(
-          testData.tenantContext.getTenant().subdomain,
-          testData.userContext
-        );
-      }
-      expect(testData.userService).to.not.be.null;
-      const tenant = testData.tenantContext.getTenant();
-      if (tenant.id) {
-        const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-        expect(tenantBillingSettings.data.count).to.be.eq(1);
-        const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
-        componentSetting.content.type = BillingSettingsType.STRIPE;
-        componentSetting.content.stripe = { ...billingSettings };
-        componentSetting.sensitiveData = ['content.stripe.secretKey'];
-        await testData.userService.settingApi.update(componentSetting);
-
-        billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-        billingImpl = new StripeBilling(tenant.id, billingSettings);
-        expect(billingImpl).to.not.be.null;
-      } else {
-        throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
-      }
     });
 
-    it('Should connect to Billing Provider', async () => {
-      const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-      expect(response.data).containSubset({ connectionIsValid: true });
-      expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-    });
-
-    it('Should create a user', async () => {
-      const fakeUser = {
-        ...Factory.user.build(),
-        billingData: {
-          method: 'immediate'
+    describe('Where admin user', () => {
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        assert(testData.userContext, 'User context cannot be null');
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
         }
-      } as User;
+        assert(!!testData.userService, 'User service cannot be null');
+        const tenant = testData.tenantContext.getTenant();
+        if (tenant.id) {
+          const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+          expect(tenantBillingSettings.data.count).to.be.eq(1);
+          const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+          componentSetting.content.type = BillingSettingsType.STRIPE;
+          componentSetting.content.stripe = { ...billingSettings };
+          componentSetting.sensitiveData = ['content.stripe.secretKey'];
+          await testData.userService.settingApi.update(componentSetting);
 
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
+          billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
+          billingImpl = new StripeBilling(tenant.id, billingSettings);
+          expect(billingImpl).to.not.be.null;
+        } else {
+          throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
+        }
+      });
 
-      await testData.userService.createEntity(
-        testData.userService.userApi,
-        fakeUser
-      );
-      testData.createdUsers.push(fakeUser);
+      it('Should connect to Billing Provider', async () => {
+        const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
+        expect(response.data).containSubset({ connectionIsValid: true });
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+      });
 
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length + 1);
+      it('Should create a user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+          billingData: {
+            method: 'immediate'
+          }
+        } as User;
+
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+
+        const exists = await billingImpl.userExists(fakeUser);
+        expect(exists).to.be.true;
+      });
+
+      it('Should update a user', async () => {
+        testData.createdUsers[0].firstName = 'Test';
+        testData.createdUsers[0].name = 'Name';
+        await testData.userService.updateEntity(
+          testData.userService.userApi,
+          testData.createdUsers[0],
+          false
+        );
+
+        const billingUser = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
+        expect(billingUser.name).to.be.eq(testData.createdUsers[0].firstName + ' ' + testData.createdUsers[0].name);
+      });
+
+      it('Should delete a user', async () => {
+        await testData.userService.deleteEntity(
+          testData.userService.userApi,
+          { id: testData.createdUsers[0].id }
+        );
+
+        const exists = await billingImpl.userExists(testData.createdUsers[0]);
+        expect(exists).to.be.false;
+        testData.createdUsers.pop();
+      });
+
+      it('Should force a user synchronization', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+          billingData: {
+            method: 'immediate'
+          }
+        } as User;
+
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        const response = await testData.userService.userApi.getByEmail(fakeUser.email);
+        const billingUserBefore = response.data.result[0];
+        await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
+        const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
+        expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
+      });
+
+      after(async () => {
+        for (const user of testData.createdUsers) {
+          await testData.userService.deleteEntity(
+            testData.userService.userApi,
+            user
+          );
+        }
+      });
     });
 
-    it('Should delete a user', async () => {
-      const usersBefore = await billingImpl.getUsers();
-      expect(usersBefore).to.not.be.null;
-
-      await testData.userService.deleteEntity(
-        testData.userService.userApi,
-        { id: testData.createdUsers[0].id }
-      );
-      testData.createdUsers.pop();
-
-      const usersAfter = await billingImpl.getUsers();
-      expect(usersAfter.length).to.be.eq(usersBefore.length - 1);
-    });
-
-    describe('With basic user', () => {
+    describe('Where basic user', () => {
       before(async () => {
         testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
         testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
@@ -168,16 +211,13 @@ describe('Billing Service', function() {
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
-      it('Should not be able to create a user', async () => {
+      it('Should not create a user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
           billingData: {
             method: 'immediate'
           }
         } as User;
-
-        const usersBefore = await billingImpl.getUsers();
-        expect(usersBefore).to.not.be.null;
 
         const response = await testData.userService.createEntity(
           testData.userService.userApi,
@@ -186,25 +226,46 @@ describe('Billing Service', function() {
         );
         testData.createdUsers.push(fakeUser);
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
-
-        const usersAfter = await billingImpl.getUsers();
-        expect(usersAfter.length).to.be.eq(usersBefore.length);
       });
 
-      it('Should not be able to delete a user', async () => {
-        const usersBefore = await billingImpl.getUsers();
-        expect(usersBefore).to.not.be.null;
+      it('Should not update a user', async () => {
+        const fakeUser = {
+          id: new ObjectID(),
+          ...Factory.user.build(),
+          billingData: {
+            method: 'immediate'
+          }
+        } as User;
+        fakeUser.firstName = 'Test';
+        fakeUser.name = 'Name';
+        const response = await testData.userService.updateEntity(
+          testData.userService.userApi,
+          fakeUser,
+          false
+        );
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      });
 
+      it('Should not delete a user', async () => {
         const response = await testData.userService.deleteEntity(
           testData.userService.userApi,
           { id: 0 },
           false
         );
-        testData.createdUsers.pop();
-        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
 
-        const usersAfter = await billingImpl.getUsers();
-        expect(usersAfter.length).to.be.eq(usersBefore.length);
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      });
+
+      it('Should not force synchronization of a user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+          billingData: {
+            method: 'immediate'
+          }
+        } as User;
+        const response = await testData.userService.billingApi.forceUserSynchronization({ UserID: fakeUser.id });
+
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
     });
   });

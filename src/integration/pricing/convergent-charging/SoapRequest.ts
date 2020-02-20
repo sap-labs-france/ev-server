@@ -6,6 +6,3 @@ export default class SoapRequest {
     readonly data: any
   ) {}
 }
-
-// TODO: type of data (Payload)
-// Since it is variable maybe leave as any (justified)

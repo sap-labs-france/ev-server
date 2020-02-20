@@ -175,6 +175,9 @@ export default class UserSecurity {
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
+        if (user.billingData) {
+          filteredUser.billingData = user.billingData;
+        }
       } else {
         // Set only necessary info
         filteredUser.id = user.id;
@@ -266,7 +269,8 @@ export default class UserSecurity {
       sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
-      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false
+      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
+      sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
     };
   }
 }

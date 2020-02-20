@@ -12,6 +12,7 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { Action } from '../../../../types/Authorization';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -68,8 +69,8 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'deleteCredentials',
-        action: 'DELETE credentials',
         errorCode: 405,
+        action: Action.DELETE_CREDENTIALS,
         message: 'method not allowed if the client was not registered',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
       });
@@ -107,7 +108,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR
@@ -140,7 +141,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'OCPI Endpoint not available or wrong token',
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
@@ -248,7 +249,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,

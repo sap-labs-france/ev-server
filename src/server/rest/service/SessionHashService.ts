@@ -10,6 +10,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import { Action } from '../../../types/Authorization';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

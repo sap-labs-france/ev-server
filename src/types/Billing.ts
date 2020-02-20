@@ -25,6 +25,7 @@ export interface BillingUserData {
   cardID?: string;
   subscriptionID?: string;
   lastChangedOn?: Date;
+  hasSynchroError?: boolean;
 }
 
 export interface BillingPartialUser {
@@ -35,6 +36,7 @@ export interface BillingPartialUser {
 export interface BillingUserSynchronizeAction {
   synchronized: number;
   error: number;
+  billingData?: BillingUserData;
 }
 
 export interface BillingTax {

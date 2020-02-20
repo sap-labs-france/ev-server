@@ -27,7 +27,6 @@ describe('Cypher Tests', function() {
     });
 
     it('Check that hashing works', () => {
-      // FIXME: check against the expected hashed value
       const hashed = cypher.hash(FAKE_WORD);
       expect(FAKE_WORD).to.not.equal(hashed);
     });

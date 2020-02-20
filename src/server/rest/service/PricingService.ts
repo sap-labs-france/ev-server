@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from 'express';
+import { Entity, Action } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
-import { Entity } from '../../../types/Authorization';
 import Logging from '../../../utils/Logging';
 import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../storage/mongodb/PricingStorage';
 
 export default class PricingService {
-  static async handleGetPricing(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetPricing(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canReadPricing(req.user)) {
@@ -43,7 +43,7 @@ export default class PricingService {
     }
   }
 
-  static async handleUpdatePricing(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleUpdatePricing(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canUpdatePricing(req.user)) {

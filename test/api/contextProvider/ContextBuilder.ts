@@ -189,7 +189,7 @@ export default class ContextBuilder {
         userListToAssign.push(userModel);
       }
       // Set back password to clear value for login/logout
-      (userModel as any).passwordClear = config.get('admin.password'); // TODO?
+      (userModel as any).passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     // Persist tenant context

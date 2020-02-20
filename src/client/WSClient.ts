@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { JsonWSClientConfiguration } from '../types/configuration/WSClientConfiguration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 
@@ -30,7 +31,7 @@ export default class WSClient {
   public onreconnect: Function;
   public readyState: number;
   private url: string;
-  private options: any;
+  private options: JsonWSClientConfiguration;
   private callbacks: any;
   private dbLogging: boolean;
   private autoReconnectRetryCount: number;
@@ -39,9 +40,9 @@ export default class WSClient {
   private logTenantID: any;
   private ws: WebSocket;
 
-  public constructor(url: string, options, dbLogging = true) {
+  public constructor(url: string, options: JsonWSClientConfiguration, dbLogging = true) {
     this.url = url;
-    this.options = options || {};
+    this.options = options || {} as JsonWSClientConfiguration;
     this.callbacks = {
       onopen: () => { },
       onerror: () => { },

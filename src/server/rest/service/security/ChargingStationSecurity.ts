@@ -1,18 +1,18 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import { Action } from '../../../../types/Authorization';
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
 import ChargingStation from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationConfigurationRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import { filter } from 'bluebird';
 
 
 export default class ChargingStationSecurity {
@@ -145,6 +145,15 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
+  public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
+    const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
   public static filterRequestChargingStationConfigurationRequest(request: any): HttpChargingStationConfigurationRequest {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
@@ -160,6 +169,10 @@ export default class ChargingStationSecurity {
     return sanitize(request.ID);
   }
 
+  public static filterChargingProfileRequestByID(request: any): string {
+    return sanitize(request.ID);
+  }
+
   public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
     if (request.Issuer) {
@@ -170,6 +183,7 @@ export default class ChargingStationSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -312,6 +326,32 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
+    };
+  }
+
+  public static filterIsAuthorizedRequest(request: any): HttpIsAuthorizedRequest {
+    const filteredRequest: HttpIsAuthorizedRequest = {
+      Action: sanitize(request.Action),
+      Arg1: sanitize(request.Arg1),
+      Arg2: sanitize(request.Arg2),
+      Arg3: sanitize(request.Arg3)
+    };
+    if (filteredRequest.Action === Action.REMOTE_STOP_TRANSACTION) {
+      filteredRequest.Action = Action.REMOTE_STOP_TRANSACTION;
+    }
+    return filteredRequest;
+  }
+
+  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
+    return {
+      FileName: sanitize(request.FileName),
+    };
+  }
+
   private static filterChargingProfile(request: any): Profile {
     const filteredRequest: Profile = {} as Profile;
     // Check
@@ -378,30 +418,6 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
-    return {
-      chargeBoxID: sanitize(request.chargeBoxID),
-      maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
-    };
-  }
 
-  public static filterIsAuthorizedRequest(request: any): HttpIsAuthorizedRequest {
-    const filteredRequest: HttpIsAuthorizedRequest = {
-      Action: sanitize(request.Action),
-      Arg1: sanitize(request.Arg1),
-      Arg2: sanitize(request.Arg2),
-      Arg3: sanitize(request.Arg3)
-    };
-    if (filteredRequest.Action === 'StopTransaction') {
-      filteredRequest.Action = 'RemoteStopTransaction';
-    }
-    return filteredRequest;
-  }
-
-  public static filterChargingStationGetFirmwareRequest(request: any): HttpChargingStationGetFirmwareRequest {
-    return {
-      FileName: sanitize(request.FileName),
-    };
-  }
 }
 

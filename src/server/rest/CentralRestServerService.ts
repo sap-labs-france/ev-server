@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Action } from '../../types/Authorization';
 import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
 import ChargingStationService from './service/ChargingStationService';
@@ -34,26 +35,26 @@ class RequestMapper {
       case 'POST':
         // Register Charging Stations actions
         this.registerOneActionManyPaths(
-          async (action: string, req: Request, res: Response, next: NextFunction) => {
-            action = action.slice(15);
+          async (action: Action, req: Request, res: Response, next: NextFunction) => {
+            action = action.slice(15) as Action;
             await ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
           },
           'ChargingStationSetMaxIntensitySocket'
         );
         this.registerOneActionManyPaths(
-          async (action: string, req: Request, res: Response, next: NextFunction) => {
+          async (action: Action, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)
-            action = action.slice(15);
+            action = action.slice(15) as Action;
             // TODO: To Remove
             // Hack for mobile app not sending the RemoteStopTransaction yet
-            if (action === 'StartTransaction') {
-              action = 'RemoteStartTransaction';
+            if (action === Action.START_TRANSACTION) {
+              action = Action.REMOTE_START_TRANSACTION;
             }
-            if (action === 'StopTransaction') {
-              action = 'RemoteStopTransaction';
+            if (action === Action.STOP_TRANSACTION) {
+              action = Action.REMOTE_STOP_TRANSACTION;
             }
             // Type it
-            const chargingStationCommand: OCPPChargingStationCommand = action as OCPPChargingStationCommand;
+            const chargingStationCommand: OCPPChargingStationCommand = action as unknown as OCPPChargingStationCommand;
             // Delegate
             await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
@@ -93,6 +94,8 @@ class RequestMapper {
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           SettingCreate: SettingService.handleCreateSetting.bind(this),
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
+          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
+          ForceUserSynchronizationForBilling: BillingService.handleForceSynchronizeUser.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
@@ -120,6 +123,7 @@ class RequestMapper {
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
+          ChargingProfiles: ChargingStationService.handleGetChargingProfiles.bind(this),
           RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           StatusNotifications: ChargingStationService.handleGetStatusNotifications.bind(this),
           BootNotifications: ChargingStationService.handleGetBootNotifications.bind(this),
@@ -185,7 +189,7 @@ class RequestMapper {
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),
           IntegrationConnection: ConnectorService.handleGetConnection.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this),
-          Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
+          Ping: (action: Action, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
         break;
 
@@ -284,11 +288,11 @@ export default {
         // Check Context
         switch (action) {
           // Ping
-          case 'Ping':
+          case Action.PING:
             res.sendStatus(200);
             break;
           // FirmwareDownload
-          case 'FirmwareDownload':
+          case Action.FIRMWARE_DOWNLOAD:
             try {
               await ChargingStationService.handleGetFirmware(action, req, res, next);
             } catch (error) {
@@ -306,19 +310,16 @@ export default {
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
-
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
-
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
         'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
-
     try {
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);

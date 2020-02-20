@@ -1,11 +1,13 @@
+import { Action } from './Authorization';
 import ChargingStation from './ChargingStation';
 import Transaction from './Transaction';
 import User from './User';
 
+
 export interface ErrorMessage {
   title: string;
   description: string;
-  action: string;
+  action: Action;
 }
 
 export interface InError {
@@ -44,4 +46,5 @@ export enum UserInErrorType {
   NOT_ACTIVE = 'inactive_user',
   NOT_ASSIGNED = 'unassigned_user',
   INACTIVE_USER_ACCOUNT = 'inactive_user_account',
+  FAILED_BILLING_SYNCHRO = 'failed_billing_synchro',
 }
