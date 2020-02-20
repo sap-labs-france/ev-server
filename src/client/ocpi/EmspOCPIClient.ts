@@ -24,13 +24,14 @@ import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import { Action } from '../../types/Authorization';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
-    super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.EMSP);
+    super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {
-      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.EMSP}`);
+    if (ocpiEndpoint.role !== OCPIRole.EMSP) {
+      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`);
     }
   }
 

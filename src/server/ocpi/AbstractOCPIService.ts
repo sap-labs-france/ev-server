@@ -13,6 +13,7 @@ import Tenant from '../../types/Tenant';
 import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { Action } from '../../types/Authorization';
+import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 
 const MODULE_NAME = 'AbstractOCPIService';
 
@@ -21,6 +22,7 @@ export interface TenantIdHoldingRequest extends Request {
 }
 
 export default abstract class AbstractOCPIService {
+  public static readonly VERSIONS_PATH = '/versions';
 
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
@@ -139,7 +141,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
 
@@ -156,7 +158,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
 
@@ -175,7 +177,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
 
@@ -189,7 +191,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid token',
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
 
@@ -205,7 +207,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' is not enabled for OCPI`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
       // Define get option
@@ -228,7 +230,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
 
@@ -276,7 +278,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${action} not implemented`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } catch (error) {

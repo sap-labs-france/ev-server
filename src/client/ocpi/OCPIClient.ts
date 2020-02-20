@@ -8,6 +8,8 @@ import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 
 export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
@@ -16,7 +18,7 @@ export default abstract class OCPIClient {
   protected settings: OcpiSetting;
 
   protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
-    if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
+    if (role !== OCPIRole.CPO && role !== OCPIRole.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
 
@@ -81,7 +83,7 @@ export default abstract class OCPIClient {
       await this.deleteCredentials();
 
       // Save endpoint
-      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+      this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
       // Send success
@@ -141,7 +143,7 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.businessDetails = credential.business_details;
 
       // Save endpoint
-      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED;
+      this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
       // Send success

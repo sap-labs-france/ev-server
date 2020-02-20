@@ -8,6 +8,7 @@ import OCPIMapping from './OCPIMapping';
 import { Role } from '../../../../types/Authorization';
 import OCPIUtils from '../../OCPIUtils';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const MODULE_NAME = 'EMSPTokensEndpoint';
 
@@ -22,7 +23,7 @@ export default class OCPITokensService {
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: token,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
     const email = OCPIUtils.buildUserEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId);
@@ -38,7 +39,7 @@ export default class OCPITokensService {
             errorCode: HttpStatusCodes.CONFLICT,
             message: `The token ${token.uid} is already assigned to internal user`,
             detailedMessages: token,
-            ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+            ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
           });
         }
         tag.issuer = false;

@@ -23,6 +23,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
 import { UserInErrorType } from '../../../types/InError';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 
 export default class UserService {
 
@@ -213,7 +214,7 @@ export default class UserService {
     // Synchronize badges with IOP
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     try {
-      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
       if (ocpiClient) {
         // Invalidate no more used tags
         for (const tag of user.tags) {
@@ -375,7 +376,7 @@ export default class UserService {
       // Synchronize badges with IOP
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
           // Invalidate no more used tags
           for (const previousTag of previousTags) {
@@ -847,7 +848,7 @@ export default class UserService {
       // Synchronize badges with IOP
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
         if (ocpiClient) {
           for (const tag of filteredRequest.tags) {
             if (tag.issuer) {

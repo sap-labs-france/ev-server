@@ -14,6 +14,7 @@ import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
 import Configuration from '../../../../utils/Configuration';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -501,7 +502,7 @@ export default class OCPIMapping {
     if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
 
-      if (role === Constants.OCPI_ROLE.EMSP) {
+      if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
         credential.party_id = ocpiSetting.ocpi.emsp.partyID;
       } else {

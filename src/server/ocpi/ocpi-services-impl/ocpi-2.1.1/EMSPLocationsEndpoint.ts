@@ -20,6 +20,7 @@ import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import { Action } from '../../../../types/Authorization';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -72,7 +73,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         method: 'patchLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -86,7 +87,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           method: 'patchLocationRequest',
           errorCode: HttpStatusCodes.NOT_FOUND,
           message: 'Unknown EVSE with id ' + evseUid,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
       if (connectorId) {
@@ -135,7 +136,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         method: 'updateLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 

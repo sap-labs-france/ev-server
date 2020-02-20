@@ -18,13 +18,14 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import moment from 'moment';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
-    super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
+    super(tenant, settings, ocpiEndpoint, OCPIRole.CPO);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {
-      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.CPO}`);
+    if (ocpiEndpoint.role !== OCPIRole.CPO) {
+      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${OCPIRole.CPO}`);
     }
   }
 

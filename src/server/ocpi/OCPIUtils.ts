@@ -3,6 +3,7 @@ import Constants from '../../utils/Constants';
 import AppError from '../../exception/AppError';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 
 /**
  * OCPI Utils
@@ -16,8 +17,8 @@ export default class OCPIUtils {
   public static success(data?: any): OCPIResponse {
     return {
       'data': data,
-      'status_code': Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
-      'status_message': Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_message,
+      'status_code': OCPIStatusCode.CODE_1000_SUCCESS.status_code,
+      'status_message': OCPIStatusCode.CODE_1000_SUCCESS.status_message,
       'timestamp': new Date().toISOString()
     };
   }
@@ -31,7 +32,7 @@ export default class OCPIUtils {
       'status_message': error.message,
       'timestamp': new Date().toISOString(),
       'status_code': error instanceof AppError && error.params.ocpiError ?
-        error.params.ocpiError.status_code : Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR.status_code
+        error.params.ocpiError.status_code : OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR.status_code
     };
   }
 

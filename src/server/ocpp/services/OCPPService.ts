@@ -32,6 +32,7 @@ import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -453,7 +454,7 @@ export default class OCPPService {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
       try {
-        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.CPO) as CpoOCPIClient;
+        const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
         if (ocpiClient) {
           await ocpiClient.patchChargingStationStatus(chargingStation, statusNotification.status);
         }
