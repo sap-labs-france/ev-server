@@ -141,7 +141,7 @@ export default class UserService {
         value: id
       });
     }
-    // Check Mandatory fields
+    // Same user
     if (id === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -161,55 +161,55 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is already deleted`,
-        module: 'UserService',
-        method: 'handleDeleteUser',
-        user: req.user,
-        action: action
+        module: 'UserService', method: 'handleDeleteUser',
+        user: req.user
       });
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
-      try {
-        await billingImpl.checkIfUserCanBeDeleted(user);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleDeleteUser',
-          action: 'CheckIfUserCanBeDeleted',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
-          detailedMessages: e.message
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (!billingImpl) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Billing service is not configured',
+          module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user, actionOnUser: user
+        });
+      }
+      const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+      if (!userCanBeDeleted) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.BILLING_DELETE_ERROR,
+          message: 'User cannot be deleted due to billing constraints',
+          module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user, actionOnUser: user
         });
       }
     }
-    if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
-      // Delete from site
-      const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
-        Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => siteUser.site.id
-      );
-      await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
-    }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
-    if (billingImpl) {
+    // Delete billing user
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleDeleteUser',
           action: 'UserDelete',
+          module: 'UserService',method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
       }
     }
-
     // Synchronize badges with IOP
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     try {
@@ -234,14 +234,13 @@ export default class UserService {
     } catch (e) {
       Logging.logError({
         tenantID: req.user.tenantID,
-        module: 'UserService',
-        method: 'handleUpdateUser',
+        module: 'UserService', method: 'handleUpdateUser',
         action: 'UserUpdate',
+        user: req.user, actionOnUser: user,
         message: `Unable to synchronize tokens of user ${user.id} with IOP`,
         detailedMessages: e.message
       });
     }
-
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log

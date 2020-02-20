@@ -31,9 +31,7 @@ export interface BillingUserData {
 export interface BillingPartialUser {
   email: string;
   name: string;
-  billingData: {
-    customerID: string;
-  };
+  billingData: BillingUserData;
 }
 
 export interface BillingUserSynchronizeAction {
