@@ -33,6 +33,7 @@ export enum HTTPError {
   SITE_AREA_WITH_NO_SITE_ERROR = 525,
   USER_WITH_NO_SITE_ERROR = 525,
 
+  BILLING_DELETE_ERROR = 510,
 }
 
 export enum HTTPAuthError {

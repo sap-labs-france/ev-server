@@ -141,7 +141,7 @@ export default class UserService {
         value: id
       });
     }
-    // Check Mandatory fields
+    // Same user
     if (id === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -161,93 +161,98 @@ export default class UserService {
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is already deleted`,
-        module: 'UserService',
-        method: 'handleDeleteUser',
-        user: req.user,
-        action: action
+        module: 'UserService', method: 'handleDeleteUser',
+        user: req.user
       });
     }
-
-    let userCanBeDelete = true;
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
-      userCanBeDelete = await billingImpl.checkIfUserCanBeDeleted(user);
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (!billingImpl) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Billing service is not configured',
+          module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user, actionOnUser: user
+        });
+      }
+      const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+      if (!userCanBeDeleted) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.BILLING_DELETE_ERROR,
+          message: 'User cannot be deleted due to billing constraints',
+          module: 'BillingService', method: 'handleGetBillingConnection',
+          user: req.user, actionOnUser: user
+        });
+      }
     }
-
-    if (!billingImpl || userCanBeDelete) {
-      if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
-        // Delete from site
-        const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
-          Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-          (siteUser) => siteUser.site.id
-        );
-        await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
-      }
-      // Delete User
-      await UserStorage.deleteUser(req.user.tenantID, user.id);
-      if (billingImpl) {
-        try {
-          await billingImpl.deleteUser(user);
-        } catch (e) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            module: 'UserService',
-            method: 'handleDeleteUser',
-            action: 'UserDelete',
-            message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
-            detailedMessages: e.message
-          });
-        }
-      }
-
-      // Synchronize badges with IOP
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Delete User
+    await UserStorage.deleteUser(req.user.tenantID, user.id);
+    // Delete billing user
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Invalidate no more used tags
-          for (const tag of user.tags) {
-            if (tag.issuer) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: 'RFID',
-                'auth_id': user.id,
-                'visual_number': user.id,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
-            }
-          }
-        }
+        await billingImpl.deleteUser(user);
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleUpdateUser',
-          action: 'UserUpdate',
-          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          action: 'UserDelete',
+          module: 'UserService',method: 'handleDeleteUser',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
       }
-
-      // Delete Connections
-      await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: user,
-        module: 'UserService', method: 'handleDeleteUser',
-        message: `User with ID '${user.id}' has been deleted successfully`,
-        action: action
-      });
-
-      // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
     }
+    // Synchronize badges with IOP
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    try {
+      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
+      if (ocpiClient) {
+        // Invalidate no more used tags
+        for (const tag of user.tags) {
+          if (tag.issuer) {
+            await ocpiClient.pushToken({
+              uid: tag.id,
+              type: 'RFID',
+              'auth_id': user.id,
+              'visual_number': user.id,
+              issuer: tenant.name,
+              valid: false,
+              whitelist: 'ALLOWED_OFFLINE',
+              'last_updated': new Date()
+            });
+          }
+        }
+      }
+    } catch (e) {
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        module: 'UserService', method: 'handleUpdateUser',
+        action: 'UserUpdate',
+        user: req.user, actionOnUser: user,
+        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+        detailedMessages: e.message
+      });
+    }
+    // Delete Connections
+    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, actionOnUser: user,
+      module: 'UserService', method: 'handleDeleteUser',
+      message: `User with ID '${user.id}' has been deleted successfully`,
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
