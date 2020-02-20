@@ -311,7 +311,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         });
       }
       // Only relevant for Advance Billing to stop the running transaction, if the credit amount is no more sufficient
-
     } catch (error) {
       Logging.logError({
         tenantID: this.tenantID,
@@ -510,7 +509,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     this.checkIfStripeIsInitialized();
     // Check connection
     await this.checkConnection();
-
     I18nManager.switchLocale(user.locale);
     let customer: Stripe.customers.ICustomer = null;
     if (user.billingData && user.billingData.customerID) {
@@ -533,8 +531,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeUpdated',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
       });
       return false;
@@ -544,8 +542,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeUpdated',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
       });
       return false;
@@ -556,8 +554,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeUpdated',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
       });
       return false;
@@ -572,8 +570,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeUpdated',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
       });
       return false;
@@ -584,8 +582,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         Logging.logError({
           tenantID: this.tenantID,
           action: Action.DELETE,
-          module: 'StripeBilling',
-          method: 'checkIfUserCanBeUpdated',
+          actionOnUser: user,
+          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
         });
         return false;
@@ -593,8 +591,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         Logging.logError({
           tenantID: this.tenantID,
           action: Action.DELETE,
-          module: 'StripeBilling',
-          method: 'checkIfUserCanBeUpdated',
+          actionOnUser: user,
+          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan.currency}`
         });
         return false;
@@ -623,8 +621,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeDeleted',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
       return false;
@@ -637,8 +635,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeDeleted',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
       });
       return false;
@@ -651,8 +649,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.DELETE,
-        module: 'StripeBilling',
-        method: 'checkIfUserCanBeDeleted',
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
       });
       return false;
@@ -697,7 +695,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async deleteUser(user: User) {
     // Check Stripe
     this.checkIfStripeIsInitialized();
-
     if (user.billingData && user.billingData.customerID) {
       const customer = await this.getCustomerByEmail(user.email);
       if (customer && customer.id) {
