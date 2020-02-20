@@ -14,7 +14,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { Action } from '../../../../types/Authorization';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPIRegistationStatus } from '../../../../types/ocpi/OCPIRegistationStatus';
+import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -66,7 +66,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
-    if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistationStatus.OCPI_UNREGISTERED) {
+    if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -79,7 +79,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // Save ocpi endpoint
-    ocpiEndpoint.status = OCPIRegistationStatus.OCPI_UNREGISTERED;
+    ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
     ocpiEndpoint.backgroundPatchJob = false;
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
@@ -261,7 +261,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
     // Generate new token
     ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
-    ocpiEndpoint.status = OCPIRegistationStatus.OCPI_REGISTERED;
+    ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
 
     // Save ocpi endpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);

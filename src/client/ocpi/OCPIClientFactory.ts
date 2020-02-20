@@ -9,7 +9,7 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIRegistationStatus } from '../../types/ocpi/OCPIRegistationStatus';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
@@ -63,7 +63,7 @@ export default class OCPIClientFactory {
   static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: string): Promise<OCPIClient> {
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const ocpiEndpoint of ocpiEndpoints.result) {
-      if (ocpiEndpoint.status === OCPIRegistationStatus.OCPI_REGISTERED) {
+      if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
         const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
         return client;
       }

@@ -8,7 +8,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPIRegistationStatus } from '../../../types/ocpi/OCPIRegistationStatus';
+import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 
 export default class OCPIGetSessionsTask extends SchedulerTask {
 
@@ -39,7 +39,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
   // eslint-disable-next-line no-unused-vars
   async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
     // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.status !== OCPIRegistationStatus.OCPI_REGISTERED) {
+    if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'OCPIGetSessionsTask',

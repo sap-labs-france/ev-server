@@ -13,7 +13,7 @@ import Utils from '../../../utils/Utils';
 import OCPIUtils from '../../ocpi/OCPIUtils';
 import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
 import UtilsService from './UtilsService';
-import { OCPIRegistationStatus } from '../../../types/ocpi/OCPIRegistationStatus';
+import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 
 const MODULE_NAME = 'OCPIEndpointService';
 
@@ -126,7 +126,7 @@ export default class OCPIEndpointService {
       ...filteredRequest,
       createdBy: { id: req.user.id },
       createdOn: new Date(),
-      status: OCPIRegistationStatus.OCPI_NEW
+      status: OCPIRegistrationStatus.NEW
     } as OCPIEndpoint;
     const endpointID = await OCPIEndpointStorage.saveOcpiEndpoint(req.user.tenantID, ocpiEndpoint);
     // Log
