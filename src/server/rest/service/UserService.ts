@@ -204,7 +204,7 @@ export default class UserService {
           tenantID: req.user.tenantID,
           action: 'UserDelete',
           module: 'UserService',method: 'handleDeleteUser',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing system`,
           user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
@@ -346,7 +346,7 @@ export default class UserService {
           module: 'UserService',
           method: 'handleUpdateUser',
           action: 'UserUpdate',
-          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing provider`,
+          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing system`,
           detailedMessages: e.message
         });
       }
@@ -922,7 +922,7 @@ export default class UserService {
           module: 'UserService',
           method: 'handleCreateUser',
           action: 'UserCreate',
-          message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
+          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
           detailedMessages: e.message
         });
       }
