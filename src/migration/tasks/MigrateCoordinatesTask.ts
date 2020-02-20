@@ -24,7 +24,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const company of companies) {
-      if (company.address && company.address.hasOwnProperty('longitude') && company.address.hasOwnProperty('latitude')) {
+      if (company.address && Utils.objectHasProperty(company.address, 'longitude') && Utils.objectHasProperty(company.address, 'latitude')) {
         if (company.address.longitude && company.address.latitude) {
           company.address.coordinates = [
             Utils.convertToFloat(company.address.longitude),
@@ -57,7 +57,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const site of sites) {
-      if (site.address && site.address.hasOwnProperty('longitude') && site.address.hasOwnProperty('latitude')) {
+      if (site.address && Utils.objectHasProperty(site.address, 'longitude') && Utils.objectHasProperty(site.address, 'latitude')) {
         if (site.address.longitude && site.address.latitude) {
           site.address.coordinates = [
             Utils.convertToFloat(site.address.longitude),
@@ -90,7 +90,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const sitearea of siteareas) {
-      if (sitearea.address && sitearea.address.hasOwnProperty('longitude') && sitearea.address.hasOwnProperty('latitude')) {
+      if (sitearea.address && Utils.objectHasProperty(sitearea.address, 'longitude') && Utils.objectHasProperty(sitearea.address, 'latitude')) {
         if (sitearea.address.longitude && sitearea.address.latitude) {
           sitearea.address.coordinates = [
             Utils.convertToFloat(sitearea.address.longitude),
@@ -123,7 +123,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const user of users) {
-      if (user.address && user.address.hasOwnProperty('longitude') && user.address.hasOwnProperty('latitude')) {
+      if (user.address && Utils.objectHasProperty(user.address, 'longitude') && Utils.objectHasProperty(user.address, 'latitude')) {
         if (user.address.longitude && user.address.latitude) {
           user.address.coordinates = [
             Utils.convertToFloat(user.address.longitude),
@@ -156,7 +156,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const chargingstation of chargingstations) {
-      if (chargingstation.hasOwnProperty('longitude') && chargingstation.hasOwnProperty('latitude')) {
+      if (Utils.objectHasProperty(chargingstation, 'longitude') && Utils.objectHasProperty(chargingstation, 'latitude')) {
         if (chargingstation.longitude && chargingstation.latitude) {
           chargingstation.coordinates = [
             Utils.convertToFloat(chargingstation.longitude),

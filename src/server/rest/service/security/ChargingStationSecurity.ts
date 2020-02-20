@@ -201,22 +201,22 @@ export default class ChargingStationSecurity {
   public static filterChargingStationParamsUpdateRequest(request: any): Partial<ChargingStation> {
     const filteredRequest: any = {};
     filteredRequest.id = sanitize(request.id);
-    if (request.hasOwnProperty('chargingStationURL')) {
+    if (Utils.objectHasProperty(request, 'chargingStationURL')) {
       filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
     }
-    if (request.hasOwnProperty('maximumPower')) {
+    if (Utils.objectHasProperty(request, 'maximumPower')) {
       filteredRequest.maximumPower = sanitize(request.maximumPower);
     }
-    if (request.hasOwnProperty('cannotChargeInParallel')) {
+    if (Utils.objectHasProperty(request, 'cannotChargeInParallel')) {
       filteredRequest.cannotChargeInParallel = UtilsSecurity.filterBoolean(request.cannotChargeInParallel);
     }
-    if (request.hasOwnProperty('siteArea')) {
+    if (Utils.objectHasProperty(request, 'siteArea')) {
       filteredRequest.siteArea = sanitize(request.siteArea);
     }
-    if (request.hasOwnProperty('powerLimitUnit')) {
+    if (Utils.objectHasProperty(request, 'powerLimitUnit')) {
       filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
     }
-    if (request.hasOwnProperty('currentType')) {
+    if (Utils.objectHasProperty(request, 'currentType')) {
       filteredRequest.currentType = sanitize(request.currentType);
     }
     if (request.coordinates && request.coordinates.length === 2) {
@@ -248,13 +248,13 @@ export default class ChargingStationSecurity {
 
   public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
     const filteredRequest: ChargingProfile = {} as ChargingProfile;
-    if (request.hasOwnProperty('chargingStationID')) {
+    if (Utils.objectHasProperty(request, 'chargingStationID')) {
       filteredRequest.chargingStationID = sanitize(request.chargingStationID);
     }
-    if (request.hasOwnProperty('connectorID')) {
+    if (Utils.objectHasProperty(request, 'connectorID')) {
       filteredRequest.connectorID = sanitize(request.connectorID);
     }
-    if (request.hasOwnProperty('profile')) {
+    if (Utils.objectHasProperty(request, 'profile')) {
       filteredRequest.profile = ChargingStationSecurity.filterChargingProfile(request.profile);
     }
     return filteredRequest;
@@ -268,58 +268,58 @@ export default class ChargingStationSecurity {
     if (request.args) {
       filteredRequest.args = {};
       // Check
-      if (request.args.hasOwnProperty('type')) {
+      if (Utils.objectHasProperty(request.args, 'type')) {
         filteredRequest.args.type = sanitize(request.args.type);
       }
-      if (request.args.hasOwnProperty('key')) {
+      if (Utils.objectHasProperty(request.args, 'key')) {
         filteredRequest.args.key = sanitize(request.args.key);
       }
-      if (request.args.hasOwnProperty('value')) {
+      if (Utils.objectHasProperty(request.args, 'value')) {
         filteredRequest.args.value = sanitize(request.args.value);
       }
-      if (request.args.hasOwnProperty('connectorId')) {
+      if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
       }
-      if (request.args.hasOwnProperty('duration')) {
+      if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);
       }
-      if (request.args.hasOwnProperty('chargingRateUnit')) {
+      if (Utils.objectHasProperty(request.args, 'chargingRateUnit')) {
         filteredRequest.args.chargingRateUnit = sanitize(request.args.chargingRateUnit);
       }
-      if (request.args.hasOwnProperty('chargingProfilePurpose')) {
+      if (Utils.objectHasProperty(request.args, 'chargingProfilePurpose')) {
         filteredRequest.args.chargingProfilePurpose = sanitize(request.args.chargingProfilePurpose);
       }
-      if (request.args.hasOwnProperty('stackLevel')) {
+      if (Utils.objectHasProperty(request.args, 'stackLevel')) {
         filteredRequest.args.stackLevel = sanitize(request.args.stackLevel);
       }
-      if (request.args.hasOwnProperty('tagID')) {
+      if (Utils.objectHasProperty(request.args, 'tagID')) {
         filteredRequest.args.tagID = sanitize(request.args.tagID);
       }
-      if (request.args.hasOwnProperty('location')) {
+      if (Utils.objectHasProperty(request.args, 'location')) {
         filteredRequest.args.location = sanitize(request.args.location);
       }
-      if (request.args.hasOwnProperty('retries')) {
+      if (Utils.objectHasProperty(request.args, 'retries')) {
         filteredRequest.args.retries = sanitize(request.args.retries);
       }
-      if (request.args.hasOwnProperty('retryInterval')) {
+      if (Utils.objectHasProperty(request.args, 'retryInterval')) {
         filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
       }
-      if (request.args.hasOwnProperty('startTime')) {
+      if (Utils.objectHasProperty(request.args, 'startTime')) {
         filteredRequest.args.startTime = sanitize(request.args.startTime);
       }
-      if (request.args.hasOwnProperty('stopTime')) {
+      if (Utils.objectHasProperty(request.args, 'stopTime')) {
         filteredRequest.args.stopTime = sanitize(request.args.stopTime);
       }
-      if (request.args.hasOwnProperty('retrieveDate')) {
+      if (Utils.objectHasProperty(request.args, 'retrieveDate')) {
         filteredRequest.args.retrieveDate = sanitize(request.args.retrieveDate);
       }
-      if (request.args.hasOwnProperty('retryInterval')) {
+      if (Utils.objectHasProperty(request.args, 'retryInterval')) {
         filteredRequest.args.retryInterval = sanitize(request.args.retryInterval);
       }
-      if (request.args.hasOwnProperty('transactionId')) {
+      if (Utils.objectHasProperty(request.args, 'transactionId')) {
         filteredRequest.args.transactionId = sanitize(request.args.transactionId);
       }
-      if (request.args.hasOwnProperty('csChargingProfiles')) {
+      if (Utils.objectHasProperty(request.args, 'csChargingProfiles')) {
         filteredRequest.args.csChargingProfiles = ChargingStationSecurity.filterChargingProfile(request.args.csChargingProfiles);
       }
     }
@@ -355,59 +355,59 @@ export default class ChargingStationSecurity {
   private static filterChargingProfile(request: any): Profile {
     const filteredRequest: Profile = {} as Profile;
     // Check
-    if (request.hasOwnProperty('chargingProfileId')) {
+    if (Utils.objectHasProperty(request, 'chargingProfileId')) {
       filteredRequest.chargingProfileId = sanitize(request.chargingProfileId);
     }
-    if (request.hasOwnProperty('transactionId')) {
+    if (Utils.objectHasProperty(request, 'transactionId')) {
       filteredRequest.transactionId = sanitize(request.transactionId);
     }
-    if (request.hasOwnProperty('stackLevel')) {
+    if (Utils.objectHasProperty(request, 'stackLevel')) {
       filteredRequest.stackLevel = sanitize(request.stackLevel);
     }
-    if (request.hasOwnProperty('chargingProfilePurpose')) {
+    if (Utils.objectHasProperty(request, 'chargingProfilePurpose')) {
       filteredRequest.chargingProfilePurpose = sanitize(request.chargingProfilePurpose);
     }
-    if (request.hasOwnProperty('chargingProfileKind')) {
+    if (Utils.objectHasProperty(request, 'chargingProfileKind')) {
       filteredRequest.chargingProfileKind = sanitize(request.chargingProfileKind);
     }
-    if (request.hasOwnProperty('recurrencyKind')) {
+    if (Utils.objectHasProperty(request, 'recurrencyKind')) {
       filteredRequest.recurrencyKind = sanitize(request.recurrencyKind);
     }
-    if (request.hasOwnProperty('validFrom')) {
+    if (Utils.objectHasProperty(request, 'validFrom')) {
       filteredRequest.validFrom = sanitize(request.validFrom);
     }
-    if (request.hasOwnProperty('validTo')) {
+    if (Utils.objectHasProperty(request, 'validTo')) {
       filteredRequest.validTo = sanitize(request.validTo);
     }
-    if (request.hasOwnProperty('chargingSchedule')) {
+    if (Utils.objectHasProperty(request, 'chargingSchedule')) {
       const chargingSchedule: ChargingSchedule = {} as ChargingSchedule;
       filteredRequest.chargingSchedule = chargingSchedule;
       // Check
-      if (request.chargingSchedule.hasOwnProperty('duration')) {
+      if (Utils.objectHasProperty(request.chargingSchedule, 'duration')) {
         chargingSchedule.duration = sanitize(request.chargingSchedule.duration);
       }
-      if (request.chargingSchedule.hasOwnProperty('startSchedule')) {
+      if (Utils.objectHasProperty(request.chargingSchedule, 'startSchedule')) {
         chargingSchedule.startSchedule = sanitize(request.chargingSchedule.startSchedule);
       }
-      if (request.chargingSchedule.hasOwnProperty('chargingRateUnit')) {
+      if (Utils.objectHasProperty(request.chargingSchedule, 'chargingRateUnit')) {
         chargingSchedule.chargingRateUnit = sanitize(request.chargingSchedule.chargingRateUnit);
       }
-      if (request.chargingSchedule.hasOwnProperty('minChargeRate')) {
+      if (Utils.objectHasProperty(request.chargingSchedule, 'minChargeRate')) {
         chargingSchedule.minChargeRate = sanitize(request.chargingSchedule.minChargeRate);
       }
-      if (request.chargingSchedule.hasOwnProperty('chargingSchedulePeriod')) {
+      if (Utils.objectHasProperty(request.chargingSchedule, 'chargingSchedulePeriod')) {
         filteredRequest.chargingSchedule.chargingSchedulePeriod = [];
         // Check
         for (const chargingSchedulePeriod of request.chargingSchedule.chargingSchedulePeriod) {
           const chargingSchedulePeriodNew: ChargingSchedulePeriod = {} as ChargingSchedulePeriod;
           // Check
-          if (chargingSchedulePeriod.hasOwnProperty('startPeriod')) {
+          if (Utils.objectHasProperty(chargingSchedulePeriod, 'startPeriod')) {
             chargingSchedulePeriodNew.startPeriod = sanitize(chargingSchedulePeriod.startPeriod);
           }
-          if (chargingSchedulePeriod.hasOwnProperty('limit')) {
+          if (Utils.objectHasProperty(chargingSchedulePeriod, 'limit')) {
             chargingSchedulePeriodNew.limit = sanitize(chargingSchedulePeriod.limit);
           }
-          if (chargingSchedulePeriod.hasOwnProperty('numberPhases')) {
+          if (Utils.objectHasProperty(chargingSchedulePeriod, 'numberPhases')) {
             chargingSchedulePeriodNew.numberPhases = sanitize(chargingSchedulePeriod.numberPhases);
           }
           // Add

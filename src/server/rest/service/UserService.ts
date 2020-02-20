@@ -430,12 +430,12 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
-        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
           if (filteredRequest.notifications) {
             adminData.notifications = filteredRequest.notifications;
@@ -883,12 +883,12 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
-        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
           if (filteredRequest.notifications) {
             adminData.notifications = filteredRequest.notifications;

@@ -8,6 +8,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 import { UserInError } from '../../../../types/InError';
+import Utils from "../../../../utils/Utils";
 
 export default class UserSecurity {
 
@@ -108,7 +109,7 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
-    if (request.hasOwnProperty('notificationsActive')) {
+    if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }
     if (request.notifications) {
@@ -169,7 +170,7 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if (user.hasOwnProperty('errorCode')) {
+        if (Utils.objectHasProperty(user, 'errorCode')) {
           (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
         }
         if (user.address) {
@@ -196,7 +197,7 @@ export default class UserSecurity {
         filteredUser.tags = user.tags;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if (user.hasOwnProperty('errorCode')) {
+        if (Utils.objectHasProperty(user, 'errorCode')) {
           (filteredUser as UserInError).errorCode = (user as UserInError).errorCode;
         }
         if (user.address) {

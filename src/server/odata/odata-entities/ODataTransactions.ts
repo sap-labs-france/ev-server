@@ -1,4 +1,5 @@
 import AbstractODataEntities from './AbstractODataEntities';
+import Utils from "../../../utils/Utils";
 
 export default class ODataTransactions extends AbstractODataEntities {
   public buildParams: any;
@@ -28,7 +29,7 @@ export default class ODataTransactions extends AbstractODataEntities {
   //   - shorten stop price to 15 in order to be compatible with Edm.Double
   public convert(object, req) {
     const transaction = super.convert(object, req);
-    if (transaction.hasOwnProperty('timestamp') && transaction.timestamp) {
+    if (Utils.objectHasProperty(transaction, 'timestamp') && transaction.timestamp) {
       // Convert timestamp and build date object
       transaction.timestamp = this.convertTimestamp(transaction.timestamp, req);
       transaction.startDate = this.buildDateObject(transaction.timestamp, req);
@@ -40,12 +41,12 @@ export default class ODataTransactions extends AbstractODataEntities {
       delete transaction['user'];
     }
     // Rename TagID
-    if (transaction.hasOwnProperty('tagID')) {
+    if (Utils.objectHasProperty(transaction, 'tagID')) {
       transaction.startTagID = transaction.tagID;
       delete transaction['tagID'];
     }
     if (transaction.stop) {
-      if (transaction.stop.hasOwnProperty('timestamp') && transaction.stop.timestamp) {
+      if (Utils.objectHasProperty(transaction.stop, 'timestamp') && transaction.stop.timestamp) {
         // Convert timestamp and build date object
         transaction.stop.timestamp = this.convertTimestamp(transaction.stop.timestamp, req);
         transaction.stopDate = this.buildDateObject(transaction.stop.timestamp, req);
@@ -57,11 +58,11 @@ export default class ODataTransactions extends AbstractODataEntities {
         delete transaction.stop['user'];
       }
       // Rename TagID and move to transaction root
-      if (transaction.stop.hasOwnProperty('tagID')) {
+      if (Utils.objectHasProperty(transaction.stop, 'tagID')) {
         transaction.stopTagID = transaction.stop.tagID;
         delete transaction.stop['tagID'];
       }
-      if (transaction.stop.hasOwnProperty('price')) {
+      if (Utils.objectHasProperty(transaction.stop, 'price')) {
         transaction.stop.price = transaction.stop.price.toFixed(15);
       }
     }

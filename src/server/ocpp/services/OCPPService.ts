@@ -381,7 +381,7 @@ export default class OCPPService {
     // OCPP 1.6: Finishing --> Available
     if (connector.status === ChargePointStatus.FINISHING &&
       statusNotification.status === ChargePointStatus.AVAILABLE &&
-      statusNotification.hasOwnProperty('timestamp')) {
+        Utils.objectHasProperty(statusNotification, 'timestamp')) {
       // Get the last transaction
       const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);

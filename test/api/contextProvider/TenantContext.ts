@@ -11,6 +11,7 @@ import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
+import Utils from "../../../src/utils/Utils";
 
 export default class TenantContext {
 
@@ -152,7 +153,7 @@ export default class TenantContext {
       let conditionMet = null;
       for (const key in params) {
         const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
-        if (user.hasOwnProperty(key)) {
+        if (Utils.objectHasProperty(user, key)) {
           if (conditionMet !== null) {
             conditionMet = conditionMet && user[key] === params[key];
           } else {
@@ -187,10 +188,10 @@ export default class TenantContext {
    */
   addUsers(users) {
     for (const user of users) {
-      if (!user.hasOwnProperty('password')) {
+      if (!Utils.objectHasProperty(user, 'password')) {
         user.password = config.get('admin.password');
       }
-      if (!user.hasOwnProperty('centralServerService')) {
+      if (!Utils.objectHasProperty(user, 'centralServerService')) {
         user.centralServerService = new CentralServerService(this.tenant.subdomain, user);
       }
       this.context.users.push(user);
@@ -199,10 +200,10 @@ export default class TenantContext {
 
   async createUser(user = Factory.user.build(), loggedUser = null) {
     const createdUser = await this.centralAdminServerService.createEntity(this.centralAdminServerService.userApi, user);
-    if (!createdUser.hasOwnProperty('password')) {
+    if (!Utils.objectHasProperty(createdUser, 'password')) {
       createdUser.password = config.get('admin.password');
     }
-    if (!createdUser.hasOwnProperty('centralServerService')) {
+    if (!Utils.objectHasProperty(createdUser, 'centralServerService')) {
       createdUser.centralServerService = new CentralServerService(this.tenant.subdomain, createdUser);
     }
     this.context.createdUsers.push(createdUser);

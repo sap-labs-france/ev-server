@@ -7,6 +7,7 @@ import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Utils from "../../../../utils/Utils";
 
 export default class SiteAreaSecurity {
 
@@ -83,7 +84,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea.siteID = siteArea.siteID;
         filteredSiteArea.maximumPower = siteArea.maximumPower;
       }
-      if (siteArea.hasOwnProperty('address')) {
+      if (Utils.objectHasProperty(siteArea, 'address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
       if (siteArea.connectorStats) {
@@ -91,7 +92,7 @@ export default class SiteAreaSecurity {
         // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
         filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
       }
-      if (siteArea.hasOwnProperty('accessControl')) {
+      if (Utils.objectHasProperty(siteArea, 'accessControl')) {
         filteredSiteArea.accessControl = siteArea.accessControl;
       }
       if (siteArea.site) {
