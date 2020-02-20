@@ -63,12 +63,13 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
-    const locations = await ocpiClient.pullLocations();
+    const result = await ocpiClient.pullLocations();
     Logging.logInfo({
       tenantID: tenant.id,
       module: 'OCPIGetLocationsTask',
       method: 'processOCPIEndpoint', action: 'OCPIGetLocations',
-      message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`
+      message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
+      detailedMessages: result
     });
   }
 }

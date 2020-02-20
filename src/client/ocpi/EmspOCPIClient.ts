@@ -380,7 +380,7 @@ export default class EmspOCPIClient extends OCPIClient {
     });
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name
-      : OCPIUtils.buildSiteName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+      : OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
     site = sites.find((value) => value.name === siteName);
     if (!site) {
       site = {

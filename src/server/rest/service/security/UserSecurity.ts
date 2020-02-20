@@ -109,6 +109,7 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
+    filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
     if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }
@@ -152,6 +153,7 @@ export default class UserSecurity {
       // Admin?
       if (Authorizations.canUpdateUser(loggedUser, user.id)) {
         filteredUser.id = user.id;
+        filteredUser.issuer = user.issuer;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
@@ -182,6 +184,7 @@ export default class UserSecurity {
       } else {
         // Set only necessary info
         filteredUser.id = user.id;
+        filteredUser.issuer = user.issuer;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;

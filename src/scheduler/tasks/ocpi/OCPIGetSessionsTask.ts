@@ -68,7 +68,8 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       tenantID: tenant.id,
       module: 'OCPIGetSessionsTask',
       method: 'patch', action: 'OcpiGetSessions',
-      message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed)`
+      message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed)`,
+      detailedMessages: result
     });
   }
 }

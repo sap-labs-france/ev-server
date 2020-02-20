@@ -199,10 +199,6 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    // Result
-    const tokens: OCPIToken[] = [];
-
-    // Get all tokens
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
 
     if (user) {
@@ -215,9 +211,32 @@ export default class OCPIMapping {
         issuer: user.name,
         valid: !tag.deleted,
         whitelist: 'ALLOWED_OFFLINE',
+        language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn
       };
     }
+  }
+
+  /**
+   * Map user locale (en_US, fr_FR...) to ocpi language (en, fr...)
+   * @param locale
+   */
+  static convertLocaleToLanguage(locale: string): string {
+    if (!locale || locale.length < 2) {
+      return null;
+    }
+    return locale.substring(0, 2);
+  }
+
+  /**
+   * Map ocpi language (en, fr...) to user locale (en_US, fr_FR...)
+   * @param locale
+   */
+  static convertLanguageToLocale(language: string): string {
+    if (language === 'fr') {
+      return 'fr_FR';
+    }
+    return 'en_US';
   }
 
   //

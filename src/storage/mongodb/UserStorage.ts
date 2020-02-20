@@ -271,6 +271,7 @@ export default class UserStorage {
     // eslint-disable-next-line prefer-const
     let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
+      issuer: userToSave.issuer,
       name: userToSave.name,
       firstName: userToSave.firstName,
       email: userToSave.email,
@@ -325,23 +326,22 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userTagsToSave.map((tag) => {
-          const tagMDB = {
-            _id: tag.id,
-            userID: Utils.convertToObjectID(userID),
-            issuer: tag.issuer,
-            description: tag.description,
-            deleted: tag.deleted
-          };
-          // Check Created/Last Changed By
-          DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
-          return tagMDB;
-        }));
+      const tagCollection = global.database.getCollection<any>(tenantID, 'tags');
+      await tagCollection.deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
+      await tagCollection.deleteMany({ 'userID': Utils.convertToObjectID(userID) });
+      await tagCollection.insertMany(userTagsToSave.map((tag) => {
+        const tagMDB = {
+          _id: tag.id,
+          userID: Utils.convertToObjectID(userID),
+          issuer: tag.issuer,
+          description: tag.description,
+          deleted: tag.deleted,
+          ocpiToken: tag.ocpiToken
+        };
+        // Check Created/Last Changed By
+        DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
+        return tagMDB;
+      }));
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTags });
@@ -523,7 +523,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
+      userID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -721,7 +721,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean; userID: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -735,14 +735,17 @@ export default class UserStorage {
     const aggregation = [];
     if (params) {
       const filters = [];
+      if (params.userID) {
+        filters.push({ userID: Utils.convertToObjectID(params.userID) });
+      }
       if (params.issuer === true || params.issuer === false) {
-        filters.push({ 'issuer': params.issuer });
+        filters.push({ issuer: params.issuer });
       }
       if (params.dateFrom && moment(params.dateFrom).isValid()) {
-        filters.push({ 'lastChangedOn': { $gte: new Date(params.dateFrom) } });
+        filters.push({ lastChangedOn: { $gte: new Date(params.dateFrom) } });
       }
       if (params.dateTo && moment(params.dateTo).isValid()) {
-        filters.push({ 'lastChangedOn': { $lte: new Date(params.dateTo) } });
+        filters.push({ lastChangedOn: { $lte: new Date(params.dateTo) } });
       }
 
       if (filters.length > 0) {
@@ -793,7 +796,11 @@ export default class UserStorage {
         id: '$_id',
         _id: 0,
         userID: { $toString: '$userID' },
-        lastChangedOn: 1
+        lastChangedOn: 1,
+        deleted: 1,
+        ocpiToken: 1,
+        description: 1,
+        issuer: 1
       }
     });
     // Read DB
@@ -1072,6 +1079,7 @@ export default class UserStorage {
   public static getEmptyUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
+      issuer: true,
       name: 'Unknown',
       firstName: 'User',
       email: '',

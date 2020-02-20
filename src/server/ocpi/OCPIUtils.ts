@@ -2,6 +2,7 @@ import { Request } from 'express';
 import Constants from '../../utils/Constants';
 import AppError from '../../exception/AppError';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
 
 /**
  * OCPI Utils
@@ -86,16 +87,16 @@ export default class OCPIUtils {
    * @param {*} locationId id of the location
    * @param {*} evseId id of the evse
    */
-  public static buildChargingStationId(locationId: string, evseId: string) {
+  public static buildChargingStationId(locationId: string, evseId: string): string {
     return `${locationId}-${evseId}`;
   }
 
   /**
-   * Build Site Area name from OCPI location
-   * @param {*} countryCode the code of the CPO
-   * @param {*} partyId the partyId of the CPO
+   * Build Operator name from OCPI identifiers (country code and party Id)
+   * @param {*} countryCode the code of the operator
+   * @param {*} partyId the partyId of the operator
    */
-  public static buildSiteName(countryCode: string, partyId: string) {
+  public static buildOperatorName(countryCode: string, partyId: string): string {
     return `${countryCode}*${partyId}`;
   }
 
@@ -105,8 +106,20 @@ export default class OCPIUtils {
    * @param {*} partyId the partyId of the CPO
    * @param {*} locationId id of the location
    */
-  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string) {
+  public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
     return `${countryCode}*${partyId}-${locationId}`;
+  }
+
+  /**
+   * Build User email from OCPI token, eMSP country code and eMSP partyId
+   * @param {*} token the OCPI token of the user
+   * @param {*} countryCode the country code of the eMSP
+   * @param {*} partyId the party identifier of the eMSP
+   */
+  public static buildUserEmailFromOCPIToken(token: OCPIToken, countryCode: string, partyId: string): string {
+    if (token && token.issuer) {
+      return `${token.issuer}@${partyId}.${countryCode}`;
+    }
   }
 
   /**

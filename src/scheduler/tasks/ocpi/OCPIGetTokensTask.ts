@@ -63,12 +63,13 @@ export default class OCPIGetTokensTask extends SchedulerTask {
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
-    const result = await ocpiClient.getTokens();
+    const result = await ocpiClient.pullTokens();
     Logging.logInfo({
       tenantID: tenant.id,
       module: 'OCPIGetTokensTask',
       method: 'patch', action: 'OcpiGetTokens',
-      message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`
+      message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
+      detailedMessages: result
     });
   }
 }
