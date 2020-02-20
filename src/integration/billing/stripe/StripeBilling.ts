@@ -598,7 +598,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
+        message: `Cannot delete user: Opened invoice still exist in Stripe`
       });
       return false;
     }
@@ -612,7 +612,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
+        message: `Cannot delete user: Draft invoice still exist in Stripe`
       });
       return false;
     }
@@ -626,7 +626,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-        message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
+        message: `Cannot delete user: Pending invoice still exist in Stripe`
       });
       return false;
     }
