@@ -5,7 +5,7 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import WSClient from '../../WSClient';
+import WSClient from '../../websocket/WSClient';
 import ChargingStationClient from '../ChargingStationClient';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
