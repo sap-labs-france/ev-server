@@ -102,74 +102,6 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  // --------------------------------------------------------------------
-  // OCPI Constants
-  // --------------------------------------------------------------------
-  // OCPI Base Path
-  public static readonly OCPI_SERVER_CPO_PATH = '/ocpi/cpo';
-  public static readonly OCPI_SERVER_EMSP_PATH = '/ocpi/emsp';
-  public static readonly OCPI_VERSIONS_PATH = '/versions';
-  // OCPI Available Response Status
-  public static readonly OCPI_STATUS_CODE = {
-    // 1*** SUCCESS
-    CODE_1000_SUCCESS: { status_code: 1000, status_message: 'Success' },
-
-    // 2*** CLIENT ERROR
-    CODE_2000_GENERIC_CLIENT_ERROR: { status_code: 2000, status_message: 'Generic Client Error' },
-    CODE_2001_INVALID_PARAMETER_ERROR: { status_code: 2001, status_message: 'Invalid or Missing Parameters' },
-    CODE_2002_NOT_ENOUGH_INFORMATION_ERROR: { status_code: 2002, status_message: 'Not enough information' },
-    CODE_2003_UNKNOW_LOCATION_ERROR: { status_code: 2003, status_message: 'Unknown Location' },
-
-    // 3*** SERVER ERROR
-    CODE_3000_GENERIC_SERVER_ERROR: { status_code: 3000, status_message: 'Generic Server Error' },
-    CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR: { status_code: 3001, status_message: 'Unable to Use Client API' },
-    CODE_3002_UNSUPPORTED_VERSION_ERROR: { status_code: 3002, status_message: 'Unsupported Version' },
-    CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: 'No Matching Endpoints' }
-  };
-
-  public static readonly OCPI_ROLE = {
-    CPO: 'CPO',
-    EMSP: 'EMSP'
-  };
-
-  // OCPI EVSE STATUS
-  public static readonly EVSE_STATUS = {
-    AVAILABLE: 'AVAILABLE',
-    BLOCKED: 'BLOCKED',
-    CHARGING: 'CHARGING',
-    INOPERATIVE: 'INOPERATIVE',
-    OUTOFORDER: 'OUTOFORDER',
-    PLANNED: 'PLANNED',
-    REMOVED: 'REMOVED',
-    RESERVED: 'RESERVED',
-    UNKNOWN: 'UNKNOWN'
-  };
-
-  // OCPI CONNECTOR POWER TYPE
-  public static readonly CONNECTOR_POWER_TYPE = {
-    AC_1_PHASE: 'AC_1_PHASE',
-    AC_3_PHASE: 'AC_3_PHASE',
-    DC: 'DC'
-  };
-
-  // CONNECTOR TYPE
-  public static readonly MAPPING_CONNECTOR_TYPE = {
-    'C': 'CHADEMO',
-    'T2': 'IEC_62196_T2',
-    'CCS': 'IEC_62196_T2_COMBO'
-  };
-
-  public static readonly CONNECTOR_TYPES = {
-    'UNKNOWN': 'U',
-    'CHADEMO': 'C',
-    'IEC_62196_T2': 'T2',
-    'IEC_62196_T2_COMBO': 'CCS',
-    'DOMESTIC': 'D',
-    'TYPE_1': 'T1',
-    'TYPE_1_CCS': 'T1CCS',
-    'TYPE_3C': 'T3C',
-  };
-
   // Components
   public static readonly COMPONENTS = {
     OCPI: 'ocpi',
@@ -181,13 +113,6 @@ export default class Constants {
     ANALYTICS: 'analytics',
     SMART_CHARGING: 'smartCharging',
     BUILDING: 'building'
-  };
-
-  // Ocpi Registering status
-  public static readonly OCPI_REGISTERING_STATUS = {
-    OCPI_NEW: 'new',
-    OCPI_REGISTERED: 'registered',
-    OCPI_UNREGISTERED: 'unregistered'
   };
 
   public static readonly MONGO_USER_MASK = {

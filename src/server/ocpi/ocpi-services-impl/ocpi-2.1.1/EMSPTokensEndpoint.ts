@@ -15,6 +15,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -95,7 +96,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -108,7 +109,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing LocationReference',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
     if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
@@ -118,7 +119,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing EVSE Id.',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
     if (locationReference.evse_uids.length > 1) {
@@ -128,7 +129,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -141,7 +142,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
       });
     }
 
@@ -153,7 +154,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'UNKNOWN USER',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 

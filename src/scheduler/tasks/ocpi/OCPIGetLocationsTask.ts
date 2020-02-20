@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPIRegistationStatus } from '../../../types/ocpi/OCPIRegistationStatus';
 
 export default class OCPIGetLocationsTask extends SchedulerTask {
 
@@ -24,7 +26,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
         return;
       }
       // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: Constants.OCPI_ROLE.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
       for (const ocpiEndpoint of ocpiEndpoints.result) {
         await this.processOCPIEndpoint(tenant, ocpiEndpoint);
       }
@@ -37,7 +39,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
   // eslint-disable-next-line no-unused-vars
   async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
     // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.status !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+    if (ocpiEndpoint.status !== OCPIRegistationStatus.OCPI_REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'OCPIGetLocationsTask',
