@@ -1,13 +1,14 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
-import User, { Status } from '../../types/User';
+import BackendError from '../../exception/BackendError';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
+import Transaction from '../../types/Transaction';
+import User, { Status } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Transaction from '../../types/Transaction';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { UserInErrorType } from '../../types/InError';
 
 export default abstract class Billing<T extends BillingSetting> {
 
@@ -50,9 +51,8 @@ export default abstract class Billing<T extends BillingSetting> {
       });
       for (const user of newUsersToSyncInBilling.result) {
         // Synchronize user
-        const action = await this.synchronizeUser(user, tenantID);
-        // Stats
-        if (action.synchronized > 0) {
+        try {
+          await this.synchronizeUser(user, tenantID);          
           Logging.logInfo({
             tenantID: tenantID,
             actionOnUser: user,
@@ -61,7 +61,9 @@ export default abstract class Billing<T extends BillingSetting> {
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
-        } else {
+          actionsDone.synchronized++;
+        } catch (error) {
+          actionsDone.error++;
           Logging.logError({
             tenantID: tenantID,
             actionOnUser: user,
@@ -71,8 +73,6 @@ export default abstract class Billing<T extends BillingSetting> {
             message: 'Failed to synchronize in the billing system'
           });
         }
-        actionsDone.synchronized += action.synchronized;
-        actionsDone.error += action.error;
       }
     }
     // Get recently updated customers from Billing application
@@ -117,14 +117,9 @@ export default abstract class Billing<T extends BillingSetting> {
           });
           continue;
         }
-        let nbTry = 0;
-        let action = {} as BillingUserSynchronizeAction;
         // Synchronize several times the user in case of fail before setting it in error
-        do {
-          action = await this.synchronizeUser(user, tenantID);
-          nbTry++;
-        } while (nbTry < Billing.MAX_RETRY_SYNCHRONIZATION && action.synchronized === 0);
-        if (action.synchronized > 0) {
+        try {
+          await this.synchronizeUser(user, tenantID);
           Logging.logInfo({
             tenantID: tenantID,
             actionOnUser: user,
@@ -133,7 +128,9 @@ export default abstract class Billing<T extends BillingSetting> {
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
-        } else {
+          actionsDone.synchronized++;
+        } catch (error) {
+          actionsDone.error++;
           Logging.logError({
             tenantID: tenantID,
             actionOnUser: user,
@@ -143,8 +140,6 @@ export default abstract class Billing<T extends BillingSetting> {
             message: 'Failed to synchronize in the billing system'
           });
         }
-        actionsDone.synchronized += action.synchronized;
-        actionsDone.error += action.error;
       }
     }
     // Log
@@ -173,51 +168,34 @@ export default abstract class Billing<T extends BillingSetting> {
     return actionsDone;
   }
 
-  public async synchronizeUser(user: User, tenantID): Promise<BillingUserSynchronizeAction> {
-    // Check
-    const actionsDone = {
-      synchronized: 0,
-      error: 0
-    } as BillingUserSynchronizeAction;
-    if (user) {
-      try {
-        const exists = await this.userExists(user);
-        let newBillingData: BillingUserData;
-        if (!exists) {
-          newBillingData = await this.createUser(user);
-        } else {
-          newBillingData = await this.updateUser(user);
-        }
-        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
-        actionsDone.synchronized++;
-        actionsDone.billingData = newBillingData;
-      } catch (error) {
-        if (!user.billingData) {
-          user.billingData = {};
-        }
-        user.billingData.hasSynchroError = true;
-        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
-        actionsDone.error++;
-        Logging.logError({
-          tenantID: tenantID,
-          source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_BILLING,
-          actionOnUser: user,
-          module: 'Billing', method: 'synchronizeUser',
-          message: `Cannot synchronize user '${user.email}' with billing system`,
-          detailedMessages: error.message
-        });
+  public async synchronizeUser(user: User, tenantID) {
+    try {
+      const exists = await this.userExists(user);
+      let newBillingData: BillingUserData;
+      if (!exists) {
+        newBillingData = await this.createUser(user);
+      } else {
+        newBillingData = await this.updateUser(user);
       }
-      return actionsDone;
+      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+    } catch (error) {
+      if (!user.billingData) {
+        user.billingData = {};
+      }
+      user.billingData.hasSynchroError = true;
+      await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Billing', method: 'synchronizeUser',
+        action: Action.SYNCHRONIZE_BILLING,
+        actionOnUser: user,
+        message: `Cannot synchronize user '${user.email}' with billing system`,
+        detailedMessages: error
+      });
     }
   }
 
-  public async forceSynchronizeUser(user: User, tenantID): Promise<BillingUserSynchronizeAction> {
-    // Check
-    const actionsDone = {
-      synchronized: 0,
-      error: 0
-    } as BillingUserSynchronizeAction;
+  public async forceSynchronizeUser(user: User, tenantID) {
     try {
       // Exists in Billing?
       const billingUser = await this.userExists(user);
@@ -228,7 +206,6 @@ export default abstract class Billing<T extends BillingSetting> {
       delete user.billingData;
       const newBillingData = await this.createUser(user);
       await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
-      actionsDone.synchronized++;
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -238,18 +215,15 @@ export default abstract class Billing<T extends BillingSetting> {
         message: `Successfully forced the synchronization of the user '${user.email}'`,
       });
     } catch (error) {
-      actionsDone.error++;
-      Logging.logError({
-        tenantID: tenantID,
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
+        module: 'Billing', method: 'forceSynchronizeUser',
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
-        module: 'Billing', method: 'forceSynchronizeUser',
-        message: `Failed to force the synchronization of the user '${user.email}'`,
-        detailedMessages: error.message
+        message: `Cannot force synchronize user '${user.email}' with billing system`,
+        detailedMessages: error
       });
     }
-    return actionsDone;
   }
 
   async abstract checkConnection();

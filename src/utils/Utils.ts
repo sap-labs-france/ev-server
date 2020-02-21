@@ -1,6 +1,3 @@
-import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { HTTPError } from '../types/HTTPError';
-import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
 import fs from 'fs';
@@ -15,14 +12,19 @@ import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { Action, Role } from '../types/Authorization';
+import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
+import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
+import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
+import User, { Status } from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
@@ -610,11 +612,11 @@ export default class Utils {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
-  public static firstLetterInUpperCase(value): string {
+  public static firstLetterInUpperCase(value: string): string {
     return value[0].toUpperCase() + value.substring(1);
   }
 
-  public static firstLetterInLowerCase(value): string {
+  public static firstLetterInLowerCase(value: string): string {
     return value[0].toLowerCase() + value.substring(1);
   }
 
