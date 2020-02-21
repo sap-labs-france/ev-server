@@ -7,6 +7,8 @@ import Constants from '../../utils/Constants';
 import { Entity } from '../../types/Authorization';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
+import UserToken from '../../types/UserToken';
 
 import cluster from 'cluster';
 import express from 'express';
@@ -15,8 +17,6 @@ import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
-import UserToken from '../../types/UserToken';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
 import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
