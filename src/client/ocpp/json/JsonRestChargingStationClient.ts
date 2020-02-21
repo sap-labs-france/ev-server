@@ -109,7 +109,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           protocol: 'rest'
         };
       }
-      const wsClientOptions: JsonWSClientConfiguration  = {
+      const wsClientOptions: JsonWSClientConfiguration = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,

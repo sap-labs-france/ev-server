@@ -7,7 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
-import Utils from "../../utils/Utils";
+import Utils from '../../utils/Utils';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate() {

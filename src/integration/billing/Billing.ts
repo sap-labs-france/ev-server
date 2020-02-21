@@ -59,7 +59,7 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_BILLING,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Successfully synchronized in the billing system`
+            message: 'Successfully synchronized in the billing system'
           });
         } else {
           Logging.logError({
@@ -68,7 +68,7 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_BILLING,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Failed to synchronize in the billing system`
+            message: 'Failed to synchronize in the billing system'
           });
         }
         actionsDone.synchronized += action.synchronized;
@@ -131,7 +131,7 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_BILLING,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Successfully synchronized in the billing system`
+            message: 'Successfully synchronized in the billing system'
           });
         } else {
           Logging.logError({
@@ -140,7 +140,7 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_BILLING,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Failed to synchronize in the billing system`
+            message: 'Failed to synchronize in the billing system'
           });
         }
         actionsDone.synchronized += action.synchronized;
@@ -162,7 +162,7 @@ export default abstract class Billing<T extends BillingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing', method: 'synchronizeUsers',
-        message: `No user needed to be synchronized`
+        message: 'No user needed to be synchronized'
       });
     }
     // Update last synchronization

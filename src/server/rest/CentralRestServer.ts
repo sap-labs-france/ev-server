@@ -17,6 +17,7 @@ import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
 import UserToken from '../../types/UserToken';
 import SingleChangeNotification from '../../types/SingleChangeNotification';
+import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -66,17 +67,28 @@ export default class CentralRestServer {
     this.express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    this.express.use('/client/auth', CentralRestServerAuthentication.authService);
+    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService);
 
     // Secured API
-    this.express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
     // Util API
-    this.express.use('/client/util', CentralRestServerService.restServiceUtil);
+    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil);
     // Workaround URL encoding issue
-    this.express.use('/client%2Futil%2FFirmwareDownload', async (req: Request, res: Response, next: NextFunction) => {
+    this.express.all('/client%2Futil%2F:action', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
       await CentralRestServerService.restServiceUtil(req, res, next);
+    });
+
+    // Catchall for util with logging
+    this.express.all(['/client/util/*', '/client%2Futil%2F/*'], (req: Request, res: Response) => {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'constructor', action: 'Express catchall',
+        message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
+        detailedMessages: 'Request: ' + util.inspect(req)
+      });
     });
 
     // Create HTTP server to serve the express app

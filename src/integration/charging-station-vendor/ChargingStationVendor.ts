@@ -1,6 +1,6 @@
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPSetChargingProfileCommandResult, OCPPClearChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
@@ -14,13 +14,13 @@ export default abstract class ChargingStationVendor {
   public abstract async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation, ocppParamName: string, ocppParamValue);
 
   public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult>;
-  
+
   public abstract async clearChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult>;
 
   public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     return {
-      limitAmps: chargingStation.connectors[connectorID-1].amperageLimit,
-      limitWatts: chargingStation.connectors[connectorID-1].power
-    }
+      limitAmps: chargingStation.connectors[connectorID - 1].amperageLimit,
+      limitWatts: chargingStation.connectors[connectorID - 1].power
+    };
   }
 }

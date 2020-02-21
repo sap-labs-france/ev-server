@@ -1,5 +1,5 @@
 import AbstractODataEntities from './AbstractODataEntities';
-import Utils from "../../../utils/Utils";
+import Utils from '../../../utils/Utils';
 
 export default class ODataTransactions extends AbstractODataEntities {
   public buildParams: any;

@@ -19,8 +19,8 @@ export default class WSServer extends WebSocket.Server {
   private keepAliveInterval: NodeJS.Timeout;
 
   public constructor(httpServer: http.Server, serverName: string, serverConfig: CentralSystemConfiguration,
-      verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
-        void => { }, handleProtocolsCb: Function = (): void => { }) {
+    verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = ():
+    void => { }, handleProtocolsCb: Function = (): void => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,

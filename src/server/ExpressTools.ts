@@ -39,7 +39,7 @@ export default class ExpressTools {
     }));
     // Health Check Handling
     if (Configuration.getHealthCheckConfig().enabled) {
-      app.use('/health-check', ExpressTools.healthCheckService);
+      app.get('/health-check', ExpressTools.healthCheckService);
     }
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));

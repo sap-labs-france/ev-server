@@ -28,7 +28,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { Role, Action } from '../types/Authorization';
+import { Action, Role } from '../types/Authorization';
 import { ChargingProfile } from '../types/ChargingProfile';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -843,7 +843,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Invalid Charging Profile's Schedule`,
+        message: 'Invalid Charging Profile\'s Schedule',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
@@ -853,7 +853,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Charging Profile's schedule must not be empty`,
+        message: 'Charging Profile\'s schedule must not be empty',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });

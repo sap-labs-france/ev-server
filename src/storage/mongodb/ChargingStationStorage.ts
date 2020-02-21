@@ -672,10 +672,10 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenantID: string,
-      params: {
-        chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
-      } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+    params: {
+      chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
+    } = {},
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     // Check Tenant
@@ -769,7 +769,7 @@ export default class ChargingStationStorage {
     if (chargingProfileToSave.id) {
       chargingProfileFilter._id = chargingProfileToSave.id;
     } else {
-      chargingProfileFilter._id = 
+      chargingProfileFilter._id =
         Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
     }
     // Properties to save

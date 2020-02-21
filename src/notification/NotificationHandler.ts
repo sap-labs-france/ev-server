@@ -1,4 +1,4 @@
-import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, SessionNotStartedNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -138,7 +138,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfCharge(tenantID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfChargeNotification): Promise<void> {
+    sourceData: EndOfChargeNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -213,7 +213,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfSessionNotification): Promise<void> {
+    sourceData: EndOfSessionNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -248,7 +248,7 @@ export default class NotificationHandler {
   }
 
   static async sendEndOfSignedSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: EndOfSignedSessionNotification): Promise<void> {
+    sourceData: EndOfSignedSessionNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -307,7 +307,7 @@ export default class NotificationHandler {
   }
 
   static async sendUserAccountStatusChanged(tenantID: string, notificationID: string, user: User,
-      sourceData: UserAccountStatusChangedNotification): Promise<void> {
+    sourceData: UserAccountStatusChangedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -336,7 +336,7 @@ export default class NotificationHandler {
   }
 
   static async sendNewRegisteredUser(tenantID: string, notificationID: string, user: User,
-      sourceData: NewRegisteredUserNotification): Promise<void> {
+    sourceData: NewRegisteredUserNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -361,7 +361,7 @@ export default class NotificationHandler {
   }
 
   static async sendVerificationEmail(tenantID: string, notificationID: string, user: User,
-      sourceData: VerificationEmailNotification): Promise<void> {
+    sourceData: VerificationEmailNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -386,7 +386,7 @@ export default class NotificationHandler {
   }
 
   static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: ChargingStationStatusErrorNotification): Promise<void> {
+    sourceData: ChargingStationStatusErrorNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -421,7 +421,7 @@ export default class NotificationHandler {
   }
 
   static async sendChargingStationRegistered(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: ChargingStationRegisteredNotification): Promise<void> {
+    sourceData: ChargingStationRegisteredNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -452,7 +452,7 @@ export default class NotificationHandler {
   }
 
   static async sendUnknownUserBadged(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: UnknownUserBadgedNotification): Promise<void> {
+    sourceData: UnknownUserBadgedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -484,7 +484,7 @@ export default class NotificationHandler {
   }
 
   static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
-      sourceData: TransactionStartedNotification): Promise<void> {
+    sourceData: TransactionStartedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
@@ -742,7 +742,7 @@ export default class NotificationHandler {
   }
 
   static async sendSessionNotStarted(tenantID: string, notificationID: string, chargingStation: ChargingStation,
-      sourceData: SessionNotStartedNotification): Promise<void> {
+    sourceData: SessionNotStartedNotification): Promise<void> {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);

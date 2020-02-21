@@ -11,7 +11,7 @@ import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
-import Utils from "../../../src/utils/Utils";
+import Utils from '../../../src/utils/Utils';
 
 export default class TenantContext {
 

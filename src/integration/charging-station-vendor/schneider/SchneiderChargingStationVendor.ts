@@ -6,7 +6,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPSetCompositeScheduleStatus, OCPPClearChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPSetCompositeScheduleStatus } from '../../../types/ocpp/OCPPClient';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import ChargingStationVendor from '../ChargingStationVendor';
