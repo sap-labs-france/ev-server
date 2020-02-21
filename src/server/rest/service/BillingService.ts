@@ -11,6 +11,7 @@ import Logging from '../../../utils/Logging';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 
 export default class BillingService {
@@ -145,13 +146,15 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: 'BillingService', method: 'handleSynchronizeUser',
         action: action,
         user: req.user
       });
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'BillingService', 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
     // Ok
@@ -186,7 +189,7 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: 'BillingService', method: 'handleForceSynchronizeUser',
         message: 'Billing service is not configured',
         action: action,
         user: req.user
@@ -194,6 +197,8 @@ export default class BillingService {
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'BillingService', 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
     // Ok

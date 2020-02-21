@@ -1,22 +1,22 @@
-import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import chai, { assert, expect } from 'chai';
+import chaiSubset from 'chai-subset';
+import { ObjectID } from 'mongodb';
 import Billing from '../../src/integration/billing/Billing';
-import CONTEXTS from './contextProvider/ContextConstants';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
+import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
+import { UserInErrorType } from '../../src/types/InError';
+import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
+import User from '../../src/types/User';
+import Constants from '../../src/utils/Constants';
+import Cypher from '../../src/utils/Cypher';
+import config from '../config';
+import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import Constants from '../../src/utils/Constants';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import Cypher from '../../src/utils/Cypher';
-import Factory from '../factories/Factory';
-import { HTTPAuthError } from '../../src/types/HTTPError';
-import { ObjectID } from 'mongodb';
 import SiteContext from './contextProvider/SiteContext';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
 import TenantContext from './contextProvider/TenantContext';
-import User from '../../src/types/User';
-import { UserInErrorType } from '../../src/types/InError';
-import chaiSubset from 'chai-subset';
-import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -209,7 +209,7 @@ describe('Billing Service', function() {
         testData.createdUsers.push(fakeUser);
         const response = await testData.userService.userApi.getByEmail(fakeUser.email);
         const billingUserBefore = response.data.result[0];
-        await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
+        await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
         const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
@@ -300,7 +300,7 @@ describe('Billing Service', function() {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
-        const response = await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
+        const response = await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
@@ -308,7 +308,7 @@ describe('Billing Service', function() {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
-        const response = await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
+        const response = await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
     });
