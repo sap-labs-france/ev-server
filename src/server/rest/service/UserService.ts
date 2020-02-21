@@ -212,35 +212,37 @@ export default class UserService {
       }
     }
     // Synchronize badges with IOP
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    try {
-      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-      if (ocpiClient) {
-        // Invalidate no more used tags
-        for (const tag of user.tags) {
-          if (tag.issuer) {
-            await ocpiClient.pushToken({
-              uid: tag.id,
-              type: 'RFID',
-              'auth_id': user.id,
-              'visual_number': user.id,
-              issuer: tenant.name,
-              valid: false,
-              whitelist: 'ALLOWED_OFFLINE',
-              'last_updated': new Date()
-            });
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Invalidate no more used tags
+          for (const tag of user.tags) {
+            if (tag.issuer) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: 'RFID',
+                'auth_id': user.id,
+                'visual_number': user.id,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
           }
         }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService', method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          user: req.user, actionOnUser: user,
+          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          detailedMessages: e.message
+        });
       }
-    } catch (e) {
-      Logging.logError({
-        tenantID: req.user.tenantID,
-        module: 'UserService', method: 'handleUpdateUser',
-        action: 'UserUpdate',
-        user: req.user, actionOnUser: user,
-        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-        detailedMessages: e.message
-      });
     }
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
@@ -374,52 +376,54 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Invalidate no more used tags
-          for (const previousTag of previousTags) {
-            const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
-            if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
-              await ocpiClient.pushToken({
-                uid: previousTag.id,
-                type: 'RFID',
-                'auth_id': filteredRequest.id,
-                'visual_number': filteredRequest.id,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        try {
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          if (ocpiClient) {
+            // Invalidate no more used tags
+            for (const previousTag of previousTags) {
+              const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+              if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
+                await ocpiClient.pushToken({
+                  uid: previousTag.id,
+                  type: 'RFID',
+                  'auth_id': filteredRequest.id,
+                  'visual_number': filteredRequest.id,
+                  issuer: tenant.name,
+                  valid: false,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
+            }
+            // Push new valid tags
+            for (const currentTag of filteredRequest.tags) {
+              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
+              if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+                await ocpiClient.pushToken({
+                  uid: currentTag.id,
+                  type: 'RFID',
+                  'auth_id': filteredRequest.id,
+                  'visual_number': filteredRequest.id,
+                  issuer: tenant.name,
+                  valid: true,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
             }
           }
-          // Push new valid tags
-          for (const currentTag of filteredRequest.tags) {
-            const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
-            if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
-              await ocpiClient.pushToken({
-                uid: currentTag.id,
-                type: 'RFID',
-                'auth_id': filteredRequest.id,
-                'visual_number': filteredRequest.id,
-                issuer: tenant.name,
-                valid: true,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
-            }
-          }
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleUpdateUser',
+            action: 'UserUpdate',
+            message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+            detailedMessages: e.message
+          });
         }
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleUpdateUser',
-          action: 'UserUpdate',
-          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-          detailedMessages: e.message
-        });
       }
 
       // Save User Status
@@ -457,15 +461,17 @@ export default class UserService {
     // Notify
     if (statusHasChanged) {
       // Send notification (Async)
-      NotificationHandler.sendUserAccountStatusChanged(
-        req.user.tenantID,
-        Utils.generateGUID(),
-        user,
-        {
-          'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
-        }
-      );
+      if (req.user.tenantID !== Constants.DEFAULT_TENANT) {
+        NotificationHandler.sendUserAccountStatusChanged(
+          req.user.tenantID,
+          Utils.generateGUID(),
+          user,
+          {
+            'user': user,
+            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
+          }
+        );
+      }
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -846,34 +852,36 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          for (const tag of filteredRequest.tags) {
-            if (tag.issuer) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: 'RFID',
-                'auth_id': newUserID,
-                'visual_number': newUserID,
-                issuer: tenant.name,
-                valid: true,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        try {
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          if (ocpiClient) {
+            for (const tag of filteredRequest.tags) {
+              if (tag.issuer) {
+                await ocpiClient.pushToken({
+                  uid: tag.id,
+                  type: 'RFID',
+                  'auth_id': newUserID,
+                  'visual_number': newUserID,
+                  issuer: tenant.name,
+                  valid: true,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
             }
           }
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleCreateUser',
+            action: 'UserCreate',
+            message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
+            detailedMessages: e.message
+          });
         }
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleCreateUser',
-          action: 'UserCreate',
-          message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-          detailedMessages: e.message
-        });
       }
 
       // Save User Status
