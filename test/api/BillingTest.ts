@@ -14,21 +14,11 @@ import SiteContext from './contextProvider/SiteContext';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
 import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
+import { UserInErrorType } from '../../src/types/InError';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 
 chai.use(chaiSubset);
-
-const billingSettings = {
-  url: config.get('billing.url'),
-  publicKey: config.get('billing.publicKey'),
-  secretKey: config.get('billing.secretKey'),
-  noCardAllowed: config.get('billing.noCardAllowed'),
-  advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
-  currency: config.get('billing.currency'),
-  immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
-  periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
-} as StripeBillingSetting;
 
 let billingImpl: Billing<BillingSetting>;
 
@@ -40,6 +30,45 @@ class TestData {
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public createdUsers: User[] = [];
+
+  public static async setBillingSystemValidCredentials(testData) {
+    const stripeSettings = TestData.getStripeSettings();
+    await TestData.saveBillingSettings(testData, stripeSettings);
+    stripeSettings.secretKey = Cypher.encrypt(stripeSettings.secretKey);
+    billingImpl = new StripeBilling(testData.tenantContext.getTenant().id, stripeSettings);
+    expect(billingImpl).to.not.be.null;
+  }
+
+  public static async setBillingSystemInvalidCredentials(testData) {
+    const stripeSettings = TestData.getStripeSettings();
+    stripeSettings.secretKey = Cypher.encrypt('sk_test_invalid_credentials');
+    await TestData.saveBillingSettings(testData, stripeSettings);
+    billingImpl = new StripeBilling(testData.tenantContext.getTenant().id, stripeSettings);
+    expect(billingImpl).to.not.be.null;
+  }
+
+  private static async saveBillingSettings(testData, stripeSettings) {
+    const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data.count).to.be.eq(1);
+    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+    componentSetting.content.type = BillingSettingsType.STRIPE;
+    componentSetting.content.stripe = stripeSettings;
+    componentSetting.sensitiveData = ['content.stripe.secretKey'];
+    await testData.userService.settingApi.update(componentSetting);
+  }
+
+  private static getStripeSettings(): StripeBillingSetting {
+    return {
+      url: config.get('billing.url'),
+      publicKey: config.get('billing.publicKey'),
+      secretKey: config.get('billing.secretKey'),
+      noCardAllowed: config.get('billing.noCardAllowed'),
+      advanceBillingAllowed: config.get('billing.advanceBillingAllowed'),
+      currency: config.get('billing.currency'),
+      immediateBillingAllowed: config.get('billing.immediateBillingAllowed'),
+      periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
+    } as StripeBillingSetting;
+  }
 }
 
 const testData: TestData = new TestData();
@@ -74,17 +103,7 @@ describe('Billing Service', function() {
         assert(!!testData.userService, 'User service cannot be null');
         const tenant = testData.tenantContext.getTenant();
         if (tenant.id) {
-          const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-          expect(tenantBillingSettings.data.count).to.be.eq(1);
-          const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
-          componentSetting.content.type = BillingSettingsType.STRIPE;
-          componentSetting.content.stripe = { ...billingSettings };
-          componentSetting.sensitiveData = ['content.stripe.secretKey'];
-          await testData.userService.settingApi.update(componentSetting);
-
-          billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-          billingImpl = new StripeBilling(tenant.id, billingSettings);
-          expect(billingImpl).to.not.be.null;
+          await TestData.setBillingSystemValidCredentials(testData);
         } else {
           throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
         }
@@ -92,16 +111,13 @@ describe('Billing Service', function() {
 
       it('Should connect to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-        expect(response.data).containSubset({ connectionIsValid: true });
+        expect(response.data.connectionIsValid).to.be.true;
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
 
       it('Should create a user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
         } as User;
 
         await testData.userService.createEntity(
@@ -138,14 +154,54 @@ describe('Billing Service', function() {
         testData.createdUsers.pop();
       });
 
+      it('Should synchronize a new user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+        await TestData.setBillingSystemInvalidCredentials(testData);
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        await TestData.setBillingSystemValidCredentials(testData);
+        await testData.userService.billingApi.synchronizeUser({ id: fakeUser.id });
+        const userExists = await billingImpl.userExists(fakeUser);
+        expect(userExists).to.be.true;
+      });
+
+      it('Should set in error users without Billing data', async () => {
+        const fakeUser = {
+          ...Factory.user.build()
+        } as User;
+        await TestData.setBillingSystemInvalidCredentials(testData);
+        // Creates user without billing data
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        // Check if user is in Users In Error
+        const response = await testData.userService.userApi.readAllInError({ ErrorType: UserInErrorType.NO_BILLING_DATA }, {
+          limit: 100,
+          skip: 0
+        });
+        let userFound = false;
+        for (const user of response.data.result) {
+          if (user.id === fakeUser.id) {
+            userFound = true;
+            break;
+          }
+        }
+        assert(userFound, 'User with no billing data not found in Users In Error');
+      });
+
       it('Should force a user synchronization', async () => {
         const fakeUser = {
           ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
         } as User;
 
+        await TestData.setBillingSystemValidCredentials(testData);
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
@@ -159,6 +215,7 @@ describe('Billing Service', function() {
       });
 
       after(async () => {
+        await TestData.setBillingSystemValidCredentials(testData);
         for (const user of testData.createdUsers) {
           await testData.userService.deleteEntity(
             testData.userService.userApi,
@@ -190,17 +247,7 @@ describe('Billing Service', function() {
         expect(testData.userService).to.not.be.null;
         const tenant = testData.tenantContext.getTenant();
         if (tenant.id) {
-          const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-          expect(tenantBillingSettings.data.count).to.be.eq(1);
-          const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
-          componentSetting.content.type = BillingSettingsType.STRIPE;
-          componentSetting.content.stripe = { ...billingSettings };
-          componentSetting.sensitiveData = ['content.stripe.secretKey'];
-          await testData.userService.settingApi.update(componentSetting);
-
-          billingSettings.secretKey = Cypher.encrypt(billingSettings.secretKey);
-          billingImpl = new StripeBilling(tenant.id, billingSettings);
-          expect(billingImpl).to.not.be.null;
+          await TestData.setBillingSystemValidCredentials(testData);
         } else {
           throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
         }
@@ -214,9 +261,6 @@ describe('Billing Service', function() {
       it('Should not create a user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
         } as User;
 
         const response = await testData.userService.createEntity(
@@ -232,9 +276,6 @@ describe('Billing Service', function() {
         const fakeUser = {
           id: new ObjectID(),
           ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
         } as User;
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
@@ -252,19 +293,22 @@ describe('Billing Service', function() {
           { id: 0 },
           false
         );
+        expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      });
 
+      it('Should not synchronize a user', async () => {
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+        const response = await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
 
       it('Should not force synchronization of a user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
-          billingData: {
-            method: 'immediate'
-          }
         } as User;
-        const response = await testData.userService.billingApi.forceUserSynchronization({ UserID: fakeUser.id });
-
+        const response = await testData.userService.billingApi.forceUserSynchronization({ id: fakeUser.id });
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
       });
     });
