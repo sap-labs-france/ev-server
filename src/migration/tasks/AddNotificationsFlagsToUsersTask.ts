@@ -30,7 +30,22 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendChargingStationRegistered: true,
             sendOcpiPatchStatusError: true,
             sendSmtpAuthError: true,
-            sendSessionNotStarted: true
+            sendSessionNotStarted: true,
+          };
+        } else if (user.role === Role.SUPER_ADMIN) {
+          user.notifications = {
+            sendSessionStarted: true,
+            sendOptimalChargeReached: true,
+            sendEndOfCharge: true,
+            sendEndOfSession: true,
+            sendUserAccountStatusChanged: true,
+            sendUnknownUserBadged: true,
+            sendChargingStationStatusError: true,
+            sendChargingStationRegistered: true,
+            sendOcpiPatchStatusError: true,
+            sendSmtpAuthError: true,
+            sendSessionNotStarted: true,
+            sendCarSynchronizationFailed: true,
           };
         } else {
           user.notifications = {
@@ -60,8 +75,8 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           sendChargingStationRegistered: false,
           sendOcpiPatchStatusError: false,
           sendSmtpAuthError: false,
-          sendSessionNotStarted: false
-
+          sendSessionNotStarted: false,
+          sendCarSynchronizationFailed: false,
         };
       }
       // Update
