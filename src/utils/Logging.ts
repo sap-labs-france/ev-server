@@ -3,7 +3,7 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import { NextFunction, Request, Response } from 'express';
 import os from 'os';
-import { performance, PerformanceObserver } from 'perf_hooks';
+import { PerformanceObserver, performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';

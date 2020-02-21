@@ -7,7 +7,7 @@ import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
-import Utils from "../../../../utils/Utils";
+import Utils from '../../../../utils/Utils';
 
 export default class SiteAreaSecurity {
 

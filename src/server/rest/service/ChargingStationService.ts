@@ -399,7 +399,7 @@ export default class ChargingStationService {
     const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, chargingProfileID);
     UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${chargingProfileID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
-    // Get Charging Station 
+    // Get Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' doesn't exist.`,
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);

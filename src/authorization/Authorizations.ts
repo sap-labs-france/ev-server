@@ -1,4 +1,4 @@
-import { Action, Entity, Role, AuthorizationContext } from '../types/Authorization';
+import { Action, AuthorizationContext, Entity, Role } from '../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../types/HTTPError';
 import User, { Status } from '../types/User';
 import AppAuthError from '../exception/AppAuthError';

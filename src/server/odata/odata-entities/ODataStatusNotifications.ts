@@ -1,6 +1,6 @@
 
 import AbstractODataEntities from './AbstractODataEntities';
-import Utils from "../../../utils/Utils";
+import Utils from '../../../utils/Utils';
 
 export default class ODataStatusNotifications extends AbstractODataEntities {
   public buildParams: any;

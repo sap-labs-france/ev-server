@@ -17,7 +17,7 @@ export default {
 
   async authService(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1) as Action;
+    const action = req.params.action as Action;
     // Get the tenant
     let tenantID = Constants.DEFAULT_TENANT;
     if (req.body && req.body.tenant) {

@@ -8,7 +8,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 import { UserInError } from '../../../../types/InError';
-import Utils from "../../../../utils/Utils";
+import Utils from '../../../../utils/Utils';
 
 export default class UserSecurity {
 

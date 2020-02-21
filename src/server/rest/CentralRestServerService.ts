@@ -281,7 +281,7 @@ export default {
   // eslint-disable-next-line no-unused-vars
   async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = req.params.action as Action;
     // Check Context
     switch (req.method) {
       // Create Request
@@ -310,7 +310,7 @@ export default {
 
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = req.params.action as Action;
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
