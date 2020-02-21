@@ -169,27 +169,40 @@ export default class UserService {
         user: req.user
       });
     }
+    // Check Billing
     if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
-      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-      if (!billingImpl) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: 'Billing service is not configured',
-          module: 'BillingService', method: 'handleGetBillingConnection',
-          user: req.user, actionOnUser: user
-        });
-      }
-      const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
-      if (!userCanBeDeleted) {
+      try {
+        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+        if (!billingImpl) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Billing service is not configured',
+            module: 'BillingService', method: 'handleGetBillingConnection',
+            user: req.user, actionOnUser: user
+          });
+        }
+        const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+        if (!userCanBeDeleted) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.BILLING_DELETE_ERROR,
+            message: 'User cannot be deleted due to billing constraints',
+            module: 'BillingService', method: 'handleGetBillingConnection',
+            user: req.user, actionOnUser: user
+          });
+        }
+      } catch (error) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           action: action,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
-          message: 'User cannot be deleted due to billing constraints',
-          module: 'BillingService', method: 'handleGetBillingConnection',
-          user: req.user, actionOnUser: user
+          message: `Error occured in billing system`,
+          module: 'UserService', method: 'handleDeleteUser',
+          user: req.user, actionOnUser: user,
+          detailedMessages: error
         });
       }
     }

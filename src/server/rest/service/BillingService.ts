@@ -153,9 +153,9 @@ export default class BillingService {
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     // Sync user
-    const synchronizeAction = await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
+    await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
     // Ok
-    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -195,9 +195,9 @@ export default class BillingService {
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     // Sync user
-    const synchronizeAction = await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
+    await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
     // Ok
-    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
