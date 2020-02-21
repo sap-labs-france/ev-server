@@ -217,6 +217,12 @@
           "checkPastAuthorizeMins": 60,
           "sessionShouldBeStartedAfterMins": 10
         }
+      },
+      {
+        "name": "SynchronizeCarsTask",
+        "active": true,
+        "periodicity": "0 0 1 * *",
+        "config": {}
       }
     ]
   },
