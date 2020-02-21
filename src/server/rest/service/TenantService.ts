@@ -126,6 +126,8 @@ export default class TenantService {
   }
 
   public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Validate
+    TenantValidator.getInstance().validateTenantCreation(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -137,7 +139,6 @@ export default class TenantService {
         method: 'handleCreateTenant'
       });
     }
-    TenantValidator.getInstance().validateTenantCreation(req.body);
     // Filter
     const filteredRequest = TenantSecurity.filterTenantRequest(req.body);
     // Check the Tenant's name
