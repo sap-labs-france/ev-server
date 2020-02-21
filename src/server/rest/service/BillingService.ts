@@ -118,7 +118,7 @@ export default class BillingService {
   }
 
   public static async handleSynchronizeUser(action: Action, req: Request, res: Response, next: NextFunction) {
-    const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body.user);
+    const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -151,7 +151,7 @@ export default class BillingService {
       });
     }
     // Get user
-    const userToSynchronize = await UserStorage.getUserByEmail(filteredRequest.email, tenant.id);
+    const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     // Sync user
     const synchronizeAction = await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
     // Ok

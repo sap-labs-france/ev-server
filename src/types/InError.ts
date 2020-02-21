@@ -47,4 +47,5 @@ export enum UserInErrorType {
   NOT_ASSIGNED = 'unassigned_user',
   INACTIVE_USER_ACCOUNT = 'inactive_user_account',
   FAILED_BILLING_SYNCHRO = 'failed_billing_synchro',
+  NO_BILLING_DATA = 'no_billing_data'
 }
