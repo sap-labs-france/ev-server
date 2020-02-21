@@ -268,6 +268,7 @@ export default class UserSecurity {
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
       sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
       sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
+      sendCarSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendCarSynchronizationFailed) : false,
     };
   }
 }

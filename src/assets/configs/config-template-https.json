@@ -1,4 +1,8 @@
 {
+  "EVDatabase": {
+    "url":"https://ev-database.org/export_v26/74964691",
+    "key":"Sm9wf91An9tg0d9ta21AA"
+  },
   "Crypto": {
     "key": "",
     "algorithm": "aes-256-ctr"

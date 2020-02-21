@@ -287,6 +287,7 @@ export default class UserStorage {
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
         sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
+        sendCarSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarSynchronizationFailed) : false,
       },
       deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
@@ -1085,7 +1086,8 @@ export default class UserStorage {
         sendPreparingSessionNotStarted: false,
         sendOfflineChargingStations: false,
         sendBillingUserSynchronizationFailed: false,
-        sendSessionNotStarted: false
+        sendSessionNotStarted: false,
+        sendCarSynchronizationFailed: false
       },
       role: Role.BASIC,
       status: Status.PENDING,

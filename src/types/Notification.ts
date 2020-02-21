@@ -19,6 +19,7 @@ export enum Source {
   PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
+  CAR_SYNCHRONIZATION_FAILED = 'NotifyCarSynchronizationFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'NotifySessionNotStartedAfterAuthorize'
 }
 

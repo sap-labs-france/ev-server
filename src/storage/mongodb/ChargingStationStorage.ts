@@ -14,6 +14,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+import CarStorage from './CarStorage';
 export default class ChargingStationStorage {
 
   public static async updateChargingStationTemplatesFromFile() {
@@ -298,6 +299,7 @@ export default class ChargingStationStorage {
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
     dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
     // Debug
+    await CarStorage.getCarsFromAPI();
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -638,10 +640,10 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingProfiles(tenantID: string,
-      params: {
-        chargingStationID?: string; connectorID?: number;
-      } = {},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
+    params: {
+      chargingStationID?: string; connectorID?: number;
+    } = {},
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile[]>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
     // Check Tenant

@@ -68,6 +68,7 @@ export enum Action {
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
+  SYNCHRONIZE_CARS = 'SynchronizeCars',
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
   POWER_LIMITATION = 'PowerLimitation',

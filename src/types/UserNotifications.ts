@@ -18,6 +18,7 @@ export default interface UserNotifications {
   sendPreparingSessionNotStarted: boolean;
   sendOfflineChargingStations: boolean;
   sendBillingUserSynchronizationFailed: boolean;
+  sendCarSynchronizationFailed: boolean;
   sendSessionNotStarted: boolean;
 }
 
@@ -36,7 +37,8 @@ export type UserNotificationKeys =
  'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStations' |
  'sendBillingUserSynchronizationFailed' |
- 'sendSessionNotStarted'
+ 'sendSessionNotStarted' |
+ 'sendCarSynchronizationFailed'
 ;
 
 export enum UserNotificationType {
@@ -54,6 +56,7 @@ export enum UserNotificationType {
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+  CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize'
 }
 
@@ -211,7 +214,10 @@ export interface BillingUserSynchronizationFailedNotification extends BaseNotifi
   evseDashboardURL: string;
   evseDashboardBillingURL: string;
 }
-
+export interface CarSynchronizationFailedNotification extends BaseNotification {
+  nbrCarsInError: number;
+  evseDashboardURL: string;
+}
 export interface NotificationSource {
   channel: 'email'|'remote-push-notification';
   notificationTask: NotificationTask;

@@ -1,4 +1,4 @@
-import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, SessionNotStartedNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, SessionNotStartedNotification, CarSynchronizationFailedNotification } from '../types/UserNotifications';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -65,7 +65,12 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
-    const params = { roles: [Role.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    let params;
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      params = { roles: [Role.ADMIN, Role.SUPER_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    } else {
+      params = { roles: [Role.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    }
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }
@@ -699,6 +704,40 @@ export default class NotificationHandler {
             }
           } catch (error) {
             Logging.logActionExceptionMessage(tenantID, Source.BILLING_USER_SYNCHRONIZATION_FAILED, error);
+          }
+        }
+      }
+    }
+  }
+
+  static async sendCarsSynchronizationFailed(sourceData: CarSynchronizationFailedNotification): Promise<void> {
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
+              Constants.DEFAULT_TENANT, notificationSource.channel, Source.CAR_SYNCHRONIZATION_FAILED);
+            // Notified?
+            if (!hasBeenNotified) {
+              // Save
+              await NotificationHandler.saveNotification(
+                Constants.DEFAULT_TENANT, notificationSource.channel, null, Source.BILLING_USER_SYNCHRONIZATION_FAILED);
+              // Send
+              for (const adminUser of adminUsers) {
+                // Enabled?
+                if (adminUser.notificationsActive && adminUser.notifications.sendCarSynchronizationFailed) {
+                  await notificationSource.notificationTask.sendCarSynchronizationFailed(
+                    sourceData, adminUser, Constants.DEFAULT_TENANT_OBJECT, NotificationSeverity.ERROR);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Source.CAR_SYNCHRONIZATION_FAILED, error);
           }
         }
       }

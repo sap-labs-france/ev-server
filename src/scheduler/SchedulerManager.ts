@@ -15,6 +15,7 @@ import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
+import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -78,6 +79,9 @@ export default class SchedulerManager {
             break;
           case 'SynchronizeBillingUsersTask':
             schedulerTask = new SynchronizeBillingUsersTask();
+            break;
+          case 'SynchronizeCarsTask':
+            schedulerTask = new SynchronizeCarsTask();
             break;
           case 'CheckSessionNotStartedAfterAuthorizeTask':
             schedulerTask = new CheckSessionNotStartedAfterAuthorizeTask();

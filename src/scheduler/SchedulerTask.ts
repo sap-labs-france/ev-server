@@ -56,5 +56,7 @@ export default abstract class SchedulerTask {
     });
   }
 
-  abstract async processTenant(tenant: Tenant, config: TaskConfig): Promise<void>;
+  public async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+    // Empty
+  }
 }
