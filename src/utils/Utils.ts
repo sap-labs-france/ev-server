@@ -30,8 +30,6 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { Action, Role } from '../types/Authorization';
-import { ChargingProfile } from '../types/ChargingProfile';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
