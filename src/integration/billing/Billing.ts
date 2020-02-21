@@ -179,7 +179,6 @@ export default abstract class Billing<T extends BillingSetting> {
       synchronized: 0,
       error: 0
     } as BillingUserSynchronizeAction;
-
     if (user) {
       try {
         const exists = await this.userExists(user);
@@ -193,6 +192,9 @@ export default abstract class Billing<T extends BillingSetting> {
         actionsDone.synchronized++;
         actionsDone.billingData = newBillingData;
       } catch (error) {
+        if (!user.billingData) {
+          user.billingData = {};
+        }
         user.billingData.hasSynchroError = true;
         await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
         actionsDone.error++;
@@ -202,7 +204,7 @@ export default abstract class Billing<T extends BillingSetting> {
           action: Action.SYNCHRONIZE_BILLING,
           actionOnUser: user,
           module: 'Billing', method: 'synchronizeUser',
-          message: `Cannot synchronization user ${user.email} with billing system`,
+          message: `Cannot synchronize user '${user.email}' with billing system`,
           detailedMessages: error.message
         });
       }
