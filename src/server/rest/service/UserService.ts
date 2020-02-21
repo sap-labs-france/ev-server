@@ -461,17 +461,15 @@ export default class UserService {
     // Notify
     if (statusHasChanged) {
       // Send notification (Async)
-      if (req.user.tenantID !== Constants.DEFAULT_TENANT) {
-        NotificationHandler.sendUserAccountStatusChanged(
-          req.user.tenantID,
-          Utils.generateGUID(),
-          user,
-          {
-            'user': user,
-            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
-          }
-        );
-      }
+      NotificationHandler.sendUserAccountStatusChanged(
+        req.user.tenantID,
+        Utils.generateGUID(),
+        user,
+        {
+          'user': user,
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
+        }
+      );
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
