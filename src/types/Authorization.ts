@@ -34,13 +34,6 @@ export enum Entity {
   CONNECTIONS = 'Connections',
 }
 
-export enum Role {
-  SUPER_ADMIN = 'S',
-  ADMIN = 'A',
-  BASIC = 'B',
-  DEMO = 'D',
-}
-
 export enum Action {
   READ = 'Read',
   CREATE = 'Create',

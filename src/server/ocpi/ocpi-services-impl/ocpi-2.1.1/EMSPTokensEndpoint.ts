@@ -1,21 +1,21 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import { Status } from '../../../../types/User';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
-import Utils from '../../../../utils/Utils';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { HTTPError } from '../../../../types/HTTPError';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../../../types/Tenant';
+import { UserStatus } from '../../../../types/User';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
+import uuid = require('uuid');
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -167,10 +167,10 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       allowedStatus = 'NOT_ALLOWED';
     } else {
       switch (user.status) {
-        case Status.ACTIVE:
+        case UserStatus.ACTIVE:
           allowedStatus = 'ALLOWED';
           break;
-        case Status.BLOCKED:
+        case UserStatus.BLOCKED:
           allowedStatus = 'BLOCKED';
           break;
         default:

@@ -6,7 +6,7 @@ import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUse
 import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
 import Transaction from '../../types/Transaction';
-import User, { Status } from '../../types/User';
+import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 
@@ -38,7 +38,7 @@ export default abstract class Billing<T extends BillingSetting> {
     actionsDone.error = usersBillingInError.result.length;
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
     const newUsersToSyncInBilling = await UserStorage.getUsers(tenantID,
-      { 'statuses': [Status.ACTIVE], 'notSynchronizedBillingData': true },
+      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
       { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
     if (newUsersToSyncInBilling.count > 0) {
       // Process them

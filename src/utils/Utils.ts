@@ -12,7 +12,7 @@ import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
-import { Action, Role } from '../types/Authorization';
+import { Action } from '../types/Authorization';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
@@ -24,7 +24,7 @@ import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
-import User, { Status } from '../types/User';
+import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
@@ -653,13 +653,13 @@ export default class Utils {
 
   public static getRoleNameFromRoleID(roleID) {
     switch (roleID) {
-      case Role.BASIC:
+      case UserRole.BASIC:
         return 'Basic';
-      case Role.DEMO:
+      case UserRole.DEMO:
         return 'Demo';
-      case Role.ADMIN:
+      case UserRole.ADMIN:
         return 'Admin';
-      case Role.SUPER_ADMIN:
+      case UserRole.SUPER_ADMIN:
         return 'Super Admin';
       default:
         return 'Unknown';
@@ -724,15 +724,15 @@ export default class Utils {
 
   public static getStatusDescription(status: string): string {
     switch (status) {
-      case Status.PENDING:
+      case UserStatus.PENDING:
         return 'Pending';
-      case Status.LOCKED:
+      case UserStatus.LOCKED:
         return 'Locked';
-      case Status.BLOCKED:
+      case UserStatus.BLOCKED:
         return 'Blocked';
-      case Status.ACTIVE:
+      case UserStatus.ACTIVE:
         return 'Active';
-      case Status.INACTIVE:
+      case UserStatus.INACTIVE:
         return 'Inactive';
       default:
         return 'Unknown';
@@ -1065,16 +1065,16 @@ export default class Utils {
     // Creation?
     if (req.method === 'POST') {
       if (!filteredRequest.role) {
-        filteredRequest.role = Role.BASIC;
+        filteredRequest.role = UserRole.BASIC;
       }
     } else if (!Authorizations.isAdmin(req.user)) {
       filteredRequest.role = user.role;
     }
     if (req.method === 'POST' && !filteredRequest.status) {
-      filteredRequest.status = Status.BLOCKED;
+      filteredRequest.status = UserStatus.BLOCKED;
     }
     // Creation?
-    if ((filteredRequest.role !== Role.BASIC) && (filteredRequest.role !== Role.DEMO) &&
+    if ((filteredRequest.role !== UserRole.BASIC) && (filteredRequest.role !== UserRole.DEMO) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1087,7 +1087,7 @@ export default class Utils {
       });
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Role.SUPER_ADMIN) {
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === UserRole.SUPER_ADMIN) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1099,7 +1099,7 @@ export default class Utils {
       });
     }
     // Only Admin and Super Admin can use role different from Basic
-    if ((filteredRequest.role === Role.ADMIN || filteredRequest.role === Role.SUPER_ADMIN) &&
+    if ((filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,

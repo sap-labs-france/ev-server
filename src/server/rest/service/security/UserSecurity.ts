@@ -1,14 +1,14 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
+import { UserInError } from '../../../../types/InError';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import Tag from '../../../../types/Tag';
-import User from '../../../../types/User';
+import User, { UserRole } from '../../../../types/User';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
-import { UserInError } from '../../../../types/InError';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
 
@@ -113,9 +113,6 @@ export default class UserSecurity {
     if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }
-    if (request.notifications) {
-      filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.notifications);
-    }
     // Admin?
     if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
       // Ok to set the sensitive data
@@ -138,6 +135,9 @@ export default class UserSecurity {
       if (request.role) {
         filteredRequest.role = sanitize(request.role);
       }
+    }
+    if (request.notifications) {
+      filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.role, request.notifications);
     }
     return filteredRequest;
   }
@@ -162,7 +162,7 @@ export default class UserSecurity {
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
         if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
+          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
         }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
@@ -193,7 +193,7 @@ export default class UserSecurity {
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
         if (user.notifications) {
-          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
+          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.role, user.notifications);
         }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
@@ -257,24 +257,32 @@ export default class UserSecurity {
     return filteredTag;
   }
 
-  static filterNotificationsRequest(notifications: UserNotifications): UserNotifications {
-    return {
+  static filterNotificationsRequest(role: UserRole, notifications: UserNotifications): UserNotifications {
+    // All Users
+    let filteredNotifications: UserNotifications = {
       sendSessionStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionStarted) : false,
       sendOptimalChargeReached: notifications ? UtilsSecurity.filterBoolean(notifications.sendOptimalChargeReached) : false,
       sendEndOfCharge: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndOfCharge) : false,
       sendEndOfSession: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndOfSession) : false,
       sendUserAccountStatusChanged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountStatusChanged) : false,
-      sendNewRegisteredUser: notifications ? UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser) : false,
-      sendUnknownUserBadged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged) : false,
-      sendChargingStationStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError) : false,
-      sendChargingStationRegistered: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered) : false,
-      sendOcpiPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError) : false,
-      sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
-      sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
-      sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
-      sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
-      sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
       sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
-    };
+      sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
+      sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
+    } as UserNotifications;
+    // Admin Notif only
+    if (role === UserRole.ADMIN) {
+      filteredNotifications = {
+        ...filteredNotifications,
+        sendBillingUserSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendBillingUserSynchronizationFailed) : false,
+        sendNewRegisteredUser: notifications ? UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser) : false,
+        sendUnknownUserBadged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged) : false,
+        sendChargingStationStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError) : false,
+        sendChargingStationRegistered: notifications ? UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered) : false,
+        sendOcpiPatchStatusError: notifications ? UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError) : false,
+        sendSmtpAuthError: notifications ? UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError) : false,
+        sendOfflineChargingStations: notifications ? UtilsSecurity.filterBoolean(notifications.sendOfflineChargingStations) : false,
+      };
+    }
+    return filteredNotifications;
   }
 }

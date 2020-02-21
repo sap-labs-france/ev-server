@@ -1,27 +1,25 @@
-import User, { Status } from '../../types/User';
 import fs from 'fs';
+import moment from 'moment';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
+import DbParams from '../../types/database/DbParams';
+import { DataResult, ImageResult } from '../../types/DataResult';
+import Eula from '../../types/Eula';
+import global from '../../types/GlobalType';
+import { UserInError, UserInErrorType } from '../../types/InError';
+import Site, { SiteUser } from '../../types/Site';
+import Tag from '../../types/Tag';
+import User, { UserRole, UserStatus } from '../../types/User';
+import UserNotifications from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Eula from '../../types/Eula';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site, { SiteUser } from '../../types/Site';
-import { Role } from '../../types/Authorization';
-import Tag from '../../types/Tag';
-import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
-import { DataResult, ImageResult } from '../../types/DataResult';
-import _ from 'lodash';
-import UserNotifications from '../../types/UserNotifications';
-import moment from 'moment';
-import { UserInError, UserInErrorType } from '../../types/InError';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 export default class UserStorage {
 
@@ -1106,8 +1104,8 @@ export default class UserStorage {
         sendBillingUserSynchronizationFailed: false,
         sendSessionNotStarted: false
       },
-      role: Role.BASIC,
-      status: Status.PENDING,
+      role: UserRole.BASIC,
+      status: UserStatus.PENDING,
       tags: []
     };
   }
@@ -1116,7 +1114,7 @@ export default class UserStorage {
     switch (errorType) {
       case UserInErrorType.NOT_ACTIVE:
         return [
-          { $match: { status: { $ne: Status.ACTIVE } } },
+          { $match: { status: { $ne: UserStatus.ACTIVE } } },
           { $addFields: { 'errorCode': UserInErrorType.NOT_ACTIVE } }
         ];
       case UserInErrorType.NOT_ASSIGNED: {
@@ -1159,7 +1157,7 @@ export default class UserStorage {
         ];
       case UserInErrorType.NO_BILLING_DATA:
         return [
-          { $match: { $and: [ { 'status': { $eq: Status.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
+          { $match: { $and: [ { 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
           { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
 

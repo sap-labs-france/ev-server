@@ -1,8 +1,8 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import { UserRole } from '../../types/User';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
-import { Role } from '../../types/Authorization';
 
 export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   async migrate() {
@@ -18,7 +18,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       if (user.notificationsActive) {
-        if (user.role === Role.ADMIN) {
+        if (user.role === UserRole.ADMIN) {
           user.notifications = {
             sendSessionStarted: true,
             sendOptimalChargeReached: true,

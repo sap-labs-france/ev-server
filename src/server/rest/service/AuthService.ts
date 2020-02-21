@@ -1,5 +1,3 @@
-import { HTTPError } from '../../../types/HTTPError';
-import User, { Status } from '../../../types/User';
 import axios from 'axios';
 import { Handler, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -13,15 +11,17 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action } from '../../../types/Authorization';
+import { HTTPError } from '../../../types/HTTPError';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import Tag from '../../../types/Tag';
+import User, { UserRole, UserStatus } from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import { Action, Role } from '../../../types/Authorization';
 import Utils from '../../../utils/Utils';
 import AuthSecurity from './security/AuthSecurity';
-import Tag from '../../../types/Tag';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -118,7 +118,7 @@ export default class AuthService {
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
-      if (user.status === Status.LOCKED) {
+      if (user.status === UserStatus.LOCKED) {
         // Yes: Check date to reset pass
         if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
@@ -129,7 +129,7 @@ export default class AuthService {
             message: 'User has been unlocked after a period of time can try to login again'
           });
           // Save User Status
-          await UserStorage.saveUserStatus(req.user.tenantID, user.id, Status.ACTIVE);
+          await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.ACTIVE);
           // Init User Password
           await UserStorage.saveUserPassword(req.user.tenantID, user.id,
             { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
@@ -243,12 +243,12 @@ export default class AuthService {
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
     // Save User Status
     if (tenantID === Constants.DEFAULT_TENANT) {
-      await UserStorage.saveUserRole(tenantID, newUser.id, Role.SUPER_ADMIN);
+      await UserStorage.saveUserRole(tenantID, newUser.id, UserRole.SUPER_ADMIN);
     } else {
-      await UserStorage.saveUserRole(tenantID, newUser.id, Role.BASIC);
+      await UserStorage.saveUserRole(tenantID, newUser.id, UserRole.BASIC);
     }
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, newUser.id, Status.PENDING);
+    await UserStorage.saveUserStatus(tenantID, newUser.id, UserStatus.PENDING);
 
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
@@ -628,7 +628,7 @@ export default class AuthService {
       });
     }
     // Check if account is already active
-    if (user.status === Status.ACTIVE) {
+    if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
@@ -652,7 +652,7 @@ export default class AuthService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
-    await UserStorage.saveUserStatus(tenantID, user.id, Status.ACTIVE);
+    await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
     if (billingImpl) {
       const billingData = await billingImpl.updateUser(user);
       await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
@@ -770,7 +770,7 @@ export default class AuthService {
       });
     }
     // Check if account is already active
-    if (user.status === Status.ACTIVE) {
+    if (user.status === UserStatus.ACTIVE) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
@@ -840,7 +840,7 @@ export default class AuthService {
     if (passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Too many attempts, lock user
       // Save User Status
-      await UserStorage.saveUserStatus(tenantID, user.id, Status.LOCKED);
+      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.LOCKED);
       // Save User Blocked Date
       await UserStorage.saveUserPassword(tenantID, user.id,
         {
@@ -945,7 +945,7 @@ export default class AuthService {
     // Check new and old version of hashing the password
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
-      if (user.status === Status.PENDING) {
+      if (user.status === UserStatus.PENDING) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
@@ -956,7 +956,7 @@ export default class AuthService {
         });
       }
       // Check if the account is active
-      if (user.status !== Status.ACTIVE) {
+      if (user.status !== UserStatus.ACTIVE) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,

@@ -12,8 +12,8 @@ export default interface User extends CreatedUpdatedProps {
   email: string;
   phone?: string;
   mobile: string;
-  role: string;
-  status: string;
+  role: UserRole;
+  status: UserStatus;
   locale: string;
   plateID?: string;
   address?: Address;
@@ -46,10 +46,18 @@ export interface UserSite {
   siteOwner: boolean;
 }
 
-export enum Status {
+export enum UserStatus {
   PENDING = 'P',
   ACTIVE = 'A',
   INACTIVE = 'I',
   BLOCKED = 'B',
   LOCKED = 'L',
 }
+
+export enum UserRole {
+  SUPER_ADMIN = 'S',
+  ADMIN = 'A',
+  BASIC = 'B',
+  DEMO = 'D',
+}
+

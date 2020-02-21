@@ -1,22 +1,22 @@
-import { Action, Entity, Role } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { SettingDB, SettingDBContent } from '../../../types/Setting';
+import Tenant from '../../../types/Tenant';
+import User, { UserRole } from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import { SettingDB, SettingDBContent } from '../../../types/Setting';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Tenant from '../../../types/Tenant';
-import TenantSecurity from './security/TenantSecurity';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TenantValidator from '../validation/TenantValidation';
-import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import TenantValidator from '../validation/TenantValidation';
+import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'TenantService';
@@ -184,7 +184,7 @@ export default class TenantService {
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Role.ADMIN);
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, UserRole.ADMIN);
     // Save User Status
     await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
     // Save User Account Verification

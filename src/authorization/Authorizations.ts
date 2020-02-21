@@ -1,27 +1,27 @@
-import { Action, AuthorizationContext, Entity, Role } from '../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../types/HTTPError';
-import User, { Status } from '../types/User';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
-import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
-import ChargingStation from '../types/ChargingStation';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
-import { PricingSettingsType } from '../types/Setting';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Tag from '../types/Tag';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../types/Transaction';
-import UserNotifications from '../types/UserNotifications';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import ChargingStation from '../types/ChargingStation';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import { PricingSettingsType } from '../types/Setting';
+import Tag from '../types/Tag';
+import Transaction from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserNotifications from '../types/UserNotifications';
 import UserToken from '../types/UserToken';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
+import AuthorizationsDefinition from './AuthorizationsDefinition';
 
 export default class Authorizations {
 
@@ -557,15 +557,15 @@ export default class Authorizations {
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {
-    return user.role === Role.SUPER_ADMIN;
+    return user.role === UserRole.SUPER_ADMIN;
   }
 
   public static isAdmin(user: UserToken | User): boolean {
-    return user.role === Role.ADMIN;
+    return user.role === UserRole.ADMIN;
   }
 
   public static isSiteAdmin(user: UserToken): boolean {
-    return user.role === Role.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
+    return user.role === UserRole.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
   public static isSiteOwner(user: UserToken): boolean {
@@ -573,11 +573,11 @@ export default class Authorizations {
   }
 
   public static isBasic(user: UserToken | User): boolean {
-    return user.role === Role.BASIC;
+    return user.role === UserRole.BASIC;
   }
 
   public static isDemo(user: UserToken | User): boolean {
-    return user.role === Role.DEMO;
+    return user.role === UserRole.DEMO;
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
@@ -641,7 +641,7 @@ export default class Authorizations {
     if (user) {
       // Check Authorization
       // Check User status
-      if (user.status !== Status.ACTIVE) {
+      if (user.status !== UserStatus.ACTIVE) {
         // Reject but save ok
         throw new AppError({
           source: chargingStation.id,
@@ -694,8 +694,8 @@ export default class Authorizations {
       user = {
         ...UserStorage.getEmptyUser(),
         email: tagID + '@e-mobility.com',
-        status: Status.INACTIVE,
-        role: Role.BASIC
+        status: UserStatus.INACTIVE,
+        role: UserRole.BASIC
       } as User;
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
@@ -773,9 +773,9 @@ export default class Authorizations {
       // Save
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User Status
-      await UserStorage.saveUserStatus(tenantID, user.id, Status.INACTIVE);
+      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.INACTIVE);
       // Save User Role
-      await UserStorage.saveUserRole(tenantID, user.id, Role.BASIC);
+      await UserStorage.saveUserRole(tenantID, user.id, UserRole.BASIC);
       // Save User Admin data
       await UserStorage.saveUserAdminData(tenantID, user.id, {
         notificationsActive: user.notificationsActive,
@@ -795,20 +795,20 @@ export default class Authorizations {
   private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
     const groups: Array<string> = [];
     switch (userRole) {
-      case Role.ADMIN:
+      case UserRole.ADMIN:
         groups.push('admin');
         break;
-      case Role.SUPER_ADMIN:
+      case UserRole.SUPER_ADMIN:
         groups.push('superAdmin');
         break;
-      case Role.BASIC:
+      case UserRole.BASIC:
         groups.push('basic');
         // Check Site Admin
         if (sitesAdminCount > 0) {
           groups.push('siteAdmin');
         }
         break;
-      case Role.DEMO:
+      case UserRole.DEMO:
         groups.push('demo');
         break;
     }

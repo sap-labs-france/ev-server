@@ -1,14 +1,13 @@
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
 import HttpStatusCodes from 'http-status-codes';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import User, { Status } from '../../../../types/User';
-import OCPIMapping from './OCPIMapping';
-import { Role } from '../../../../types/Authorization';
-import OCPIUtils from '../../OCPIUtils';
+import AppError from '../../../../exception/AppError';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
+import User, { UserRole, UserStatus } from '../../../../types/User';
+import Constants from '../../../../utils/Constants';
+import OCPIUtils from '../../OCPIUtils';
+import OCPIMapping from './OCPIMapping';
 
 const MODULE_NAME = 'EMSPTokensEndpoint';
 
@@ -80,8 +79,8 @@ export default class OCPITokensService {
         ]
       } as User;
       user.id = await UserStorage.saveUser(tenantId, user);
-      await UserStorage.saveUserRole(tenantId, user.id, Role.BASIC);
-      await UserStorage.saveUserStatus(tenantId, user.id, Status.ACTIVE);
+      await UserStorage.saveUserRole(tenantId, user.id, UserRole.BASIC);
+      await UserStorage.saveUserStatus(tenantId, user.id, UserStatus.ACTIVE);
     }
     await UserStorage.saveUserTags(tenantId, user.id, user.tags);
   }

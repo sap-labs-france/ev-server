@@ -1,14 +1,14 @@
 import * as admin from 'firebase-admin';
+import i18n from 'i18n-js';
+import Tenant from '../../types/Tenant';
+import User, { UserStatus } from '../../types/User';
 import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
-import User, { Status } from '../../types/User';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
-import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import i18n from 'i18n-js';
+import NotificationTask from '../NotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
@@ -199,7 +199,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     // Set the locale
     I18nManager.switchLocale(user.locale);
-    const status = user.status === Status.ACTIVE ?
+    const status = user.status === UserStatus.ACTIVE ?
       i18n.t('notifications.userAccountStatusChanged.activated') :
       i18n.t('notifications.userAccountStatusChanged.suspended');
     // Get Message Text

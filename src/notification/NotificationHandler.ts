@@ -1,17 +1,16 @@
-import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
+import { Source } from '../types/Notification';
+import User, { UserRole } from '../types/User';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
-import { Role } from '../types/Authorization';
-import { Source } from '../types/Notification';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import User from '../types/User';
-import UserStorage from '../storage/mongodb/UserStorage';
 import Utils from '../utils/Utils';
+import EMailNotificationTask from './email/EMailNotificationTask';
+import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import moment = require('moment');
 
 export default class NotificationHandler {
@@ -65,7 +64,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
-    const params = { roles: [Role.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    const params = { roles: [UserRole.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }
