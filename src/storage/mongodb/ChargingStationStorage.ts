@@ -767,7 +767,7 @@ export default class ChargingStationStorage {
     const chargingProfileFilter: any = {};
     // Build Request
     if (chargingProfileToSave.id) {
-      chargingProfileFilter._id = Utils.convertToObjectID(chargingProfileToSave.id);
+      chargingProfileFilter._id = chargingProfileToSave.id;
     } else {
       chargingProfileFilter._id = 
         Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
