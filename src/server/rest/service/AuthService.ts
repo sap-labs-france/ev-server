@@ -215,8 +215,8 @@ export default class AuthService {
         method: 'handleRegisterUser'
       });
     }
-    // Check Mandatory fields
-    Utils.checkIfUserValid(filteredRequest, null, req);
+    // Check Mandatory field
+    Utils.checkIfUserValid(filteredRequest as User, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (user) {
