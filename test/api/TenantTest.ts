@@ -2,6 +2,7 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 
@@ -54,6 +55,9 @@ describe('Tenant tests', function() {
     });
 
     it('Should delete the created tenant', async () => {
+      // Avoid MongoDB issue: Trying to delete a Tenant during index creation leads to an exception like:
+      // Cannot perform operation: a background operation is currently running for collection...
+      Utils.sleep(50);
       // Delete the created entity
       await CentralServerService.DefaultInstance.deleteEntity(
         CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
