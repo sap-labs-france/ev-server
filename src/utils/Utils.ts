@@ -7,6 +7,7 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
+import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
@@ -1338,23 +1339,23 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  private static _isUserEmailValid(email: string) {
-    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  private static _isUserEmailValid(email: string): boolean {
+    return validator.isEmail(email);
   }
 
-  private static _areTagsValid(tags: Tag[]) {
+  private static _areTagsValid(tags: Tag[]): boolean {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
   private static _isPhoneValid(phone: string): boolean {
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+    return validator.isMobilePhone(phone);
   }
 
-  private static _isINumberValid(iNumber) {
+  private static _isINumberValid(iNumber): boolean {
     return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
   }
 
-  private static _isPlateIDValid(plateID) {
+  private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 }
