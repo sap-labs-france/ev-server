@@ -1318,7 +1318,7 @@ export default class Utils {
         }
         break;
 
-      // BUILDING
+      // Building
       case Constants.COMPONENTS.BUILDING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Building
