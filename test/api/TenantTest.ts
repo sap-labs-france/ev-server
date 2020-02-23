@@ -55,9 +55,9 @@ describe('Tenant tests', function() {
     });
 
     it('Should delete the created tenant', async () => {
-      // Avoid MongoDB issue: Trying to delete a Tenant during index creation leads to an exception like:
+      // Temporary workaround to avoid MongoDB issue: Trying to delete a Tenant during index creation leads to an exception like:
       // Cannot perform operation: a background operation is currently running for collection...
-      Utils.sleep(50);
+      await Utils.sleep(1000);
       // Delete the created entity
       await CentralServerService.DefaultInstance.deleteEntity(
         CentralServerService.DefaultInstance.tenantApi, testData.newTenant);

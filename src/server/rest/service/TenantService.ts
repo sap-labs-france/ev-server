@@ -127,7 +127,7 @@ export default class TenantService {
 
   public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
-    TenantValidator.getInstance().validateTenantCreation(req.body);
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreation(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -139,8 +139,6 @@ export default class TenantService {
         method: 'handleCreateTenant'
       });
     }
-    // Filter
-    const filteredRequest = TenantSecurity.filterTenantRequest(req.body);
     // Check the Tenant's name
     let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
     if (foundTenant) {
@@ -224,9 +222,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    TenantValidator.getInstance().validateTenantUpdate(req.body);
-    // Filter
-    const tenantUpdate = TenantSecurity.filterTenantRequest(req.body);
+    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({

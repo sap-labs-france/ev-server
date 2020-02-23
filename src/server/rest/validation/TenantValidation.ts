@@ -25,18 +25,20 @@ export default class TenantValidator extends SchemaValidator {
   }
 
 
-  public validateTenantCreation(tenant: Tenant): void {
+  public validateTenantCreation(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this._tenantCreation, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
+    return tenant;
   }
 
-  public validateTenantUpdate(tenant: Tenant): void {
+  public validateTenantUpdate(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this._tenantUpdate, tenant);
     // Validate deps between components
     this.validateComponentDependencies(tenant);
+    return tenant;
   }
 
   private validateComponentDependencies(tenant: Tenant) {
