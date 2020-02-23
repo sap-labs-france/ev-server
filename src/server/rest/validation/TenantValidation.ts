@@ -1,10 +1,10 @@
 import fs from 'fs';
 import AppError from '../../../exception/AppError';
-import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import { HTTPError } from '../../../types/HTTPError';
-import SchemaValidator from './SchemaValidator';
 import Tenant from '../../../types/Tenant';
+import Constants from '../../../utils/Constants';
+import SchemaValidator from './SchemaValidator';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;
@@ -13,7 +13,7 @@ export default class TenantValidator extends SchemaValidator {
 
   private constructor() {
     super('TenantValidator');
-    this._tenantCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-creation.json`, 'utf8'));
+    this._tenantCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-create.json`, 'utf8'));
     this._tenantUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-update.json`, 'utf8'));
   }
 
