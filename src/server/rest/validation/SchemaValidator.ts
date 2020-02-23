@@ -1,8 +1,7 @@
 import Ajv from 'ajv';
 import AppError from '../../../exception/AppError';
-import Constants from '../../../utils/Constants';
 import { HTTPError } from '../../../types/HTTPError';
-import HttpStatus from 'http-status-codes';
+import Constants from '../../../utils/Constants';
 
 export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
