@@ -268,7 +268,15 @@ export default class UserSecurity {
       sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
-    } as UserNotifications;
+      sendBillingUserSynchronizationFailed: false,
+      sendNewRegisteredUser: false,
+      sendUnknownUserBadged: false,
+      sendChargingStationStatusError: false,
+      sendChargingStationRegistered: false,
+      sendOcpiPatchStatusError: false,
+      sendSmtpAuthError: false,
+      sendOfflineChargingStations: false,
+    };
     // Admin Notif only
     if (role === UserRole.ADMIN) {
       filteredNotifications = {
