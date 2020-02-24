@@ -78,6 +78,7 @@ export default class CentralRestServer {
     this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
       req.params.action = 'FirmwareDownload';
+      req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
 
