@@ -1,7 +1,7 @@
 import Connection from '../../integration/Connection';
+import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 

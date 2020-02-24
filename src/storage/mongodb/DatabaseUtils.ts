@@ -1,8 +1,8 @@
 import { ObjectID } from 'mongodb';
-import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
-import Utils from '../../utils/Utils';
 import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 

@@ -1,11 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Building from '../../../../types/Building';
-import { HttpBuildingsRequest, HttpBuildingRequest } from '../../../../types/requests/HttpBuildingRequest';
-import SiteSecurity from './SiteSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpBuildingRequest, HttpBuildingsRequest } from '../../../../types/requests/HttpBuildingRequest';
+import UserToken from '../../../../types/UserToken';
+import SiteSecurity from './SiteSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class BuildingSecurity {
 

@@ -1,13 +1,13 @@
-import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, RoamingSettingsType, SettingDB } from '../../types/Setting';
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
-import Utils from '../../utils/Utils';
+import BackendError from '../../exception/BackendError';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB } from '../../types/Setting';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<SettingDB> {

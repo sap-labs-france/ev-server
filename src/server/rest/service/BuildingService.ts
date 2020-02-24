@@ -1,15 +1,15 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
+import AppAuthError from '../../../exception/AppAuthError';
+import BuildingStorage from '../../../storage/mongodb/BuildingStorage';
+import { Action, Entity } from '../../../types/Authorization';
 import Building from '../../../types/Building';
-import BuildingSecurity from './security/BuildingSecurity';
+import { HTTPAuthError } from '../../../types/HTTPError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import BuildingSecurity from './security/BuildingSecurity';
 import UtilsService from './UtilsService';
-import BuildingStorage from '../../../storage/mongodb/BuildingStorage';
 
 export default class BuildingService {
 
