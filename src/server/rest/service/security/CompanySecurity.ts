@@ -81,7 +81,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser) {
+  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken) {
     const filteredCompanies = [];
 
     if (!companies.result) {

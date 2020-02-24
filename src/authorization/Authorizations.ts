@@ -79,6 +79,10 @@ export default class Authorizations {
     return loggedUser.companies;
   }
 
+  public static getAuthorizedBuildingIDs(loggedUser: UserToken): string[] {
+    return loggedUser.buildings;
+  }
+
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
     if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
       return null;
@@ -488,6 +492,27 @@ export default class Authorizations {
 
   public static canDeleteCompany(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
+  }
+
+  public static canListBuildings(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDINGS, Action.LIST);
+  }
+
+  public static canReadBuilding(loggedUser: UserToken, buildingId: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.READ,
+      { building: buildingId, buildings: loggedUser.buildings });
+  }
+
+  public static canCreateBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.CREATE);
+  }
+
+  public static canUpdateBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.UPDATE);
+  }
+
+  public static canDeleteBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.DELETE);
   }
 
   public static canListTenants(loggedUser: UserToken): boolean {

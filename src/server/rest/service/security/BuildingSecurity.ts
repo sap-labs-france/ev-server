@@ -1,0 +1,102 @@
+import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Building from '../../../../types/Building';
+import { HttpBuildingsRequest, HttpBuildingRequest } from '../../../../types/requests/HttpBuildingRequest';
+import SiteSecurity from './SiteSecurity';
+import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
+
+export default class BuildingSecurity {
+
+  public static filterBuildingRequestByID(request: any): string {
+    return sanitize(request.ID);
+  }
+
+  public static filterBuildingRequest(request: any): HttpBuildingRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
+  }
+
+  public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
+    const filteredRequest: HttpBuildingsRequest = {
+      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
+      Search: sanitize(request.Search),
+      WithSites: UtilsSecurity.filterBoolean(request.WithSites),
+      WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)
+    } as HttpBuildingsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  static filterBuildingUpdateRequest(request: any): Partial<Building> {
+    const filteredRequest = BuildingSecurity._filterBuildingRequest(request);
+    return {
+      id: sanitize(request.id),
+      ...filteredRequest
+    };
+  }
+
+  public static filterBuildingCreateRequest(request: any): Partial<Building> {
+    return BuildingSecurity._filterBuildingRequest(request);
+  }
+
+  public static _filterBuildingRequest(request: any): Partial<Building> {
+    return {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      logo: request.logo
+    };
+  }
+
+  public static filterBuildingResponse(building: Building, loggedUser: UserToken) {
+    let filteredBuilding;
+
+    if (!building) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadBuilding(loggedUser, building.id)) {
+      // Admin?
+      if (Authorizations.isAdmin(loggedUser)) {
+        // Yes: set all params
+        filteredBuilding = building;
+      } else {
+        // Set only necessary info
+        filteredBuilding = {};
+        filteredBuilding.id = building.id;
+        filteredBuilding.name = building.name;
+        filteredBuilding.logo = building.logo;
+        filteredBuilding.address = UtilsSecurity.filterAddressRequest(building.address);
+      }
+      if (building.sites) {
+        filteredBuilding.sites = building.sites.map((site) => SiteSecurity.filterSiteResponse(site, loggedUser));
+      }
+      // Created By / Last Changed By
+      UtilsSecurity.filterCreatedAndLastChanged(
+        filteredBuilding, building, loggedUser);
+    }
+    return filteredBuilding;
+  }
+
+  public static filterBuildingsResponse(buildings: DataResult<Building>, loggedUser: UserToken) {
+    const filteredBuildings = [];
+
+    if (!buildings.result) {
+      return null;
+    }
+    if (!Authorizations.canListBuildings(loggedUser)) {
+      return null;
+    }
+    for (const building of buildings.result) {
+      // Add
+      const filteredBuilding = BuildingSecurity.filterBuildingResponse(building, loggedUser);
+      if (filteredBuilding) {
+        filteredBuildings.push(filteredBuilding);
+      }
+    }
+    buildings.result = filteredBuildings;
+  }
+}

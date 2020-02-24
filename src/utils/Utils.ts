@@ -950,6 +950,29 @@ export default class Utils {
     }
   }
 
+  public static checkIfBuildingValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Building ID is mandatory',
+        module: 'BuildingService',
+        method: 'checkIfBuildingValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.name) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Building Name is mandatory',
+        module: 'BuildingService',
+        method: 'checkIfBuildingValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfVehicleValid(filteredRequest, req: Request) {
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
