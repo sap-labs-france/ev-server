@@ -77,6 +77,11 @@ const GRANTS = {
         resource: 'User', action: ['Read', 'Update'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
+      { resource: 'Buildings', action: 'List', attributes: ['*'] },
+      {
+        resource: 'Building', action: 'Read', attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'buildings': '$.building' } }
+      },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       {
         resource: 'Company', action: 'Read', attributes: ['*'],
