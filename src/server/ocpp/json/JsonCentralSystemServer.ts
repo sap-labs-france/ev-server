@@ -1,21 +1,23 @@
+import * as http from 'http';
 import uuid from 'uuid/v4';
-import CentralSystemServer from '../CentralSystemServer';
-import Constants from '../../../utils/Constants';
+import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../types/GlobalType';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import CentralSystemServer from '../CentralSystemServer';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
-import Logging from '../../../utils/Logging';
 import WSServer from './WSServer';
-import { Action } from '../../../types/Authorization';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
-  private _serverName: any;
-  private _MODULE_NAME: any;
-  private jsonChargingStationClients: any;
-  private jsonRestClients: any;
-  private wsServer: any;
+  private _serverName: string;
+  private _MODULE_NAME: string;
+  private jsonChargingStationClients: JsonWSConnection[];
+  private jsonRestClients: JsonRestWSConnection[];
+  private wsServer: WSServer;
 
-  constructor(centralSystemConfig, chargingStationConfig) {
+  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
@@ -33,7 +35,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return this._serverName;
   }
 
-  _createWSServer() {
+  public _createWSServer() {
     const verifyClient = (info) => {
       // Check the URI
       if (info.req.url.startsWith('/OCPP16')) {
@@ -52,7 +54,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleProtocols = (protocols, request): boolean|string => {
       // Check the protocols
       // Ensure protocol used as ocpp1.6 or nothing (should create an error)
@@ -80,11 +81,12 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     };
 
     // Create the WS server
-    this.wsServer = new WSServer(WSServer.createHttpServer(this.centralSystemConfig), this._serverName, this.centralSystemConfig, verifyClient, handleProtocols);
-    this.wsServer.on('connection', async (ws, req) => {
+    this.wsServer = new WSServer(WSServer.createHttpServer(this.centralSystemConfig), this._serverName,
+      this.centralSystemConfig, verifyClient, handleProtocols);
+    this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
       try {
         // Set an ID
-        ws.id = uuid();
+        ws['id'] = uuid();
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
@@ -111,49 +113,49 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  start() {
+  public start() {
     // Keep it global
     global.centralSystemJson = this;
     // Make server to listen
     this._startListening();
   }
 
-  _startListening() {
+  public _startListening() {
     // Create the WS server
     this._createWSServer();
     // Make server to listen
     this.wsServer.startListening();
   }
 
-  addJsonConnection(wsConnection) {
+  public addJsonConnection(wsConnection: JsonWSConnection) {
     // Keep the connection
     this.jsonChargingStationClients[wsConnection.getID()] = wsConnection;
   }
 
-  removeJsonConnection(wsConnection) {
+  public removeJsonConnection(wsConnection: JsonWSConnection) {
     // Check first
     if (this.jsonChargingStationClients[wsConnection.getID()] &&
-      this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
       // Remove from cache
       delete this.jsonChargingStationClients[wsConnection.getID()];
     }
   }
 
-  addRestConnection(wsConnection) {
+  public addRestConnection(wsConnection: JsonRestWSConnection) {
     // Keep the connection
     this.jsonRestClients[wsConnection.getID()] = wsConnection;
   }
 
-  removeRestConnection(wsConnection) {
+  public removeRestConnection(wsConnection: JsonRestWSConnection) {
     // Check first
     if (this.jsonRestClients[wsConnection.getID()] &&
-      this.jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      this.jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
       // Remove from cache
       delete this.jsonRestClients[wsConnection.getID()];
     }
   }
 
-  getChargingStationClient(tenantID, chargingStationID) {
+  public getChargingStationClient(tenantID: string, chargingStationID: string): JsonWSConnection {
     // Build ID
     const id = `${tenantID}~${chargingStationID}}`;
     // Charging Station exists?

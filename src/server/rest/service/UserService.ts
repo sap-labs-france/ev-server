@@ -1,28 +1,29 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import fs from 'fs';
+import Authorizations from '../../../authorization/Authorizations';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserNotifications from '../../../types/UserNotifications';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import Utils from '../../../utils/Utils';
-import UtilsService from './UtilsService';
-import fs from 'fs';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { UserInErrorType } from '../../../types/InError';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import UserNotifications from '../../../types/UserNotifications';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import UserSecurity from './security/UserSecurity';
+import UtilsService from './UtilsService';
 
 export default class UserService {
 
@@ -69,24 +70,15 @@ export default class UserService {
     }
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.userID}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleAssignSitesToUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' doesn't exist anymore.`,
+      'UserService', 'handleAssignSitesToUser', req.user);
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
       if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Site with ID '${siteID}' does not exist anymore`,
+          message: `Site with ID '${siteID}' doesn't exist anymore`,
           module: 'UserService',
           method: 'handleAssignSitesToUser',
           user: req.user,
@@ -150,7 +142,7 @@ export default class UserService {
         value: id
       });
     }
-    // Check Mandatory fields
+    // Same user
     if (id === req.user.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -164,102 +156,107 @@ export default class UserService {
     }
     // Check user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleDeleteUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleDeleteUser', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
+        action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with ID '${id}' is already deleted`,
-        module: 'UserService',
-        method: 'handleDeleteUser',
-        user: req.user,
-        action: action
+        module: 'UserService', method: 'handleDeleteUser',
+        user: req.user
       });
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
+    // Check Billing
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
       try {
-        await billingImpl.checkIfUserCanBeDeleted(user);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleDeleteUser',
-          action: 'CheckIfUserCanBeDeleted',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
-          detailedMessages: e.message
+        const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+        if (!billingImpl) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: 'Billing service is not configured',
+            module: 'BillingService', method: 'handleGetBillingConnection',
+            user: req.user, actionOnUser: user
+          });
+        }
+        const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+        if (!userCanBeDeleted) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.BILLING_DELETE_ERROR,
+            message: 'User cannot be deleted due to billing constraints',
+            module: 'BillingService', method: 'handleGetBillingConnection',
+            user: req.user, actionOnUser: user
+          });
+        }
+      } catch (error) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.BILLING_DELETE_ERROR,
+          message: `Error occured in billing system`,
+          module: 'UserService', method: 'handleDeleteUser',
+          user: req.user, actionOnUser: user,
+          detailedMessages: error
         });
       }
     }
-    if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
-      // Delete from site
-      const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
-        Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => siteUser.site.id
-      );
-      await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
-    }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
-    if (billingImpl) {
+    // Delete billing user
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleDeleteUser',
           action: 'UserDelete',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing provider`,
+          module: 'UserService',method: 'handleDeleteUser',
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing system`,
+          user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
       }
     }
-
     // Synchronize badges with IOP
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    try {
-      const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
-      if (ocpiClient) {
-        // Invalidate no more used tags
-        for (const tag of user.tags) {
-          if (tag.issuer) {
-            await ocpiClient.pushToken({
-              uid: tag.id,
-              type: 'RFID',
-              'auth_id': user.id,
-              'visual_number': user.id,
-              issuer: tenant.name,
-              valid: false,
-              whitelist: 'ALLOWED_OFFLINE',
-              'last_updated': new Date()
-            });
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      try {
+        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+        if (ocpiClient) {
+          // Invalidate no more used tags
+          for (const tag of user.tags) {
+            if (tag.issuer) {
+              await ocpiClient.pushToken({
+                uid: tag.id,
+                type: 'RFID',
+                'auth_id': user.id,
+                'visual_number': user.id,
+                issuer: tenant.name,
+                valid: false,
+                whitelist: 'ALLOWED_OFFLINE',
+                'last_updated': new Date()
+              });
+            }
           }
         }
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService', method: 'handleUpdateUser',
+          action: 'UserUpdate',
+          user: req.user, actionOnUser: user,
+          message: `Unable to synchronize tokens of user ${user.id} with IOP`,
+          detailedMessages: e.message
+        });
       }
-    } catch (e) {
-      Logging.logError({
-        tenantID: req.user.tenantID,
-        module: 'UserService',
-        method: 'handleUpdateUser',
-        action: 'UserUpdate',
-        message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-        detailedMessages: e.message
-      });
     }
-
     // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
@@ -305,17 +302,8 @@ export default class UserService {
     }
     // Get User
     let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleUpdateUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'UserService', 'handleUpdateUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -374,7 +362,7 @@ export default class UserService {
           module: 'UserService',
           method: 'handleUpdateUser',
           action: 'UserUpdate',
-          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing provider`,
+          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing system`,
           detailedMessages: e.message
         });
       }
@@ -401,52 +389,54 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          // Invalidate no more used tags
-          for (const previousTag of previousTags) {
-            const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
-            if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
-              await ocpiClient.pushToken({
-                uid: previousTag.id,
-                type: 'RFID',
-                'auth_id': filteredRequest.id,
-                'visual_number': filteredRequest.id,
-                issuer: tenant.name,
-                valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        try {
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          if (ocpiClient) {
+            // Invalidate no more used tags
+            for (const previousTag of previousTags) {
+              const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+              if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
+                await ocpiClient.pushToken({
+                  uid: previousTag.id,
+                  type: 'RFID',
+                  'auth_id': filteredRequest.id,
+                  'visual_number': filteredRequest.id,
+                  issuer: tenant.name,
+                  valid: false,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
+            }
+            // Push new valid tags
+            for (const currentTag of filteredRequest.tags) {
+              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
+              if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+                await ocpiClient.pushToken({
+                  uid: currentTag.id,
+                  type: 'RFID',
+                  'auth_id': filteredRequest.id,
+                  'visual_number': filteredRequest.id,
+                  issuer: tenant.name,
+                  valid: true,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
             }
           }
-          // Push new valid tags
-          for (const currentTag of filteredRequest.tags) {
-            const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
-            if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
-              await ocpiClient.pushToken({
-                uid: currentTag.id,
-                type: 'RFID',
-                'auth_id': filteredRequest.id,
-                'visual_number': filteredRequest.id,
-                issuer: tenant.name,
-                valid: true,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
-            }
-          }
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleUpdateUser',
+            action: 'UserUpdate',
+            message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
+            detailedMessages: e.message
+          });
         }
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleUpdateUser',
-          action: 'UserUpdate',
-          message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-          detailedMessages: e.message
-        });
       }
 
       // Save User Status
@@ -458,12 +448,12 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
-        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
           if (filteredRequest.notifications) {
             adminData.notifications = filteredRequest.notifications;
@@ -528,17 +518,8 @@ export default class UserService {
     }
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleUpdateUserMobileToken',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
+      'UserService', 'handleUpdateUserMobileToken', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -599,17 +580,8 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUser',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -660,17 +632,8 @@ export default class UserService {
     }
     // Get the logged user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${filteredRequest.ID}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUserImage',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' doesn't exist anymore.`,
+      'UserService', 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -824,7 +787,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [UserInErrorType.NOT_ACTIVE, UserInErrorType.NOT_ASSIGNED, UserInErrorType.INACTIVE_USER_ACCOUNT])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : Object.values(UserInErrorType))
       },
       {
         limit: filteredRequest.Limit,
@@ -873,6 +836,7 @@ export default class UserService {
     await Utils.checkIfUserTagsAreValid(null, filteredRequest.tags, req);
     // Clean request
     delete filteredRequest.passwords;
+    filteredRequest.issuer = true;
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
@@ -899,34 +863,36 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      const tenant = await TenantStorage.getTenant(req.user.tenantID);
-      try {
-        const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, Constants.OCPI_ROLE.EMSP) as EmspOCPIClient;
-        if (ocpiClient) {
-          for (const tag of filteredRequest.tags) {
-            if (tag.issuer) {
-              await ocpiClient.pushToken({
-                uid: tag.id,
-                type: 'RFID',
-                'auth_id': newUserID,
-                'visual_number': newUserID,
-                issuer: tenant.name,
-                valid: true,
-                whitelist: 'ALLOWED_OFFLINE',
-                'last_updated': new Date()
-              });
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+        const tenant = await TenantStorage.getTenant(req.user.tenantID);
+        try {
+          const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
+          if (ocpiClient) {
+            for (const tag of filteredRequest.tags) {
+              if (tag.issuer) {
+                await ocpiClient.pushToken({
+                  uid: tag.id,
+                  type: 'RFID',
+                  'auth_id': newUserID,
+                  'visual_number': newUserID,
+                  issuer: tenant.name,
+                  valid: true,
+                  whitelist: 'ALLOWED_OFFLINE',
+                  'last_updated': new Date()
+                });
+              }
             }
           }
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleCreateUser',
+            action: 'UserCreate',
+            message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
+            detailedMessages: e.message
+          });
         }
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleCreateUser',
-          action: 'UserCreate',
-          message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-          detailedMessages: e.message
-        });
       }
 
       // Save User Status
@@ -938,12 +904,12 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+      if (filteredRequest.plateID || Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
-        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+        if (Utils.objectHasProperty(filteredRequest, 'notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
           if (filteredRequest.notifications) {
             adminData.notifications = filteredRequest.notifications;
@@ -975,9 +941,9 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService',
-          method: 'handleUpdateUser',
+          method: 'handleCreateUser',
           action: 'UserCreate',
-          message: `User '${user.firstName} ${user.name}' cannot be created in Billing provider`,
+          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
           detailedMessages: e.message
         });
       }
@@ -987,7 +953,8 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: req.user,
-      module: 'UserService', method: 'handleCreateUser',
+      module: 'UserService',
+      method: 'handleCreateUser',
       message: `User with ID '${newUserID}' has been created successfully`,
       action: action
     });
@@ -1025,17 +992,8 @@ export default class UserService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' does not exist anymore`,
-        module: 'UserService',
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+      'UserService', 'handleGetUserInvoice', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({

@@ -5,7 +5,9 @@ import Logging from '../../utils/Logging';
 import OCPIServices from './OCPIServices';
 import { Application, NextFunction, Request, Response } from 'express';
 import { Configuration } from '../../types/configuration/Configuration';
-import { TenantIdHoldingRequest } from './AbstractOCPIService';
+import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIService';
+import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
+import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 
 const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {
@@ -41,8 +43,8 @@ export default class OCPIServer {
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
-    this.express.use(Constants.OCPI_SERVER_CPO_PATH + Constants.OCPI_VERSIONS_PATH, (req: Request, res: Response) => ocpiServices.getCPOVersions(req, res));
-    this.express.use(Constants.OCPI_SERVER_EMSP_PATH + Constants.OCPI_VERSIONS_PATH, (req: Request, res: Response) => ocpiServices.getEMSPVersions(req, res));
+    this.express.use(CPOService.PATH + AbstractOCPIService.VERSIONS_PATH, (req: Request, res: Response) => ocpiServices.getCPOVersions(req, res));
+    this.express.use(EMSPService.PATH + AbstractOCPIService.VERSIONS_PATH, (req: Request, res: Response) => ocpiServices.getEMSPVersions(req, res));
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach((ocpiService) => {
       this.express.use(ocpiService.getPath(), async (req: TenantIdHoldingRequest, res: Response, next: NextFunction) => await ocpiService.restService(req, res, next));

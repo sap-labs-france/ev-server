@@ -13,6 +13,7 @@ import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPISessionsService from './OCPISessionsService';
 import HttpStatusCodes from 'http-status-codes';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -62,7 +63,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -74,7 +75,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -103,7 +104,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -118,7 +119,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Session id ${session.id} does not match request parameter ${sessionId}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -149,7 +150,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -161,7 +162,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -197,7 +198,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         detailedMessages: sessionPatched,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
 

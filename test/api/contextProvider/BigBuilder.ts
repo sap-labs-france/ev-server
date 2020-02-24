@@ -143,11 +143,11 @@ export default class ContextBuilder {
     if (tenantContextDef.componentSettings) {
       for (const component in Constants.COMPONENTS) {
         const componentName = Constants.COMPONENTS[component];
-        if (tenantContextDef.componentSettings.hasOwnProperty(componentName)) {
+        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName)) {
           components[componentName] = {
             active: true
           };
-          if (tenantContextDef.componentSettings[componentName].hasOwnProperty('type')) {
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
             components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
           }
         }
@@ -279,7 +279,7 @@ export default class ContextBuilder {
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
-    if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
+    if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {

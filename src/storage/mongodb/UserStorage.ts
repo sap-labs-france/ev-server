@@ -1,27 +1,25 @@
-import User, { Status } from '../../types/User';
 import fs from 'fs';
+import moment from 'moment';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
+import DbParams from '../../types/database/DbParams';
+import { DataResult, ImageResult } from '../../types/DataResult';
+import Eula from '../../types/Eula';
+import global from '../../types/GlobalType';
+import { UserInError, UserInErrorType } from '../../types/InError';
+import Site, { SiteUser } from '../../types/Site';
+import Tag from '../../types/Tag';
+import User, { UserRole, UserStatus } from '../../types/User';
+import UserNotifications from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Eula from '../../types/Eula';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site, { SiteUser } from '../../types/Site';
-import { Role } from '../../types/Authorization';
-import Tag from '../../types/Tag';
-import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
-import { DataResult, ImageResult } from '../../types/DataResult';
-import _ from 'lodash';
-import UserNotifications from '../../types/UserNotifications';
-import moment from 'moment';
-import { UserInError, UserInErrorType } from '../../types/InError';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 export default class UserStorage {
 
@@ -173,6 +171,16 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
+  public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByBillingID');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { billingCustomer: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
+    return user.count > 0 ? user.result[0] : null;
+  }
+
   public static async getUserImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
@@ -261,6 +269,7 @@ export default class UserStorage {
     // eslint-disable-next-line prefer-const
     let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
+      issuer: userToSave.issuer,
       name: userToSave.name,
       firstName: userToSave.firstName,
       email: userToSave.email,
@@ -288,7 +297,7 @@ export default class UserStorage {
         sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
       },
-      deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
+      deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
@@ -315,23 +324,22 @@ export default class UserStorage {
     const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
 
     if (userTagsToSave.length > 0) {
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userTagsToSave.map((tag) => {
-          const tagMDB = {
-            _id: tag.id,
-            userID: Utils.convertToObjectID(userID),
-            issuer: tag.issuer,
-            description: tag.description,
-            deleted: tag.deleted
-          };
-          // Check Created/Last Changed By
-          DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
-          return tagMDB;
-        }));
+      const tagCollection = global.database.getCollection<any>(tenantID, 'tags');
+      await tagCollection.deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
+      await tagCollection.deleteMany({ 'userID': Utils.convertToObjectID(userID) });
+      await tagCollection.insertMany(userTagsToSave.map((tag) => {
+        const tagMDB = {
+          _id: tag.id,
+          userID: Utils.convertToObjectID(userID),
+          issuer: tag.issuer,
+          description: tag.description,
+          deleted: tag.deleted,
+          ocpiToken: tag.ocpiToken
+        };
+        // Check Created/Last Changed By
+        DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
+        return tagMDB;
+      }));
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTags });
@@ -434,7 +442,7 @@ export default class UserStorage {
     if (params.plateID) {
       updatedUserMDB.plateID = params.plateID;
     }
-    if (params.hasOwnProperty('notificationsActive')) {
+    if (Utils.objectHasProperty(params, 'notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     if (params.notifications) {
@@ -462,6 +470,7 @@ export default class UserStorage {
       updatedUserMDB.billingData.customerID = billingData.customerID;
       updatedUserMDB.billingData.method = billingData.method;
       updatedUserMDB.billingData.cardID = billingData.cardID;
+      updatedUserMDB.billingData.hasSynchroError = billingData.hasSynchroError;
       if (!updatedUserMDB.billingData.cardID) {
         delete updatedUserMDB.billingData.cardID;
       }
@@ -512,7 +521,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
+      userID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -710,7 +719,7 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string, params: { issuer?: boolean; userID?: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -724,14 +733,17 @@ export default class UserStorage {
     const aggregation = [];
     if (params) {
       const filters = [];
+      if (params.userID) {
+        filters.push({ userID: Utils.convertToObjectID(params.userID) });
+      }
       if (params.issuer === true || params.issuer === false) {
-        filters.push({ 'issuer': params.issuer });
+        filters.push({ issuer: params.issuer });
       }
       if (params.dateFrom && moment(params.dateFrom).isValid()) {
-        filters.push({ 'lastChangedOn': { $gte: new Date(params.dateFrom) } });
+        filters.push({ lastChangedOn: { $gte: new Date(params.dateFrom) } });
       }
       if (params.dateTo && moment(params.dateTo).isValid()) {
-        filters.push({ 'lastChangedOn': { $lte: new Date(params.dateTo) } });
+        filters.push({ lastChangedOn: { $lte: new Date(params.dateTo) } });
       }
 
       if (filters.length > 0) {
@@ -782,7 +794,11 @@ export default class UserStorage {
         id: '$_id',
         _id: 0,
         userID: { $toString: '$userID' },
-        lastChangedOn: 1
+        lastChangedOn: 1,
+        deleted: 1,
+        ocpiToken: 1,
+        description: 1,
+        issuer: 1
       }
     });
     // Read DB
@@ -1061,6 +1077,7 @@ export default class UserStorage {
   public static getEmptyUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
+      issuer: true,
       name: 'Unknown',
       firstName: 'User',
       email: '',
@@ -1087,8 +1104,8 @@ export default class UserStorage {
         sendBillingUserSynchronizationFailed: false,
         sendSessionNotStarted: false
       },
-      role: Role.BASIC,
-      status: Status.PENDING,
+      role: UserRole.BASIC,
+      status: UserStatus.PENDING,
       tags: []
     };
   }
@@ -1097,8 +1114,8 @@ export default class UserStorage {
     switch (errorType) {
       case UserInErrorType.NOT_ACTIVE:
         return [
-          { $match: { status: { $ne: Status.ACTIVE } } },
-          { $addFields: { 'errorCode': 'inactive_user' } }
+          { $match: { status: { $ne: UserStatus.ACTIVE } } },
+          { $addFields: { 'errorCode': UserInErrorType.NOT_ACTIVE } }
         ];
       case UserInErrorType.NOT_ASSIGNED: {
         return [
@@ -1131,10 +1148,19 @@ export default class UserStorage {
             }
           ];
         }
-
         return [];
-
       }
+      case UserInErrorType.FAILED_BILLING_SYNCHRO:
+        return [
+          { $match: { 'billingData.hasSynchroError': { $eq: true } } },
+          { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
+        ];
+      case UserInErrorType.NO_BILLING_DATA:
+        return [
+          { $match: { $and: [ { 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
+          { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
+        ];
+
       default:
         return [];
     }

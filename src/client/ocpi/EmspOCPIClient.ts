@@ -23,13 +23,15 @@ import moment from 'moment';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import { Action } from '../../types/Authorization';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
-    super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.EMSP);
+    super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.EMSP) {
-      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.EMSP}`);
+    if (ocpiEndpoint.role !== OCPIRole.EMSP) {
+      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`);
     }
   }
 
@@ -379,7 +381,7 @@ export default class EmspOCPIClient extends OCPIClient {
     });
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name
-      : OCPIUtils.buildSiteName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
+      : OCPIUtils.buildOperatorName(this.ocpiEndpoint.countryCode, this.ocpiEndpoint.partyId);
     site = sites.find((value) => value.name === siteName);
     if (!site) {
       site = {
@@ -473,7 +475,7 @@ export default class EmspOCPIClient extends OCPIClient {
           });
           const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
           chargingStation.siteAreaID = siteArea.id;
-          await ChargingStationStorage.saveChargingStation(this.tenant.id, chargingStation);
+          await ChargingStationStorage.saveChargingStation(Action.OCPI_GET_LOCATIONS, this.tenant.id, chargingStation);
         }
       }
     }

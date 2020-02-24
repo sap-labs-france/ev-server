@@ -1,37 +1,37 @@
-import { Action, Entity, Role } from '../types/Authorization';
-import { HTTPAuthError, HTTPError  } from '../types/HTTPError';
-import User, { Status } from '../types/User';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
-import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
-import ChargingStation from '../types/ChargingStation';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
-import { PricingSettingsType } from '../types/Setting';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Tag from '../types/Tag';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../types/Transaction';
-import UserNotifications from '../types/UserNotifications';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import ChargingStation from '../types/ChargingStation';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import { PricingSettingsType } from '../types/Setting';
+import Tag from '../types/Tag';
+import Transaction from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
+import UserNotifications from '../types/UserNotifications';
 import UserToken from '../types/UserToken';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
+import AuthorizationsDefinition from './AuthorizationsDefinition';
 
 export default class Authorizations {
 
   private static configuration: AuthorizationConfiguration;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
-    const context = {
-      'UserID': transaction.userID,
-      'sitesOwner': loggedUser.sitesOwner,
-      'site': transaction.siteID
+    const context: AuthorizationContext = {
+      UserID: transaction.userID,
+      sitesOwner: loggedUser.sitesOwner,
+      site: transaction.siteID
     };
     return Authorizations.canPerformAction(loggedUser, Entity.TRANSACTION,
       Action.REFUND_TRANSACTION, context);
@@ -53,7 +53,6 @@ export default class Authorizations {
         site: null
       };
     }
-
     return Authorizations.canPerformAction(
       loggedUser, Entity.CHARGING_STATION,
       Action.REMOTE_START_TRANSACTION, context);
@@ -63,7 +62,7 @@ export default class Authorizations {
     if (!transaction) {
       return false;
     }
-    const context = {
+    const context: AuthorizationContext = {
       user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
@@ -72,10 +71,8 @@ export default class Authorizations {
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
     };
-
     return Authorizations.canPerformAction(
-      loggedUser, Entity.CHARGING_STATION,
-      Action.REMOTE_STOP_TRANSACTION, context);
+      loggedUser, Entity.CHARGING_STATION, Action.REMOTE_STOP_TRANSACTION, context);
   }
 
   public static getAuthorizedCompanyIDs(loggedUser: UserToken): string[] {
@@ -102,12 +99,10 @@ export default class Authorizations {
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
-
     const sites: Set<string> = new Set(loggedUser.sitesAdmin);
     for (const siteID of loggedUser.sitesOwner) {
       sites.add(siteID);
     }
-
     if (!requestedSites || requestedSites.length === 0) {
       return [...sites];
     }
@@ -122,7 +117,6 @@ export default class Authorizations {
     // Get User's site
     const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
       Constants.DB_PARAMS_MAX_LIMIT)).result;
-
     sites.forEach((siteUser) => {
       if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
@@ -135,7 +129,6 @@ export default class Authorizations {
         siteOwnerIDs.push(siteUser.site.id);
       }
     });
-
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -243,7 +236,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATIONS, Action.LIST);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, chargingStation: ChargingStation, context?: any): boolean {
+  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): boolean {
     if (!context) {
       const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION);
       context = {
@@ -263,22 +256,22 @@ export default class Authorizations {
 
   public static canUpdateChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.UPDATE, {
-      'site': siteID,
-      'sitesAdmin': loggedUser.sitesAdmin
+      site: siteID,
+      sitesAdmin: loggedUser.sitesAdmin
     });
   }
 
   public static canDeleteChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.DELETE, {
-      'site': siteID,
-      'sitesAdmin': loggedUser.sitesAdmin
+      site: siteID,
+      sitesAdmin: loggedUser.sitesAdmin
     });
   }
 
   public static canExportParams(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CHARGING_STATION, Action.EXPORT_PARAMS, {
-      'site': siteID,
-      'sitesAdmin': loggedUser.sitesAdmin
+      site: siteID,
+      sitesAdmin: loggedUser.sitesAdmin
     });
 
   }
@@ -289,7 +282,7 @@ export default class Authorizations {
 
   public static canReadUser(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.READ,
-      { 'user': userId, 'owner': loggedUser.id });
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canCreateUser(loggedUser: UserToken): boolean {
@@ -298,21 +291,21 @@ export default class Authorizations {
 
   public static canUpdateUser(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.UPDATE,
-      { 'user': userId, 'owner': loggedUser.id });
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canDeleteUser(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.USER, Action.DELETE,
-      { 'user': userId, 'owner': loggedUser.id });
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canListSites(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITES, Action.LIST);
   }
 
-  public static canReadSite(loggedUser: UserToken, siteId: string): boolean {
+  public static canReadSite(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.READ,
-      { 'site': siteId, 'sites': loggedUser.sites });
+      { site: siteID, sites: loggedUser.sites });
   }
 
   public static canCreateSite(loggedUser: UserToken): boolean {
@@ -321,12 +314,12 @@ export default class Authorizations {
 
   public static canUpdateSite(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.UPDATE,
-      { 'site': siteID, 'sitesAdmin': loggedUser.sitesAdmin, 'sitesOwner': loggedUser.sitesOwner });
+      { site: siteID, sitesAdmin: loggedUser.sitesAdmin, sitesOwner: loggedUser.sitesOwner });
   }
 
   public static canDeleteSite(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE, Action.DELETE,
-      { 'site': siteID, 'sites': loggedUser.sitesAdmin });
+      { site: siteID, sites: loggedUser.sitesAdmin });
   }
 
   public static canListSettings(loggedUser: UserToken): boolean {
@@ -351,15 +344,15 @@ export default class Authorizations {
 
   public static canCreateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.CREATE, {
-      'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      site: siteID,
+      sites: loggedUser.sitesAdmin
     });
   }
 
   public static canReadRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TOKEN, Action.READ, {
-      'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      site: siteID,
+      sites: loggedUser.sitesAdmin
     });
   }
 
@@ -457,24 +450,23 @@ export default class Authorizations {
 
   public static canReadSiteArea(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.READ,
-      { 'site': siteID, 'sites': loggedUser.sites });
+      { site: siteID, sites: loggedUser.sites });
   }
 
   public static canCreateSiteArea(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.CREATE,
-      { 'site': siteID, 'sites': loggedUser.sitesAdmin });
+      { site: siteID, sites: loggedUser.sitesAdmin });
   }
 
   public static canUpdateSiteArea(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.UPDATE, {
-      'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      site: siteID, sites: loggedUser.sitesAdmin
     });
   }
 
   public static canDeleteSiteArea(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREA, Action.DELETE,
-      { 'site': siteID, 'sites': loggedUser.sitesAdmin });
+      { site: siteID, sites: loggedUser.sitesAdmin });
   }
 
   public static canListCompanies(loggedUser: UserToken): boolean {
@@ -483,7 +475,7 @@ export default class Authorizations {
 
   public static canReadCompany(loggedUser: UserToken, companyId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.READ,
-      { 'company': companyId, 'companies': loggedUser.companies });
+      { company: companyId, companies: loggedUser.companies });
   }
 
   public static canCreateCompany(loggedUser: UserToken): boolean {
@@ -524,12 +516,12 @@ export default class Authorizations {
 
   public static canDeleteConnection(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.DELETE,
-      { 'user': userId, 'owner': loggedUser.id });
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canReadConnection(loggedUser: UserToken, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CONNECTION, Action.READ,
-      { 'user': userId, 'owner': loggedUser.id });
+      { user: userId, owner: loggedUser.id });
   }
 
   public static canListConnections(loggedUser: UserToken): boolean {
@@ -552,20 +544,28 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
   }
 
+  public static canSynchronizeUserBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+  }
+
+  public static canForceUserSynchronizationBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+  }
+
   public static canReadBillingTaxes(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_TAXES);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {
-    return user.role === Role.SUPER_ADMIN;
+    return user.role === UserRole.SUPER_ADMIN;
   }
 
   public static isAdmin(user: UserToken | User): boolean {
-    return user.role === Role.ADMIN;
+    return user.role === UserRole.ADMIN;
   }
 
   public static isSiteAdmin(user: UserToken): boolean {
-    return user.role === Role.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
+    return user.role === UserRole.BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
   public static isSiteOwner(user: UserToken): boolean {
@@ -573,11 +573,11 @@ export default class Authorizations {
   }
 
   public static isBasic(user: UserToken | User): boolean {
-    return user.role === Role.BASIC;
+    return user.role === UserRole.BASIC;
   }
 
   public static isDemo(user: UserToken | User): boolean {
-    return user.role === Role.DEMO;
+    return user.role === UserRole.DEMO;
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation,
@@ -626,7 +626,7 @@ export default class Authorizations {
           errorCode: HTTPError.SITE_AREA_WITH_NO_SITE_ERROR,
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
           module: 'Authorizations',
-          method: 'checkAndGetUserOnChargingStation'
+          method: 'isTagIDAuthorizedOnChargingStation'
         });
       }
     }
@@ -641,7 +641,7 @@ export default class Authorizations {
     if (user) {
       // Check Authorization
       // Check User status
-      if (user.status !== Status.ACTIVE) {
+      if (user.status !== UserStatus.ACTIVE) {
         // Reject but save ok
         throw new AppError({
           source: chargingStation.id,
@@ -672,7 +672,7 @@ export default class Authorizations {
           entity: Entity.CHARGING_STATION,
           value: chargingStation.id,
           module: 'Authorizations',
-          method: '_checkAndGetUserOnChargingStation',
+          method: 'isTagIDAuthorizedOnChargingStation',
         });
       }
     }
@@ -694,8 +694,8 @@ export default class Authorizations {
       user = {
         ...UserStorage.getEmptyUser(),
         email: tagID + '@e-mobility.com',
-        status: Status.INACTIVE,
-        role: Role.BASIC
+        status: UserStatus.INACTIVE,
+        role: UserRole.BASIC
       } as User;
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
@@ -724,10 +724,10 @@ export default class Authorizations {
         Utils.generateGUID(),
         chargingStation,
         {
-          'chargeBoxID': chargingStation.id,
-          'badgeID': tagID,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
-          'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
+          chargeBoxID: chargingStation.id,
+          badgeID: tagID,
+          evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
+          evseDashboardUserURL: await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
       ).catch((err) => Logging.logError(err));
       // Not authorized
@@ -773,9 +773,9 @@ export default class Authorizations {
       // Save
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User Status
-      await UserStorage.saveUserStatus(tenantID, user.id, Status.INACTIVE);
+      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.INACTIVE);
       // Save User Role
-      await UserStorage.saveUserRole(tenantID, user.id, Role.BASIC);
+      await UserStorage.saveUserRole(tenantID, user.id, UserRole.BASIC);
       // Save User Admin data
       await UserStorage.saveUserAdminData(tenantID, user.id, {
         notificationsActive: user.notificationsActive,
@@ -795,20 +795,20 @@ export default class Authorizations {
   private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number, sitesOwnerCount: number): ReadonlyArray<string> {
     const groups: Array<string> = [];
     switch (userRole) {
-      case Role.ADMIN:
+      case UserRole.ADMIN:
         groups.push('admin');
         break;
-      case Role.SUPER_ADMIN:
+      case UserRole.SUPER_ADMIN:
         groups.push('superAdmin');
         break;
-      case Role.BASIC:
+      case UserRole.BASIC:
         groups.push('basic');
         // Check Site Admin
         if (sitesAdminCount > 0) {
           groups.push('siteAdmin');
         }
         break;
-      case Role.DEMO:
+      case UserRole.DEMO:
         groups.push('demo');
         break;
     }
@@ -816,23 +816,21 @@ export default class Authorizations {
     if (sitesOwnerCount > 0) {
       groups.push('siteOwner');
     }
-
     return groups;
   }
 
-  private static canPerformAction(loggedUser: UserToken, resource, action, context?): boolean {
+  private static canPerformAction(loggedUser: UserToken, entity: Entity, action: Action, context?: AuthorizationContext): boolean {
     // Get the groups
     const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role,
       loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0,
       loggedUser.sitesOwner ? loggedUser.sitesOwner.length : 0);
-
     // Check
-    const authorized = AuthorizationsDefinition.getInstance().can(groups, resource, action, context);
+    const authorized = AuthorizationsDefinition.getInstance().can(groups, entity, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
         module: 'Authorizations', method: 'canPerformAction',
-        message: `Role ${loggedUser.role} Cannot ${action} on ${resource} with context ${JSON.stringify(context)}`,
+        message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
         action: 'Authorizations'
       });
     }

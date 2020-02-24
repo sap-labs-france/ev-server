@@ -412,7 +412,7 @@ describe('OCPI Service Tests', function() {
      */
     describe('Failure cases', () => {
       // Invalid location
-      it('should not found this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
+      it('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
         // Check status
@@ -423,7 +423,7 @@ describe('OCPI Service Tests', function() {
       });
 
       // Invalid evse uid
-      it('should not found this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite', async () => {
+      it('should not find this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite', async () => {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite');
         // Check status
@@ -434,7 +434,7 @@ describe('OCPI Service Tests', function() {
       });
 
       // Invalid connector id
-      it('should not found this non-existing Connector  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0', async () => {
+      it('should not find this non-existing Connector  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0', async () => {
         // Call
         const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0');
         // Check status
@@ -519,7 +519,7 @@ describe('OCPI Service Tests', function() {
      */
     describe('Failure cases', () => {
       // Invalid location
-      // It('should not found this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
+      // It('should not find this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
       //   // Call
       //   const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67`);
       //   // Check status

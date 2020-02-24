@@ -25,18 +25,19 @@ export interface BillingUserData {
   cardID?: string;
   subscriptionID?: string;
   lastChangedOn?: Date;
+  hasSynchroError?: boolean;
 }
 
 export interface BillingPartialUser {
   email: string;
-  billingData: {
-    customerID: string;
-  };
+  name: string;
+  billingData: BillingUserData;
 }
 
 export interface BillingUserSynchronizeAction {
   synchronized: number;
   error: number;
+  billingData?: BillingUserData;
 }
 
 export interface BillingTax {

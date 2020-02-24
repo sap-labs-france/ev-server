@@ -14,6 +14,7 @@ export interface TenantDefinition {
     analytics?: { content?: SettingDBContent };
     smartCharging?: { content?: SettingDBContent };
     billing?: { content?: SettingDBContent };
+    building?: { content?: SettingDBContent };
   };
 }
 
@@ -26,7 +27,8 @@ export default class CONTEXTS {
     TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
-    TENANT_BILLING: 'ut-billing' // Only billing and pricing component is active
+    TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
+    TENANT_BUILDING: 'ut-building', // Only refund component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -298,6 +300,14 @@ export default class CONTEXTS {
         }
       }
     },
+  },
+  {
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BUILDING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
+    subdomain: 'utbuilding',
+    componentSettings: {
+      building: {}
+    }
   }];
 
   // List of users created in a tenant

@@ -1,8 +1,8 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import { UserRole } from '../../types/User';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
-import { Role } from '../../types/Authorization';
 
 export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   async migrate() {
@@ -18,19 +18,24 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       if (user.notificationsActive) {
-        if (user.role === Role.ADMIN) {
+        if (user.role === UserRole.ADMIN) {
           user.notifications = {
             sendSessionStarted: true,
             sendOptimalChargeReached: true,
             sendEndOfCharge: true,
             sendEndOfSession: true,
             sendUserAccountStatusChanged: true,
+            sendSessionNotStarted: true,
+            sendUserAccountInactivity: true,
+            sendPreparingSessionNotStarted: true,
+            sendBillingUserSynchronizationFailed: true,
+            sendNewRegisteredUser: true,
             sendUnknownUserBadged: true,
             sendChargingStationStatusError: true,
             sendChargingStationRegistered: true,
             sendOcpiPatchStatusError: true,
             sendSmtpAuthError: true,
-            sendSessionNotStarted: true
+            sendOfflineChargingStations: true,
           };
         } else {
           user.notifications = {
@@ -39,13 +44,17 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendEndOfCharge: true,
             sendEndOfSession: true,
             sendUserAccountStatusChanged: true,
+            sendSessionNotStarted: true,
+            sendUserAccountInactivity: true,
+            sendPreparingSessionNotStarted: true,
+            sendBillingUserSynchronizationFailed: false,
+            sendNewRegisteredUser: false,
             sendUnknownUserBadged: false,
             sendChargingStationStatusError: false,
             sendChargingStationRegistered: false,
             sendOcpiPatchStatusError: false,
             sendSmtpAuthError: false,
-            sendSessionNotStarted: true
-
+            sendOfflineChargingStations: false,
           };
         }
       } else {
@@ -55,13 +64,17 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
           sendEndOfCharge: false,
           sendEndOfSession: false,
           sendUserAccountStatusChanged: false,
+          sendSessionNotStarted: false,
+          sendUserAccountInactivity: false,
+          sendPreparingSessionNotStarted: false,
+          sendBillingUserSynchronizationFailed: false,
+          sendNewRegisteredUser: false,
           sendUnknownUserBadged: false,
           sendChargingStationStatusError: false,
           sendChargingStationRegistered: false,
           sendOcpiPatchStatusError: false,
           sendSmtpAuthError: false,
-          sendSessionNotStarted: false
-
+          sendOfflineChargingStations: false,
         };
       }
       // Update

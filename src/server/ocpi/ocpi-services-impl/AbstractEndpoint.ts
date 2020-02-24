@@ -8,6 +8,7 @@ import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
  * Abstract Endpoint
  */
 export default abstract class AbstractEndpoint {
+
   // Create OCPI Service
   constructor(readonly ocpiService: AbstractOCPIService, readonly identifier: string = 'default') {
   }

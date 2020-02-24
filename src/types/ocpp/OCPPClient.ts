@@ -1,4 +1,4 @@
-import { ChargingProfile, ChargingSchedule, } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 import { KeyValue } from '../GlobalType';
 import { PowerLimitUnits } from '../ChargingStation';
 
@@ -117,7 +117,7 @@ export enum OCPPUnlockStatus {
 
 export interface OCPPSetChargingProfileCommandParam extends OCPPCommandParam {
   connectorId: number;
-  csChargingProfiles?: ChargingProfile;
+  csChargingProfiles?: Profile;
 }
 
 export interface OCPPSetChargingProfileCommandResult {

@@ -37,7 +37,7 @@ export default class MongoDBStorage {
   }
 
   public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
-      name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
+    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
     // Safety check
     if (!this.db) {
       throw new BackendError({
