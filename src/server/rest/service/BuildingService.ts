@@ -133,11 +133,9 @@ export default class BuildingService {
     const buildings = await BuildingStorage.getBuildings(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        withSites: filteredRequest.WithSites,
-        withImage: filteredRequest.WithImage
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'image']
+      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country']
     );
     // Filter
     BuildingSecurity.filterBuildingsResponse(buildings, req.user);

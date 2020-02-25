@@ -5,7 +5,4 @@ export type HttpBuildingRequest = HttpByIDRequest;
 
 export interface HttpBuildingsRequest extends HttpDatabaseRequest {
   Search?: string;
-  Issuer?: boolean;
-  WithSites?: boolean;
-  WithImage?: boolean;
 }

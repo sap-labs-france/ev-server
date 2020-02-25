@@ -4,7 +4,6 @@ import Building from '../../../../types/Building';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBuildingRequest, HttpBuildingsRequest } from '../../../../types/requests/HttpBuildingRequest';
 import UserToken from '../../../../types/UserToken';
-import SiteSecurity from './SiteSecurity';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class BuildingSecurity {
@@ -21,9 +20,7 @@ export default class BuildingSecurity {
 
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
     const filteredRequest: HttpBuildingsRequest = {
-      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
-      WithImage: UtilsSecurity.filterBoolean(request.WithImage)
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -46,11 +43,11 @@ export default class BuildingSecurity {
     return {
       name: sanitize(request.name),
       address: UtilsSecurity.filterAddressRequest(request.address),
-      logo: request.logo
+      image: request.image
     };
   }
 
-  public static filterBuildingResponse(building: Building, loggedUser: UserToken) {
+  public static filterBuildingResponse(building: Building, loggedUser: UserToken): Building {
     let filteredBuilding;
 
     if (!building) {
@@ -67,11 +64,8 @@ export default class BuildingSecurity {
         filteredBuilding = {};
         filteredBuilding.id = building.id;
         filteredBuilding.name = building.name;
-        filteredBuilding.logo = building.logo;
+        filteredBuilding.image = building.image;
         filteredBuilding.address = UtilsSecurity.filterAddressRequest(building.address);
-      }
-      if (building.sites) {
-        filteredBuilding.sites = building.sites.map((site) => SiteSecurity.filterSiteResponse(site, loggedUser));
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

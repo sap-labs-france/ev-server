@@ -74,7 +74,7 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSites?: boolean; withImage?: boolean } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -133,22 +133,6 @@ export default class BuildingStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Site
-    if (params.withSites) {
-      DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation, localField: '_id', foreignField: 'buildingID', asField: 'sites' });
-    }
-    // Building Image
-    if (params.withImage) {
-      DatabaseUtils.pushCollectionLookupInAggregation('buildingimages',
-        {
-          tenantID, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'buildingimages', oneToOneCardinality: true
-        }
-      );
-      // Rename
-      DatabaseUtils.renameField(aggregation, 'buildingimages.image', 'image');
-    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
