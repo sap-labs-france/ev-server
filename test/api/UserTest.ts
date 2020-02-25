@@ -103,6 +103,7 @@ describe('User tests', function() {
             testData.userService.userApi,
             Factory.user.build()
           );
+          testData.newUser.issuer = true;
           // Remove Passwords
           delete testData.newUser['passwords'];
           testData.createdUsers.push(testData.newUser);

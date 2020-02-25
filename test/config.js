@@ -91,10 +91,16 @@ const config = convict({
       env: 'OCPI_PORT',
       arg: 'ocpi_port'
     },
-    token: {
-      doc: 'OCPI token',
+    cpoToken: {
+      doc: 'OCPI CPO token',
       format: String,
-      default: 'eyJhayI6NTEsInRpZCI6InNsZiIsInprIjoxMn0=',
+      default: 'eyJhayI6IkNQTyIsInRpZCI6InV0YWxsIiwiemsiOiJDUE8ifQ==',
+      env: 'OCPI_TOKEN'
+    },
+    emspToken: {
+      doc: 'OCPI eMSP token',
+      format: String,
+      default: 'eyJhayI6IkVNU1AiLCJ0aWQiOiJ1dGFsbCIsInprIjoiRU1TUCJ9',
       env: 'OCPI_TOKEN'
     },
     logs: {
