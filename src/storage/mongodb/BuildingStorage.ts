@@ -26,19 +26,19 @@ export default class BuildingStorage {
     return building;
   }
 
-  public static async getBuildingLogo(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
+  public static async getBuildingImage(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildingLogo');
+    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildingImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const buildingLogoMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'buildinglogos')
+    const buildingImageMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'buildinglogos')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('BuildingStorage', 'getBuildingLogo', uniqueTimerID, { id });
+    Logging.traceEnd('BuildingStorage', 'getBuildingImage', uniqueTimerID, { id });
     return {
       id: id,
-      logo: buildingLogoMDB ? buildingLogoMDB.logo : null
+      logo: buildingImageMDB ? buildingImageMDB.logo : null
     };
   }
 
@@ -66,7 +66,7 @@ export default class BuildingStorage {
     );
     // Save Logo
     if (saveLogo) {
-      await BuildingStorage._saveBuildingLogo(tenantID, buildingMDB._id.toHexString(), buildingToSave.logo);
+      await BuildingStorage._saveBuildingImage(tenantID, buildingMDB._id.toHexString(), buildingToSave.logo);
     }
     // Debug
     Logging.traceEnd('BuildingStorage', 'saveBuilding', uniqueTimerID, { buildingToSave });
@@ -208,17 +208,17 @@ export default class BuildingStorage {
     Logging.traceEnd('BuildingStorage', 'deleteBuilding', uniqueTimerID, { id });
   }
 
-  private static async _saveBuildingLogo(tenantID: string, buildingID: string, buildingLogoToSave: string): Promise<void> {
+  private static async _saveBuildingImage(tenantID: string, buildingID: string, buildingImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'saveBuildingLogo');
+    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'saveBuildingImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'buildinglogos').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(buildingID) },
-      { $set: { logo: buildingLogoToSave } },
+      { $set: { logo: buildingImageToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd('BuildingStorage', 'saveBuildingLogo', uniqueTimerID, {});
+    Logging.traceEnd('BuildingStorage', 'saveBuildingImage', uniqueTimerID, {});
   }
 }

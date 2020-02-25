@@ -135,7 +135,7 @@ class RequestMapper {
           CompanyLogo: CompanyService.handleGetCompanyLogo.bind(this),
           Buildings: BuildingService.handleGetBuildings.bind(this),
           Building: BuildingService.handleGetBuilding.bind(this),
-          BuildingLogo: BuildingService.handleGetBuildingLogo.bind(this),
+          BuildingImage: BuildingService.handleGetBuildingImage.bind(this),
           Sites: SiteService.handleGetSites.bind(this),
           Site: SiteService.handleGetSite.bind(this),
           SiteImage: SiteService.handleGetSiteImage.bind(this),

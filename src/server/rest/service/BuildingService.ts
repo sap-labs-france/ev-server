@@ -84,15 +84,15 @@ export default class BuildingService {
     next();
   }
 
-  public static async handleGetBuildingLogo(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetBuildingImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.BUILDING,
-      Action.READ, Entity.BUILDING, 'BuildingService', 'handleGetBuildingLogo');
+      Action.READ, Entity.BUILDING, 'BuildingService', 'handleGetBuildingImage');
     // Filter
     const buildingID = BuildingSecurity.filterBuildingRequestByID(req.query);
     // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, buildingID, 'BuildingService', 'handleGetBuildingLogo', req.user);
+    UtilsService.assertIdIsProvided(action, buildingID, 'BuildingService', 'handleGetBuildingImage', req.user);
     // Check auth
     if (!Authorizations.canReadBuilding(req.user, buildingID)) {
       throw new AppAuthError({
@@ -101,16 +101,16 @@ export default class BuildingService {
         action: Action.READ,
         entity: Entity.BUILDING,
         module: 'BuildingService',
-        method: 'handleGetBuildingLogo',
+        method: 'handleGetBuildingImage',
         value: buildingID
       });
     }
     // Get it
-    const buildingLogo = await BuildingStorage.getBuildingLogo(req.user.tenantID, buildingID);
+    const buildingImage = await BuildingStorage.getBuildingImage(req.user.tenantID, buildingID);
     // Check
-    UtilsService.assertObjectExists(action, buildingLogo, `Building with ID '${buildingID}' does not exist`, 'BuildingService', 'handleGetBuildingLogo', req.user);
+    UtilsService.assertObjectExists(action, buildingImage, `Building with ID '${buildingID}' does not exist`, 'BuildingService', 'handleGetBuildingImage', req.user);
     // Return
-    res.json({ id: buildingLogo.id, logo: buildingLogo.logo });
+    res.json({ id: buildingImage.id, logo: buildingImage.logo });
     next();
   }
 
@@ -136,7 +136,6 @@ export default class BuildingService {
     const buildings = await BuildingStorage.getBuildings(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        buildingIDs: Authorizations.getAuthorizedBuildingIDs(req.user),
         withSites: filteredRequest.WithSites,
         withLogo: filteredRequest.WithLogo
       },
