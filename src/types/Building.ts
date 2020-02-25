@@ -7,6 +7,6 @@ export default interface Building extends CreatedUpdatedProps {
   name: string;
   issuer: boolean;
   address?: Address;
-  logo?: string;
+  image?: string;
   sites?: Site[];
 }

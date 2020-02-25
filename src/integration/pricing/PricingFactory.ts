@@ -1,20 +1,20 @@
-import Constants from '../../utils/Constants';
-import ConvergentChargingPricing from '../pricing/convergent-charging/ConvergentChargingPricing';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import SimplePricing from '../pricing/simple-pricing/SimplePricing';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { PricingSetting, PricingSettingsType } from '../../types/Setting';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import ConvergentChargingPricing from '../pricing/convergent-charging/ConvergentChargingPricing';
+import SimplePricing from '../pricing/simple-pricing/SimplePricing';
 import Pricing from './Pricing';
-import { PricingSetting, PricingSettingsType } from '../../types/Setting';
 
 export default class PricingFactory {
   static async getPricingImpl(tenantID: string, transaction: Transaction): Promise<Pricing<PricingSetting>> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if the pricing is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       // Get the pricing's settings
       const pricingSetting = await SettingStorage.getPricingSettings(tenantID);
       // Check

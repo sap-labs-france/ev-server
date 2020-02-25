@@ -502,25 +502,6 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }
 
-  public static async deleteBuildingSites(tenantID: string, buildingID: string) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteBuildingSites');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Get Sites of Company
-    const siteIDs: string[] = (await global.database.getCollection<{ _id: ObjectID }>(tenantID, 'sites')
-      .find({ buildingID: Utils.convertToObjectID(buildingID) })
-      .project({ _id: 1 })
-      .toArray())
-      .map((site): string => site._id.toHexString());
-    // Delete all Site Areas
-    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
-    // Delete Sites
-    await SiteStorage.deleteSites(tenantID, siteIDs);
-    // Debug
-    Logging.traceEnd('SiteStorage', 'deleteBuildingSites', uniqueTimerID, { buildingID });
-  }
-
   public static async siteExists(tenantID: string, siteID: string): Promise<boolean> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteCompanySites');

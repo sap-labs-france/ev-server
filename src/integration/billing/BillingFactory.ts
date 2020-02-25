@@ -1,12 +1,13 @@
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { BillingSetting, BillingSettingsType } from '../../types/Setting';
-import Billing from './Billing';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import StripeBilling from './stripe/StripeBilling';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import Billing from './Billing';
+import StripeBilling from './stripe/StripeBilling';
 
 export default class BillingFactory {
   static async getBillingImpl(tenantID: string): Promise<Billing<BillingSetting>> {
@@ -17,8 +18,8 @@ export default class BillingFactory {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if billing is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING) &&
-        Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.PRICING) &&
+        Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       if (settings) {

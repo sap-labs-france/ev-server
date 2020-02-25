@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import config from '../../config';
 import faker from 'faker';
-import CentralServerService from '../client/CentralServerService';
+import TenantComponents from '../../../src/types/TenantComponents';
 import Constants from '../../../src/utils/Constants';
-import CONTEXTS from './ContextConstants';
+import config from '../../config';
 import Factory from '../../factories/Factory';
+import CentralServerService from '../client/CentralServerService';
+import CONTEXTS from './ContextConstants';
 import SiteContext from './SiteContext';
 import TenantContext from './TenantContext';
 
@@ -86,8 +87,8 @@ export default class ContextProvider {
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
-      tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
+    if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&
+      tenantEntity.components[TenantComponents.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
@@ -107,8 +108,8 @@ export default class ContextProvider {
     newTenantContext.addUsers(userList); // pragma getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
-    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
-      tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
+    if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&
+      tenantEntity.components[TenantComponents.ORGANIZATION].active) {
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
         const jsonSite = siteList.find((site) => site.name === siteContextDef.name);
         const siteContext = new SiteContext(jsonSite, newTenantContext);

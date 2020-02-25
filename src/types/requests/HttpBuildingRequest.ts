@@ -7,5 +7,5 @@ export interface HttpBuildingsRequest extends HttpDatabaseRequest {
   Search?: string;
   Issuer?: boolean;
   WithSites?: boolean;
-  WithLogo?: boolean;
+  WithImage?: boolean;
 }

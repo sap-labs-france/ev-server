@@ -18,6 +18,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { UserInErrorType } from '../../../types/InError';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import TenantComponents from '../../../types/TenantComponents';
 import UserNotifications from '../../../types/UserNotifications';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -28,8 +29,7 @@ import UtilsService from './UtilsService';
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: Action, req: Request, res: Response, next: NextFunction) {
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
@@ -170,7 +170,7 @@ export default class UserService {
       });
     }
     // Check Billing
-    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
         if (!billingImpl) {
@@ -209,7 +209,7 @@ export default class UserService {
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Delete billing user
-    if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
+    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
@@ -225,7 +225,7 @@ export default class UserService {
       }
     }
     // Synchronize badges with IOP
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       try {
         const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
@@ -389,7 +389,7 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
         try {
           const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
@@ -654,8 +654,7 @@ export default class UserService {
   }
 
   public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, 'UserService', 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
@@ -737,8 +736,8 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsers');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+        Action.READ, Entity.USER, 'UserService', 'handleGetUsers');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
@@ -779,8 +778,8 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.USER, 'UserService', 'handleGetUsersInError');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+        Action.READ, Entity.USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -863,7 +862,7 @@ export default class UserService {
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
 
       // Synchronize badges with IOP
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.OCPI)) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
         try {
           const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;

@@ -5,6 +5,7 @@ import BuildingStorage from '../../../storage/mongodb/BuildingStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import Building from '../../../types/Building';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -15,8 +16,7 @@ export default class BuildingService {
 
   public static async handleDeleteBuilding(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.DELETE, Entity.BUILDING, 'BuildingService', 'handleDeleteBuilding');
     // Filter
     const buildingID = BuildingSecurity.filterBuildingRequestByID(req.query);
@@ -54,8 +54,7 @@ export default class BuildingService {
 
   public static async handleGetBuilding(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.READ, Entity.BUILDING, 'BuildingService', 'handleGetBuilding');
     // Filter
     const filteredRequest = BuildingSecurity.filterBuildingRequest(req.query);
@@ -86,8 +85,7 @@ export default class BuildingService {
 
   public static async handleGetBuildingImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.READ, Entity.BUILDING, 'BuildingService', 'handleGetBuildingImage');
     // Filter
     const buildingID = BuildingSecurity.filterBuildingRequestByID(req.query);
@@ -110,14 +108,13 @@ export default class BuildingService {
     // Check
     UtilsService.assertObjectExists(action, buildingImage, `Building with ID '${buildingID}' does not exist`, 'BuildingService', 'handleGetBuildingImage', req.user);
     // Return
-    res.json({ id: buildingImage.id, logo: buildingImage.logo });
+    res.json({ id: buildingImage.id, image: buildingImage.image });
     next();
   }
 
   public static async handleGetBuildings(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.LIST, Entity.BUILDINGS, 'BuildingService', 'handleGetBuildings');
     // Check auth
     if (!Authorizations.canListBuildings(req.user)) {
@@ -137,10 +134,10 @@ export default class BuildingService {
       {
         search: filteredRequest.Search,
         withSites: filteredRequest.WithSites,
-        withLogo: filteredRequest.WithLogo
+        withImage: filteredRequest.WithImage
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo']
+      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'image']
     );
     // Filter
     BuildingSecurity.filterBuildingsResponse(buildings, req.user);
@@ -151,8 +148,7 @@ export default class BuildingService {
 
   public static async handleCreateBuilding(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.CREATE, Entity.BUILDING, 'BuildingService', 'handleCreateBuilding');
     // Check auth
     if (!Authorizations.canCreateBuilding(req.user)) {
@@ -191,8 +187,7 @@ export default class BuildingService {
 
   public static async handleUpdateBuilding(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.BUILDING,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.UPDATE, Entity.BUILDING, 'BuildingService', 'handleUpdateBuilding');
     // Filter
     const filteredRequest = BuildingSecurity.filterBuildingUpdateRequest(req.body);
@@ -217,7 +212,7 @@ export default class BuildingService {
     // Update
     building.name = filteredRequest.name;
     building.address = filteredRequest.address;
-    building.logo = filteredRequest.logo;
+    building.image = filteredRequest.image;
     building.lastChangedBy = { 'id': req.user.id };
     building.lastChangedOn = new Date();
     // Update Building

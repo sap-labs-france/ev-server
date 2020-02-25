@@ -1,5 +1,6 @@
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
+import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
 
 const GRANTS = {
@@ -204,7 +205,7 @@ const GRANTS = {
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       {
         resource: 'Setting', action: 'Read', attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'identifier': Constants.COMPONENTS.ANALYTICS } }
+        condition: { Fn: 'EQUALS', args: { 'identifier': TenantComponents.ANALYTICS } }
       },
     ]
   },

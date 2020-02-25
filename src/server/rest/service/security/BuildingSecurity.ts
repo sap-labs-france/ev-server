@@ -23,8 +23,7 @@ export default class BuildingSecurity {
     const filteredRequest: HttpBuildingsRequest = {
       Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
-      WithSites: UtilsSecurity.filterBoolean(request.WithSites),
-      WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)
+      WithImage: UtilsSecurity.filterBoolean(request.WithImage)
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

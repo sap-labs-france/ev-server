@@ -13,12 +13,12 @@ import I18nManager from '../../../utils/I18nManager';
 import Utils from '../../../utils/Utils';
 import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
+import TenantComponents from '../../../types/TenantComponents';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -47,8 +47,7 @@ export default class StatisticService {
 
   static async handleGetChargingStationUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -77,8 +76,7 @@ export default class StatisticService {
 
   static async handleGetChargingStationInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -107,8 +105,7 @@ export default class StatisticService {
 
   static async handleGetChargingStationTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -137,8 +134,7 @@ export default class StatisticService {
 
   static async handleGetChargingStationPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -167,8 +163,7 @@ export default class StatisticService {
 
   static async handleGetUserConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -197,8 +192,7 @@ export default class StatisticService {
 
   static async handleGetUserUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -227,8 +221,7 @@ export default class StatisticService {
 
   static async handleGetUserInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -257,8 +250,7 @@ export default class StatisticService {
 
   static async handleGetUserTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -287,8 +279,7 @@ export default class StatisticService {
 
   static async handleGetUserPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -338,8 +329,7 @@ export default class StatisticService {
 
   static async handleGetStatisticsExport(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.STATISTICS,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {

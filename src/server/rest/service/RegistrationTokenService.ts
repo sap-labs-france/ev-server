@@ -10,6 +10,7 @@ import DbParams from '../../../types/database/DbParams';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -21,7 +22,7 @@ export default class RegistrationTokenService {
     try {
       // Filter
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenCreateRequest(req.body);
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && filteredRequest.siteAreaID) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
         UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
@@ -200,7 +201,7 @@ export default class RegistrationTokenService {
         siteAreaID: filteredRequest.siteAreaID
       };
 
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
         params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user, null);
       }
 

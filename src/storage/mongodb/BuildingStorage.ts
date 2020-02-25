@@ -26,23 +26,23 @@ export default class BuildingStorage {
     return building;
   }
 
-  public static async getBuildingImage(tenantID: string, id: string): Promise<{ id: string; logo: string }> {
+  public static async getBuildingImage(tenantID: string, id: string): Promise<{ id: string; image: string }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildingImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const buildingImageMDB = await global.database.getCollection<{ _id: ObjectID; logo: string }>(tenantID, 'buildinglogos')
+    const buildingImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'buildingimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('BuildingStorage', 'getBuildingImage', uniqueTimerID, { id });
     return {
       id: id,
-      logo: buildingImageMDB ? buildingImageMDB.logo : null
+      image: buildingImageMDB ? buildingImageMDB.image : null
     };
   }
 
-  public static async saveBuilding(tenantID: string, buildingToSave: Building, saveLogo = true): Promise<string> {
+  public static async saveBuilding(tenantID: string, buildingToSave: Building, saveImage = true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'saveBuilding');
     // Check Tenant
@@ -64,9 +64,9 @@ export default class BuildingStorage {
       { $set: buildingMDB },
       { upsert: true }
     );
-    // Save Logo
-    if (saveLogo) {
-      await BuildingStorage._saveBuildingImage(tenantID, buildingMDB._id.toHexString(), buildingToSave.logo);
+    // Save Image
+    if (saveImage) {
+      await BuildingStorage._saveBuildingImage(tenantID, buildingMDB._id.toHexString(), buildingToSave.image);
     }
     // Debug
     Logging.traceEnd('BuildingStorage', 'saveBuilding', uniqueTimerID, { buildingToSave });
@@ -74,7 +74,7 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSites?: boolean; withImage?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -138,16 +138,16 @@ export default class BuildingStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation, localField: '_id', foreignField: 'buildingID', asField: 'sites' });
     }
-    // Building Logo
-    if (params.withLogo) {
-      DatabaseUtils.pushCollectionLookupInAggregation('buildinglogos',
+    // Building Image
+    if (params.withImage) {
+      DatabaseUtils.pushCollectionLookupInAggregation('buildingimages',
         {
           tenantID, aggregation, localField: '_id', foreignField: '_id',
-          asField: 'buildinglogos', oneToOneCardinality: true
+          asField: 'buildingimages', oneToOneCardinality: true
         }
       );
       // Rename
-      DatabaseUtils.renameField(aggregation, 'buildinglogos.logo', 'logo');
+      DatabaseUtils.renameField(aggregation, 'buildingimages.image', 'image');
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -196,13 +196,11 @@ export default class BuildingStorage {
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'deleteBuilding');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete sites associated with Building
-    await SiteStorage.deleteBuildingSites(tenantID, id);
     // Delete the Building
     await global.database.getCollection<Building>(tenantID, 'buildings')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
-    // Delete Logo
-    await global.database.getCollection<any>(tenantID, 'buildinglogos')
+    // Delete Image
+    await global.database.getCollection<any>(tenantID, 'buildingimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('BuildingStorage', 'deleteBuilding', uniqueTimerID, { id });
@@ -214,9 +212,9 @@ export default class BuildingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
-    await global.database.getCollection<any>(tenantID, 'buildinglogos').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'buildingimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(buildingID) },
-      { $set: { logo: buildingImageToSave } },
+      { $set: { image: buildingImageToSave } },
       { upsert: true });
     // Debug
     Logging.traceEnd('BuildingStorage', 'saveBuildingImage', uniqueTimerID, {});

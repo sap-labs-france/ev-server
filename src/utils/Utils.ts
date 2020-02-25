@@ -24,6 +24,7 @@ import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
 import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
@@ -1255,7 +1256,7 @@ export default class Utils {
     return components;
   }
 
-  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
+  public static isTenantComponentActive(tenant: Tenant, component: TenantComponents): boolean {
     for (const componentName in tenant.components) {
       if (componentName === component) {
         return tenant.components[componentName].active;
@@ -1267,7 +1268,7 @@ export default class Utils {
   public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
-      case Constants.COMPONENTS.PRICING:
+      case TenantComponents.PRICING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
@@ -1287,7 +1288,7 @@ export default class Utils {
         break;
 
       // Billing
-      case Constants.COMPONENTS.BILLING:
+      case TenantComponents.BILLING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Stripe
           return {
@@ -1298,7 +1299,7 @@ export default class Utils {
         break;
 
       // Refund
-      case Constants.COMPONENTS.REFUND:
+      case TenantComponents.REFUND:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
           return {
@@ -1309,7 +1310,7 @@ export default class Utils {
         break;
 
       // Refund
-      case Constants.COMPONENTS.OCPI:
+      case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
@@ -1320,7 +1321,7 @@ export default class Utils {
         break;
 
       // SAC
-      case Constants.COMPONENTS.ANALYTICS:
+      case TenantComponents.ANALYTICS:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
           return {
@@ -1331,7 +1332,7 @@ export default class Utils {
         break;
 
       // Smart Charging
-      case Constants.COMPONENTS.SMART_CHARGING:
+      case TenantComponents.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
@@ -1342,7 +1343,7 @@ export default class Utils {
         break;
 
       // Building
-      case Constants.COMPONENTS.BUILDING:
+      case TenantComponents.BUILDING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Building
           return {
