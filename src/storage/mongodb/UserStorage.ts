@@ -862,13 +862,16 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if (type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) {
+      if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) || !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING)) {
         continue;
       }
       array.push(`$${type}`);
       facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
-    aggregation.push(facets);
+    // Do not add facet aggregation if no facet found
+    if (Object.keys(facets.$facet).length > 0) {
+      aggregation.push(facets);
+    }
     // Manipulate the results to convert it to an array of document on root level
     aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     // Finish the preparation of the result
@@ -1160,7 +1163,6 @@ export default class UserStorage {
           { $match: { $and: [ { 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
           { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
-
       default:
         return [];
     }
