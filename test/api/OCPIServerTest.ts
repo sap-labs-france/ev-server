@@ -3,6 +3,10 @@ import chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPIService from './ocpi/OCPIService';
+import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
+import ContextProvider from './contextProvider/ContextProvider';
+import CONTEXTS from './contextProvider/ContextConstants';
+import TenantContext from './contextProvider/TenantContext';
 
 chai.use(chaiSubset);
 
@@ -10,6 +14,7 @@ class TestData {
   public pending: any;
   public cpoService: OCPIService;
   public emspService: OCPIService;
+  public tenantContext: TenantContext;
   public newOcpiEndpoint: any;
 }
 
@@ -19,13 +24,14 @@ describe('OCPI Service Tests', function() {
   this.timeout(100000);
 
 
-  before(() => {
+  before(async () => {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
 
-    testData.cpoService = new OCPIService('cpo');
-    testData.emspService = new OCPIService('emsp');
+    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+    testData.cpoService = new OCPIService(OCPIRole.CPO);
+    testData.emspService = new OCPIService(OCPIRole.EMSP);
   });
 
   after(async () => {
@@ -248,7 +254,7 @@ describe('OCPI Service Tests', function() {
     /**
       * Access without paging
       */
-    describe('Access whithout paging', () => {
+    describe('Access without paging', () => {
 
       // Check call
       it('should access url: /ocpi/cpo/2.1.1/locations', async () => {
@@ -423,25 +429,25 @@ describe('OCPI Service Tests', function() {
       });
 
       // Invalid evse uid
-      it('should not find this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite', async () => {
+      it('should not find this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite', async () => {
         // Call
-        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite');
+        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/NonExistingSite');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'EVSE uid not found \'NonExistingSite\' on location id \'5abeba9e4bae1457eb565e66\'');
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE uid not found \'NonExistingSite\' on location id \'5ce249a2372f0b1c8caf9294\'');
       });
 
       // Invalid connector id
-      it('should not find this non-existing Connector  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0', async () => {
+      it('should not find this non-existing Connector  /ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0', async () => {
         // Call
-        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0');
+        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5ce249a2372f0b1c8caf9294/cs-15-ut-site-withoutACL/0');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
         expect(locationResponse.data).to.have.property('status_code', 3000);
-        expect(locationResponse.data).to.have.property('status_message', 'Connector id \'0\' not found on EVSE uid \'SAP-Caen-01*1\' and location id \'5abeba9e4bae1457eb565e66\'');
+        expect(locationResponse.data).to.have.property('status_message', 'Connector id \'0\' not found on EVSE uid \'cs-15-ut-site-withoutACL\' and location id \'5ce249a2372f0b1c8caf9294\'');
       });
     });
   });
@@ -469,7 +475,7 @@ describe('OCPI Service Tests', function() {
 
       it('Should update the ocpiEndpoint token', async () => {
         // Change entity
-        testData.newOcpiEndpoint.localToken = OCPIService.getToken();
+        testData.newOcpiEndpoint.localToken = OCPIService.getToken(OCPIRole.CPO);
         // Update
         await CentralServerService.DefaultInstance.updateEntity(
           CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);

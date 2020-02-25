@@ -10,13 +10,14 @@ import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import TenantContext from './contextProvider/TenantContext';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export default class OCPPCommonTests {
 
-  public tenantContext: any;
+  public tenantContext: TenantContext;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
@@ -51,7 +52,7 @@ export default class OCPPCommonTests {
   public anyUser: User;
   public createdUsers: User[] = [];
 
-  public constructor(tenantContext, centralUserContext, createAnyUser = false) {
+  public constructor(tenantContext: TenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;

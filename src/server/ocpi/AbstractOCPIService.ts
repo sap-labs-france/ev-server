@@ -14,6 +14,12 @@ import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { Action } from '../../types/Authorization';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import Utils from '../../utils/Utils';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
+import EmspOCPIClient from '../../client/ocpi/EmspOCPIClient';
+import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
 
 const MODULE_NAME = 'AbstractOCPIService';
 
@@ -181,6 +187,18 @@ export default abstract class AbstractOCPIService {
         });
       }
 
+      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'processEndpointAction',
+          action: action,
+          errorCode: HttpStatusCodes.UNAUTHORIZED,
+          message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+        });
+      }
+
       const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
       // Check if endpoint is found
       if (!ocpiEndpoint) {
@@ -198,42 +216,6 @@ export default abstract class AbstractOCPIService {
       // Pass tenant id to req
       req.user.tenantID = tenant.id;
 
-      // Check if service is enabled for tenant
-      if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
-        throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
-          action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `The Tenant '${tenantSubdomain}' is not enabled for OCPI`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
-        });
-      }
-      // Define get option
-      const options = {
-        'addChargeBoxID': true,
-        countryID: '',
-        partyID: ''
-      };
-      if (this.ocpiRestConfig.eMI3id &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain] &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id) {
-        options.countryID = this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
-        options.partyID = this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
-      } else {
-        throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
-          action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`,
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
-        });
-      }
-
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
@@ -246,7 +228,7 @@ export default abstract class AbstractOCPIService {
           action: action,
           detailedMessages: req.body
         });
-        const response = await endpoint.process(req, res, next, tenant, ocpiEndpoint, options);
+        const response = await endpoint.process(req, res, next, tenant, ocpiEndpoint);
         if (response) {
           Logging.logDebug({
             tenantID: tenant.id,

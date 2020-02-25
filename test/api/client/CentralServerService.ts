@@ -158,7 +158,7 @@ export default class CentralServerService {
       // Check if ok
       expect(response.status).to.equal(200);
       expect(response.data.id).is.eql(entity.id);
-      expect(response.data).to.deep.include(entity);
+      expect(response.data).to.containSubset(entity);
       // Return the entity
       return response.data;
     }

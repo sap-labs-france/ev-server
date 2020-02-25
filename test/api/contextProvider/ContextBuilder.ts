@@ -17,10 +17,16 @@ import Factory from '../../factories/Factory';
 import TenantFactory from '../../factories/TenantFactory';
 import UserFactory from '../../factories/UserFactory';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from './ContextConstants';
+import CONTEXTS, { TenantDefinition } from './ContextConstants';
 import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
+import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
+import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
+import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
+import Company from '../../../src/types/Company';
 
 export default class ContextBuilder {
 
@@ -76,7 +82,7 @@ export default class ContextBuilder {
     }
   }
 
-  async buildTenantContext(tenantContextDef: any) {
+  async buildTenantContext(tenantContextDef: TenantDefinition) {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
@@ -156,6 +162,34 @@ export default class ContextBuilder {
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
           await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
         }
+        if (componentSettingKey === ComponentType.OCPI) {
+          const cpoEndpoint = {
+            name: 'CPO Endpoint',
+            role: OCPIRole.CPO,
+            countryCode: 'FR',
+            partyId: 'CPO',
+            baseUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/emsp/versions',
+            versionUrl: 'https://ocpi-pp-iop.gireve.com/emsp/cpo/2.1.1',
+            version: '2.1.1',
+            status: OCPIRegistrationStatus.REGISTERED,
+            localToken: ContextBuilder.generateLocalToken(OCPIRole.CPO, tenantContextDef.subdomain),
+            token: 'TOIOP-OCPI-TOKEN-cpo-xxxx-xxxx-yyyy'
+          } as OCPIEndpoint;
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, cpoEndpoint);
+          const emspEndpoint = {
+            name: 'EMSP Endpoint',
+            role: OCPIRole.EMSP,
+            countryCode: 'FR',
+            partyId: 'EMSP',
+            baseUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/cpo/versions',
+            versionUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/cpo/2.1.1',
+            version: '2.1.1',
+            status: OCPIRegistrationStatus.REGISTERED,
+            localToken: ContextBuilder.generateLocalToken(OCPIRole.EMSP, tenantContextDef.subdomain),
+            token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy'
+          } as OCPIEndpoint;
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, emspEndpoint);
+        }
       }
     }
     let userListToAssign: User[] = null;
@@ -174,6 +208,7 @@ export default class ContextBuilder {
       const userDef = CONTEXTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
+      createUser.issuer = true;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
@@ -202,10 +237,11 @@ export default class ContextBuilder {
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
-        const dummyCompany: any = Factory.company.build();
+        const dummyCompany = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
+        dummyCompany.issuer = true;
         await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
       }
@@ -220,6 +256,7 @@ export default class ContextBuilder {
         siteTemplate.name = siteContextDef.name;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
+        siteTemplate.issuer = true;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
         await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
@@ -231,6 +268,7 @@ export default class ContextBuilder {
           siteAreaTemplate.name = siteAreaDef.name;
           siteAreaTemplate.accessControl = siteAreaDef.accessControl;
           siteAreaTemplate.siteID = site.id;
+          siteAreaTemplate.issuer = true;
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
@@ -281,5 +319,13 @@ export default class ContextBuilder {
         break;
     }
     return newTenantContext;
+  }
+
+  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
+    const newToken: any = {};
+    newToken.ak = role;
+    newToken.tid = tenantSubdomain;
+    newToken.zk = role;
+    return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 }
