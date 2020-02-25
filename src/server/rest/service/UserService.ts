@@ -1,29 +1,30 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import Authorizations from '../../../authorization/Authorizations';
-import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
-import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
+import Constants from '../../../utils/Constants';
+import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import { UserInErrorType } from '../../../types/InError';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import UserNotifications from '../../../types/UserNotifications';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
 
 export default class UserService {
 
@@ -199,15 +200,24 @@ export default class UserService {
           source: Constants.CENTRAL_SERVER,
           action: action,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
-          message: `Error occured in billing system`,
+          message: 'Error occured in billing system',
           module: 'UserService', method: 'handleDeleteUser',
           user: req.user, actionOnUser: user,
           detailedMessages: error
         });
       }
     }
-    // Delete User
-    await UserStorage.deleteUser(req.user.tenantID, user.id);
+    const userTransactions = await TransactionStorage.getTransactions(req.user.tenantID, { userIDs: [req.user.id] }, Constants.DB_PARAMS_COUNT_ONLY);
+    // Delete user
+    if (userTransactions.count > 0) {
+      // Logically
+      user.deleted = true;
+      await UserStorage.saveUser(req.user.tenantID, user);
+    } else {
+      // Physically
+      await UserStorage.deleteUser(req.user.tenantID, user.id);
+    }
+
     // Delete billing user
     if (req.user.activeComponents.includes(Constants.COMPONENTS.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
