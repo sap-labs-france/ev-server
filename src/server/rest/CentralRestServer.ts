@@ -75,13 +75,15 @@ export default class CentralRestServer {
     // Util API
     this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil);
     // Workaround URL encoding issue
-    this.express.all('/client%2Futil%2F:action', async (req: Request, res: Response, next: NextFunction) => {
+    this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
+      req.params.action = 'FirmwareDownload';
+      req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
     });
 
     // Catchall for util with logging
-    this.express.all(['/client/util/*', '/client%2Futil%2F/*'], (req: Request, res: Response) => {
+    this.express.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
@@ -89,6 +91,7 @@ export default class CentralRestServer {
         message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
         detailedMessages: 'Request: ' + util.inspect(req)
       });
+      res.sendStatus(404);
     });
 
     // Create HTTP server to serve the express app
