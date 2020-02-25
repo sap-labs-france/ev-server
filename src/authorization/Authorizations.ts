@@ -79,10 +79,6 @@ export default class Authorizations {
     return loggedUser.companies;
   }
 
-  public static getAuthorizedBuildingIDs(loggedUser: UserToken): string[] {
-    return loggedUser.buildings;
-  }
-
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
     if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
       return null;
@@ -499,8 +495,7 @@ export default class Authorizations {
   }
 
   public static canReadBuilding(loggedUser: UserToken, buildingId: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.READ,
-      { building: buildingId, buildings: loggedUser.buildings });
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.READ);
   }
 
   public static canCreateBuilding(loggedUser: UserToken): boolean {
