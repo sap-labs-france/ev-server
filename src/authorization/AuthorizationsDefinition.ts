@@ -175,6 +175,8 @@ const GRANTS = {
   demo: {
     grants: [
       { resource: 'User', action: 'Read', attributes: ['*'] },
+      { resource: 'Buildings', action: 'List', attributes: ['*'] },
+      { resource: 'Building', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: 'Read', attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
