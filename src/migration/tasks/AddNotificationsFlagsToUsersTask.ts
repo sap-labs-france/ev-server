@@ -37,6 +37,10 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendSmtpAuthError: true,
             sendOfflineChargingStations: true,
           };
+        } else if (user.role === UserRole.SUPER_ADMIN) {
+          user.notifications = {
+            sendCarSynchronizationFailed: true,
+          };
         } else {
           user.notifications = {
             sendSessionStarted: true,
@@ -87,11 +91,10 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.2';
+    return '1.3';
   }
 
   getName() {
     return 'AddNotificationsFlagsToUsersTask';
   }
 }
-

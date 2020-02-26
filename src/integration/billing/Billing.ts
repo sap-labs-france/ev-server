@@ -11,9 +11,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 
 export default abstract class Billing<T extends BillingSetting> {
-
-  // Protected because only used in subclasses at the moment
-  private static MAX_RETRY_SYNCHRONIZATION = 3;
   protected readonly tenantID: string; // Assuming GUID or other string format ID
   protected settings: T;
 
@@ -157,7 +154,7 @@ export default abstract class Billing<T extends BillingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing', method: 'synchronizeUsers',
-        message: 'No user needed to be synchronized'
+        message: 'All the users are up to date'
       });
     }
     // Update last synchronization

@@ -18,6 +18,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+
 export default class ChargingStationStorage {
 
   public static async updateChargingStationTemplatesFromFile() {

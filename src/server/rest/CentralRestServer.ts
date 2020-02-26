@@ -184,36 +184,6 @@ export default class CentralRestServer {
     });
   }
 
-  notifyVehicle(tenantID: string, action: string, data) {
-    // Add in buffer
-    this.addSingleChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE,
-      'action': action,
-      'data': data
-    });
-    // Add in buffer
-    this.addChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLES
-    });
-  }
-
-  notifyVehicleManufacturer(tenantID: string, action: string, data) {
-    // Add in buffer
-    this.addSingleChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE_MANUFACTURER,
-      'action': action,
-      'data': data
-    });
-    // Add in buffer
-    this.addChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE_MANUFACTURERS
-    });
-  }
-
   notifyTenant(tenantID: string, action: string, data) {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
