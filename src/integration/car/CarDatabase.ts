@@ -76,7 +76,7 @@ export default abstract class CarDatabase {
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_CARS,
         module: 'CarDatabase', method: 'synchronizeCars',
-        message: 'No car needed to be synchronized'
+        message: 'All the cars are up to date'
       });
     }
   return actionsDone;

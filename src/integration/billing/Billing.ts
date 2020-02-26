@@ -154,7 +154,7 @@ export default abstract class Billing<T extends BillingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing', method: 'synchronizeUsers',
-        message: 'No user needed to be synchronized'
+        message: 'All the users are up to date'
       });
     }
     // Update last synchronization

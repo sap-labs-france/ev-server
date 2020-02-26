@@ -34,7 +34,7 @@ export default class SchedulerManager {
       for (const task of SchedulerManager.schedulerConfig.tasks) {
         // Active?
         if (!task.active) {
-          Logging.logError({
+          Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'Scheduler', method: 'init',
             action: 'Scheduler',

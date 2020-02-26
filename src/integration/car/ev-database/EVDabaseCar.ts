@@ -4,7 +4,6 @@ import { Action } from '../../../types/Authorization';
 import { Car, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import CarDatabase from '../CarDatabase';
 
 export default class EVDabaseCar extends CarDatabase {
