@@ -19,8 +19,13 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Impossible de synchroniser <%- nbrCarsInError %> véhicules avec le fournisseur de données des véhicules electriques."
+      "Impossible de synchroniser <%- nbrCarsInError %> véhicules avec le fournisseur de données des véhicules electriques.",
+      ""
     ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."

@@ -16,7 +16,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
         if (synchronizeAction.error > 0) {
           await NotificationHandler.sendCarsSynchronizationFailed({
             nbrCarsInError: synchronizeAction.error,
-            evseDashboardURL: Utils.buildEvseURL(Constants.DEFAULT_TENANT)
+            evseDashboardURL: Utils.buildEvseURL()
           });
         }
       }

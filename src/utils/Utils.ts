@@ -510,7 +510,7 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildEvseURL(subdomain): string {
+  public static buildEvseURL(subdomain: string = null): string {
     if (subdomain) {
       return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
     }
