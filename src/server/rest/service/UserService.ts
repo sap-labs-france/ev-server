@@ -207,7 +207,7 @@ export default class UserService {
         });
       }
     }
-    const userTransactions = await TransactionStorage.getTransactions(req.user.tenantID, { userIDs: [req.user.id] }, Constants.DB_PARAMS_COUNT_ONLY);
+    const userTransactions = await TransactionStorage.getTransactions(req.user.tenantID, { userIDs: [id] }, Constants.DB_PARAMS_COUNT_ONLY);
     // Delete user
     if (userTransactions.count > 0) {
       // Logically
