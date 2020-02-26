@@ -1,25 +1,21 @@
 import { NextFunction, Request, Response } from 'express';
-import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { HTTPError } from '../../types/HTTPError';
-import Logging from '../../utils/Logging';
-import OCPIUtils from './OCPIUtils';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import AppError from '../../exception/AppError';
-import AppAuthError from '../../exception/AppAuthError';
-import { Configuration } from '../../types/configuration/Configuration';
-import Tenant from '../../types/Tenant';
 import HttpStatusCodes from 'http-status-codes';
+import AppAuthError from '../../exception/AppAuthError';
+import AppError from '../../exception/AppError';
+import BackendError from '../../exception/BackendError';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { Action } from '../../types/Authorization';
+import { Configuration } from '../../types/configuration/Configuration';
+import { HTTPError } from '../../types/HTTPError';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import CpoOCPIClient from '../../client/ocpi/CpoOCPIClient';
-import EmspOCPIClient from '../../client/ocpi/EmspOCPIClient';
-import OCPIClientFactory from '../../client/ocpi/OCPIClientFactory';
+import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
+import OCPIUtils from './OCPIUtils';
 
 const MODULE_NAME = 'AbstractOCPIService';
 
@@ -187,7 +183,7 @@ export default abstract class AbstractOCPIService {
         });
       }
 
-      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new AppError({
           source: Constants.OCPI_SERVER,
           module: MODULE_NAME,
