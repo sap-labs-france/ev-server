@@ -107,10 +107,12 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
         message: 'Charging Station is not connected to the backend',
       });
     }
+    // Clone
+    const schneiderChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
     // Check connector
-    if (chargingProfile.connectorID === 0 && chargingProfile.profile && chargingProfile.profile.chargingSchedule && chargingStation.connectors) {
+    if (schneiderChargingProfile.connectorID === 0 && schneiderChargingProfile.profile && schneiderChargingProfile.profile.chargingSchedule && chargingStation.connectors) {
       // Divide the power by the number of connectors
-      for (const schedulePeriod of chargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+      for (const schedulePeriod of schneiderChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         schedulePeriod.limit /= chargingStation.connectors.length;
       }
     }
@@ -118,8 +120,8 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     try {
       // Set the Profile
       result = await chargingStationClient.setChargingProfile({
-        connectorId: chargingProfile.connectorID,
-        csChargingProfiles: chargingProfile.profile
+        connectorId: schneiderChargingProfile.connectorID,
+        csChargingProfiles: schneiderChargingProfile.profile
       });
     } catch (error) {
       if (!error.status) {
