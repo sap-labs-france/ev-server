@@ -487,6 +487,7 @@ export default class ChargingStationStorage {
       imsi: chargingStationToSave.imsi,
       meterType: chargingStationToSave.meterType,
       firmwareVersion: chargingStationToSave.firmwareVersion,
+      firmwareStatus: chargingStationToSave.firmwareStatus,
       meterSerialNumber: chargingStationToSave.meterSerialNumber,
       endpoint: chargingStationToSave.endpoint,
       ocppVersion: chargingStationToSave.ocppVersion,

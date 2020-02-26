@@ -1,8 +1,8 @@
-import CreatedUpdatedProps from './CreatedUpdatedProps';
-import SiteArea from './SiteArea';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { KeyValue } from './GlobalType';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -16,6 +16,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   imsi: string;
   meterType: string;
   firmwareVersion: string;
+  firmwareStatus?: OCPPFirmwareStatus;
   meterSerialNumber: string;
   endpoint: string;
   ocppVersion: OCPPVersion;
