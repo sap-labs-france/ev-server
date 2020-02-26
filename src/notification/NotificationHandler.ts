@@ -686,8 +686,9 @@ export default class NotificationHandler {
         if (notificationSource.enabled) {
           try {
             // Check notification
-            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
-              tenantID, notificationSource.channel, Source.BILLING_USER_SYNCHRONIZATION_FAILED);
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenantID, notificationSource.channel, Source.BILLING_USER_SYNCHRONIZATION_FAILED,
+              null, null, { intervalMins: 60 * 12 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
@@ -720,8 +721,9 @@ export default class NotificationHandler {
         if (notificationSource.enabled) {
           try {
             // Check notification
-            const hasBeenNotified = await NotificationHandler.hasNotifiedSourceByID(
-              Constants.DEFAULT_TENANT, notificationSource.channel, Source.CAR_SYNCHRONIZATION_FAILED);
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              Constants.DEFAULT_TENANT, notificationSource.channel, Source.CAR_SYNCHRONIZATION_FAILED,
+              null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
               // Save
