@@ -1,18 +1,11 @@
-import { Car, CarSynchronizeAction, ChargeStandardTable, ChargeAlternativeTable, ChargeOptionTable } from '../../types/Car';
 import Axios from 'axios';
-import hash from 'object-hash';
-import Constants from '../../utils/Constants';
+import { Action } from '../../types/Authorization';
+import { Car, CarSynchronizeAction, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../types/Car';
 import global from '../../types/GlobalType';
-import { json } from 'body-parser';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
-import { Action, Role } from '../../types/Authorization';
-import DatabaseUtils from './DatabaseUtils';
-import UserNotifications from '../../types/UserNotifications';
-import UserStorage from './UserStorage';
-import TenantStorage from './TenantStorage';
-import Utils from '../../utils/Utils';
-import Configuration from '../../utils/Configuration';
 export default class CarStorage {
 
   public static async synchronizeCars(tenantID): Promise<CarSynchronizeAction> {
