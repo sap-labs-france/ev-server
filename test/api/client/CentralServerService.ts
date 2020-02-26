@@ -1,8 +1,9 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
+import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import config from '../../config';
-import { ComponentType, PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';
 import ChargingStationApi from './ChargingStationApi';
@@ -113,7 +114,7 @@ export default class CentralServerService {
     let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
       setting = {} as SettingDB;
-      setting.identifier = ComponentType.PRICING;
+      setting.identifier = TenantComponents.PRICING;
       newSetting = true;
     }
     setting.content = {
