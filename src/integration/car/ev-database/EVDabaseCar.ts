@@ -10,6 +10,14 @@ import CarDatabase from '../CarDatabase';
 export default class EVDabaseCar extends CarDatabase {
   public async getCars(): Promise<Car[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
+    if (!evDatabaseConfig) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        message: 'No configuration is provided to access the EVDatabase system',
+        module: 'EVDabaseCar', method: 'getCars',
+        action: Action.SYNCHRONIZE_CARS,
+      });
+    }
     const response = await Axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
     const cars: Car[] = [];
     if (response.status !== 200) {
@@ -72,8 +80,7 @@ export default class EVDabaseCar extends CarDatabase {
         }
       }
       const car: Car = {
-        id: `${data.Vehicle_Make}~${data.Vehicle_Model}`,
-        vehicleID: data.Vehicle_ID,
+        id: data.Vehicle_ID,
         vehicleMake: data.Vehicle_Make,
         VehicleModel: data.Vehicle_Model,
         vehicleModelVersion: data.Vehicle_Model_Version,

@@ -124,7 +124,6 @@ export default class CarStorage {
     // Properties to save
     const carMDB: any = {
       _id: carToSave.id,
-      vehicleID: carToSave.vehicleID,
       vehicleMake: carToSave.vehicleMake,
       VehicleModel: carToSave.VehicleModel,
       vehicleModelVersion: carToSave.vehicleModelVersion,

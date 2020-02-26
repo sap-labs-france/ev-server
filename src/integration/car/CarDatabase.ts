@@ -27,21 +27,29 @@ export default abstract class CarDatabase {
           car.createdOn = new Date();
           await CarStorage.saveCar(car);
           actionsDone.synchronized++;
+          // Log
+          Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_CARS,
+            module: 'CarDatabase', method: 'synchronizeCars',
+            message: `${car.vehicleMake} - ${car.VehicleModel} has been created successfully`,
+          });
         } else if (Cypher.hash(JSON.stringify(car)) !== carDB.hash) {
           // Car has changed: Update it
           car.hash = Cypher.hash(JSON.stringify(car));
           car.lastChangedOn = new Date();
           await CarStorage.saveCar(car);
           actionsDone.synchronized++;
+          // Log
+          Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_CARS,
+            module: 'CarDatabase', method: 'synchronizeCars',
+            message: `${car.vehicleMake} - ${car.VehicleModel} has been updated successfully`,
+          });
         }
-        // Log
-        Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
-          source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CARS,
-          module: 'CarDatabase', method: 'synchronizeCars',
-          message: `${car.vehicleMake} - ${car.VehicleModel} has been synchronized successfully`,
-        });
       } catch (error) {
         actionsDone.error++;
         // Log
@@ -55,6 +63,24 @@ export default abstract class CarDatabase {
         });
       }
     }
-    return actionsDone;
+    // Log
+    if (actionsDone.synchronized || actionsDone.error) {
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SYNCHRONIZE_CARS,
+        module: 'CarDatabase', method: 'synchronizeCars',
+        message: `${actionsDone.synchronized} car(s) were successfully synchronized, ${actionsDone.error} got errors`
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SYNCHRONIZE_CARS,
+        module: 'CarDatabase', method: 'synchronizeCars',
+        message: 'No car needed to be synchronized'
+      });
+    }
+  return actionsDone;
   }
 }
