@@ -67,7 +67,7 @@ export default class NotificationHandler {
     // Get admin users
     let params;
     if (tenantID === Constants.DEFAULT_TENANT) {
-      params = { roles: [Role.ADMIN, Role.SUPER_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+      params = { roles: [Role.SUPER_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     } else {
       params = { roles: [Role.ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     }
