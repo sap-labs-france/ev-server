@@ -962,29 +962,29 @@ export default class ChargingStationService {
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      // if (filteredRequest.args.connectorId === 0) {
-      //   // Call for connector 0
-      //   result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-      //   if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
-      //     result = [];
-      //     // Call each connectors
-      //     for (const connector of chargingStation.connectors) {
-      //       filteredRequest.args.connectorId = connector.connectorId;
-      //       // Execute request
-      //       const simpleResult = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-      //       // Fix central reference date
-      //       const centralTime = new Date();
-      //       simpleResult['centralSystemTime'] = centralTime;
-      //       result.push(simpleResult);
-      //     }
-      //   }
-      // } else {
+      if (filteredRequest.args.connectorId === 0) {
+        // Call for connector 0
+        result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
+        if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
+          result = [];
+          // Call each connectors
+          for (const connector of chargingStation.connectors) {
+            filteredRequest.args.connectorId = connector.connectorId;
+            // Execute request
+            const simpleResult = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
+            // Fix central reference date
+            const centralTime = new Date();
+            simpleResult['centralSystemTime'] = centralTime;
+            result.push(simpleResult);
+          }
+        }
+      } else {
         // Execute it
         result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
         // Fix central reference date
         const centralTime = new Date();
         result.centralSystemTime = centralTime;
-      // }
+      }
     } else {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
