@@ -3,15 +3,43 @@ import global from '../../types/GlobalType';
 import { UserRole } from '../../types/User';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
+import Utils from '../../utils/Utils';
 
 export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   async migrate() {
+    // Migrate tenants
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
+    // Migrate super tenant
+    await this.migrateSuperTenant();
   }
 
+  async migrateSuperTenant() {
+    // Read all users
+    const users: any = await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').aggregate().toArray();
+    // Process each user
+    for (const user of users) {
+      // Exists?
+      if (user.notifications && Utils.objectHasProperty(user.notifications, 'sendCarSynchronizationFailed')) {
+        continue;
+      }
+      // No: Set it
+      user.notificationsActive = true;
+      user.notifications = {
+        sendCarSynchronizationFailed: true,
+      };
+      // Update
+      await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').findOneAndUpdate(
+        { '_id': user._id },
+        { $set: user },
+        { upsert: true, returnOriginal: false }
+      );
+    }
+
+  }
+  
   async migrateTenant(tenant) {
     // Read all users
     const users: any = await global.database.getCollection(tenant.id, 'users').aggregate().toArray();
@@ -36,10 +64,6 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
             sendOcpiPatchStatusError: true,
             sendSmtpAuthError: true,
             sendOfflineChargingStations: true,
-          };
-        } else if (user.role === UserRole.SUPER_ADMIN) {
-          user.notifications = {
-            sendCarSynchronizationFailed: true,
           };
         } else {
           user.notifications = {
