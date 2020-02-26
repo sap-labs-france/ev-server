@@ -11,9 +11,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 
 export default abstract class Billing<T extends BillingSetting> {
-
-  // Protected because only used in subclasses at the moment
-  private static MAX_RETRY_SYNCHRONIZATION = 3;
   protected readonly tenantID: string; // Assuming GUID or other string format ID
   protected settings: T;
 
