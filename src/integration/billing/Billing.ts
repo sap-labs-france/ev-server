@@ -52,7 +52,7 @@ export default abstract class Billing<T extends BillingSetting> {
       for (const user of newUsersToSyncInBilling.result) {
         // Synchronize user
         try {
-          await this.synchronizeUser(user, tenantID);          
+          await this.synchronizeUser(user, tenantID);
           Logging.logInfo({
             tenantID: tenantID,
             actionOnUser: user,

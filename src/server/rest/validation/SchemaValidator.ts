@@ -6,7 +6,7 @@ import { HTTPError } from '../../../types/HTTPError';
 import Constants from '../../../utils/Constants';
 
 const extraSanitizers = {
-	mongo: (value) => sanitize(value),
+  mongo: (value) => sanitize(value),
 };
 
 export default class SchemaValidator {

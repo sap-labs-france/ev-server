@@ -1,12 +1,12 @@
 import { ObjectID } from 'mongodb';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import SiteArea from '../../types/SiteArea';
-import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import SiteArea from '../../types/SiteArea';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class SiteAreaStorage {
   public static async getSiteAreaImage(tenantID: string, id: string): Promise<ImageResult> {

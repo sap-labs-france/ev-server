@@ -1,16 +1,16 @@
 import { ObjectID } from 'mongodb';
-import ChargingStationStorage from './ChargingStationStorage';
+import DbParams from '../../types/database/DbParams';
+import { DataResult, ImageResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import Site, { SiteUser } from '../../types/Site';
+import User, { UserSite } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site, { SiteUser } from '../../types/Site';
-import SiteAreaStorage from './SiteAreaStorage';
-import User, { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
-import { DataResult, ImageResult } from '../../types/DataResult';
+import ChargingStationStorage from './ChargingStationStorage';
+import DatabaseUtils from './DatabaseUtils';
+import SiteAreaStorage from './SiteAreaStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {

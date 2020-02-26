@@ -32,6 +32,8 @@ export enum Entity {
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
+  BUILDING = 'Building',
+  BUILDINGS = 'Buildings'
 }
 
 export enum Action {
@@ -111,4 +113,6 @@ export interface AuthorizationContext {
   sitesOwner?: string[];
   company?: string;
   companies?: string[];
+  building?: string;
+  buildings?: string[];
 }

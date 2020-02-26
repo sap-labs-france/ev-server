@@ -1,6 +1,4 @@
-import { Action, Entity } from '../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import fs from 'fs';
 import moment from 'moment';
 import Authorizations from '../../../authorization/Authorizations';
@@ -14,9 +12,13 @@ import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
 import Consumption from '../../../types/Consumption';
 import { ActionsResponse } from '../../../types/GlobalType';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { TransactionInErrorType } from '../../../types/InError';
 import { RefundStatus } from '../../../types/Refund';
+import TenantComponents from '../../../types/TenantComponents';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -28,7 +30,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
-import { TransactionInErrorType } from '../../../types/InError';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -475,7 +476,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -529,7 +530,7 @@ export default class TransactionService {
       filter.ownerID = req.user.id;
     }
     // Check Organization
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -595,7 +596,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -653,7 +654,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -700,7 +701,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -774,7 +775,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -855,7 +856,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -871,7 +872,7 @@ export default class TransactionService {
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
-    } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
+    } else if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
       filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_PRICE, TransactionInErrorType.MISSING_USER];
     } else {
       filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
