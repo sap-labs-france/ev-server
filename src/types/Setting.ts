@@ -1,20 +1,9 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-
-export enum ComponentType {
-  OCPI = 'ocpi',
-  ORGANIZATION = 'organization',
-  PRICING = 'pricing',
-  BILLING = 'billing',
-  REFUND = 'refund',
-  STATISTICS = 'statistics',
-  ANALYTICS = 'analytics',
-  SMART_CHARGING = 'smartCharging',
-  BUILDING = 'building'
-}
+import TenantComponents from './TenantComponents';
 
 export interface Setting {
   id?: string;
-  identifier: ComponentType;
+  identifier: TenantComponents;
   sensitiveData?: string[];
   category?: 'business' | 'technical';
 }
@@ -51,7 +40,7 @@ export enum PricingSettingsType {
 }
 
 export interface PricingSettings extends Setting {
-  identifier: ComponentType.PRICING;
+  identifier: TenantComponents.PRICING;
   type: PricingSettingsType;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -77,7 +66,7 @@ export enum RoamingSettingsType {
 }
 
 export interface RoamingSettings extends Setting {
-  identifier: ComponentType.OCPI;
+  identifier: TenantComponents.OCPI;
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
 }
@@ -111,7 +100,7 @@ export enum AnalyticsSettingsType {
 }
 
 export interface AnalyticsSettings extends Setting {
-  identifier: ComponentType.ANALYTICS;
+  identifier: TenantComponents.ANALYTICS;
   type: AnalyticsSettingsType;
   sac?: SacAnalyticsSetting;
   links: SettingLink[];
@@ -127,7 +116,7 @@ export enum SmartChargingSettingsType {
 }
 
 export interface SmartChargingSettings extends Setting {
-  identifier: ComponentType.SMART_CHARGING;
+  identifier: TenantComponents.SMART_CHARGING;
   type: SmartChargingSettingsType;
   sapSmartCharging?: SapSmartChargingSetting;
 }
@@ -143,7 +132,7 @@ export enum RefundSettingsType {
 }
 
 export interface RefundSettings extends Setting {
-  identifier: ComponentType.REFUND;
+  identifier: TenantComponents.REFUND;
   type: RefundSettingsType;
   concur?: ConcurRefundSetting;
 }
@@ -165,7 +154,7 @@ export enum BillingSettingsType {
 }
 
 export interface BillingSettings extends Setting{
-  identifier: ComponentType.BILLING;
+  identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
   stripe?: StripeBillingSetting;
 }
@@ -187,7 +176,7 @@ export interface StripeBillingSetting extends BillingSetting {
 }
 
 export interface BuildingSettings extends Setting {
-  identifier: ComponentType.BUILDING;
+  identifier: TenantComponents.BUILDING;
   type: BuildingSettingsType;
 }
 

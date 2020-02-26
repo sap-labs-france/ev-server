@@ -1,21 +1,22 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 
 export default class OCPIGetLocationsTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
-      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
           module: 'OCPIGetLocationsTask',

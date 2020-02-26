@@ -1,14 +1,14 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import { DataResult, LogoResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import VehicleManufacturer from '../../types/VehicleManufacturer';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import VehicleManufacturer from '../../types/VehicleManufacturer';
+import DatabaseUtils from './DatabaseUtils';
 import VehicleStorage from './VehicleStorage';
-import { DataResult, LogoResult } from '../../types/DataResult';
 
 export default class VehicleManufacturerStorage {
 

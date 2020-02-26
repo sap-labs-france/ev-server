@@ -1,11 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
-import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
-import SiteSecurity from './SiteSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import UserToken from '../../../../types/UserToken';
+import SiteSecurity from './SiteSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class CompanySecurity {
 
@@ -81,7 +81,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser) {
+  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser: UserToken) {
     const filteredCompanies = [];
 
     if (!companies.result) {

@@ -13,6 +13,7 @@ import AuthorizationConfiguration from '../types/configuration/AuthorizationConf
 import { HTTPAuthError, HTTPError } from '../types/HTTPError';
 import { PricingSettingsType } from '../types/Setting';
 import Tag from '../types/Tag';
+import TenantComponents from '../types/TenantComponents';
 import Transaction from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import UserNotifications from '../types/UserNotifications';
@@ -39,7 +40,7 @@ export default class Authorizations {
 
   public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation) {
     let context;
-    if (Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
         return false;
       }
@@ -80,7 +81,7 @@ export default class Authorizations {
   }
 
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+    if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
     if (this.isAdmin(loggedUser)) {
@@ -93,7 +94,7 @@ export default class Authorizations {
   }
 
   public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites?: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+    if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
     if (this.isAdmin(loggedUser)) {
@@ -238,7 +239,7 @@ export default class Authorizations {
 
   public static canPerformActionOnChargingStation(loggedUser: UserToken, action: Action, chargingStation: ChargingStation, context?: AuthorizationContext): boolean {
     if (!context) {
-      const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION);
+      const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION);
       context = {
         tagIDs: loggedUser.tagIDs,
         owner: loggedUser.id,
@@ -490,6 +491,26 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
+  public static canListBuildings(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDINGS, Action.LIST);
+  }
+
+  public static canReadBuilding(loggedUser: UserToken, buildingId: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.READ);
+  }
+
+  public static canCreateBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.CREATE);
+  }
+
+  public static canUpdateBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.UPDATE);
+  }
+
+  public static canDeleteBuilding(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.DELETE);
+  }
+
   public static canListTenants(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TENANTS, Action.LIST);
   }
@@ -584,7 +605,7 @@ export default class Authorizations {
     transaction: Transaction, tagID: string, action: Action): Promise<User> {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
-    const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
+    const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
       let foundSiteArea = true;

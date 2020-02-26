@@ -1,9 +1,9 @@
-import { Action, Entity } from '../../types/Authorization';
 import CentralRestServer from '../../server/rest/CentralRestServer';
+import { Action, Entity } from '../../types/Authorization';
+import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MongoDBStorage from './MongoDBStorage';
-import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 
 const _pipeline = [];
 const _options = {
@@ -128,6 +128,10 @@ export default class MongoDBStorageNotification {
       case 'companylogos':
         this.centralRestServer.notifyCompany(tenantID, action, { id: documentID });
         break;
+        case 'buildings':
+        case 'buildingimages':
+          this.centralRestServer.notifyBuilding(tenantID, action, { id: documentID });
+          break;
       case 'siteareas':
       case 'siteareaimages':
         this.centralRestServer.notifySiteArea(tenantID, action, { id: documentID });

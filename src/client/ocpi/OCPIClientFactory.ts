@@ -1,20 +1,21 @@
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
-import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
     // Check if OCPI component is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
