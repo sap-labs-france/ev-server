@@ -163,7 +163,7 @@ export default class ContextBuilder {
           foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
           await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
         }
-        if (componentSettingKey === ComponentType.OCPI) {
+        if (componentSettingKey === TenantComponents.OCPI) {
           const cpoEndpoint = {
             name: 'CPO Endpoint',
             role: OCPIRole.CPO,
