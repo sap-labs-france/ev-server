@@ -31,9 +31,9 @@ export default abstract class Billing<T extends BillingSetting> {
     if (!billingImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        message: 'Billing settings are not configured',
-        module: 'BillingService',
-        method: 'handleSynchronizeUsers',
+        message: 'Billing is not configured or implementation is missing',
+        module: 'Billing',
+        method: 'synchronizeUsers',
         action: Action.SYNCHRONIZE_BILLING,
       });
     }

@@ -5,6 +5,7 @@ enum TenantComponents {
   ORGANIZATION = 'organization',
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
-  BUILDING = 'building'
+  BUILDING = 'building',
+  CAR = 'car'
 }
 export default TenantComponents;
