@@ -893,7 +893,24 @@ export default class UserService {
           });
         }
       }
-
+      // For integration with billing
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (billingImpl) {
+        const user = await UserStorage.getUser(req.user.tenantID, newUserID);
+        try {
+          const billingData = await billingImpl.createUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+        } catch (e) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleCreateUser',
+            action: 'UserCreate',
+            message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
+            detailedMessages: e.message
+          });
+        }
+      }
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
@@ -929,25 +946,6 @@ export default class UserService {
         await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
       }
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
-      const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-      try {
-        const billingData = await billingImpl.createUser(user);
-        await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleCreateUser',
-          action: 'UserCreate',
-          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
-          detailedMessages: e.message
-        });
-      }
-    }
-
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

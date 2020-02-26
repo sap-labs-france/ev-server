@@ -1,27 +1,27 @@
-import axios from 'axios';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Handler, NextFunction, Request, Response } from 'express';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import User, { UserRole, UserStatus } from '../../../types/User';
+import { Action } from '../../../types/Authorization';
+import AppError from '../../../exception/AppError';
+import AuthSecurity from './security/AuthSecurity';
+import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import { HTTPError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import Tag from '../../../types/Tag';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import Authorizations from '../../../authorization/Authorizations';
-import AppError from '../../../exception/AppError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action } from '../../../types/Authorization';
-import { HTTPError } from '../../../types/HTTPError';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
-import Tag from '../../../types/Tag';
-import User, { UserRole, UserStatus } from '../../../types/User';
-import UserToken from '../../../types/UserToken';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import AuthSecurity from './security/AuthSecurity';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -653,9 +653,21 @@ export default class AuthService {
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
+    // For integration with billing
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user);
-      await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
+      try {
+        const billingData = await billingImpl.createUser(user);
+        await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
+      } catch (e) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          module: 'UserService',
+          method: 'handleCreateUser',
+          action: 'UserCreate',
+          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
+          detailedMessages: e.message
+        });
+      }
     }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenantID, user.id,
