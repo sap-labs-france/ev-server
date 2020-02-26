@@ -116,14 +116,6 @@ export default class MongoDBStorageNotification {
       case 'chargingstations':
         this.centralRestServer.notifyChargingStation(tenantID, action, { id: documentID });
         break;
-      case 'vehiclemanufacturers':
-      case 'vehiclemanufacturerlogos':
-        this.centralRestServer.notifyVehicleManufacturer(tenantID, action, { id: documentID });
-        break;
-      case 'vehicles':
-      case 'vehicleimages':
-        this.centralRestServer.notifyVehicle(tenantID, action, { id: documentID });
-        break;
       case 'companies':
       case 'companylogos':
         this.centralRestServer.notifyCompany(tenantID, action, { id: documentID });

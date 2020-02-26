@@ -34,8 +34,6 @@ export default class Constants {
   public static readonly WITH_SITE = true; // Not used
   public static readonly WITHOUT_SITE = false; // Not used
 
-  public static readonly VEHICLE_TYPE_CAR = 'C';
-
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
   public static readonly PWD_MAX_LENGTH = 20;
