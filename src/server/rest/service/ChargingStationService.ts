@@ -19,6 +19,7 @@ import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
 import { OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
@@ -34,7 +35,7 @@ export default class ChargingStationService {
   public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+      req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.CHARGING_STATION, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
@@ -114,7 +115,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -219,7 +220,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
       'ChargingStationService', 'handleChargingStationLimitPower', req.user);
     let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -321,7 +322,7 @@ export default class ChargingStationService {
     // Check Mandatory fields
     Utils.checkIfChargingProfileIsValid(filteredRequest, req);
     let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -405,7 +406,7 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleDeleteChargingProfile', req.user);
     // Check Component
     let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -544,7 +545,7 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleDeleteChargingStation', req.user);
 
     let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
       siteID = siteArea ? siteArea.siteID : null;
@@ -654,7 +655,7 @@ export default class ChargingStationService {
     res.json(
       // Filter
       ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION))
+        chargingStation, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION))
     );
     next();
   }
@@ -750,11 +751,11 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
     // Check component
     if (filteredRequest.SiteID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Action.READ, Entity.CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+        Action.READ, Entity.CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
     let _errorType = [];
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
       _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
     } else {
@@ -776,7 +777,7 @@ export default class ChargingStationService {
       }
     );
     // Build the result
-    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION));
     // Return
     res.json(chargingStations);
     next();
@@ -1203,7 +1204,7 @@ export default class ChargingStationService {
 
   private static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
-    if (Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(user, TenantComponents.ORGANIZATION)) {
       try {
         // Site is mandatory
         if (!chargingStation.siteArea) {
@@ -1329,7 +1330,7 @@ export default class ChargingStationService {
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Filter
       ChargingStationSecurity.filterChargingStationsResponse(
-        chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
+        chargingStations, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION));
     }
     return chargingStations;
   }

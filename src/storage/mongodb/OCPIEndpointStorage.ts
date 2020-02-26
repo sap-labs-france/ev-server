@@ -1,13 +1,13 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import { DataResult } from '../../types/DataResult';
-import DbParams from '../../types/database/DbParams';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class OCPIEndpointStorage {
 

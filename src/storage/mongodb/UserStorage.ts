@@ -11,6 +11,7 @@ import global from '../../types/GlobalType';
 import { UserInError, UserInErrorType } from '../../types/InError';
 import Site, { SiteUser } from '../../types/Site';
 import Tag from '../../types/Tag';
+import TenantComponents from '../../types/TenantComponents';
 import User, { UserRole, UserStatus } from '../../types/User';
 import UserNotifications from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
@@ -862,7 +863,7 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION)) || !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING)) {
+      if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) || !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
         continue;
       }
       array.push(`$${type}`);

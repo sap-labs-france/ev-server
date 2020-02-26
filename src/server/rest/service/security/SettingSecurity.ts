@@ -2,8 +2,8 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import { AnalyticsSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
+import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -201,7 +201,7 @@ export default class SettingSecurity {
     if (!setting.content) {
       return null;
     }
-    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== TenantComponents.ANALYTICS) {
       return setting.content;
     }
     if (setting.content.links && Array.isArray(setting.content.links)) {

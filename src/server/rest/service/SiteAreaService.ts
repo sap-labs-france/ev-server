@@ -1,21 +1,21 @@
+import { NextFunction, Request, Response } from 'express';
+import Authorizations from '../../../authorization/Authorizations';
+import AppAuthError from '../../../exception/AppAuthError';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError } from '../../../types/HTTPError';
-import { NextFunction, Request, Response } from 'express';
-import AppAuthError from '../../../exception/AppAuthError';
-import Authorizations from '../../../authorization/Authorizations';
+import SiteArea from '../../../types/SiteArea';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import SiteArea from '../../../types/SiteArea';
-import SiteAreaSecurity from './security/SiteAreaSecurity';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Utils from '../../../utils/Utils';
+import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
@@ -54,8 +54,7 @@ export default class SiteAreaService {
 
   public static async handleGetSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
@@ -88,8 +87,7 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreaImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
@@ -120,8 +118,7 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreas(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
@@ -157,8 +154,7 @@ export default class SiteAreaService {
 
   public static async handleCreateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
@@ -197,8 +193,7 @@ export default class SiteAreaService {
 
   public static async handleUpdateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);

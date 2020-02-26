@@ -1,19 +1,20 @@
-import ConcurRefundConnector from './concur/ConcurRefundConnector';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { RefundSettingsType } from '../../types/Setting';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import RefundConnector from './RefundConnector';
-import { RefundSettingsType } from '../../types/Setting';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import ConcurRefundConnector from './concur/ConcurRefundConnector';
+import RefundConnector from './RefundConnector';
 
 export default class RefundFactory {
   static async getRefundConnector(tenantID: string): Promise<RefundConnector> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if refund component is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)
     ) {
       const setting = await SettingStorage.getRefundSettings(tenantID);
       // Check

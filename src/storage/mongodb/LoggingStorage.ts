@@ -1,15 +1,14 @@
-import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import global from './../../types/GlobalType';
-import Utils from '../../utils/Utils';
-import { Log, LogLevel, LogType } from '../../types/Log';
-import Configuration from '../../utils/Configuration';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
+import DbParams from '../../types/database/DbParams';
+import { Log, LogLevel, LogType } from '../../types/Log';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenantID, deleteUpToDate: Date) {

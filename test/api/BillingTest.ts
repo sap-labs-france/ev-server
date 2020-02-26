@@ -3,7 +3,7 @@ import chaiSubset from 'chai-subset';
 import { ObjectID } from 'mongodb';
 import Billing from '../../src/integration/billing/Billing';
 import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { HTTPAuthError, HTTPError } from '../../src/types/HTTPError';
+import { HTTPAuthError } from '../../src/types/HTTPError';
 import { UserInErrorType } from '../../src/types/InError';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
 import User from '../../src/types/User';

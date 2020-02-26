@@ -102,19 +102,6 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  // Components
-  public static readonly COMPONENTS = {
-    OCPI: 'ocpi',
-    REFUND: 'refund',
-    PRICING: 'pricing',
-    BILLING: 'billing',
-    ORGANIZATION: 'organization',
-    STATISTICS: 'statistics',
-    ANALYTICS: 'analytics',
-    SMART_CHARGING: 'smartCharging',
-    BUILDING: 'building'
-  };
-
   public static readonly MONGO_USER_MASK = {
     '_id': 0,
     '__v': 0,

@@ -285,9 +285,7 @@ export default abstract class OCPIClient {
     return respOcpiCredentials;
   }
 
-  async abstract triggerJobs();
-
-  protected getLocalCountryCode(): string {
+  getLocalCountryCode(): string {
     if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
@@ -297,7 +295,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].countryCode;
   }
 
-  protected getLocalPartyID(): string {
+  getLocalPartyID(): string {
     if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
@@ -306,6 +304,8 @@ export default abstract class OCPIClient {
     }
     return this.settings[this.role].partyID;
   }
+
+  async abstract triggerJobs();
 
   protected getEndpointUrl(service) {
     if (this.ocpiEndpoint.availableEndpoints) {

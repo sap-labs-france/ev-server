@@ -107,6 +107,13 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
         message: 'Charging Station is not connected to the backend',
       });
     }
+    // Check connector
+    if (chargingProfile.connectorID === 0 && chargingProfile.profile && chargingProfile.profile.chargingSchedule && chargingStation.connectors) {
+      // Divide the power by the number of connectors
+      for (const schedulePeriod of chargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        schedulePeriod.limit /= chargingStation.connectors.length;
+      }
+    }
     let result: OCPPSetChargingProfileCommandResult;
     try {
       // Set the Profile
