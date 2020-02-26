@@ -1,9 +1,7 @@
-import { Car, CarSynchronizeAction } from '../../types/Car';
-import BackendError from '../../exception/BackendError';
-import CarDatabaseFactory from './CarDatabaseFactory';
-import Constants from '../../utils/Constants';
-import { Action } from '../../types/Authorization';
 import CarStorage from '../../storage/mongodb/CarStorage';
+import { Action } from '../../types/Authorization';
+import { Car, CarSynchronizeAction } from '../../types/Car';
+import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 
@@ -33,7 +31,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.vehicleMake} - ${car.VehicleModel} has been created successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been created successfully`,
           });
         } else if (Cypher.hash(JSON.stringify(car)) !== carDB.hash) {
           // Car has changed: Update it
@@ -47,7 +45,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.vehicleMake} - ${car.VehicleModel} has been updated successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been updated successfully`,
           });
         }
       } catch (error) {
@@ -58,7 +56,7 @@ export default abstract class CarDatabase {
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_CARS,
           module: 'CarDatabase', method: 'synchronizeCars',
-          message: `${car.vehicleMake} - ${car.VehicleModel} got synchronization error`,
+          message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} got synchronization error`,
           detailedMessages: error
         });
       }
