@@ -16,17 +16,8 @@ export default abstract class CarDatabase {
       synchronized: 0,
       error: 0
     } as CarSynchronizeAction;
-    const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
-    if (!carDatabaseImpl) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'Cars is not configured or implementation is missing',
-        module: 'CarDatabase', method: 'synchronizeCars',
-        action: Action.SYNCHRONIZE_CARS,
-      });
-    }
     // Get the cars
-    const cars = await carDatabaseImpl.getCars();
+    const cars = await this.getCars();
     for (const car of cars) {
       try {
         const carDB = await CarStorage.getCar(car.id);

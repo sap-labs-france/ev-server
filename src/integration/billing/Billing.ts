@@ -26,24 +26,13 @@ export default abstract class Billing<T extends BillingSetting> {
   }
 
   public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
-    // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
-    if (!billingImpl) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'Billing is not configured or implementation is missing',
-        module: 'Billing',
-        method: 'synchronizeUsers',
-        action: Action.SYNCHRONIZE_BILLING,
-      });
-    }
     // Check
     const actionsDone = {
       synchronized: 0,
       error: 0
     } as BillingUserSynchronizeAction;
     // Get recently updated customers from Billing application
-    let userIDsChangedInBilling = await billingImpl.getUpdatedUserIDsInBilling();
+    let userIDsChangedInBilling = await this.getUpdatedUserIDsInBilling();
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
     const usersNotSynchronized = await UserStorage.getUsers(tenantID,
       { 'statuses': [Status.ACTIVE], 'notSynchronizedBillingData': true },
@@ -63,10 +52,10 @@ export default abstract class Billing<T extends BillingSetting> {
           let newBillingUserData;
           if (user.billingData) {
             // Update
-            newBillingUserData = await billingImpl.updateUser(user);
+            newBillingUserData = await this.updateUser(user);
           } else {
             // Create
-            newBillingUserData = await billingImpl.createUser(user);
+            newBillingUserData = await this.createUser(user);
           }
           // Save Billing data
           await UserStorage.saveUserBillingData(tenantID, user.id, newBillingUserData);
@@ -117,7 +106,7 @@ export default abstract class Billing<T extends BillingSetting> {
       });
       for (const userIDChangedInBilling of userIDsChangedInBilling) {
         // Get Billing User
-        const billingUser = await billingImpl.getUser(userIDChangedInBilling);
+        const billingUser = await this.getUser(userIDChangedInBilling);
         if (billingUser) {
           // Get e-Mobility User
           const user = await UserStorage.getUserByEmail(tenantID, billingUser.email);
