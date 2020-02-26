@@ -1,13 +1,13 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import global from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {

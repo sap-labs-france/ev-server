@@ -1,27 +1,27 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
-import Company from '../../../types/Company';
-import CompanySecurity from './security/CompanySecurity';
+import AppAuthError from '../../../exception/AppAuthError';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import Company from '../../../types/Company';
+import { HTTPAuthError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, 'CompanyService', 'handleDeleteCompany');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleDeleteCompany', req.user);
+    UtilsService.assertIdIsProvided(action, companyID, 'CompanyService', 'handleDeleteCompany', req.user);
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
@@ -37,7 +37,7 @@ export default class CompanyService {
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
     // Found?
-    UtilsService.assertObjectExists(company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -54,13 +54,12 @@ export default class CompanyService {
 
   public static async handleGetCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     // ID is mandatory
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
@@ -75,7 +74,7 @@ export default class CompanyService {
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(company, `Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
     // Return
     res.json(
       // Filter
@@ -86,13 +85,12 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertIdIsProvided(action, companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
       throw new AppAuthError({
@@ -108,7 +106,7 @@ export default class CompanyService {
     // Get it
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Check
-    UtilsService.assertObjectExists(companyLogo, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
     // Return
     res.json({ id: companyLogo.id, logo: companyLogo.logo });
     next();
@@ -116,8 +114,7 @@ export default class CompanyService {
 
   public static async handleGetCompanies(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
@@ -152,8 +149,7 @@ export default class CompanyService {
 
   public static async handleCreateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
@@ -192,8 +188,7 @@ export default class CompanyService {
 
   public static async handleUpdateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, 'CompanyService', 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
@@ -212,7 +207,7 @@ export default class CompanyService {
     // Check email
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(company, `Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
     // Update

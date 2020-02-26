@@ -8,8 +8,9 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import global from '../../../src/types/GlobalType';
-import { ComponentType, PricingSettingsType, RoamingSettingsType, SettingDB } from '../../../src/types/Setting';
+import { PricingSettingsType, RoamingSettingsType, SettingDB } from '../../../src/types/Setting';
 import Site from '../../../src/types/Site';
+import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import Constants from '../../../src/utils/Constants';
 import Utils from '../../../src/utils/Utils';
@@ -141,13 +142,13 @@ export default class ContextBuilder {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
-      for (const component in Constants.COMPONENTS) {
-        const componentName = Constants.COMPONENTS[component];
-        if (tenantContextDef.componentSettings.hasOwnProperty(componentName)) {
+      for (const component in TenantComponents) {
+        const componentName = TenantComponents[component];
+        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName)) {
           components[componentName] = {
             active: true
           };
-          if (tenantContextDef.componentSettings[componentName].hasOwnProperty('type')) {
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
             components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
           }
         }
@@ -214,7 +215,7 @@ export default class ContextBuilder {
         if (!foundSetting) {
           // Create new settings
           const settingInput: SettingDB = {
-            identifier: setting as ComponentType,
+            identifier: setting as TenantComponents,
             content: tenantContextDef.componentSettings[setting].content
           };
           console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
@@ -279,8 +280,8 @@ export default class ContextBuilder {
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
-    if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
-      buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
+    if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
+      buildTenant.components[TenantComponents.ORGANIZATION].active) {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
         const companyDef = {

@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
+import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
+import BuildingService from './service/BuildingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectorService from './service/ConnectorService';
@@ -19,7 +21,6 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
-import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -79,6 +80,7 @@ class RequestMapper {
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
+          BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),
           AddUsersToSite: SiteService.handleAddUsersToSite.bind(this),
@@ -90,12 +92,15 @@ class RequestMapper {
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           SettingCreate: SettingService.handleCreateSetting.bind(this),
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
+          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
+          ForceSynchronizeUserForBilling: BillingService.handleForceSynchronizeUser.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
           OcpiEndpointPullCdrs: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
           OcpiEndpointPullLocations: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
           OcpiEndpointPullSessions: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
+          OcpiEndpointPullTokens: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
@@ -124,6 +129,9 @@ class RequestMapper {
           Companies: CompanyService.handleGetCompanies.bind(this),
           Company: CompanyService.handleGetCompany.bind(this),
           CompanyLogo: CompanyService.handleGetCompanyLogo.bind(this),
+          Buildings: BuildingService.handleGetBuildings.bind(this),
+          Building: BuildingService.handleGetBuilding.bind(this),
+          BuildingImage: BuildingService.handleGetBuildingImage.bind(this),
           Sites: SiteService.handleGetSites.bind(this),
           Site: SiteService.handleGetSite.bind(this),
           SiteImage: SiteService.handleGetSiteImage.bind(this),
@@ -195,6 +203,7 @@ class RequestMapper {
           SiteUpdate: SiteService.handleUpdateSite.bind(this),
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
           CompanyUpdate: CompanyService.handleUpdateCompany.bind(this),
+          BuildingUpdate: BuildingService.handleUpdateBuilding.bind(this),
           SiteUserAdmin: SiteService.handleUpdateSiteUserAdmin.bind(this),
           SiteOwner: SiteService.handleUpdateSiteOwner.bind(this),
           TransactionSoftStop: TransactionService.handleTransactionSoftStop.bind(this),
@@ -218,6 +227,7 @@ class RequestMapper {
           SiteDelete: SiteService.handleDeleteSite.bind(this),
           SiteAreaDelete: SiteAreaService.handleDeleteSiteArea.bind(this),
           CompanyDelete: CompanyService.handleDeleteCompany.bind(this),
+          BuildingDelete: BuildingService.handleDeleteBuilding.bind(this),
           ChargingStationDelete: ChargingStationService.handleDeleteChargingStation.bind(this),
           ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
@@ -264,7 +274,7 @@ export default {
   // eslint-disable-next-line no-unused-vars
   async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = req.params.action as Action;
     // Check Context
     switch (req.method) {
       // Create Request
@@ -293,20 +303,17 @@ export default {
 
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
-
+    const action = req.params.action as Action;
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
-
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
         'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
-
     try {
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);

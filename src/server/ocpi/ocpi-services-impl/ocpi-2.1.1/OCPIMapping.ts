@@ -14,6 +14,7 @@ import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
 import Configuration from '../../../../utils/Configuration';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -199,10 +200,6 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    // Result
-    const tokens: OCPIToken[] = [];
-
-    // Get all tokens
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
 
     if (user) {
@@ -215,9 +212,32 @@ export default class OCPIMapping {
         issuer: user.name,
         valid: !tag.deleted,
         whitelist: 'ALLOWED_OFFLINE',
+        language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn
       };
     }
+  }
+
+  /**
+   * Map user locale (en_US, fr_FR...) to ocpi language (en, fr...)
+   * @param locale
+   */
+  static convertLocaleToLanguage(locale: string): string {
+    if (!locale || locale.length < 2) {
+      return null;
+    }
+    return locale.substring(0, 2);
+  }
+
+  /**
+   * Map ocpi language (en, fr...) to user locale (en_US, fr_FR...)
+   * @param locale
+   */
+  static convertLanguageToLocale(language: string): string {
+    if (language === 'fr') {
+      return 'fr_FR';
+    }
+    return 'en_US';
   }
 
   //
@@ -482,7 +502,7 @@ export default class OCPIMapping {
     if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
 
-      if (role === Constants.OCPI_ROLE.EMSP) {
+      if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
         credential.party_id = ocpiSetting.ocpi.emsp.partyID;
       } else {

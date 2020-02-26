@@ -7,6 +7,8 @@ import Constants from '../../utils/Constants';
 import { Entity } from '../../types/Authorization';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
+import UserToken from '../../types/UserToken';
 
 import cluster from 'cluster';
 import express from 'express';
@@ -15,8 +17,7 @@ import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
-import UserToken from '../../types/UserToken';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
+import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -66,17 +67,31 @@ export default class CentralRestServer {
     this.express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    this.express.use('/client/auth', CentralRestServerAuthentication.authService);
+    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService);
 
     // Secured API
-    this.express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
     // Util API
-    this.express.use('/client/util', CentralRestServerService.restServiceUtil);
+    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil);
     // Workaround URL encoding issue
-    this.express.use('/client%2Futil%2FFirmwareDownload', async (req: Request, res: Response, next: NextFunction) => {
+    this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
+      req.params.action = 'FirmwareDownload';
+      req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
       await CentralRestServerService.restServiceUtil(req, res, next);
+    });
+
+    // Catchall for util with logging
+    this.express.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'constructor', action: 'Express catchall',
+        message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
+        detailedMessages: 'Request: ' + util.inspect(req)
+      });
+      res.sendStatus(404);
     });
 
     // Create HTTP server to serve the express app
@@ -261,6 +276,21 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.COMPANIES
+    });
+  }
+
+  notifyBuilding(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.BUILDING,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.BUILDINGS
     });
   }
 

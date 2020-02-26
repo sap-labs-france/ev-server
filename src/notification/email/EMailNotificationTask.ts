@@ -1,17 +1,17 @@
-import { BillingUserSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, SessionNotStartedNotification, CarSynchronizationFailedNotification } from '../../types/UserNotifications';
-import BackendError from '../../exception/BackendError';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import NotificationHandler from '../NotificationHandler';
-import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
-import User from '../../types/User';
-import Utils from '../../utils/Utils';
 import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
+import BackendError from '../../exception/BackendError';
 import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import { BillingUserSynchronizationFailedNotification, CarSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import NotificationHandler from '../NotificationHandler';
+import NotificationTask from '../NotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
   private server: any;
@@ -244,7 +244,8 @@ export default class EMailNotificationTask implements NotificationTask {
       }, data, tenant, user, severity, retry);
     } catch (error) {
       Logging.logError({
-        tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+        tenantID: tenant.id,
+        source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
         message: 'Error in preparing email for user',
@@ -282,7 +283,8 @@ export default class EMailNotificationTask implements NotificationTask {
         // Log
         try {
           Logging.logError({
-            tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+            tenantID: tenant.id,
+            source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
@@ -312,7 +314,7 @@ export default class EMailNotificationTask implements NotificationTask {
         // Email sent successfully
         Logging.logInfo({
           tenantID: tenant.id,
-          source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+          source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
           actionOnUser: user,

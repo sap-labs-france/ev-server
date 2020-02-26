@@ -1,4 +1,4 @@
-import { Entity, Action } from '../../../types/Authorization';
+import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';

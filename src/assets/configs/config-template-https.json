@@ -63,16 +63,7 @@
     "ssl-cert": "ssl/localhost.cert",
     "ssl-ca": [],
     "debug": false,
-    "externalProtocol": "https",
-    "tenantEnabled": [
-      "slf"
-    ],
-    "eMI3id": {
-      "slf": {
-        "country_id": "FR",
-        "party_id": "SLF"
-      }
-    }
+    "externalProtocol": "https"
   },
   "CentralSystemServer": {
     "protocol": "https",

@@ -24,7 +24,7 @@ export default class TransactionCommonTests {
   public transactionUser: User;
   public transactionUserService: CentralServerService;
 
-  public constructor(tenantContext, centralUserContext) {
+  public constructor(tenantContext: TenantContext, centralUserContext) {
     expect(tenantContext).to.exist;
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;

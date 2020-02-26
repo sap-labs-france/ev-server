@@ -55,16 +55,7 @@
     "host": "localhost",
     "port": 9090,
     "debug": false,
-    "externalProtocol": "http",
-    "tenantEnabled": [
-      "slf"
-    ],
-    "eMI3id": {
-      "slf": {
-        "country_id": "FR",
-        "party_id": "SLF"
-      }
-    }
+    "externalProtocol": "http"
   },
   "CentralSystemServer": {
     "protocol": "http",

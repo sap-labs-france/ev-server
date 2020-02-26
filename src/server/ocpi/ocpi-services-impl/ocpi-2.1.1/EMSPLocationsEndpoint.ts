@@ -19,6 +19,8 @@ import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { Action } from '../../../../types/Authorization';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -36,7 +38,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'PATCH':
         return await this.patchLocationRequest(req, res, next, tenant, ocpiEndpoint);
@@ -71,7 +73,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         method: 'patchLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -85,7 +87,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           method: 'patchLocationRequest',
           errorCode: HttpStatusCodes.NOT_FOUND,
           message: 'Unknown EVSE with id ' + evseUid,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
       if (connectorId) {
@@ -96,7 +98,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     } else {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of location ${locationId} is not supported currently`,
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -134,11 +136,11 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         method: 'updateLocationRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
-    const siteName = OCPIUtils.buildSiteName(countryCode, partyId);
+    const siteName = OCPIUtils.buildOperatorName(countryCode, partyId);
     const ocpiClient = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
     const company = await ocpiClient.getCompany();
     const sites = await SiteStorage.getSites(tenant.id, { companyIDs: [company.id], search: siteName }, Constants.DB_PARAMS_SINGLE_RECORD);
@@ -175,7 +177,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
       chargingStation.maximumPower = patchedChargingStation.maximumPower;
     }
 
-    await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+    await ChargingStationStorage.saveChargingStation(Action.OCPI_PATCH_LOCATIONS, tenant.id, chargingStation);
   }
 
   private async patchConnector(tenant: Tenant, chargingStation: ChargingStation, connectorId: string, ocpiConnector: Partial<OCPIConnector>) {
@@ -196,7 +198,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           if (ocpiConnector.standard) {
             connector.type = OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard);
           }
-          await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+          await ChargingStationStorage.saveChargingStation(Action.OCPI_PATCH_LOCATIONS, tenant.id, chargingStation);
           found = true;
           break;
         }
@@ -205,7 +207,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!found) {
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of connector ${connectorId} of evse ${chargingStation.id} failed because connector was not found`,
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -220,7 +222,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (evse.status === OCPIEvseStatus.REMOVED) {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Delete removed evse ${evseUid} of location ${locationId}`,
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -231,7 +233,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     } else {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Update evse ${evseUid} of location ${locationId}`,
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -239,7 +241,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         detailedMessage: location
       });
       const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(Action.OCPI_PATCH_LOCATIONS, tenant.id, chargingStation);
     }
   }
 
@@ -248,7 +250,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
     if (!chargingStation) {
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Unable to update connector of non existing evse ${evseUid} of location ${locationId}`,
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -280,7 +282,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         });
       }
-      await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
+      await ChargingStationStorage.saveChargingStation(Action.OCPI_PATCH_LOCATIONS, tenant.id, chargingStation);
     }
   }
 }

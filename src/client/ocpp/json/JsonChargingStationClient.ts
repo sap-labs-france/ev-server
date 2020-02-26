@@ -1,27 +1,29 @@
 import uuid from 'uuid/v4';
+import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
+import { Profile } from '../../../types/ChargingProfile';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingStationCommand, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
-  public tagID: any;
-  public connectorID: any;
-  public chargingProfile: any;
-  public type: any;
+  public tagID: string;
+  public connectorID: number;
+  public chargingProfile: Profile;
+  public type: string;
   public keys: any;
-  public key: any;
+  public key: string;
   public value: any;
-  public transactionId: any;
-  public connectorId: any;
+  public transactionId: number;
+  public connectorId: number;
 
-  private wsConnection: any;
+  private wsConnection: JsonWSConnection;
 
-  constructor(wsConnection) {
+  constructor(wsConnection: JsonWSConnection) {
     super();
     this.wsConnection = wsConnection;
   }
 
-  getChargeBoxId(): string {
-    return this.wsConnection.getChargeBoxId();
+  getChargingStationID(): string {
+    return this.wsConnection.getChargingStationID();
   }
 
   public remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {

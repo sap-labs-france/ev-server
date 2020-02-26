@@ -1,22 +1,22 @@
-import { Action, Entity, Role } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { SettingDB, SettingDBContent } from '../../../types/Setting';
+import Tenant from '../../../types/Tenant';
+import User, { UserRole } from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import { SettingDB, SettingDBContent } from '../../../types/Setting';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Tenant from '../../../types/Tenant';
-import TenantSecurity from './security/TenantSecurity';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TenantValidator from '../validation/TenantValidation';
-import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import TenantValidator from '../validation/TenantValidation';
+import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'TenantService';
@@ -26,7 +26,7 @@ export default class TenantService {
   public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -41,7 +41,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(id);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${id}' does not exist`,
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -75,7 +75,7 @@ export default class TenantService {
   public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
@@ -90,7 +90,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -126,6 +126,8 @@ export default class TenantService {
   }
 
   public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Validate
+    const filteredRequest = TenantValidator.getInstance().validateTenantCreation(req.body);
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
       throw new AppAuthError({
@@ -137,9 +139,6 @@ export default class TenantService {
         method: 'handleCreateTenant'
       });
     }
-    TenantValidator.getInstance().validateTenantCreation(req.body);
-    // Filter
-    const filteredRequest = TenantSecurity.filterTenantRequest(req.body);
     // Check the Tenant's name
     let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
     if (foundTenant) {
@@ -183,7 +182,7 @@ export default class TenantService {
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Role
-    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Role.ADMIN);
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, UserRole.ADMIN);
     // Save User Status
     await UserStorage.saveUserStatus(filteredRequest.id, tenantUser.id, tenantUser.status);
     // Save User Account Verification
@@ -223,9 +222,7 @@ export default class TenantService {
 
   public static async handleUpdateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
-    TenantValidator.getInstance().validateTenantUpdate(req.body);
-    // Filter
-    const tenantUpdate = TenantSecurity.filterTenantRequest(req.body);
+    const tenantUpdate = TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
       throw new AppAuthError({
@@ -240,7 +237,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();

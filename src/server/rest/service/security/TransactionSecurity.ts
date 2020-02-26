@@ -114,7 +114,7 @@ export default class TransactionSecurity {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
-      if (transaction.hasOwnProperty('errorCode')) {
+      if (Utils.objectHasProperty(transaction, 'errorCode')) {
         filteredTransaction.uniqueId = transaction.uniqueId;
         (filteredTransaction as TransactionInError).errorCode = (transaction as TransactionInError).errorCode;
       }
@@ -125,7 +125,7 @@ export default class TransactionSecurity {
       filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.timestamp = transaction.timestamp;
       filteredTransaction.timezone = transaction.timezone;
-      if (transaction.hasOwnProperty('price')) {
+      if (Utils.objectHasProperty(transaction, 'price')) {
         filteredTransaction.price = transaction.price;
         filteredTransaction.roundedPrice = transaction.roundedPrice;
         filteredTransaction.priceUnit = transaction.priceUnit;
@@ -273,7 +273,7 @@ export default class TransactionSecurity {
   public static filterConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
-    if (request.hasOwnProperty('TransactionId')) {
+    if (Utils.objectHasProperty(request, 'TransactionId')) {
       filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
     }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);

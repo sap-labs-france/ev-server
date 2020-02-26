@@ -14,6 +14,7 @@ import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../../utils/Logging';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -28,7 +29,7 @@ export default class OCPISessionsService {
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: session,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -50,7 +51,7 @@ export default class OCPISessionsService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No user found for auth_id ${session.auth_id}`,
           detailedMessages: session,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
 
@@ -65,7 +66,7 @@ export default class OCPISessionsService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: session,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
       if (chargingStation.issuer) {
@@ -76,7 +77,7 @@ export default class OCPISessionsService {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: session,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+          ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
 

@@ -1,5 +1,5 @@
-import User from "./User";
-import ChargingStation from "./ChargingStation";
+import User from './User';
+import ChargingStation from './ChargingStation';
 
 export enum Source {
   CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError',

@@ -15,6 +15,8 @@ import { OCPIEvse } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { Action } from '../../../../types/Authorization';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -32,17 +34,17 @@ const RECORDS_LIMIT = 20;
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'GET':
-        return await this.getLocationsRequest(req, res, next, tenant, options);
+        return await this.getLocationsRequest(req, res, next, tenant, ocpiEndpoint);
     }
   }
 
   /**
    * Get Locations according to the requested url Segment
    */
-  async getLocationsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async getLocationsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -57,6 +59,14 @@ const RECORDS_LIMIT = 20;
     const connectorId = urlSegment.shift();
     let payload = {};
 
+    const ocpiClient = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
+    // Define get option
+    const options = {
+      addChargeBoxID: true,
+      countryID: ocpiClient.getLocalCountryCode(),
+      partyID: ocpiClient.getLocalPartyID()
+    };
+
     // Process request
     if (locationId && evseUid && connectorId) {
       payload = await this.getConnector(tenant, locationId, evseUid, connectorId, options);
@@ -70,7 +80,7 @@ const RECORDS_LIMIT = 20;
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
 
@@ -86,7 +96,7 @@ const RECORDS_LIMIT = 20;
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } else if (locationId) {
@@ -102,7 +112,7 @@ const RECORDS_LIMIT = 20;
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site id '${locationId}' not found`,
-          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
     } else {
@@ -158,6 +168,10 @@ const RECORDS_LIMIT = 20;
   async getEvse(tenant: Tenant, locationId: string, evseUid: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse> {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
+
+    if (!site) {
+      return null;
+    }
 
     // Convert to location
     const location = await OCPIMapping.convertSite2Location(tenant, site, options);

@@ -92,7 +92,7 @@ export default class OCPPValidation extends SchemaValidator {
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
     if (meterValues.connectorId === 0) {
-      // BUG KEBA: Connector ID must be > 0 according OCPP
+      // KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id, module: 'OCPPValidation', method: 'validateMeterValues',
@@ -106,7 +106,7 @@ export default class OCPPValidation extends SchemaValidator {
       (connector) => connector.connectorId === meterValues.connectorId);
     const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.activeTransactionID : 0);
     // Transaction is provided in MeterValue?
-    if (meterValues.hasOwnProperty('transactionId')) {
+    if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer
       meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
       // Yes: Check Transaction ID (ABB)

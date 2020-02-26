@@ -1,10 +1,10 @@
 import cfenv from 'cfenv';
 import os from 'os';
+import global from '../../types/GlobalType';
+import Lock from '../../types/Lock';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import global from '../../types/GlobalType';
-import Lock from '../../types/Lock';
 import Logging from '../../utils/Logging';
 
 export default class LockingStorage {

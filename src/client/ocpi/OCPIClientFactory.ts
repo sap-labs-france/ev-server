@@ -1,18 +1,21 @@
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
-import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
     // Check if OCPI component is active
-    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       const ocpiSettings = await SettingStorage.getOCPISettings(tenant.id);
       // Check
       if (!ocpiSettings && ocpiSettings.ocpi) {
@@ -24,16 +27,16 @@ export default class OCPIClientFactory {
         });
       }
       switch (ocpiEndpoint.role) {
-        case Constants.OCPI_ROLE.CPO:
+        case OCPIRole.CPO:
           return new CpoOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
-        case Constants.OCPI_ROLE.EMSP:
+        case OCPIRole.EMSP:
           return new EmspOCPIClient(tenant, ocpiSettings.ocpi, ocpiEndpoint);
       }
     }
   }
 
   static async getCpoOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<CpoOCPIClient> {
-    if (ocpiEndpoint.role === Constants.OCPI_ROLE.CPO) {
+    if (ocpiEndpoint.role === OCPIRole.CPO) {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as CpoOCPIClient;
     }
@@ -46,7 +49,7 @@ export default class OCPIClientFactory {
   }
 
   static async getEmspOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<EmspOCPIClient> {
-    if (ocpiEndpoint.role === Constants.OCPI_ROLE.EMSP) {
+    if (ocpiEndpoint.role === OCPIRole.EMSP) {
       const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
       return client as EmspOCPIClient;
     }
@@ -61,7 +64,7 @@ export default class OCPIClientFactory {
   static async getAvailableOcpiClient(tenant: Tenant, ocpiRole: string): Promise<OCPIClient> {
     const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: ocpiRole }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const ocpiEndpoint of ocpiEndpoints.result) {
-      if (ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+      if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
         const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
         return client;
       }

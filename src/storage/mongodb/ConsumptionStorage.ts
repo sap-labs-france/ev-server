@@ -1,8 +1,8 @@
-import Cypher from '../../utils/Cypher';
+import Consumption from '../../types/Consumption';
 import global from '../../types/GlobalType';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Consumption from '../../types/Consumption';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class ConsumptionStorage {

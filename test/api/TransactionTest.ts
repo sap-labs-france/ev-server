@@ -3,7 +3,7 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import responseHelper from '../helpers/responseHelper';
-import chargingStationContext from './contextProvider/ChargingStationContext';
+import ChargingStationContext from './contextProvider/ChargingStationContext';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import TransactionCommonTests from './TransactionCommonTests';
@@ -18,7 +18,7 @@ class TestData {
   public transactionCommonTests: TransactionCommonTests;
   public siteContext: any;
   public siteAreaContext: any;
-  public chargingStationContext: chargingStationContext;
+  public chargingStationContext: ChargingStationContext;
 }
 
 const testData: TestData = new TestData();

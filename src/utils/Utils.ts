@@ -1,6 +1,3 @@
-import { BillingContentType, PricingContentType, RefundContentType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { HTTPError } from '../types/HTTPError';
-import User, { Status } from '../types/User';
 import bcrypt from 'bcryptjs';
 import { Request } from 'express';
 import fs from 'fs';
@@ -10,25 +7,31 @@ import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
+import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { Action } from '../types/Authorization';
+import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
+import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
+import { SettingDBContent } from '../types/Setting';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
+import TenantComponents from '../types/TenantComponents';
 import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import { Role } from '../types/Authorization';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -71,7 +74,7 @@ export default class Utils {
     return InactivityStatus.ERROR;
   }
 
-  public static hasOwnProperty(object: object, key: string): boolean {
+  public static objectHasProperty(object: object, key: string): boolean {
     return Object.prototype.hasOwnProperty.call(object, key);
   }
 
@@ -115,24 +118,6 @@ export default class Utils {
     return false;
   }
 
-  public static getIfChargingStationIsInactive(chargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
-  }
-
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
@@ -154,8 +139,6 @@ export default class Utils {
       }
       // Check connectors
       Utils.checkAndUpdateConnectorsStatus(chargingStation);
-      // Set Inactive flag
-      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
       // Handle Connectors
       if (!chargingStation.connectors) {
@@ -465,7 +448,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {
@@ -629,11 +612,11 @@ export default class Utils {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
-  public static firstLetterInUpperCase(value): string {
+  public static firstLetterInUpperCase(value: string): string {
     return value[0].toUpperCase() + value.substring(1);
   }
 
-  public static firstLetterInLowerCase(value): string {
+  public static firstLetterInLowerCase(value: string): string {
     return value[0].toLowerCase() + value.substring(1);
   }
 
@@ -672,13 +655,13 @@ export default class Utils {
 
   public static getRoleNameFromRoleID(roleID) {
     switch (roleID) {
-      case Role.BASIC:
+      case UserRole.BASIC:
         return 'Basic';
-      case Role.DEMO:
+      case UserRole.DEMO:
         return 'Demo';
-      case Role.ADMIN:
+      case UserRole.ADMIN:
         return 'Admin';
-      case Role.SUPER_ADMIN:
+      case UserRole.SUPER_ADMIN:
         return 'Super Admin';
       default:
         return 'Unknown';
@@ -743,15 +726,15 @@ export default class Utils {
 
   public static getStatusDescription(status: string): string {
     switch (status) {
-      case Status.PENDING:
+      case UserStatus.PENDING:
         return 'Pending';
-      case Status.LOCKED:
+      case UserStatus.LOCKED:
         return 'Locked';
-      case Status.BLOCKED:
+      case UserStatus.BLOCKED:
         return 'Blocked';
-      case Status.ACTIVE:
+      case UserStatus.ACTIVE:
         return 'Active';
-      case Status.INACTIVE:
+      case UserStatus.INACTIVE:
         return 'Inactive';
       default:
         return 'Unknown';
@@ -819,6 +802,61 @@ export default class Utils {
         message: 'The OCPI Endpoint token is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfChargingProfileIsValid(filteredRequest: ChargingProfile, req: Request): void {
+    if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Station ID is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile is mandatory',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
+        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+        !filteredRequest.profile.chargingSchedule) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid Charging Profile',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid Charging Profile\'s Schedule',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile\'s schedule must not be empty',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -908,6 +946,29 @@ export default class Utils {
         message: 'Company Name is mandatory',
         module: 'CompanyService',
         method: 'checkIfCompanyValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfBuildingValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Building ID is mandatory',
+        module: 'BuildingService',
+        method: 'checkIfBuildingValid',
+        user: req.user.id
+      });
+    }
+    if (!filteredRequest.name) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Building Name is mandatory',
+        module: 'BuildingService',
+        method: 'checkIfBuildingValid',
         user: req.user.id
       });
     }
@@ -1029,16 +1090,16 @@ export default class Utils {
     // Creation?
     if (req.method === 'POST') {
       if (!filteredRequest.role) {
-        filteredRequest.role = Role.BASIC;
+        filteredRequest.role = UserRole.BASIC;
       }
     } else if (!Authorizations.isAdmin(req.user)) {
       filteredRequest.role = user.role;
     }
     if (req.method === 'POST' && !filteredRequest.status) {
-      filteredRequest.status = Status.BLOCKED;
+      filteredRequest.status = UserStatus.BLOCKED;
     }
     // Creation?
-    if ((filteredRequest.role !== Role.BASIC) && (filteredRequest.role !== Role.DEMO) &&
+    if ((filteredRequest.role !== UserRole.BASIC) && (filteredRequest.role !== UserRole.DEMO) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1051,7 +1112,7 @@ export default class Utils {
       });
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Role.SUPER_ADMIN) {
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === UserRole.SUPER_ADMIN) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1063,7 +1124,7 @@ export default class Utils {
       });
     }
     // Only Admin and Super Admin can use role different from Basic
-    if ((filteredRequest.role === Role.ADMIN || filteredRequest.role === Role.SUPER_ADMIN) &&
+    if ((filteredRequest.role === UserRole.ADMIN || filteredRequest.role === UserRole.SUPER_ADMIN) &&
       !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1195,7 +1256,7 @@ export default class Utils {
     return components;
   }
 
-  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
+  public static isTenantComponentActive(tenant: Tenant, component: TenantComponents): boolean {
     for (const componentName in tenant.components) {
       if (componentName === component) {
         return tenant.components[componentName].active;
@@ -1207,7 +1268,7 @@ export default class Utils {
   public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingDBContent {
     switch (activeComponent.name) {
       // Pricing
-      case Constants.COMPONENTS.PRICING:
+      case TenantComponents.PRICING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
@@ -1227,7 +1288,7 @@ export default class Utils {
         break;
 
       // Billing
-      case Constants.COMPONENTS.BILLING:
+      case TenantComponents.BILLING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Stripe
           return {
@@ -1238,7 +1299,7 @@ export default class Utils {
         break;
 
       // Refund
-      case Constants.COMPONENTS.REFUND:
+      case TenantComponents.REFUND:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
           return {
@@ -1249,7 +1310,7 @@ export default class Utils {
         break;
 
       // Refund
-      case Constants.COMPONENTS.OCPI:
+      case TenantComponents.OCPI:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
@@ -1260,7 +1321,7 @@ export default class Utils {
         break;
 
       // SAC
-      case Constants.COMPONENTS.ANALYTICS:
+      case TenantComponents.ANALYTICS:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
           return {
@@ -1270,13 +1331,23 @@ export default class Utils {
         }
         break;
 
-      // SAC
-      case Constants.COMPONENTS.SMART_CHARGING:
+      // Smart Charging
+      case TenantComponents.SMART_CHARGING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
             'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
             'sapSmartCharging': {}
+          } as SettingDBContent;
+        }
+        break;
+
+      // Building
+      case TenantComponents.BUILDING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Building
+          return {
+            'type': null,
           } as SettingDBContent;
         }
         break;
@@ -1292,23 +1363,23 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  private static _isUserEmailValid(email: string) {
-    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  private static _isUserEmailValid(email: string): boolean {
+    return validator.isEmail(email);
   }
 
-  private static _areTagsValid(tags: Tag[]) {
+  private static _areTagsValid(tags: Tag[]): boolean {
     return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
   private static _isPhoneValid(phone: string): boolean {
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+    return validator.isMobilePhone(phone);
   }
 
-  private static _isINumberValid(iNumber) {
+  private static _isINumberValid(iNumber): boolean {
     return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
   }
 
-  private static _isPlateIDValid(plateID) {
+  private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 }
