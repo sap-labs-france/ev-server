@@ -87,8 +87,6 @@ export default class Utils {
       case InactivityStatus.ERROR:
         return 'danger';
     }
-    return 'info';
-
   }
 
   public static generateGUID() {
