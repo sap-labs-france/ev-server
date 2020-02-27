@@ -111,7 +111,7 @@ describe('Billing Service', function() {
 
       it('Should connect to Billing Provider', async () => {
         const response = await testData.userService.billingApi.testConnection({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING);
-        expect(response.data.connectionIsValid).to.be.true;
+        expect(response.data.connectionValid).to.be.true;
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
       });
 

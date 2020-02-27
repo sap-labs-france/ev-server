@@ -1,17 +1,17 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import TenantComponents from '../../../types/TenantComponents';
+import { NextFunction, Request, Response } from 'express';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingSecurity from './security/BillingSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
 
 
@@ -59,23 +59,19 @@ export default class BillingService {
         user: req.user
       });
     }
-    try {
-      // Check
-      await billingImpl.checkConnection();
-      // Ok
-      res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS));
-    } catch (error) {
-      // Ko
+
+    const billingConnectionStatus = await billingImpl.checkConnection();
+    if (!billingConnectionStatus.connectionValid) {
       Logging.logError({
         tenantID: tenant.id,
         user: req.user,
         module: 'BillingService', method: 'handleGetBillingConnection',
         message: 'Billing connection failed',
         action: action,
-        detailedMessages: error
+        detailedMessages: billingConnectionStatus.error
       });
-      res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
+    res.json(Object.assign(billingConnectionStatus, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -245,5 +241,6 @@ export default class BillingService {
     // Return
     taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
+    next();
   }
 }
