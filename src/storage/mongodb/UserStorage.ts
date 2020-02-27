@@ -364,7 +364,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
 
-  public static async saveUserStatus(tenantID: string, userID: string, status: string): Promise<void> {
+  public static async saveUserStatus(tenantID: string, userID: string, status: UserStatus): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserStatus');
     // Check Tenant
@@ -378,7 +378,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    mobileToken: string, mobileOs: string, mobileLastChangedOn: Date): Promise<void> {
+    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date; }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -386,7 +386,7 @@ export default class UserStorage {
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
-      { $set: { mobileToken, mobileOs, mobileLastChangedOn } });
+      { $set: params });
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
   }
@@ -441,13 +441,13 @@ export default class UserStorage {
     // Set data
     const updatedUserMDB: any = {};
     // Set only provided values
-    if (params.plateID) {
+    if (Utils.objectHasProperty(params, 'plateID')) {
       updatedUserMDB.plateID = params.plateID;
     }
     if (Utils.objectHasProperty(params, 'notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
-    if (params.notifications) {
+    if (Utils.objectHasProperty(params, 'notifications')) {
       updatedUserMDB.notifications = params.notifications;
     }
     // Modify and return the modified document
