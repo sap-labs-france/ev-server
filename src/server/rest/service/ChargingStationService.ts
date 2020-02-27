@@ -17,7 +17,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -365,7 +365,7 @@ export default class ChargingStationService {
     }
     // Set charging profile
     const result = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-    if (result.status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
+    if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
@@ -961,30 +961,21 @@ export default class ChargingStationService {
           value: chargingStation.id
         });
       }
-      // Check if we have to load all connectors in case connector 0 fails
-      if (filteredRequest.args.connectorId === 0) {
-        // Call for connector 0
-        result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-        if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
-          result = [];
-          // Call each connectors
-          for (const connector of chargingStation.connectors) {
-            filteredRequest.args.connectorId = connector.connectorId;
-            // Execute request
-            const simpleResult = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-            // Fix central reference date
-            const centralTime = new Date();
-            simpleResult['centralSystemTime'] = centralTime;
-            result.push(simpleResult);
-          }
-        }
-      } else {
-        // Execute it
-        result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-        // Fix central reference date
-        const centralTime = new Date();
-        result.centralSystemTime = centralTime;
+      // Get the Vendor instance
+      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+      if (!chargingStationVendor) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: Action.POWER_LIMITATION,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
+          module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+          user: req.user
+        });
       }
+      // Get composite schedule
+      result = chargingStationVendor.getCompositeSchedule(
+        req.user.tenantID, chargingStation, filteredRequest.args.connectorId, filteredRequest.args.duration);
     } else {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
@@ -1001,74 +992,6 @@ export default class ChargingStationService {
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command as OCPPChargingStationCommand, filteredRequest.args);
     }
     // Return
-    res.json(result);
-    next();
-  }
-
-  public static async handleActionSetMaxIntensitySocket(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body);
-    // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Check auth
-    // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Get the Config
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, Action.CHANGE_CONFIGURATION, chargingStation)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: action,
-        entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        value: filteredRequest.chargeBoxID
-      });
-    }
-    const chargerConfiguration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
-    UtilsService.assertObjectExists(action, chargerConfiguration, 'Cannot retrieve the configuration',
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    let maxIntensitySocketMax = null;
-    // Fill current params
-    for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
-      // Max Intensity?
-      if (chargerConfiguration.configuration[i].key.startsWith('currentpb')) {
-        maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
-      }
-    }
-    UtilsService.assertObjectExists(action, maxIntensitySocketMax, 'Cannot retrieve the max intensity socket from the configuration',
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Check
-    let result;
-    if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        action: action,
-        source: chargingStation.id,
-        message: `Max Intensity Socket has been set to '${filteredRequest.maxIntensity}'`
-      });
-      // Change the config
-      result = await OCPPUtils.requestChangeChargingStationConfiguration(req.user.tenantID, chargingStation,
-        { key: 'maxintensitysocket', value: filteredRequest.maxIntensity + '' });
-    } else {
-      // Invalid value
-      throw new AppError({
-        source: chargingStation.id,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        user: req.user,
-        action: action
-      });
-    }
-    // Return the result
     res.json(result);
     next();
   }
@@ -1438,30 +1361,6 @@ export default class ChargingStationService {
         case OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION:
           result = await chargingStationClient.remoteStopTransaction({
             transactionId: params.transactionId
-          });
-          break;
-        // Set Charging Profile
-        case OCPPChargingStationCommand.SET_CHARGING_PROFILE:
-          result = await chargingStationClient.setChargingProfile({
-            connectorId: params.connectorId,
-            csChargingProfiles: params.csChargingProfiles
-          });
-          break;
-        // Get Composite Schedule (power limits)
-        case OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE:
-          result = await chargingStationClient.getCompositeSchedule({
-            connectorId: params.connectorId,
-            duration: params.duration,
-            chargingRateUnit: params.chargingRateUnit
-          });
-          break;
-        // Clear charging profiles
-        case OCPPChargingStationCommand.CLEAR_CHARGING_PROFILE:
-          result = await chargingStationClient.clearChargingProfile({
-            id: params.id,
-            connectorId: params.connectorId,
-            chargingProfilePurpose: params.chargingProfilePurpose,
-            stackLevel: params.stackLevel
           });
           break;
         // Change availability
