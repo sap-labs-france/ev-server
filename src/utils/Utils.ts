@@ -1302,7 +1302,7 @@ export default class Utils {
   }
 
   private static _isPhoneValid(phone: string): boolean {
-    return validator.isMobilePhone(phone);
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
   private static _isINumberValid(iNumber): boolean {
