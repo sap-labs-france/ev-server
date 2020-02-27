@@ -650,14 +650,21 @@ export default class AuthService {
       try {
         const billingData = await billingImpl.createUser(user);
         await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
-      } catch (e) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          module: 'AuthService', method: 'handleVerifyEmail',
+          action: action,
+          user: user,
+          message: `User has been created successfully in the billing system`
+        });
+      } catch (error) {
         Logging.logError({
-          tenantID: req.user.tenantID,
+          tenantID: tenantID,
           module: 'AuthService', method: 'handleVerifyEmail',
           action: action,
           user: user,
           message: `User cannot be created in the billing system`,
-          detailedMessages: e.message
+          detailedMessages: error
         });
       }
     }

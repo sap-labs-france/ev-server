@@ -28,7 +28,6 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
-import { userInfo } from 'os';
 
 export default class UserService {
 
@@ -187,16 +186,18 @@ export default class UserService {
             user: req.user, actionOnUser: user
           });
         }
-        const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
-        if (!userCanBeDeleted) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.BILLING_DELETE_ERROR,
-            message: 'User cannot be deleted due to billing constraints',
-            module: 'BillingService', method: 'handleGetBillingConnection',
-            user: req.user, actionOnUser: user
-          });
+        if (user.billingData) {
+          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+          if (!userCanBeDeleted) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.BILLING_DELETE_ERROR,
+              message: 'User cannot be deleted due to billing constraints',
+              module: 'BillingService', method: 'handleGetBillingConnection',
+              user: req.user, actionOnUser: user
+            });
+          }          
         }
       } catch (error) {
         throw new AppError({
@@ -249,9 +250,9 @@ export default class UserService {
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          action: 'UserDelete',
+          action: action,
           module: 'UserService',method: 'handleDeleteUser',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing system`,
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
@@ -283,7 +284,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService', method: 'handleUpdateUser',
-          action: 'UserUpdate',
+          action: action,
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${user.id} with IOP`,
           detailedMessages: e.message
@@ -389,14 +390,15 @@ export default class UserService {
       try {
         const billingData = await billingImpl.updateUser(user);
         await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService',
           method: 'handleUpdateUser',
-          action: 'UserUpdate',
-          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing system`,
-          detailedMessages: e.message
+          action: action,
+          user: req.user, actionOnUser: user,
+          message: `User cannot be updated in billing system`,
+          detailedMessages: error
         });
       }
     }
@@ -465,7 +467,7 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleUpdateUser',
-            action: 'UserUpdate',
+            action: action,
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
             detailedMessages: e.message
           });
@@ -920,7 +922,7 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleCreateUser',
-            action: 'UserCreate',
+            action: action,
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
             detailedMessages: e.message
           });
@@ -933,14 +935,21 @@ export default class UserService {
           const user = await UserStorage.getUser(req.user.tenantID, newUserID);
           const billingData = await billingImpl.createUser(user);
           await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
-        } catch (e) {
+          Logging.logInfo({
+            tenantID: req.user.tenantID,
+            module: 'UserService', method: 'handleCreateUser',
+            action: action,
+            user: newUserID,
+            message: `User successfully created in billing system`,
+          });
+        } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
             module: 'UserService', method: 'handleCreateUser',
-            action: 'UserCreate',
+            action: action,
             user: newUserID,
-            message: `User cannot be created in Billing system`,
-            detailedMessages: e.message
+            message: `User cannot be created in billing system`,
+            detailedMessages: error
           });
         }
       }

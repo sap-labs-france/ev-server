@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import { Action } from '../../../types/Authorization';
 import i18n from 'i18n-js';
 import moment from 'moment';
 import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
+import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -505,7 +505,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!paymentMethod && !this.settings.noCardAllowed) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
@@ -516,7 +516,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!billingMethod) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
@@ -528,7 +528,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
@@ -544,7 +544,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
@@ -556,7 +556,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       if (!plan || !plan.id || plan.id !== billingPlan) {
         Logging.logError({
           tenantID: this.tenantID,
-          action: Action.DELETE,
+          action: Action.USER_DELETE,
           actionOnUser: user,
           module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
@@ -565,7 +565,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       } else if (plan.currency.toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
         Logging.logError({
           tenantID: this.tenantID,
-          action: Action.DELETE,
+          action: Action.USER_DELETE,
           actionOnUser: user,
           module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan.currency}`
@@ -595,7 +595,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (list && list.data && list.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Opened invoice still exist in Stripe'
@@ -609,7 +609,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (list && list.data && list.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Draft invoice still exist in Stripe'
@@ -623,7 +623,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (itemsList && itemsList.data && itemsList.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.DELETE,
+        action: Action.USER_DELETE,
         actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Pending invoice still exist in Stripe'
@@ -642,7 +642,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'createUser',
-        action: Action.CREATE,
+        action: Action.USER_CREATE,
         user: user,
         message: 'Cannot create the user'
       });
@@ -659,7 +659,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'updateUser',
-        action: Action.CREATE,
+        action: Action.USER_CREATE,
         user: user,
         message: 'Cannot update the user'
       });
@@ -681,7 +681,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'updateUser',
-            action: Action.CREATE,
+            action: Action.USER_CREATE,
             user: user,
             message: 'Cannot delete the User'
           });
@@ -767,7 +767,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Action.CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
           detailedMessages: error
@@ -801,7 +801,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Action.CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
           detailedMessages: error
@@ -820,7 +820,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     //     throw new BackendError({
     //       source: Constants.CENTRAL_SERVER,
     //       module: 'StripeBilling', method: 'modifyUser',
-    //       action: Action.CREATE,
+    //       action: Action.USER_CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
     //       detailedMessages: error
@@ -867,7 +867,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'modifyUser',
-            action: Action.CREATE,
+            action: Action.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: error
@@ -929,7 +929,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Action.CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
           detailedMessages: error
