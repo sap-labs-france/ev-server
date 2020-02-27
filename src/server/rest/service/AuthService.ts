@@ -1,27 +1,27 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Handler, NextFunction, Request, Response } from 'express';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
-import User, { UserRole, UserStatus } from '../../../types/User';
-import { Action } from '../../../types/Authorization';
-import AppError from '../../../exception/AppError';
-import AuthSecurity from './security/AuthSecurity';
-import Authorizations from '../../../authorization/Authorizations';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import { HTTPError } from '../../../types/HTTPError';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Tag from '../../../types/Tag';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import UserToken from '../../../types/UserToken';
-import Utils from '../../../utils/Utils';
 import axios from 'axios';
+import { Handler, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import Authorizations from '../../../authorization/Authorizations';
+import AppError from '../../../exception/AppError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action } from '../../../types/Authorization';
+import { HTTPError } from '../../../types/HTTPError';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import Tag from '../../../types/Tag';
+import User, { UserRole, UserStatus } from '../../../types/User';
+import UserToken from '../../../types/UserToken';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import AuthSecurity from './security/AuthSecurity';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -540,8 +540,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
-        method: 'handleGetEndUserLicenseAgreement',
+        module: 'AuthService', method: 'handleGetEndUserLicenseAgreement',
         action: action
       });
     }
@@ -564,10 +563,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`
       });
     }
     // Check that this is not the super tenant
@@ -575,10 +573,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot verify email in the Super Tenant',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Cannot verify email in the Super Tenant'
       });
     }
     // Check email
@@ -586,10 +583,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Email is mandatory',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'The email is mandatory'
       });
     }
     // Check verificationToken
@@ -597,10 +593,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Verification Token is mandatory',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Verification token is mandatory'
       });
     }
     // Check email
@@ -610,10 +605,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.Email}' does not exist`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `The user with email '${filteredRequest.Email}' does not exist`
       });
     }
     // User deleted?
@@ -621,10 +615,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.Email}' is logically deleted`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `The user is logically deleted`
       });
     }
     // Check if account is already active
@@ -632,10 +625,10 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
-        message: 'Account is already active',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        user: user,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Account is already active'
       });
     }
     // Check verificationToken
@@ -643,17 +636,16 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
-        message: 'Wrong Verification Token',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        user: user,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Wrong Verification Token'
       });
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
     // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
       try {
         const billingData = await billingImpl.createUser(user);
@@ -661,10 +653,10 @@ export default class AuthService {
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleCreateUser',
-          action: 'UserCreate',
-          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
+          module: 'AuthService', method: 'handleVerifyEmail',
+          action: action,
+          user: user,
+          message: `User cannot be created in the billing system`,
           detailedMessages: e.message
         });
       }
