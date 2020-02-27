@@ -297,6 +297,7 @@ export default class UserStorage {
         sendOfflineChargingStations: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendOfflineChargingStations) : false,
         sendBillingUserSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendBillingUserSynchronizationFailed) : false,
         sendSessionNotStarted: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendSessionNotStarted) : false,
+        sendCarSynchronizationFailed: userToSave.notifications ? Utils.convertToBoolean(userToSave.notifications.sendCarSynchronizationFailed) : false,
       },
       deleted: Utils.objectHasProperty(userToSave, 'deleted') ? userToSave.deleted : false
     };
@@ -363,7 +364,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
 
-  public static async saveUserStatus(tenantID: string, userID: string, status: string): Promise<void> {
+  public static async saveUserStatus(tenantID: string, userID: string, status: UserStatus): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserStatus');
     // Check Tenant
@@ -377,7 +378,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    mobileToken: string, mobileOs: string, mobileLastChangedOn: Date): Promise<void> {
+    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date; }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -385,7 +386,7 @@ export default class UserStorage {
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
-      { $set: { mobileToken, mobileOs, mobileLastChangedOn } });
+      { $set: params });
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
   }
@@ -440,13 +441,13 @@ export default class UserStorage {
     // Set data
     const updatedUserMDB: any = {};
     // Set only provided values
-    if (params.plateID) {
+    if (Utils.objectHasProperty(params, 'plateID')) {
       updatedUserMDB.plateID = params.plateID;
     }
     if (Utils.objectHasProperty(params, 'notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
-    if (params.notifications) {
+    if (Utils.objectHasProperty(params, 'notifications')) {
       updatedUserMDB.notifications = params.notifications;
     }
     // Modify and return the modified document
@@ -863,13 +864,18 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if (type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+      if ((type === UserInErrorType.NOT_ASSIGNED &&
+          !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
+          !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
         continue;
       }
       array.push(`$${type}`);
       facets.$facet[type] = UserStorage.getUserInErrorFacet(tenantID, type);
     }
-    aggregation.push(facets);
+    // Do not add facet aggregation if no facet found
+    if (Object.keys(facets.$facet).length > 0) {
+      aggregation.push(facets);
+    }
     // Manipulate the results to convert it to an array of document on root level
     aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     // Finish the preparation of the result
@@ -1103,7 +1109,8 @@ export default class UserStorage {
         sendPreparingSessionNotStarted: false,
         sendOfflineChargingStations: false,
         sendBillingUserSynchronizationFailed: false,
-        sendSessionNotStarted: false
+        sendSessionNotStarted: false,
+        sendCarSynchronizationFailed: false
       },
       role: UserRole.BASIC,
       status: UserStatus.PENDING,
@@ -1161,7 +1168,6 @@ export default class UserStorage {
           { $match: { $and: [ { 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
           { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
-
       default:
         return [];
     }

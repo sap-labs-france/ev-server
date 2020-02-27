@@ -67,12 +67,6 @@ export default class MigrationHandler {
         );
         // Already processed?
         if (migrationTaskDone) {
-          Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
-            source: 'Migration', action: 'Migration',
-            module: 'MigrationHandler', method: 'migrate',
-            message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
-          });
           continue;
         }
         // Check
@@ -92,7 +86,7 @@ export default class MigrationHandler {
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Migration', action: 'Migration',
         module: 'MigrationHandler', method: 'migrate',
-        message: `All synchronous migration tasks have been run successfully in ${totalMigrationTimeSecs} secs`
+        message: `The migration has been run in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
       Logging.logError({

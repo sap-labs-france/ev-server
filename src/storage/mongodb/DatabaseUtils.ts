@@ -69,13 +69,6 @@ export default class DatabaseUtils {
     });
   }
 
-  public static pushVehicleLookupInAggregation(lookupParams: DbLookup) {
-    DatabaseUtils.pushCollectionLookupInAggregation('vehicles', {
-      objectIDFields: ['createdBy', 'lastChangedBy'],
-      ...lookupParams
-    });
-  }
-
   public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('siteareas', {
       objectIDFields: ['siteID', 'createdBy', 'lastChangedBy'],

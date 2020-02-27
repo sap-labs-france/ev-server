@@ -877,7 +877,7 @@ export default class ChargingStationService {
 
   public static async handleAction(command: OCPPChargingStationCommand|Action, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
+    const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(command as Action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
     // Get the Charging station
@@ -957,16 +957,12 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
+          module: 'ChargingStationService', method: 'handleAction',
           value: chargingStation.id
         });
       }
       // Check if we have to load all connectors in case connector 0 fails
-      if (Utils.objectHasProperty(req.body, 'loadAllConnectors')) {
-        filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
-      }
-      if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
+      if (filteredRequest.args.connectorId === 0) {
         // Call for connector 0
         result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
         if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
@@ -997,8 +993,7 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
+          module: 'ChargingStationService', method: 'handleAction',
           value: chargingStation.id
         });
       }

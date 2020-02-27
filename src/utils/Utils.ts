@@ -87,8 +87,6 @@ export default class Utils {
       case InactivityStatus.ERROR:
         return 'danger';
     }
-    return 'info';
-
   }
 
   public static generateGUID() {
@@ -512,7 +510,7 @@ export default class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  public static buildEvseURL(subdomain): string {
+  public static buildEvseURL(subdomain: string = null): string {
     if (subdomain) {
       return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
     }
@@ -969,74 +967,6 @@ export default class Utils {
         message: 'Building Name is mandatory',
         module: 'BuildingService',
         method: 'checkIfBuildingValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfVehicleValid(filteredRequest, req: Request) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle ID is mandatory',
-        module: 'VehicleService',
-        method: 'checkIfVehicleValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.type) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle Type is mandatory',
-        module: 'VehicleService',
-        method: 'checkIfVehicleValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.model) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle Model is mandatory',
-        module: 'VehicleService',
-        method: 'checkIfVehicleValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.vehicleManufacturerID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle Manufacturer is mandatory',
-        module: 'VehicleService',
-        method: 'checkIfVehicleValid',
-        user: req.user.id
-      });
-    }
-  }
-
-  public static checkIfVehicleManufacturerValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle Manufacturer ID is mandatory',
-        module: 'VehicleManufacturer',
-        method: 'checkIfVehicleManufacturerValid',
-        user: req.user.id
-      });
-    }
-    if (!filteredRequest.name) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Vehicle Manufacturer Name is mandatory',
-        module: 'VehicleManufacturer',
-        method: 'checkIfVehicleManufacturerValid',
         user: req.user.id
       });
     }
