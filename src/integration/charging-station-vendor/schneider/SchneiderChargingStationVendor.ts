@@ -198,12 +198,11 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
     // Connector ID > 0
     } else {
       // Execute it
-      const result = await chargingStationClient.getCompositeSchedule({
+      return chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
         duration: durationSecs,
         chargingRateUnit: chargingStation.powerLimitUnit
       });
-      return result;
     }
   }
 
