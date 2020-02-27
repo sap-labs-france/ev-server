@@ -864,7 +864,9 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) || !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
+      if ((type === UserInErrorType.NOT_ASSIGNED &&
+          !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
+          !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
         continue;
       }
       array.push(`$${type}`);
