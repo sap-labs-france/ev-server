@@ -1,6 +1,6 @@
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandResult, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
@@ -16,6 +16,8 @@ export default abstract class ChargingStationVendor {
   public abstract async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult>;
 
   public abstract async clearChargingProfile(tenantID: string, chargingStation: ChargingStation, chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult>;
+
+  public abstract async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation, connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult|OCPPGetCompositeScheduleCommandResult[]>;
 
   public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     return {

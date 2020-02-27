@@ -6,7 +6,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPSetCompositeScheduleStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import ChargingStationVendor from '../ChargingStationVendor';
@@ -160,6 +160,51 @@ export default class SchneiderChargingStationVendor extends ChargingStationVendo
       };
     }
     return result;
+  }
+
+  public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation, connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult|OCPPGetCompositeScheduleCommandResult[]> {
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
+        module: 'SchneiderChargingStationVendor', method: 'getCompositeSchedule',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
+    // Check if we have to load all connectors in case connector 0 fails
+    if (connectorID === 0) {
+      // Test call for connector 0
+      const result = await chargingStationClient.getCompositeSchedule({
+        connectorId: connectorID,
+        duration: durationSecs,
+        chargingRateUnit: chargingStation.powerLimitUnit
+      });
+      // Call each connector?
+      if (result.status !== OCPPGetCompositeScheduleStatus.ACCEPTED) {
+        let results = [] as OCPPGetCompositeScheduleCommandResult[];
+        for (const connector of chargingStation.connectors) {
+          const result = await chargingStationClient.getCompositeSchedule({
+            connectorId: connector.connectorId,
+            duration: durationSecs,
+            chargingRateUnit: chargingStation.powerLimitUnit
+          });
+          results.push(result);
+        }
+        return results;
+      }
+      return result;
+    // Connector ID > 0
+    } else {
+      // Execute it
+      const result = await chargingStationClient.getCompositeSchedule({
+        connectorId: connectorID,
+        duration: durationSecs,
+        chargingRateUnit: chargingStation.powerLimitUnit
+      });
+      return result;
+    }
   }
 
   public async getConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
