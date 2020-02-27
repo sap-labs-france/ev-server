@@ -974,7 +974,7 @@ export default class ChargingStationService {
         });
       }
       // Get composite schedule
-      return chargingStationVendor.getCompositeSchedule(
+      const result = chargingStationVendor.getCompositeSchedule(
         req.user.tenantID, chargingStation, filteredRequest.args.connectorId, filteredRequest.args.duration);
     } else {
       // Check auth
