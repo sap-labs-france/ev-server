@@ -806,12 +806,12 @@ export default class Utils {
   }
 
   public static checkIfChargingProfileIsValid(filteredRequest: ChargingProfile, req: Request): void {
-    if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Station ID is mandatory',
+        message: 'Profile ID is mandatory',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
