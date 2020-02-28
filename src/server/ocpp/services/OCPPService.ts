@@ -1134,7 +1134,7 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
       // Save the status to Charging Station
       const chargingStationToSave = chargingStation;
-      chargingStationToSave.firmwareStatus = firmwareStatusNotification.status;
+      chargingStationToSave.lastFirmwareStatus = firmwareStatusNotification.status;
       await ChargingStationStorage.saveChargingStation(Action.UPDATE, headers.tenantID, chargingStationToSave);
       // Set the Charging Station ID
       firmwareStatusNotification.chargeBoxID = chargingStation.id;

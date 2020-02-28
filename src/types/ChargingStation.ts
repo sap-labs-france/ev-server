@@ -16,7 +16,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   imsi: string;
   meterType: string;
   firmwareVersion: string;
-  firmwareStatus?: OCPPFirmwareStatus;
+  lastFirmwareStatus?: OCPPFirmwareStatus;
   meterSerialNumber: string;
   endpoint: string;
   ocppVersion: OCPPVersion;
