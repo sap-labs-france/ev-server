@@ -28,6 +28,7 @@ import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration'
 import HealthCheckConfiguration from '../types/configuration/HealthCheckConfiguration';
 import MigrationConfiguration from '../types/configuration/MigrationConfiguration';
 import OCPIEndpointConfiguration from '../types/configuration/OCPIEndpointConfiguration';
+import EVDatabaseConfiguration from '../types/configuration/EVDatabaseAPIConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -216,6 +217,12 @@ export default class Configuration {
     return Configuration.getConfig().Email;
   }
 
+  // Email config
+  static getEVDatabaseConfig(): EVDatabaseConfiguration {
+    // Read conf
+    return Configuration.getConfig().EVDatabase;
+  }
+
   // Advanced config
   static getAdvancedConfig(): AdvancedConfiguration {
     // Read conf
@@ -246,7 +253,7 @@ export default class Configuration {
           storage.password = mongoDBService.credentials.password;
           storage.replicaSet = mongoDBService.credentials.replicaset;
         }
-      // Provisioned with User Provided Service
+        // Provisioned with User Provided Service
       } else if (_appEnv.services['user-provided']) {
         // Find the service
         const mongoDBService = _appEnv.services['user-provided'].find((userProvidedService) =>

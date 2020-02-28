@@ -540,8 +540,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
-        method: 'handleGetEndUserLicenseAgreement',
+        module: 'AuthService', method: 'handleGetEndUserLicenseAgreement',
         action: action
       });
     }
@@ -564,10 +563,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`
       });
     }
     // Check that this is not the super tenant
@@ -575,10 +573,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot verify email in the Super Tenant',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Cannot verify email in the Super Tenant'
       });
     }
     // Check email
@@ -586,10 +583,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'The Email is mandatory',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'The email is mandatory'
       });
     }
     // Check verificationToken
@@ -597,10 +593,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Verification Token is mandatory',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Verification token is mandatory'
       });
     }
     // Check email
@@ -610,10 +605,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.Email}' does not exist`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        action: action
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `The user with email '${filteredRequest.Email}' does not exist`
       });
     }
     // User deleted?
@@ -621,10 +615,9 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.Email}' is logically deleted`,
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: `The user is logically deleted`
       });
     }
     // Check if account is already active
@@ -632,10 +625,10 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
-        message: 'Account is already active',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        user: user,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Account is already active'
       });
     }
     // Check verificationToken
@@ -643,19 +636,37 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
-        message: 'Wrong Verification Token',
-        module: 'AuthService',
-        method: 'handleVerifyEmail',
-        user: user
+        action: action,
+        user: user,
+        module: 'AuthService', method: 'handleVerifyEmail',
+        message: 'Wrong Verification Token'
       });
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user);
-      await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
+      try {
+        const billingData = await billingImpl.createUser(user);
+        await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
+        Logging.logInfo({
+          tenantID: tenantID,
+          module: 'AuthService', method: 'handleVerifyEmail',
+          action: action,
+          user: user,
+          message: `User has been created successfully in the billing system`
+        });
+      } catch (error) {
+        Logging.logError({
+          tenantID: tenantID,
+          module: 'AuthService', method: 'handleVerifyEmail',
+          action: action,
+          user: user,
+          message: `User cannot be created in the billing system`,
+          detailedMessages: error
+        });
+      }
     }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenantID, user.id,

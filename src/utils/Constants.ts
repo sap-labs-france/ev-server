@@ -1,3 +1,5 @@
+import Tenant from '../types/Tenant';
+
 export default class Constants {
   public static readonly CSV_SEPARATOR = '\t'; // Cannot store Regex ind enum
 
@@ -9,6 +11,10 @@ export default class Constants {
   public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
   public static readonly DB_PARAMS_COUNT_ONLY = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
   public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_OBJECT= {
+    id: Constants.DEFAULT_TENANT,
+    name: Constants.DEFAULT_TENANT
+  } as Tenant;
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
 
@@ -27,8 +33,6 @@ export default class Constants {
   public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
   public static readonly WITH_SITE = true; // Not used
   public static readonly WITHOUT_SITE = false; // Not used
-
-  public static readonly VEHICLE_TYPE_CAR = 'C';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
