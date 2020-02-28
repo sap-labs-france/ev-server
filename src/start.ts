@@ -121,20 +121,6 @@ export default class Bootstrap {
         });
       });
 
-      // FIXME: Attach the socketIO server to the master process for now.
-      // Load balancing between workers needs to make the client session sticky.
-      if (Bootstrap.centralSystemRestConfig && Bootstrap.centralSystemRestConfig.socketIO && cluster.isMaster) {
-        // -------------------------------------------------------------------------
-        // REST Server (Front-End)
-        // -------------------------------------------------------------------------
-        // Create the server
-        if (!Bootstrap.centralRestServer) {
-          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
-        }
-        // Start Socket IO server
-        await Bootstrap.centralRestServer.startSocketIO();
-      }
-
       if (cluster.isMaster && Bootstrap.isClusterEnabled) {
         Bootstrap.startMaster();
       } else {
@@ -174,6 +160,7 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
+
     function exitCb(worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id + ' died with code: ' + code + ', and signal: ' + signal +
@@ -244,10 +231,11 @@ export default class Bootstrap {
         // Start database Web Socket notifications
         Bootstrap.storageNotification.start();
         // Start it
-        await Bootstrap.centralRestServer.start();
-        // pragma if (this.centralSystemRestConfig.socketIO) {
-        //   await this.centralRestServer.startSocketIO();
-        // }
+        Bootstrap.centralRestServer.start();
+
+        if (Bootstrap.centralSystemRestConfig.socketIO) {
+          Bootstrap.centralRestServer.startSocketIO();
+        }
       }
 
       // -------------------------------------------------------------------------
