@@ -858,6 +858,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile\'s start date must not be in the past',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
   }
 
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
@@ -947,6 +957,11 @@ export default class Utils {
         user: req.user.id
       });
     }
+  }
+
+  public static isValidDate(date: any) {
+    // @ts-ignore
+    return moment(date).isValid();
   }
 
   public static checkIfBuildingValid(filteredRequest: any, req: Request): void {
