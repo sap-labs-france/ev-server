@@ -122,19 +122,19 @@ export default abstract class ChargingStationVendor {
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Set the Profile
-        const result = await chargingStationClient.setChargingProfile({
-          connectorId: schneiderChargingProfile.connectorID,
-          csChargingProfiles: schneiderChargingProfile.profile
-        });
-        // Call each connector?
-        if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
+        // const result = await chargingStationClient.setChargingProfile({
+        //   connectorId: schneiderChargingProfile.connectorID,
+        //   csChargingProfiles: schneiderChargingProfile.profile
+        // });
+        // // Call each connector?
+        // if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             action: Action.CLEAR_CHARGING_PROFILE,
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
-            detailedMessages: { result }
+            // detailedMessages: { result }
           });
           let results = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
@@ -145,8 +145,8 @@ export default abstract class ChargingStationVendor {
             results.push(result);
           }
           return results;
-        }
-        return result;
+        // }
+        // return result;
       // Connector ID > 0
       } else {
         return chargingStationClient.setChargingProfile({
@@ -179,19 +179,19 @@ export default abstract class ChargingStationVendor {
     try {
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
-        // Clear the Profile
-        const result = await chargingStationClient.clearChargingProfile({
-          connectorId: chargingProfile.connectorID
-        });
-        // Call each connector?
-        if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+        // // Clear the Profile
+        // const result = await chargingStationClient.clearChargingProfile({
+        //   connectorId: chargingProfile.connectorID
+        // });
+        // // Call each connector?
+        // if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             action: Action.CLEAR_CHARGING_PROFILE,
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
-            detailedMessages: { result }
+            // detailedMessages: { result }
           });
           let results = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
@@ -202,8 +202,8 @@ export default abstract class ChargingStationVendor {
             results.push(result);
           }
           return results;
-        }
-        return result;
+        // }
+        // return result;
       // Connector ID > 0
       } else {
         // Clear the Profile
