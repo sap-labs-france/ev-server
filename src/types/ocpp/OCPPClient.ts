@@ -140,7 +140,7 @@ export interface OCPPGetCompositeScheduleCommandResult {
   status: OCPPGetCompositeScheduleStatus;
   connectorId?: number;
   scheduleStart?: Date;
-  chargingSchedule: ChargingSchedule;
+  chargingSchedule?: ChargingSchedule;
 }
 
 export enum OCPPGetCompositeScheduleStatus {
