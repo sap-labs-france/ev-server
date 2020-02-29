@@ -76,7 +76,6 @@ export default abstract class ChargingStationVendor {
     }
     return result;
   }
-  
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
       ocppParamName: string, ocppParamValue: string) {
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
@@ -274,6 +273,7 @@ export default abstract class ChargingStationVendor {
           chargingRateUnit: chargingStation.powerLimitUnit
         });
       }
+      return result;
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -282,6 +282,13 @@ export default abstract class ChargingStationVendor {
         status: error.status
       };
     }
+    // Execute it
+    return chargingStationClient.getCompositeSchedule({
+      connectorId: connectorID,
+      duration: durationSecs,
+      chargingRateUnit: chargingStation.powerLimitUnit
+    });
+
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,

@@ -195,6 +195,6 @@ export default class EVDabaseCar extends CarDatabase {
       };
       cars.push(car);
     }
-    return cars;    
+    return cars;
   }
 }

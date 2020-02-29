@@ -60,7 +60,7 @@
     "source-map-support": "^0.5.16",
     "stripe": "^7.15.0",
     "strong-soap": "^1.21.0",
-    "typescript": "^3.8.2",
+    "typescript": "^3.8.3",
     "tz-lookup": "^6.1.23",
     "urlencode": "^1.1.0",
     "uuid": "^3.3.2",
