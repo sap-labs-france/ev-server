@@ -32,6 +32,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
+import moment from 'moment';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -854,6 +855,19 @@ export default class Utils {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s start date must not be in the past',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    // Check End of Schedule <= 24h
+    const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
+      filteredRequest.profile.chargingSchedule.duration * 1000);
+    if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile\'s schedule should not exeed 24 hours',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
