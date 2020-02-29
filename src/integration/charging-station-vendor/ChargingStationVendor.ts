@@ -273,7 +273,6 @@ export default abstract class ChargingStationVendor {
           chargingRateUnit: chargingStation.powerLimitUnit
         });
       }
-      return result;
     } catch (error) {
       if (!error.status) {
         throw error;
