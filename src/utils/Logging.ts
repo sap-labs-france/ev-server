@@ -147,8 +147,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Received',
       action: action,
       detailedMessages: payload
@@ -160,8 +159,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Sent',
       action: action,
       detailedMessages: args

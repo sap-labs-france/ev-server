@@ -132,7 +132,7 @@ export default abstract class ChargingStationVendor {
             tenantID: tenantID,
             source: chargingStation.id,
             action: Action.CLEAR_CHARGING_PROFILE,
-            message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
+            message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             // detailedMessages: { result }
           });
