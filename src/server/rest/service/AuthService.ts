@@ -617,7 +617,7 @@ export default class AuthService {
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
         module: 'AuthService', method: 'handleVerifyEmail',
-        message: `The user is logically deleted`
+        message: 'The user is logically deleted'
       });
     }
     // Check if account is already active
@@ -655,7 +655,7 @@ export default class AuthService {
           module: 'AuthService', method: 'handleVerifyEmail',
           action: action,
           user: user,
-          message: `User has been created successfully in the billing system`
+          message: 'User has been created successfully in the billing system'
         });
       } catch (error) {
         Logging.logError({
@@ -663,7 +663,7 @@ export default class AuthService {
           module: 'AuthService', method: 'handleVerifyEmail',
           action: action,
           user: user,
-          message: `User cannot be created in the billing system`,
+          message: 'User cannot be created in the billing system',
           detailedMessages: error
         });
       }

@@ -76,7 +76,7 @@ export default abstract class ChargingStationVendor {
     }
     return result;
   }
-  
+
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation, ocppParamName: string, ocppParamValue: string) {
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
       // Update the charger
@@ -183,7 +183,7 @@ export default abstract class ChargingStationVendor {
       });
       // Call each connector?
       if (result.status !== OCPPGetCompositeScheduleStatus.ACCEPTED) {
-        let results = [] as OCPPGetCompositeScheduleCommandResult[];
+        const results = [] as OCPPGetCompositeScheduleCommandResult[];
         for (const connector of chargingStation.connectors) {
           const result = await chargingStationClient.getCompositeSchedule({
             connectorId: connector.connectorId,
@@ -196,14 +196,14 @@ export default abstract class ChargingStationVendor {
       }
       return result;
     // Connector ID > 0
-    } else {
-      // Execute it
-      return chargingStationClient.getCompositeSchedule({
-        connectorId: connectorID,
-        duration: durationSecs,
-        chargingRateUnit: chargingStation.powerLimitUnit
-      });
     }
+    // Execute it
+    return chargingStationClient.getCompositeSchedule({
+      connectorId: connectorID,
+      duration: durationSecs,
+      chargingRateUnit: chargingStation.powerLimitUnit
+    });
+
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
