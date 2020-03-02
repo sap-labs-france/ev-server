@@ -74,18 +74,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
     // Get recently updated customers from Billing application
     const userBillingIDsChangedInBilling = await this.getUpdatedUserIDsInBilling();
+    const actualUsersToSynchronize: User[] = [];
+    // Only synchronize existing users
+    for (const userBillingIDChanged of userBillingIDsChangedInBilling) {
+      const user = await UserStorage.getUserByBillingID(tenantID, userBillingIDChanged);
+      if (user) {
+        actualUsersToSynchronize.push(user);
+      }
+    }
     // Synchronize e-Mobility User's Billing data
-    if (userBillingIDsChangedInBilling.length > 0) {
+    if (actualUsersToSynchronize.length > 0) {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_BILLING,
         module: 'Billing', method: 'synchronizeUsers',
-        message: `${userBillingIDsChangedInBilling.length} billing user(s) are going to be synchronized with e-Mobility users`
+        message: `${actualUsersToSynchronize.length} billing user(s) are going to be synchronized with e-Mobility users`
       });
-      for (const userBillingIDChangedInBilling of userBillingIDsChangedInBilling) {
-        // Get e-Mobility User
-        const user = await UserStorage.getUserByBillingID(tenantID, userBillingIDChangedInBilling);
+      for (const user of actualUsersToSynchronize) {
         if (!user) {
           actionsDone.error++;
           Logging.logError({
@@ -93,12 +99,12 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_BILLING,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in e-Mobility`
+            message: `Billing user with ID '${user.billingData.customerID}' does not exist in e-Mobility`
           });
           continue;
         }
         // Get Billing User
-        const billingUser = await this.getUser(userBillingIDChangedInBilling);
+        const billingUser = await this.getUser(user.billingData.customerID);
         if (!billingUser) {
           // Only triggers an error if e-Mobility user is not deleted
           actionsDone.error++;
@@ -110,7 +116,7 @@ export default abstract class Billing<T extends BillingSetting> {
             action: Action.SYNCHRONIZE_BILLING,
             actionOnUser: user,
             module: 'Billing', method: 'synchronizeUsers',
-            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in billing system`
+            message: `Billing user with ID '${user.billingData.customerID}' does not exist in billing system`
           });
           continue;
         }
