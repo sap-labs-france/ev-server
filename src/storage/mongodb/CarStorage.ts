@@ -11,17 +11,17 @@ export default class CarStorage {
   public static async getCar(id: string): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCar');
-   // Query single Site
-   const carsMDB = await CarStorage.getCars(
-    { carID: id },
-    Constants.DB_PARAMS_SINGLE_RECORD);
-   // Debug
+    // Query single Site
+    const carsMDB = await CarStorage.getCars(
+      { carID: id },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
     Logging.traceEnd('CarStorage', 'getCar', uniqueTimerID, { id });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[]; } = {},
+    params: { search?: string; carID?: string; carIDs?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
@@ -237,7 +237,7 @@ export default class CarStorage {
       eVDBDetailURL: carToSave.eVDBDetailURL,
       images: carToSave.images,
       videos: carToSave.videos,
-      hash: carToSave.hash,  
+      hash: carToSave.hash,
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);

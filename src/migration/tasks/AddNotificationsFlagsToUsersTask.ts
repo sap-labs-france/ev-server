@@ -39,7 +39,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     }
 
   }
-  
+
   async migrateTenant(tenant) {
     // Read all users
     const users: any = await global.database.getCollection(tenant.id, 'users').aggregate().toArray();

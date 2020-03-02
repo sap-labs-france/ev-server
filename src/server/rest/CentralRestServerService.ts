@@ -32,14 +32,6 @@ class RequestMapper {
     switch (httpVerb) {
       // Create
       case 'POST':
-        // Register Charging Stations actions
-        this.registerOneActionManyPaths(
-          async (action: Action, req: Request, res: Response, next: NextFunction) => {
-            action = action.slice(15) as Action;
-            await ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
-          },
-          'ChargingStationSetMaxIntensitySocket'
-        );
         this.registerOneActionManyPaths(
           async (action: Action, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)

@@ -1,33 +1,33 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import fs from 'fs';
+import Authorizations from '../../../authorization/Authorizations';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import { UserInErrorType } from '../../../types/InError';
-import UserNotifications from '../../../types/UserNotifications';
-import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import Utils from '../../../utils/Utils';
-import UtilsService from './UtilsService';
-import fs from 'fs';
 import Address from '../../../types/Address';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { UserInErrorType } from '../../../types/InError';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import TenantComponents from '../../../types/TenantComponents';
 import { UserStatus } from '../../../types/User';
+import UserNotifications from '../../../types/UserNotifications';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import UserSecurity from './security/UserSecurity';
+import UtilsService from './UtilsService';
 
 export default class UserService {
 
@@ -186,16 +186,18 @@ export default class UserService {
             user: req.user, actionOnUser: user
           });
         }
-        const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
-        if (!userCanBeDeleted) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            action: action,
-            errorCode: HTTPError.BILLING_DELETE_ERROR,
-            message: 'User cannot be deleted due to billing constraints',
-            module: 'BillingService', method: 'handleGetBillingConnection',
-            user: req.user, actionOnUser: user
-          });
+        if (user.billingData) {
+          const userCanBeDeleted = await billingImpl.checkIfUserCanBeDeleted(user);
+          if (!userCanBeDeleted) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.BILLING_DELETE_ERROR,
+              message: 'User cannot be deleted due to billing constraints',
+              module: 'BillingService', method: 'handleGetBillingConnection',
+              user: req.user, actionOnUser: user
+            });
+          }
         }
       } catch (error) {
         throw new AppError({
@@ -248,9 +250,9 @@ export default class UserService {
       } catch (e) {
         Logging.logError({
           tenantID: req.user.tenantID,
-          action: 'UserDelete',
+          action: action,
           module: 'UserService',method: 'handleDeleteUser',
-          message: `User '${user.firstName} ${user.name}' cannot be deleted in Billing system`,
+          message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
           detailedMessages: e.message
         });
@@ -282,7 +284,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService', method: 'handleUpdateUser',
-          action: 'UserUpdate',
+          action: action,
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${user.id} with IOP`,
           detailedMessages: e.message
@@ -388,14 +390,15 @@ export default class UserService {
       try {
         const billingData = await billingImpl.updateUser(user);
         await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService',
           method: 'handleUpdateUser',
-          action: 'UserUpdate',
-          message: `User '${user.firstName} ${user.name}' cannot be updated in Billing system`,
-          detailedMessages: e.message
+          action: action,
+          user: req.user, actionOnUser: user,
+          message: 'User cannot be updated in billing system',
+          detailedMessages: error
         });
       }
     }
@@ -464,7 +467,7 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleUpdateUser',
-            action: 'UserUpdate',
+            action: action,
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
             detailedMessages: e.message
           });
@@ -893,7 +896,6 @@ export default class UserService {
         tag.lastChangedBy = filteredRequest.createdBy;
       });
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
-
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -920,13 +922,37 @@ export default class UserService {
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleCreateUser',
-            action: 'UserCreate',
+            action: action,
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
             detailedMessages: e.message
           });
         }
       }
-
+      // For integration with billing
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (billingImpl) {
+        try {
+          const user = await UserStorage.getUser(req.user.tenantID, newUserID);
+          const billingData = await billingImpl.createUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+          Logging.logInfo({
+            tenantID: req.user.tenantID,
+            module: 'UserService', method: 'handleCreateUser',
+            action: action,
+            user: newUserID,
+            message: 'User successfully created in billing system',
+          });
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService', method: 'handleCreateUser',
+            action: action,
+            user: newUserID,
+            message: 'User cannot be created in billing system',
+            detailedMessages: error
+          });
+        }
+      }
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
@@ -962,25 +988,6 @@ export default class UserService {
         await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
       }
     }
-    // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    if (billingImpl) {
-      const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-      try {
-        const billingData = await billingImpl.createUser(user);
-        await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
-      } catch (e) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleCreateUser',
-          action: 'UserCreate',
-          message: `User '${user.firstName} ${user.name}' cannot be created in Billing system`,
-          detailedMessages: e.message
-        });
-      }
-    }
-
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

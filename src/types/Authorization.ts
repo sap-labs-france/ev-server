@@ -53,6 +53,8 @@ export enum Action {
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
   GET_CHARGING_PROFILE = 'GetChargingProfile',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
@@ -87,7 +89,11 @@ export enum Action {
 
   CHANGE_CONFIGURATION = 'ChangeConfiguration',
 
+  USER_READ = 'UserRead',
   USER_INVOICE = 'UserInvoice',
+  USER_CREATE = 'UserCreate',
+  USER_DELETE = 'UserDelete',
+  USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
 

@@ -121,10 +121,10 @@ export interface OCPPSetChargingProfileCommandParam extends OCPPCommandParam {
 }
 
 export interface OCPPSetChargingProfileCommandResult {
-  status: OCPPSetCompositeScheduleStatus;
+  status: OCPPChargingProfileStatus;
 }
 
-export enum OCPPSetCompositeScheduleStatus {
+export enum OCPPChargingProfileStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
   NOT_SUPPORTED = 'NotSupported'
@@ -140,7 +140,7 @@ export interface OCPPGetCompositeScheduleCommandResult {
   status: OCPPGetCompositeScheduleStatus;
   connectorId?: number;
   scheduleStart?: Date;
-  chargingSchedule: ChargingSchedule;
+  chargingSchedule?: ChargingSchedule;
 }
 
 export enum OCPPGetCompositeScheduleStatus {

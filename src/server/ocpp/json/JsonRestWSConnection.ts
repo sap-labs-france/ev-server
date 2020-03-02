@@ -59,7 +59,7 @@ export default class JsonRestWSConnection extends WSConnection {
 
   public async handleRequest(messageId, commandName, commandPayload) {
     // Log
-    Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?

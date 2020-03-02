@@ -378,7 +378,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date; }): Promise<void> {
+    params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -864,9 +864,8 @@ export default class UserStorage {
     const array = [];
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
-      if ((type === UserInErrorType.NOT_ASSIGNED &&
-          !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-          !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING)) {
+      if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
+          ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -1160,7 +1159,7 @@ export default class UserStorage {
       }
       case UserInErrorType.FAILED_BILLING_SYNCHRO:
         return [
-          { $match: { 'billingData.hasSynchroError': { $eq: true } } },
+          { $match: { $or: [{ 'billingData.hasSynchroError': { $eq: true } }, { 'billingData.hasSynchroError': { $exists: false } }] } },
           { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
         ];
       case UserInErrorType.NO_BILLING_DATA:

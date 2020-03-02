@@ -248,6 +248,9 @@ export default class ChargingStationSecurity {
 
   public static filterChargingProfileUpdateRequest(request: any): ChargingProfile {
     const filteredRequest: ChargingProfile = {} as ChargingProfile;
+    if (Utils.objectHasProperty(request, 'id')) {
+      filteredRequest.id = sanitize(request.id);
+    }
     if (Utils.objectHasProperty(request, 'chargingStationID')) {
       filteredRequest.chargingStationID = sanitize(request.chargingStationID);
     }

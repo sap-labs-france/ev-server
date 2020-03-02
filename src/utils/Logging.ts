@@ -147,8 +147,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Received',
       action: action,
       detailedMessages: payload
@@ -160,8 +159,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Sent',
       action: action,
       detailedMessages: args
@@ -170,15 +168,25 @@ export default class Logging {
 
   // Log
   public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: string, detailedMessages: any): void {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module,
-      method: action,
-      message: '<< OCPP Request Returned',
-      action: action,
-      detailedMessages: detailedMessages
-    });
+    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: '<< OCPP Request Returned',
+        action: action,
+        detailedMessages: detailedMessages
+      });
+    } else {
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: '<< OCPP Request Returned',
+        action: action,
+        detailedMessages: detailedMessages
+      });
+    }
   }
 
   // Used to log exception in catch(...) only

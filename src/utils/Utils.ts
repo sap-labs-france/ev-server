@@ -32,6 +32,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
+import moment from 'moment';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -806,16 +807,6 @@ export default class Utils {
   }
 
   public static checkIfChargingProfileIsValid(filteredRequest: ChargingProfile, req: Request): void {
-    if (req.method !== 'PUT' && !filteredRequest.chargingStationID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Station ID is mandatory',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -854,6 +845,29 @@ export default class Utils {
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile\'s start date must not be in the past',
+        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        user: req.user.id
+      });
+    }
+    // Check End of Schedule <= 24h
+    const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
+      filteredRequest.profile.chargingSchedule.duration * 1000);
+    if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SET_CHARGING_PROFILE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Charging Profile\'s schedule should not exeed 24 hours',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
@@ -947,6 +961,11 @@ export default class Utils {
         user: req.user.id
       });
     }
+  }
+
+  public static isValidDate(date: any) {
+    // @ts-ignore
+    return moment(date).isValid();
   }
 
   public static checkIfBuildingValid(filteredRequest: any, req: Request): void {
@@ -1302,7 +1321,7 @@ export default class Utils {
   }
 
   private static _isPhoneValid(phone: string): boolean {
-    return validator.isMobilePhone(phone);
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
   private static _isINumberValid(iNumber): boolean {
