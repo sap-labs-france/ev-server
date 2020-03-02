@@ -21,8 +21,6 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
-import VehicleManufacturerService from './service/VehicleManufacturerService';
-import VehicleService from './service/VehicleService';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -34,14 +32,6 @@ class RequestMapper {
     switch (httpVerb) {
       // Create
       case 'POST':
-        // Register Charging Stations actions
-        this.registerOneActionManyPaths(
-          async (action: Action, req: Request, res: Response, next: NextFunction) => {
-            action = action.slice(15) as Action;
-            await ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
-          },
-          'ChargingStationSetMaxIntensitySocket'
-        );
         this.registerOneActionManyPaths(
           async (action: Action, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)
@@ -84,8 +74,6 @@ class RequestMapper {
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
           BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
-          VehicleCreate: VehicleService.handleCreateVehicle.bind(this),
-          VehicleManufacturerCreate: VehicleManufacturerService.handleCreateVehicleManufacturer.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),
           AddUsersToSite: SiteService.handleAddUsersToSite.bind(this),
           RemoveUsersFromSite: SiteService.handleRemoveUsersFromSite.bind(this),
@@ -142,12 +130,6 @@ class RequestMapper {
           SiteUsers: SiteService.handleGetUsers.bind(this),
           Tenants: TenantService.handleGetTenants.bind(this),
           Tenant: TenantService.handleGetTenant.bind(this),
-          Vehicles: VehicleService.handleGetVehicles.bind(this),
-          Vehicle: VehicleService.handleGetVehicle.bind(this),
-          VehicleImage: VehicleService.handleGetVehicleImage.bind(this),
-          VehicleManufacturers: VehicleManufacturerService.handleGetVehicleManufacturers.bind(this),
-          VehicleManufacturer: VehicleManufacturerService.handleGetVehicleManufacturer.bind(this),
-          VehicleManufacturerLogo: VehicleManufacturerService.handleGetVehicleManufacturerLogo.bind(this),
           SiteAreas: SiteAreaService.handleGetSiteAreas.bind(this),
           SiteArea: SiteAreaService.handleGetSiteArea.bind(this),
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage.bind(this),
@@ -216,8 +198,6 @@ class RequestMapper {
           BuildingUpdate: BuildingService.handleUpdateBuilding.bind(this),
           SiteUserAdmin: SiteService.handleUpdateSiteUserAdmin.bind(this),
           SiteOwner: SiteService.handleUpdateSiteOwner.bind(this),
-          VehicleUpdate: VehicleService.handleUpdateVehicle.bind(this),
-          VehicleManufacturerUpdate: VehicleManufacturerService.handleUpdateVehicleManufacturer.bind(this),
           TransactionSoftStop: TransactionService.handleTransactionSoftStop.bind(this),
           AssignTransactionsToUser: TransactionService.handleAssignTransactionsToUser.bind(this),
           SettingUpdate: SettingService.handleUpdateSetting.bind(this),
@@ -242,8 +222,6 @@ class RequestMapper {
           BuildingDelete: BuildingService.handleDeleteBuilding.bind(this),
           ChargingStationDelete: ChargingStationService.handleDeleteChargingStation.bind(this),
           ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
-          VehicleDelete: VehicleService.handleDeleteVehicle.bind(this),
-          VehicleManufacturerDelete: VehicleManufacturerService.handleDeleteVehicleManufacturer.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
           TransactionsDelete: TransactionService.handleDeleteTransactions.bind(this),
           IntegrationConnectionDelete: ConnectorService.handleDeleteConnection.bind(this),

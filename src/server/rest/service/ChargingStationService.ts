@@ -17,7 +17,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetCompositeScheduleStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -314,13 +314,12 @@ export default class ChargingStationService {
   public static async handleUpdateChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
-    // Check existence
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
-    // Check
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
-      'ChargingStationService', 'handleUpdateChargingProfile', req.user);
     // Check Mandatory fields
     Utils.checkIfChargingProfileIsValid(filteredRequest, req);
+    // Check existence
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
+    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
+      'ChargingStationService', 'handleUpdateChargingProfile', req.user);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -345,10 +344,9 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        user: req.user,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
-        module: 'ChargingStationService',
-        method: 'handleUpdateChargingProfile',
-        user: req.user
       });
     }
     // Get Vendor Instance
@@ -357,23 +355,35 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        user: req.user
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
       });
     }
     // Set charging profile
     const result = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-    if (result.status !== OCPPSetCompositeScheduleStatus.ACCEPTED) {
+    // Check for Array
+    let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
+    if (Array.isArray(result)) {
+      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+        if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
+          resultStatus = oneResult.status;
+          break;
+        }
+      }
+    } else {
+      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+    }
+    if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `Cannot set the charger's charging profile: '${result.status}'`,
+        message: `Cannot set the Charging Station's charging profile!`,
         detailedMessages: result,
-        user: req.user
       });
     }
     // Save
@@ -427,10 +437,10 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        user: req.user
+        message: `Charging Station '${chargingStation.id}' does not support the charging profiles`,
       });
     }
     // Get Vendor Instance
@@ -439,23 +449,35 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        user: req.user
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
       });
     }
     // Clear charging profile
     const result = await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
-    if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+    // Check for Array
+    let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
+    if (Array.isArray(result)) {
+      for (const oneResult of result as OCPPClearChargingProfileCommandResult[]) {
+        if (oneResult.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+          resultStatus = oneResult.status;
+          break;
+        }
+      }
+    } else {
+      resultStatus = (result as OCPPClearChargingProfileCommandResult).status;
+    }
+    if (resultStatus !== OCPPClearChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `Cannot delete the charger's charging profiles: '${result.status}'`,
+        message: `Cannot clear the Charging Station's charging profiles!`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         detailedMessages: result,
-        user: req.user
       });
     }
     // Delete
@@ -464,10 +486,10 @@ export default class ChargingStationService {
     Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
+      action: action,
       user: req.user,
       module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-      message: 'Charging Profile has been cleared successfully',
-      action: action
+      message: 'Charging Profile has been deleted successfully',
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -877,7 +899,7 @@ export default class ChargingStationService {
 
   public static async handleAction(command: OCPPChargingStationCommand|Action, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } =
+    const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(command as Action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
     // Get the Charging station
@@ -957,38 +979,25 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
+          module: 'ChargingStationService', method: 'handleAction',
           value: chargingStation.id
         });
       }
-      // Check if we have to load all connectors in case connector 0 fails
-      if (Utils.objectHasProperty(req.body, 'loadAllConnectors')) {
-        filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
+      // Get the Vendor instance
+      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+      if (!chargingStationVendor) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: Action.POWER_LIMITATION,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
+          module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+          user: req.user
+        });
       }
-      if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
-        // Call for connector 0
-        result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-        if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
-          result = [];
-          // Call each connectors
-          for (const connector of chargingStation.connectors) {
-            filteredRequest.args.connectorId = connector.connectorId;
-            // Execute request
-            const simpleResult = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-            // Fix central reference date
-            const centralTime = new Date();
-            simpleResult['centralSystemTime'] = centralTime;
-            result.push(simpleResult);
-          }
-        }
-      } else {
-        // Execute it
-        result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-        // Fix central reference date
-        const centralTime = new Date();
-        result.centralSystemTime = centralTime;
-      }
+      // Get composite schedule
+      result = await chargingStationVendor.getCompositeSchedule(
+        req.user.tenantID, chargingStation, filteredRequest.args.connectorId, filteredRequest.args.duration);
     } else {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
@@ -997,8 +1006,7 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
-          method: 'handleAction',
+          module: 'ChargingStationService', method: 'handleAction',
           value: chargingStation.id
         });
       }
@@ -1006,74 +1014,6 @@ export default class ChargingStationService {
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command as OCPPChargingStationCommand, filteredRequest.args);
     }
     // Return
-    res.json(result);
-    next();
-  }
-
-  public static async handleActionSetMaxIntensitySocket(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body);
-    // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Check auth
-    // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Get the Config
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, Action.CHANGE_CONFIGURATION, chargingStation)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: action,
-        entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        value: filteredRequest.chargeBoxID
-      });
-    }
-    const chargerConfiguration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
-    UtilsService.assertObjectExists(action, chargerConfiguration, 'Cannot retrieve the configuration',
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    let maxIntensitySocketMax = null;
-    // Fill current params
-    for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
-      // Max Intensity?
-      if (chargerConfiguration.configuration[i].key.startsWith('currentpb')) {
-        maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
-      }
-    }
-    UtilsService.assertObjectExists(action, maxIntensitySocketMax, 'Cannot retrieve the max intensity socket from the configuration',
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Check
-    let result;
-    if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        action: action,
-        source: chargingStation.id,
-        message: `Max Intensity Socket has been set to '${filteredRequest.maxIntensity}'`
-      });
-      // Change the config
-      result = await OCPPUtils.requestChangeChargingStationConfiguration(req.user.tenantID, chargingStation,
-        { key: 'maxintensitysocket', value: filteredRequest.maxIntensity + '' });
-    } else {
-      // Invalid value
-      throw new AppError({
-        source: chargingStation.id,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`,
-        module: 'ChargingStationService',
-        method: 'handleActionSetMaxIntensitySocket',
-        user: req.user,
-        action: action
-      });
-    }
-    // Return the result
     res.json(result);
     next();
   }
@@ -1443,30 +1383,6 @@ export default class ChargingStationService {
         case OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION:
           result = await chargingStationClient.remoteStopTransaction({
             transactionId: params.transactionId
-          });
-          break;
-        // Set Charging Profile
-        case OCPPChargingStationCommand.SET_CHARGING_PROFILE:
-          result = await chargingStationClient.setChargingProfile({
-            connectorId: params.connectorId,
-            csChargingProfiles: params.csChargingProfiles
-          });
-          break;
-        // Get Composite Schedule (power limits)
-        case OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE:
-          result = await chargingStationClient.getCompositeSchedule({
-            connectorId: params.connectorId,
-            duration: params.duration,
-            chargingRateUnit: params.chargingRateUnit
-          });
-          break;
-        // Clear charging profiles
-        case OCPPChargingStationCommand.CLEAR_CHARGING_PROFILE:
-          result = await chargingStationClient.clearChargingProfile({
-            id: params.id,
-            connectorId: params.connectorId,
-            chargingProfilePurpose: params.chargingProfilePurpose,
-            stackLevel: params.stackLevel
           });
           break;
         // Change availability

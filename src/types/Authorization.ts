@@ -16,10 +16,6 @@ export enum Entity {
   REPORT = 'Report',
   USER = 'User',
   USERS = 'Users',
-  VEHICLE_MANUFACTURER = 'VehicleManufacturer',
-  VEHICLE_MANUFACTURERS = 'VehicleManufacturers',
-  VEHICLES = 'Vehicles',
-  VEHICLE = 'Vehicle',
   LOGGINGS = 'Loggings',
   LOGGING = 'Logging',
   PRICING = 'Pricing',
@@ -57,6 +53,8 @@ export enum Action {
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
   GET_CHARGING_PROFILE = 'GetChargingProfile',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
@@ -64,6 +62,7 @@ export enum Action {
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
+  SYNCHRONIZE_CARS = 'SynchronizeCars',
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
   POWER_LIMITATION = 'PowerLimitation',
@@ -90,7 +89,11 @@ export enum Action {
 
   CHANGE_CONFIGURATION = 'ChangeConfiguration',
 
+  USER_READ = 'UserRead',
   USER_INVOICE = 'UserInvoice',
+  USER_CREATE = 'UserCreate',
+  USER_DELETE = 'UserDelete',
+  USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
 

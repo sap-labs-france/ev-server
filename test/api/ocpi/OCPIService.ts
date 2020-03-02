@@ -33,9 +33,9 @@ export default class OCPIService {
   static getToken(role: OCPIRole) {
     if (role === OCPIRole.CPO) {
       return `Token ${config.get('ocpi.cpoToken')}`;
-    } else {
-      return `Token ${config.get('ocpi.emspToken')}`;
     }
+    return `Token ${config.get('ocpi.emspToken')}`;
+
   }
 
   /**

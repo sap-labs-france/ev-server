@@ -405,46 +405,6 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.OCPI_ENDPOINT, Action.GENERATE_LOCAL_TOKEN);
   }
 
-  public static canListVehicles(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLES, Action.LIST);
-  }
-
-  public static canReadVehicle(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE, Action.READ);
-  }
-
-  public static canCreateVehicle(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE, Action.CREATE);
-  }
-
-  public static canUpdateVehicle(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE, Action.UPDATE);
-  }
-
-  public static canDeleteVehicle(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE, Action.DELETE);
-  }
-
-  public static canListVehicleManufacturers(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE_MANUFACTURERS, Action.LIST);
-  }
-
-  public static canReadVehicleManufacturer(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE_MANUFACTURER, Action.READ);
-  }
-
-  public static canCreateVehicleManufacturer(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE_MANUFACTURER, Action.CREATE);
-  }
-
-  public static canUpdateVehicleManufacturer(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE_MANUFACTURER, Action.UPDATE);
-  }
-
-  public static canDeleteVehicleManufacturer(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.VEHICLE_MANUFACTURER, Action.DELETE);
-  }
-
   public static canListSiteAreas(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.SITE_AREAS, Action.LIST);
   }
@@ -779,7 +739,8 @@ export default class Authorizations {
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
         sendSmtpAuthError: false,
-        sendSessionNotStarted: false
+        sendSessionNotStarted: false,
+        sendCarSynchronizationFailed: false
       } as UserNotifications;
       user.image = '';
       user.iNumber = '';

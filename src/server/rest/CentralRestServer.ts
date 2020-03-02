@@ -116,10 +116,14 @@ export default class CentralRestServer {
     // Init Socket IO
     CentralRestServer.socketIO = socketio(CentralRestServer.restHttpServer);
     CentralRestServer.socketIO.use((socket, next) => {
-      if (socket.request.headers.cookie) {
-        return next();
-      }
-      next(new Error('Authentication error'));
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'start', action: 'Startup',
+        message: 'Socket is trying to connect from ' + socket.handshake.headers.origin,
+        detailedMessages: socket.handshake
+      });
+      next();
     });
     CentralRestServer.socketIO.use(socketioJwt.authorize({
       secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
@@ -130,8 +134,22 @@ export default class CentralRestServer {
     CentralRestServer.socketIO.on('connection', (socket) => {
       const userToken: UserToken = socket.decoded_token;
       if (!userToken || !userToken.tenantID) {
-        socket.close();
+        Logging.logWarning({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME,
+          method: 'start', action: 'Startup',
+          message: 'Socket is trying to connect without token',
+          detailedMessages: socket.handshake
+        });
+        socket.disconnect(true);
       } else {
+        Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME,
+          method: 'start', action: 'Startup',
+          message: 'Socket is connected to tenant ' + userToken.tenantID,
+          detailedMessages: socket.handshake
+        });
         socket.join(userToken.tenantID);
         // Handle Socket IO connection
         socket.on('disconnect', () => {
@@ -181,36 +199,6 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.USERS
-    });
-  }
-
-  notifyVehicle(tenantID: string, action: string, data) {
-    // Add in buffer
-    this.addSingleChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE,
-      'action': action,
-      'data': data
-    });
-    // Add in buffer
-    this.addChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLES
-    });
-  }
-
-  notifyVehicleManufacturer(tenantID: string, action: string, data) {
-    // Add in buffer
-    this.addSingleChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE_MANUFACTURER,
-      'action': action,
-      'data': data
-    });
-    // Add in buffer
-    this.addChangeNotificationInBuffer({
-      'tenantID': tenantID,
-      'entity': Entity.VEHICLE_MANUFACTURERS
     });
   }
 
