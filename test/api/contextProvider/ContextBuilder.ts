@@ -135,7 +135,9 @@ export default class ContextBuilder {
     await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
     if (CONTEXTS.TENANT_USER_LIST[0].tags) {
-      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tags);
+      for (const tag of CONTEXTS.TENANT_USER_LIST[0].tags) {
+        await UserStorage.saveUserTag(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, tag);
+      }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
     // Create Central Server Service
@@ -219,7 +221,9 @@ export default class ContextBuilder {
       await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tags) {
-        await UserStorage.saveUserTags(buildTenant.id, user.id, userDef.tags);
+        for (const tag of userDef.tags) {
+          await UserStorage.saveUserTag(buildTenant.id, user.id, tag);
+        }
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);
       if (userDef.assignedToSite) {

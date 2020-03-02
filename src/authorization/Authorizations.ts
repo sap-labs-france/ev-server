@@ -633,6 +633,18 @@ export default class Authorizations {
           user: user
         });
       }
+      const tag = user.tags.find((value) => value.id === tagID);
+      if (!tag.active) {
+        // Reject but save ok
+        throw new AppError({
+          source: chargingStation.id,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Tag ID '${tagID}' of user '${user.id}' is deactivated'`,
+          module: 'Authorizations',
+          method: 'isTagIDAuthorizedOnChargingStation',
+          user: user
+        });
+      }
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user);
       // Authorized?
@@ -683,12 +695,12 @@ export default class Authorizations {
       // Save User TagIDs
       const tag: Tag = {
         id: tagID,
-        deleted: false,
+        active: true,
         issuer: false,
         userID: user.id,
         lastChangedOn: new Date()
       };
-      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
+      await UserStorage.saveUserTag(tenantID, user.id, tag);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role

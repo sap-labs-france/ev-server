@@ -227,7 +227,12 @@ export default class UserService {
       user.address = {} as Address;
       await UserStorage.saveUser(req.user.tenantID, user);
       await UserStorage.saveUserPassword(req.user.tenantID, user.id,
-        { password: '', passwordWrongNbrTrials: 0, passwordResetHash: '', passwordBlockedUntil: null });
+        {
+          password: '',
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: '',
+          passwordBlockedUntil: null
+        });
       await UserStorage.saveUserAdminData(req.user.tenantID, user.id,
         { plateID: '', notificationsActive: false, notifications: null });
       await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
@@ -251,7 +256,7 @@ export default class UserService {
         Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
-          module: 'UserService',method: 'handleDeleteUser',
+          module: 'UserService', method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
           detailedMessages: e.message
@@ -417,11 +422,27 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
-      filteredRequest.tags.forEach((tag) => {
+      for (const previousTag of previousTags) {
+        const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+        if (!foundTag) {
+          // Tag not found in the current tag list, will be deleted or deactivated.
+          if (previousTag.sessionCount > 0) {
+            if (previousTag.active === true) {
+              previousTag.active = false;
+              previousTag.lastChangedOn = filteredRequest.lastChangedOn;
+              previousTag.lastChangedBy = filteredRequest.lastChangedBy;
+              await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, previousTag);
+            }
+          } else {
+            await UserStorage.deleteUserTag(req.user.tenantID, filteredRequest.id, previousTag);
+          }
+        }
+      }
+      for (const tag of filteredRequest.tags) {
         tag.lastChangedOn = filteredRequest.lastChangedOn;
         tag.lastChangedBy = filteredRequest.lastChangedBy;
-      });
-      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
+        await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, tag);
+      }
 
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
@@ -569,7 +590,11 @@ export default class UserService {
     }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-      { mobileToken: filteredRequest.mobileToken, mobileOs: filteredRequest.mobileOS, mobileLastChangedOn: new Date() });
+      {
+        mobileToken: filteredRequest.mobileToken,
+        mobileOs: filteredRequest.mobileOS,
+        mobileLastChangedOn: new Date()
+      });
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -891,11 +916,11 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
-      filteredRequest.tags.forEach((tag) => {
+      for (const tag of filteredRequest.tags) {
         tag.lastChangedOn = filteredRequest.createdOn;
         tag.lastChangedBy = filteredRequest.createdBy;
-      });
-      await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
+        await UserStorage.saveUserTag(req.user.tenantID, newUserID, tag);
+      }
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);

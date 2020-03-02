@@ -210,7 +210,7 @@ export default class OCPIMapping {
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: user.name,
-        valid: !tag.deleted,
+        valid: tag.active,
         whitelist: 'ALLOWED_OFFLINE',
         language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn

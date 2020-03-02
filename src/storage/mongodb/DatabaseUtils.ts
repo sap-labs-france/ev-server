@@ -85,8 +85,7 @@ export default class DatabaseUtils {
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
-      pipelineMatch: { deleted: false },
-      projectedFields: ['id', 'description', 'issuer', 'deleted', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
+      projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
     });
   }
