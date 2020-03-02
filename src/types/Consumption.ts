@@ -20,7 +20,5 @@ export default interface Consumption {
   totalDurationSecs: number;
   stateOfCharge: number;
   userID: string;
-  limitAmps?: number;
-  limitWatts?: number;
   toPrice?: boolean;
 }
