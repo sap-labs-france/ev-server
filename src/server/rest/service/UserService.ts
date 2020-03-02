@@ -197,7 +197,7 @@ export default class UserService {
               module: 'BillingService', method: 'handleGetBillingConnection',
               user: req.user, actionOnUser: user
             });
-          }          
+          }
         }
       } catch (error) {
         throw new AppError({
@@ -397,7 +397,7 @@ export default class UserService {
           method: 'handleUpdateUser',
           action: action,
           user: req.user, actionOnUser: user,
-          message: `User cannot be updated in billing system`,
+          message: 'User cannot be updated in billing system',
           detailedMessages: error
         });
       }
@@ -940,7 +940,7 @@ export default class UserService {
             module: 'UserService', method: 'handleCreateUser',
             action: action,
             user: newUserID,
-            message: `User successfully created in billing system`,
+            message: 'User successfully created in billing system',
           });
         } catch (error) {
           Logging.logError({
@@ -948,7 +948,7 @@ export default class UserService {
             module: 'UserService', method: 'handleCreateUser',
             action: action,
             user: newUserID,
-            message: `User cannot be created in billing system`,
+            message: 'User cannot be created in billing system',
             detailedMessages: error
           });
         }

@@ -1,4 +1,4 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 /*eslint-disable*/
 export interface Car extends CreatedUpdatedProps{

@@ -17,7 +17,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -344,10 +344,9 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+        user: req.user,
+        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
-        module: 'ChargingStationService',
-        method: 'handleUpdateChargingProfile',
-        user: req.user
       });
     }
     // Get Vendor Instance
@@ -356,23 +355,35 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        user: req.user
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
       });
     }
     // Set charging profile
     const result = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
-    if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
+    // Check for Array
+    let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
+    if (Array.isArray(result)) {
+      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+        if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
+          resultStatus = oneResult.status;
+          break;
+        }
+      }
+    } else {
+      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+    }
+    if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `Cannot set the charger's charging profile: '${result.status}'`,
+        message: `Cannot set the Charging Station's charging profile!`,
         detailedMessages: result,
-        user: req.user
       });
     }
     // Save
@@ -426,10 +437,10 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        user: req.user
+        message: `Charging Station '${chargingStation.id}' does not support the charging profiles`,
       });
     }
     // Get Vendor Instance
@@ -438,23 +449,35 @@ export default class ChargingStationService {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        user: req.user
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
       });
     }
     // Clear charging profile
     const result = await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
-    if (result.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+    // Check for Array
+    let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
+    if (Array.isArray(result)) {
+      for (const oneResult of result as OCPPClearChargingProfileCommandResult[]) {
+        if (oneResult.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+          resultStatus = oneResult.status;
+          break;
+        }
+      }
+    } else {
+      resultStatus = (result as OCPPClearChargingProfileCommandResult).status;
+    }
+    if (resultStatus !== OCPPClearChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
         action: Action.SET_CHARGING_PROFILE,
+        user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `Cannot delete the charger's charging profiles: '${result.status}'`,
+        message: `Cannot clear the Charging Station's charging profiles!`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         detailedMessages: result,
-        user: req.user
       });
     }
     // Delete
@@ -463,10 +486,10 @@ export default class ChargingStationService {
     Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
+      action: action,
       user: req.user,
       module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-      message: 'Charging Profile has been cleared successfully',
-      action: action
+      message: 'Charging Profile has been deleted successfully',
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
