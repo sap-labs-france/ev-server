@@ -375,8 +375,8 @@ export default class UserService {
       statusHasChanged = true;
     }
     // Update timestamp
-    filteredRequest.lastChangedBy = { id: req.user.id };
-    filteredRequest.lastChangedOn = new Date();
+    const lastChangedBy = { id: req.user.id };
+    const lastChangedOn = new Date();
     // Clean up request
     delete filteredRequest.passwords;
 
@@ -430,8 +430,8 @@ export default class UserService {
           if (previousTag.sessionCount > 0) {
             if (previousTag.active) {
               previousTag.active = false;
-              previousTag.lastChangedOn = filteredRequest.lastChangedOn;
-              previousTag.lastChangedBy = filteredRequest.lastChangedBy;
+              previousTag.lastChangedOn = lastChangedOn;
+              previousTag.lastChangedBy = lastChangedBy;
               await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, previousTag);
             }
           } else {
@@ -440,8 +440,8 @@ export default class UserService {
         }
       }
       for (const tag of filteredRequest.tags) {
-        tag.lastChangedOn = filteredRequest.lastChangedOn;
-        tag.lastChangedBy = filteredRequest.lastChangedBy;
+        tag.lastChangedOn = lastChangedOn;
+        tag.lastChangedBy = lastChangedBy;
         await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, tag);
       }
       // Synchronize badges with IOP
@@ -898,8 +898,8 @@ export default class UserService {
     delete filteredRequest.passwords;
     filteredRequest.issuer = true;
     // Set timestamp
-    filteredRequest.createdBy = { id: req.user.id };
-    filteredRequest.createdOn = new Date();
+    const createdBy = { id: req.user.id };
+    const createdOn = new Date();
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
     // Save password
@@ -917,8 +917,8 @@ export default class UserService {
     if (Authorizations.isAdmin(req.user)) {
       // Save the Tag IDs
       for (const tag of filteredRequest.tags) {
-        tag.lastChangedOn = filteredRequest.createdOn;
-        tag.lastChangedBy = filteredRequest.createdBy;
+        tag.lastChangedOn = createdOn;
+        tag.lastChangedBy = createdBy;
         await UserStorage.saveUserTag(req.user.tenantID, newUserID, tag);
       }
       // Synchronize badges with IOP
