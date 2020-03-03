@@ -5,6 +5,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import BackendError from '../../../exception/BackendError';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
@@ -17,7 +18,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -1324,6 +1325,14 @@ export default class ChargingStationService {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: command as unknown as Action,
+        module: 'ChargingStationService', method: 'handleChargingStationCommand',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
     try {
       // Handle Requests
       switch (command) {

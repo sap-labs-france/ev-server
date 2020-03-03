@@ -54,6 +54,7 @@ export enum Action {
   GET_CONFIGURATION = 'GetConfiguration',
   GET_CHARGING_PROFILE = 'GetChargingProfile',
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
   CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
