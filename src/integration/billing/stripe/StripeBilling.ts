@@ -4,7 +4,7 @@ import moment from 'moment';
 import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import {BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData} from '../../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -17,6 +17,7 @@ import Billing from '../Billing';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
+import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -148,21 +149,27 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: User): Promise<BillingInvoice[]> {
+  public async getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]> {
     this.checkIfStripeIsInitialized();
     const invoices = [] as BillingInvoice[];
     let request;
     const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    if (params) {
+      if (params.status) {
+        Object.assign(requestParams, { status: params.status });
+      }
+    }
     do {
       request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
         invoices.push({
           id: invoice.id,
+          number: invoice.number,
           status: invoice.status,
           amountDue: invoice.amount_due,
           currency: invoice.currency,
           customerID: invoice.customer,
-          createdOn: invoice.created
+          createdOn: new Date(invoice.created * 1000),
         });
       }
       if (request.has_more) {

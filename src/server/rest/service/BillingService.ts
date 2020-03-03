@@ -1,20 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import TenantComponents from '../../../types/TenantComponents';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import { NextFunction, Request, Response } from 'express';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import { BillingInvoice } from '../../../types/Billing';
 import BillingSecurity from './security/BillingSecurity';
+import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
+import Logging from '../../../utils/Logging';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import {DataResult} from "../../../types/DataResult";
-import {BillingInvoice} from "../../../types/Billing";
 
 
 export default class BillingService {
@@ -247,6 +247,7 @@ export default class BillingService {
     // Return
     taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
+    next();
   }
 
   public static async handleGetUserInvoices(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -282,8 +283,9 @@ export default class BillingService {
         user: req.user
       });
     }
+    const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
     const user = await UserStorage.getUser(tenant.id, req.user.id);
-    let invoices = await billingImpl.getUserInvoices(user);
+    let invoices = await billingImpl.getUserInvoices(user, filteredRequest);
     invoices = BillingSecurity.filterInvoicesResponse(invoices, req.user);
     // Return
     const result = {

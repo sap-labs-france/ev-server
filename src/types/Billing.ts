@@ -49,6 +49,7 @@ export interface BillingTax {
 
 export interface BillingInvoice {
   id: string;
+  number: string;
   status: string;
   amountDue: number;
   currency: string;

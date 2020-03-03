@@ -1,14 +1,15 @@
-import BackendError from '../../exception/BackendError';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { Action } from '../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
-import { UserInErrorType } from '../../types/InError';
-import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
+import { Action } from '../../types/Authorization';
+import BackendError from '../../exception/BackendError';
+import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
+import { HttpGetUserInvoicesRequest } from '../../types/requests/HttpUserRequest';
 import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import { UserInErrorType } from '../../types/InError';
+import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
   protected readonly tenantID: string; // Assuming GUID or other string format ID
@@ -255,5 +256,5 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: User): Promise<BillingInvoice[]>;
+  async abstract getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]>;
 }

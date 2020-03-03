@@ -1,6 +1,6 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
+import { HttpGetUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 import sanitize from 'mongo-sanitize';
 
@@ -60,9 +60,9 @@ export default class BillingSecurity {
     if (Authorizations.canReadBillingInvoices(loggedUser)) {
       // Set only necessary info
       filteredInvoice.id = invoice.id;
+      filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
       filteredInvoice.amountDue = invoice.amountDue;
-      filteredInvoice.amountPaid = invoice.amountPaid;
       filteredInvoice.createdOn = invoice.createdOn;
     }
     return filteredInvoice;
@@ -77,5 +77,13 @@ export default class BillingSecurity {
       filteredUser.email = sanitize(request.email);
     }
     return filteredUser;
+  }
+
+  static filterGetUserInvoicesRequest(request: any): HttpGetUserInvoicesRequest {
+    const filteredRequest = {} as HttpGetUserInvoicesRequest;
+    if (request.Status) {
+      filteredRequest.status = sanitize(request.Status);
+    }
+    return filteredRequest;
   }
 }
