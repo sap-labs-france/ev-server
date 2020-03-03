@@ -84,6 +84,12 @@ export default class BillingSecurity {
     if (request.Status) {
       filteredRequest.status = sanitize(request.Status);
     }
+    if (request.StartDateTime) {
+      filteredRequest.startDateTime = sanitize(request.StartDateTime);
+    }
+    if (request.EndDateTime) {
+      filteredRequest.endDateTime = sanitize(request.EndDateTime);
+    }
     return filteredRequest;
   }
 }

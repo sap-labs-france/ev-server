@@ -153,10 +153,20 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     this.checkIfStripeIsInitialized();
     const invoices = [] as BillingInvoice[];
     let request;
-    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
     if (params) {
       if (params.status) {
         Object.assign(requestParams, { status: params.status });
+      }
+      if (params.startDateTime) {
+        Object.assign(requestParams, { created: { gte: new Date(params.startDateTime).getTime() / 1000 } });
+      }
+      if (params.endDateTime) {
+        if (requestParams.created) {
+          Object.assign(requestParams.created, { lte: new Date(params.endDateTime).getTime() / 1000 });
+        } else {
+          Object.assign(requestParams, { created: { lte: new Date(params.endDateTime).getTime() / 1000 } });
+        }
       }
     }
     do {
