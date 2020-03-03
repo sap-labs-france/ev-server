@@ -1,9 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPError } from '../../../types/HTTPError';
+import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import TenantComponents from '../../../types/TenantComponents';
+
 
 export default class UtilsService {
   static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
@@ -19,12 +23,13 @@ export default class UtilsService {
     }
   }
 
-  public static assertIdIsProvided(id: string|number, module: string, method: string, userToken) {
+  public static assertIdIsProvided(action: Action, id: string|number, module: string, method: string, userToken: UserToken) {
     if (!id) {
       // Object does not exist
       throw new AppError({
+        action,
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The ID must be provided',
         module: module,
         method: method,
@@ -33,12 +38,12 @@ export default class UtilsService {
     }
   }
 
-  public static assertObjectExists(object: any, errorMsg, module: string, method: string, userToken: UserToken) {
+  public static assertObjectExists(action: Action, object: any, errorMsg: string, module: string, method: string, userToken: UserToken) {
     if (!object) {
-      // Object does not exist
       throw new AppError({
+        action,
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: errorMsg,
         module: module,
         method: method,
@@ -47,7 +52,8 @@ export default class UtilsService {
     }
   }
 
-  public static assertComponentIsActiveFromToken(userToken: UserToken, component: string, action: string, entity: string, module: string, method: string) {
+  public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
+    action: Action, entity: Entity, module: string, method: string) {
     // Check from token
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
@@ -58,7 +64,7 @@ export default class UtilsService {
         action: action,
         module: module,
         method: method,
-        errorCode: Constants.HTTP_AUTH_ERROR
+        errorCode: HTTPError.GENERAL_ERROR,
       });
     }
   }

@@ -121,20 +121,6 @@ export default class Bootstrap {
         });
       });
 
-      // FIXME: Attach the socketIO server to the master process for now.
-      //        Load balancing between workers needs to make the client session sticky.
-      if (Bootstrap.centralSystemRestConfig && Bootstrap.centralSystemRestConfig.socketIO && cluster.isMaster) {
-        // -------------------------------------------------------------------------
-        // REST Server (Front-End)
-        // -------------------------------------------------------------------------
-        // Create the server
-        if (!Bootstrap.centralRestServer) {
-          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
-        }
-        // Start Socket IO server
-        await Bootstrap.centralRestServer.startSocketIO();
-      }
-
       if (cluster.isMaster && Bootstrap.isClusterEnabled) {
         Bootstrap.startMaster();
       } else {
@@ -245,9 +231,10 @@ export default class Bootstrap {
         Bootstrap.storageNotification.start();
         // Start it
         await Bootstrap.centralRestServer.start();
-        // pragma if (this.centralSystemRestConfig.socketIO) {
-        //   await this.centralRestServer.startSocketIO();
-        // }
+        // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
+        if (this.centralSystemRestConfig.socketIO) {
+          await this.centralRestServer.startSocketIO();
+        }
       }
 
       // -------------------------------------------------------------------------
@@ -269,6 +256,7 @@ export default class Bootstrap {
               // Create implementation
               Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
               // Start
+              // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
               await Bootstrap.JsonCentralSystemServer.start();
               break;
             // Not Found

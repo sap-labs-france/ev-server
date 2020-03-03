@@ -1,6 +1,6 @@
+import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 
 export default class MigrationStorage {

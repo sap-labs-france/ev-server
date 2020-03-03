@@ -1,55 +1,7 @@
+import Tenant from '../types/Tenant';
+
 export default class Constants {
-  public static readonly SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
-  public static readonly SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
-  public static readonly SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
-  public static readonly SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
-  public static readonly SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
-  public static readonly SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
-  public static readonly SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
-  public static readonly SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
-  public static readonly SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
-  public static readonly SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
-  public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
-  public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
-  public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
-  public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
-  public static readonly SOURCE_PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted';
-  public static readonly SOURCE_OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations';
-  public static readonly SOURCE_BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed';
-
-  public static readonly CSV_SEPARATOR = '\t';
-
-  public static readonly HTTP_GENERAL_ERROR = 500;
-  public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
-  public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;
-  public static readonly HTTP_FEATURE_NOT_SUPPORTED_ERROR = 585;
-
-  public static readonly HTTP_REFUND_SESSION_OTHER_USER_ERROR = 551;
-  public static readonly HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR = 552;
-  public static readonly HTTP_CONCUR_CITY_UNKNOWN_ERROR = 553;
-  public static readonly HTTP_CANNOT_DELETED_REFUNDED_SESSION = 555;
-
-  public static readonly HTTP_PRICING_REQUEST_INVOICE_ERROR = 561;
-
-  public static readonly HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR = 555;
-
-  public static readonly HTTP_AUTH_ERROR = 560;
-  public static readonly HTTP_AUTH_INVALID_CAPTCHA = 530;
-  public static readonly HTTP_AUTH_INVALID_TOKEN_ERROR = 540;
-  public static readonly HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR = 525;
-  public static readonly HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR = 525;
-  public static readonly HTTP_AUTH_USER_WITH_NO_SITE_ERROR = 525;
-
-  public static readonly HTTP_EXISTING_TRANSACTION_ERROR = 570;
-
-  public static readonly HTTP_USER_EMAIL_ALREADY_EXIST_ERROR = 510;
-  public static readonly HTTP_USER_EULA_ERROR = 520;
-  public static readonly HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR = 530;
-  public static readonly HTTP_USER_TAG_ID_ALREADY_USED_ERROR = 540;
-  public static readonly HTTP_USER_LOCKED_ERROR = 570;
-  public static readonly HTTP_USER_NO_BADGE_ERROR = 570;
-  public static readonly HTTP_USER_ACCOUNT_INACTIVE_ERROR = 580;
-  public static readonly HTTP_USER_ACCOUNT_PENDING_ERROR = 590;
+  public static readonly CSV_SEPARATOR = '\t'; // Cannot store Regex ind enum
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
@@ -59,6 +11,10 @@ export default class Constants {
   public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
   public static readonly DB_PARAMS_COUNT_ONLY = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
   public static readonly DEFAULT_TENANT = 'default';
+  public static readonly DEFAULT_TENANT_OBJECT= {
+    id: Constants.DEFAULT_TENANT,
+    name: Constants.DEFAULT_TENANT
+  } as Tenant;
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
 
@@ -68,95 +24,15 @@ export default class Constants {
   public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
   public static readonly STATS_GROUP_BY_PRICING = 'P';
 
-  public static readonly ENTITY_SITE = 'Site';
-  public static readonly ENTITY_SITES = 'Sites';
-  public static readonly ENTITY_SITE_AREA = 'SiteArea';
-  public static readonly ENTITY_SITE_AREAS = 'SiteAreas';
-  public static readonly ENTITY_COMPANY = 'Company';
-  public static readonly ENTITY_COMPANIES = 'Companies';
-  public static readonly ENTITY_CHARGING_STATION = 'ChargingStation';
-  public static readonly ENTITY_CHARGING_STATIONS = 'ChargingStations';
-  public static readonly ENTITY_TENANT = 'Tenant';
-  public static readonly ENTITY_TENANTS = 'Tenants';
-  public static readonly ENTITY_TRANSACTION = 'Transaction';
-  public static readonly ENTITY_TRANSACTIONS = 'Transactions';
-  public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
-  public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
-  public static readonly ENTITY_REPORT = 'Report';
-  public static readonly ENTITY_USER = 'User';
-  public static readonly ENTITY_USERS = 'Users';
-  public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
-  public static readonly ENTITY_VEHICLE_MANUFACTURERS = 'VehicleManufacturers';
-  public static readonly ENTITY_VEHICLES = 'Vehicles';
-  public static readonly ENTITY_VEHICLE = 'Vehicle';
-  public static readonly ENTITY_LOGGINGS = 'Loggings';
-  public static readonly ENTITY_LOGGING = 'Logging';
-  public static readonly ENTITY_PRICING = 'Pricing';
-  public static readonly ENTITY_BILLING = 'Billing';
-  public static readonly ENTITY_SETTING = 'Setting';
-  public static readonly ENTITY_SETTINGS = 'Settings';
-  public static readonly ENTITY_TOKENS = 'Tokens';
-  public static readonly ENTITY_TOKEN = 'Token';
-  public static readonly ENTITY_OCPI_ENDPOINT = 'OcpiEndpoint';
-  public static readonly ENTITY_OCPI_ENDPOINTS = 'OcpiEndpoints';
-  public static readonly ENTITY_CONNECTION = 'Connection';
-  public static readonly ENTITY_CONNECTIONS = 'Connections';
-
-  public static readonly VENDOR_SCHNEIDER = 'Schneider Electric';
-
   public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';
 
-  public static readonly WITH_CHARGING_STATIONS = true;
-  public static readonly WITHOUT_CHARGING_STATIONS = false;
-  public static readonly WITH_SITE = true;
-  public static readonly WITHOUT_SITE = false;
-
-  public static readonly VEHICLE_TYPE_CAR = 'C';
-
-  // Statuses
-  public static readonly USER_STATUS_PENDING = 'P';
-  public static readonly USER_STATUS_ACTIVE = 'A';
-  public static readonly USER_STATUS_INACTIVE = 'I';
-  public static readonly USER_STATUS_BLOCKED = 'B';
-  public static readonly USER_STATUS_LOCKED = 'L';
-
-  // Roles
-  public static readonly ROLE_SUPER_ADMIN = 'S';
-  public static readonly ROLE_ADMIN = 'A';
-  public static readonly ROLE_BASIC = 'B';
-  public static readonly ROLE_DEMO = 'D';
-
-  public static readonly ACTION_READ = 'Read';
-  public static readonly ACTION_CREATE = 'Create';
-  public static readonly ACTION_UPDATE = 'Update';
-  public static readonly ACTION_DELETE = 'Delete';
-  public static readonly ACTION_LOGOUT = 'Logout';
-  public static readonly ACTION_LIST = 'List';
-  public static readonly ACTION_RESET = 'Reset';
-  public static readonly ACTION_AUTHORIZE = 'Authorize';
-  public static readonly ACTION_CLEAR_CACHE = 'ClearCache';
-  public static readonly ACTION_DATA_TRANSFER = 'DataTransfer';
-  public static readonly ACTION_STOP_TRANSACTION = 'StopTransaction';
-  public static readonly ACTION_REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction';
-  public static readonly ACTION_START_TRANSACTION = 'StartTransaction';
-  public static readonly ACTION_REMOTE_START_TRANSACTION = 'RemoteStartTransaction';
-  public static readonly ACTION_REFUND_TRANSACTION = 'RefundTransaction';
-  public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
-  public static readonly ACTION_GET_CONFIGURATION = 'GetConfiguration';
-  public static readonly ACTION_PING = 'Ping';
-  public static readonly ACTION_TRIGGER_JOB = 'TriggerJob';
-  public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
-  public static readonly ACTION_SEND_TOKENS = 'SendTokens';
-  public static readonly ACTION_REGISTER = 'Register';
-  public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
-  public static readonly ACTION_CHECK_CONNECTION_BILLING = 'CheckBillingConnection';
-  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling';
-  public static readonly ACTION_BILLING_TRANSACTION = 'BillingTransaction';
-  public static readonly ACTION_READ_BILLING_TAXES = 'ReadBillingTaxes';
-  public static readonly ACTION_POWER_LIMITATION = 'PowerLimitation';
+  public static readonly WITH_CHARGING_STATIONS = true; // Not used
+  public static readonly WITHOUT_CHARGING_STATIONS = false; // Not used
+  public static readonly WITH_SITE = true; // Not used
+  public static readonly WITHOUT_SITE = false; // Not used
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;
@@ -166,10 +42,10 @@ export default class Constants {
   public static readonly PWD_NUMBER_MIN_COUNT = 1;
   public static readonly PWD_SPECIAL_MIN_COUNT = 1;
 
-  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g;
-  public static readonly PWD_LOWERCASE_RE = /([a-z])/g;
-  public static readonly PWD_NUMBER_RE = /([\d])/g;
-  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g;
+  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store Regex ind enum
+  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store Regex ind enum
+  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store Regex ind enum
+  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store Regex ind enum
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
@@ -186,10 +62,6 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
   public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
-
-  public static readonly CHARGER_VENDOR_EBEE = 'Bender GmbH Co. KG';
-  public static readonly CHARGER_VENDOR_SCHNEIDER = 'Schneider Electric';
-  public static readonly CHARGER_VENDOR_ABB = 'ABB';
 
   public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;
@@ -234,93 +106,6 @@ export default class Constants {
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
 
-  // --------------------------------------------------------------------
-  // OCPI Constants
-  // --------------------------------------------------------------------
-  // OCPI Base Path
-  public static readonly OCPI_SERVER_CPO_PATH = '/ocpi/cpo';
-  public static readonly OCPI_SERVER_EMSP_PATH = '/ocpi/emsp';
-  public static readonly OCPI_VERSIONS_PATH = '/versions';
-  // OCPI Available Response Status
-  public static readonly OCPI_STATUS_CODE = {
-    // 1*** SUCCESS
-    CODE_1000_SUCCESS: { status_code: 1000, status_message: 'Success' },
-
-    // 2*** CLIENT ERROR
-    CODE_2000_GENERIC_CLIENT_ERROR: { status_code: 2000, status_message: 'Generic Client Error' },
-    CODE_2001_INVALID_PARAMETER_ERROR: { status_code: 2001, status_message: 'Invalid or Missing Parameters' },
-    CODE_2002_NOT_ENOUGH_INFORMATION_ERROR: { status_code: 2002, status_message: 'Not enough information' },
-    CODE_2003_UNKNOW_LOCATION_ERROR: { status_code: 2003, status_message: 'Unknown Location' },
-
-    // 3*** SERVER ERROR
-    CODE_3000_GENERIC_SERVER_ERROR: { status_code: 3000, status_message: 'Generic Server Error' },
-    CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR: { status_code: 3001, status_message: 'Unable to Use Client API' },
-    CODE_3002_UNSUPPORTED_VERSION_ERROR: { status_code: 3002, status_message: 'Unsupported Version' },
-    CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: 'No Matching Endpoints' }
-  };
-
-  public static readonly OCPI_ROLE = {
-    CPO: 'CPO',
-    EMSP: 'EMSP'
-  };
-
-  // OCPI EVSE STATUS
-  public static readonly EVSE_STATUS = {
-    AVAILABLE: 'AVAILABLE',
-    BLOCKED: 'BLOCKED',
-    CHARGING: 'CHARGING',
-    INOPERATIVE: 'INOPERATIVE',
-    OUTOFORDER: 'OUTOFORDER',
-    PLANNED: 'PLANNED',
-    REMOVED: 'REMOVED',
-    RESERVED: 'RESERVED',
-    UNKNOWN: 'UNKNOWN'
-  };
-
-  // OCPI CONNECTOR POWER TYPE
-  public static readonly CONNECTOR_POWER_TYPE = {
-    AC_1_PHASE: 'AC_1_PHASE',
-    AC_3_PHASE: 'AC_3_PHASE',
-    DC: 'DC'
-  };
-
-  // CONNECTOR TYPE
-  public static readonly MAPPING_CONNECTOR_TYPE = {
-    'C': 'CHADEMO',
-    'T2': 'IEC_62196_T2',
-    'CCS': 'IEC_62196_T2_COMBO'
-  };
-
-  public static readonly CONNECTOR_TYPES = {
-    'UNKNOWN': 'U',
-    'CHADEMO': 'C',
-    'IEC_62196_T2': 'T2',
-    'IEC_62196_T2_COMBO': 'CCS',
-    'DOMESTIC': 'D',
-    'TYPE_1': 'T1',
-    'TYPE_1_CCS': 'T1CCS',
-    'TYPE_3C': 'T3C',
-  };
-
-  // Components
-  public static readonly COMPONENTS = {
-    OCPI: 'ocpi',
-    REFUND: 'refund',
-    PRICING: 'pricing',
-    BILLING: 'billing',
-    ORGANIZATION: 'organization',
-    STATISTICS: 'statistics',
-    ANALYTICS: 'analytics',
-    SMART_CHARGING: 'smartCharging'
-  };
-
-  // Ocpi Registering status
-  public static readonly OCPI_REGISTERING_STATUS = {
-    OCPI_NEW: 'new',
-    OCPI_REGISTERED: 'registered',
-    OCPI_UNREGISTERED: 'unregistered'
-  };
-
   public static readonly MONGO_USER_MASK = {
     '_id': 0,
     '__v': 0,
@@ -352,6 +137,6 @@ export default class Constants {
     'verificationToken': 0
   };
 
-  public static readonly MOBILE_OS_ANDROID = 'android';
-  public static readonly MOBILE_OS_IOS = 'ios';
+  public static readonly MOBILE_OS_ANDROID = 'android'; // Not used
+  public static readonly MOBILE_OS_IOS = 'ios'; // Not used
 }

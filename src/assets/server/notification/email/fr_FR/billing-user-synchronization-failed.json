@@ -1,6 +1,7 @@
 {
   "subject": "Facturation - Synchronisation des Utilisateurs a échoué",
   "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
       "title": "Facturation - Synchronisation des Utilisateurs a échoué",

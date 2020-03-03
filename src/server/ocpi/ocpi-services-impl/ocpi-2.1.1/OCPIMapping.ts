@@ -2,7 +2,7 @@ import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import ChargingStation, { Connector } from '../../../../types/ChargingStation';
+import ChargingStation, { Connector, ConnectorType } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
@@ -13,7 +13,8 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
-import { OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Configuration from '../../../../utils/Configuration';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -46,9 +47,9 @@ export default class OCPIMapping {
     };
   }
 
-  static convertEvseToChargingStation(evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
+  static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
     const chargingStation: ChargingStation = {
-      id: evse.evse_id,
+      id: evseId,
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
@@ -99,10 +100,12 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (!chargingStation.cannotChargeInParallel) {
-        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
-      } else {
-        evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
+      if (chargingStation.issuer === true) {
+        if (!chargingStation.cannotChargeInParallel) {
+          evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
+        } else {
+          evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
+        }
       }
     });
 
@@ -123,7 +126,8 @@ export default class OCPIMapping {
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
       {
         withChargeBoxes: true,
-        siteIDs: [site.id]
+        siteIDs: [site.id],
+        issuer: true
       },
       Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
@@ -144,7 +148,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {
@@ -162,24 +166,26 @@ export default class OCPIMapping {
    * Get All OCPI Tokens from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllTokens(tenant: Tenant, limit: number, skip: number): Promise<DataResult<OCPIToken>> {
+  static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
+      const user = await UserStorage.getUser(tenant.id, tag.userID);
+      const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
         type: 'RFID',
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: tenant.name,
-        valid: true,
+        valid: valid,
         whitelist: 'ALLOWED_OFFLINE',
-        'last_updated': new Date()
+        'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
 
@@ -194,10 +200,6 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
-    // Result
-    const tokens: OCPIToken[] = [];
-
-    // Get all tokens
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
 
     if (user) {
@@ -210,9 +212,32 @@ export default class OCPIMapping {
         issuer: user.name,
         valid: !tag.deleted,
         whitelist: 'ALLOWED_OFFLINE',
+        language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn
       };
     }
+  }
+
+  /**
+   * Map user locale (en_US, fr_FR...) to ocpi language (en, fr...)
+   * @param locale
+   */
+  static convertLocaleToLanguage(locale: string): string {
+    if (!locale || locale.length < 2) {
+      return null;
+    }
+    return locale.substring(0, 2);
+  }
+
+  /**
+   * Map ocpi language (en, fr...) to user locale (en_US, fr_FR...)
+   * @param locale
+   */
+  static convertLanguageToLocale(language: string): string {
+    if (language === 'fr') {
+      return 'fr_FR';
+    }
+    return 'en_US';
   }
 
   //
@@ -340,21 +365,21 @@ export default class OCPIMapping {
    * Convert OCPI Connector type to connector type
    * @param {OCPIConnectorType} ocpi connector type
    */
-  static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): string {
+  static convertOCPIConnectorType2ConnectorType(ocpiConnectorType: OCPIConnectorType): ConnectorType {
     switch (ocpiConnectorType) {
       case OCPIConnectorType.CHADEMO:
-        return Constants.CONNECTOR_TYPES.CHADEMO;
+        return ConnectorType.CHADEMO;
       case OCPIConnectorType.IEC_62196_T2:
-        return Constants.CONNECTOR_TYPES.IEC_62196_T2;
+        return ConnectorType.TYPE_2;
       case OCPIConnectorType.IEC_62196_T2_COMBO:
-        return Constants.CONNECTOR_TYPES.IEC_62196_T2_COMBO;
+        return ConnectorType.COMBO_CCS;
       case OCPIConnectorType.IEC_62196_T3:
       case OCPIConnectorType.IEC_62196_T3A:
-        return Constants.CONNECTOR_TYPES.TYPE_3C;
+        return ConnectorType.TYPE_3C;
       case OCPIConnectorType.IEC_62196_T1:
-        return Constants.CONNECTOR_TYPES.TYPE_1;
+        return ConnectorType.TYPE_1;
       case OCPIConnectorType.IEC_62196_T1_COMBO:
-        return Constants.CONNECTOR_TYPES.TYPE_1_CCS;
+        return ConnectorType.TYPE_1_CCS;
       case OCPIConnectorType.DOMESTIC_A:
       case OCPIConnectorType.DOMESTIC_B:
       case OCPIConnectorType.DOMESTIC_C:
@@ -367,9 +392,9 @@ export default class OCPIMapping {
       case OCPIConnectorType.DOMESTIC_J:
       case OCPIConnectorType.DOMESTIC_K:
       case OCPIConnectorType.DOMESTIC_L:
-        return Constants.CONNECTOR_TYPES.DOMESTIC;
+        return ConnectorType.DOMESTIC;
       default:
-        return Constants.CONNECTOR_TYPES.UNKNOWN;
+        return ConnectorType.UNKNOWN;
     }
   }
 
@@ -427,7 +452,7 @@ export default class OCPIMapping {
    * Convert internal status to OCPI Status
    * @param {*} status
    */
-  static convertOCPIStatus2Status(status: OCPIEvseStatus): string {
+  static convertOCPIStatus2Status(status: OCPIEvseStatus): ChargePointStatus {
     switch (status) {
       case OCPIEvseStatus.AVAILABLE:
         return ChargePointStatus.AVAILABLE;
@@ -471,13 +496,13 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role.toLowerCase()}/versions`);
+    credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
 
-      if (role === Constants.OCPI_ROLE.EMSP) {
+      if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
         credential.party_id = ocpiSetting.ocpi.emsp.partyID;
       } else {

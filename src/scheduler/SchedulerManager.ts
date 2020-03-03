@@ -12,6 +12,10 @@ import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransact
 import cron from 'node-cron';
 import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
+import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
+import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
+import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
+import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -30,7 +34,7 @@ export default class SchedulerManager {
       for (const task of SchedulerManager.schedulerConfig.tasks) {
         // Active?
         if (!task.active) {
-          Logging.logError({
+          Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'Scheduler', method: 'init',
             action: 'Scheduler',
@@ -58,8 +62,14 @@ export default class SchedulerManager {
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
             break;
+          case 'OCPIGetCdrsTask':
+            schedulerTask = new OCPIGetCdrsTask();
+            break;
           case 'OCPIGetLocationsTask':
             schedulerTask = new OCPIGetLocationsTask();
+            break;
+          case 'OCPIGetSessionsTask':
+            schedulerTask = new OCPIGetSessionsTask();
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
@@ -70,6 +80,13 @@ export default class SchedulerManager {
           case 'SynchronizeBillingUsersTask':
             schedulerTask = new SynchronizeBillingUsersTask();
             break;
+          case 'SynchronizeCarsTask':
+            schedulerTask = new SynchronizeCarsTask();
+            break;
+          case 'CheckSessionNotStartedAfterAuthorizeTask':
+            schedulerTask = new CheckSessionNotStartedAfterAuthorizeTask();
+            break;
+
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,

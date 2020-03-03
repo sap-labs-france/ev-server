@@ -1,9 +1,13 @@
-import HttpDatabaseRequest from './HttpDatabaseRequest';
 import User from '../User';
-import Tag from '../Tag';
+import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpUserRequest extends Partial<User> {
   passwords: {password?: string};
+}
+
+export interface HttpSynchronizeUserRequest {
+  id?: string;
+  email?: string;
 }
 
 export interface HttpUserMobileTokenRequest {
@@ -58,7 +62,7 @@ export interface HttpRegisterUserRequest extends HttpLoginRequest {
 
 export interface HttpVerifyEmailRequest {
   Email: string;
-  tenant: string;
+  Tenant: string;
   VerificationToken: string;
 }
 

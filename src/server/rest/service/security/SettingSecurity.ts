@@ -2,8 +2,8 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import { AnalyticsSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
+import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -19,7 +19,6 @@ export default class SettingSecurity {
       ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter)
     };
   }
-
 
   public static filterSettingsRequest(request: any): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
@@ -52,15 +51,13 @@ export default class SettingSecurity {
       } as SettingDBContent;
       // Check Links
       if (request.content.links) {
-        settings.content.links = request.content.links.map((link: SettingLink) => {
-          return {
-            id: link.id,
-            name: link.name,
-            description: link.description,
-            role: link.role,
-            url: link.url
-          }
-        });
+        settings.content.links = request.content.links.map((link: SettingLink) => ({
+          id: link.id,
+          name: link.name,
+          description: link.description,
+          role: link.role,
+          url: link.url
+        }));
       }
       // Handle different config types
       switch (request.content.type) {
@@ -92,13 +89,13 @@ export default class SettingSecurity {
             settings.content.ocpi.cpo = {
               countryCode: sanitize(request.content.ocpi.cpo.countryCode),
               partyID: sanitize(request.content.ocpi.cpo.partyID)
-            }
+            };
           }
           if (request.content.ocpi.emsp) {
             settings.content.ocpi.emsp = {
               countryCode: sanitize(request.content.ocpi.emsp.countryCode),
               partyID: sanitize(request.content.ocpi.emsp.partyID)
-            }
+            };
           }
           break;
         case RefundSettingsType.CONCUR:
@@ -113,9 +110,9 @@ export default class SettingSecurity {
               expenseTypeCode: sanitize(request.content.concur.expenseTypeCode),
               policyId: sanitize(request.content.concur.policyId),
               reportName: sanitize(request.content.concur.reportName),
-            }
+            };
           } else {
-            settings.content.concur = { } as ConcurRefundSetting;            
+            settings.content.concur = { } as ConcurRefundSetting;
           }
           break;
         case PricingSettingsType.CONVERGENT_CHARGING:
@@ -131,9 +128,9 @@ export default class SettingSecurity {
             settings.content.simple = {
               price: sanitize(request.content.simple.price),
               currency: sanitize(request.content.simple.currency),
-            };            
+            };
           } else {
-            settings.content.simple = { } as SimplePricingSetting;            
+            settings.content.simple = { } as SimplePricingSetting;
           }
           break;
         case BillingSettingsType.STRIPE:
@@ -204,7 +201,7 @@ export default class SettingSecurity {
     if (!setting.content) {
       return null;
     }
-    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== TenantComponents.ANALYTICS) {
       return setting.content;
     }
     if (setting.content.links && Array.isArray(setting.content.links)) {

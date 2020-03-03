@@ -1,3 +1,4 @@
+import { ChargePointStatus } from '../ocpp/OCPPServer';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
@@ -11,12 +12,18 @@ export interface HttpChargingStationLimitPowerRequest {
   ampLimitValue: number;
 }
 
+export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
+  ChargeBoxID: string;
+  ConnectorID: number;
+}
+
 export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
+  ConnectorStatus?: ChargePointStatus;
   SiteID?: string;
-  WithSite?: boolean; // TODO can we please remove this
+  WithSite?: boolean;
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;
@@ -46,4 +53,8 @@ export interface HttpIsAuthorizedRequest {
   Arg1: any;
   Arg2: any;
   Arg3: any;
+}
+
+export interface HttpChargingStationGetFirmwareRequest {
+  FileName: string;
 }

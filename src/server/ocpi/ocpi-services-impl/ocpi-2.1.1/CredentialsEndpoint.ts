@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
 import Logging from '../../../../utils/Logging';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
@@ -10,6 +11,10 @@ import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { Action } from '../../../../types/Authorization';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';
@@ -26,7 +31,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         return await this.postCredentials(req, res, next, tenant);
@@ -61,20 +66,20 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
-    if (!ocpiEndpoint || ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
+    if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'deleteCredentials',
-        action: 'DELETE credentials',
         errorCode: 405,
+        action: Action.DELETE_CREDENTIALS,
         message: 'method not allowed if the client was not registered',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
       });
     }
 
     // Save ocpi endpoint
-    ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+    ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
     ocpiEndpoint.backgroundPatchJob = false;
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
@@ -105,10 +110,10 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR
+        ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR
       });
     }
 
@@ -138,10 +143,10 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'OCPI Endpoint not available or wrong token',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
       });
     }
 
@@ -169,8 +174,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         },
         timeout: 10000
       });
@@ -221,8 +225,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Access versions API
       const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Token ${ocpiEndpoint.token}`
         }
       });
 
@@ -248,23 +251,23 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'postCredentials',
-        action: 'OcpiPostCredentials',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
+        ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
         detailedMessages: error.stack
       });
     }
 
     // Generate new token
     ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
-    ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED;
+    ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
 
     // Save ocpi endpoint
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
     // Get base url
-    const versionUrl = this.getServiceUrl(req) + Constants.OCPI_VERSIONS_PATH;
+    const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
 
     // Build credential object
     const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);

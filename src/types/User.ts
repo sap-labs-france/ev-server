@@ -6,13 +6,14 @@ import { BillingUserData } from './Billing';
 
 export default interface User extends CreatedUpdatedProps {
   id: string;
+  issuer: boolean;
   name: string;
   firstName: string;
   email: string;
   phone?: string;
   mobile: string;
-  role: string;
-  status: string;
+  role: UserRole;
+  status: UserStatus;
   locale: string;
   plateID?: string;
   address?: Address;
@@ -31,7 +32,6 @@ export default interface User extends CreatedUpdatedProps {
   passwordBlockedUntil: Date;
   verificationToken?: string;
   verifiedAt?: Date;
-  errorCode?: string;
   tags?: Tag[];
   billingData?: BillingUserData;
   mobileOs: string;
@@ -45,3 +45,19 @@ export interface UserSite {
   siteAdmin: boolean;
   siteOwner: boolean;
 }
+
+export enum UserStatus {
+  PENDING = 'P',
+  ACTIVE = 'A',
+  INACTIVE = 'I',
+  BLOCKED = 'B',
+  LOCKED = 'L',
+}
+
+export enum UserRole {
+  SUPER_ADMIN = 'S',
+  ADMIN = 'A',
+  BASIC = 'B',
+  DEMO = 'D',
+}
+

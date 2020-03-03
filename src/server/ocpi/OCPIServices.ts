@@ -19,8 +19,8 @@ export default class OCPIServices {
     this.cpoServices.push(new CPOService(ocpiRestConfig));
     this.emspServices.push(new EMSPService(ocpiRestConfig));
     // pragma version 2.0
-    this.cpoServices.push(new OCPIService20(ocpiRestConfig, Constants.OCPI_SERVER_CPO_PATH));
-    this.emspServices.push(new OCPIService20(ocpiRestConfig, Constants.OCPI_SERVER_EMSP_PATH));
+    this.cpoServices.push(new OCPIService20(ocpiRestConfig, CPOService.PATH));
+    this.emspServices.push(new OCPIService20(ocpiRestConfig, EMSPService.PATH));
   }
 
   /**

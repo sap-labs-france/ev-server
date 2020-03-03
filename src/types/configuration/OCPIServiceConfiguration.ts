@@ -4,6 +4,4 @@ export default interface OCPIServiceConfiguration {
   host: string;
   port: number;
   debug: boolean;
-  tenantEnabled: string[];
-  eMI3id: any;
 }

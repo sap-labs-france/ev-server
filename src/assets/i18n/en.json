@@ -1,5 +1,9 @@
 {
-	"notifications": {
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Session Not Started",
+      "body": "You badged on the charging station '{{chargeBoxID}}' but no session has been started"
+    },
 		"sessionStarted": {
 			"title": "Session Started",
 			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"

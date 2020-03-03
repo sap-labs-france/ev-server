@@ -35,8 +35,18 @@ export default class TransactionApi extends CrudApi {
     return await super.delete(id, '/client/api/TransactionDelete');
   }
 
+  public async deleteMany(ids) {
+    return await this._authenticatedApi.send({
+      method: 'DELETE',
+      url: '/client/api/TransactionsDelete',
+      data: {
+        transactionsIDs: ids,
+      }
+    });
+  }
+
   public async readAllToRefund(params) {
-    return await super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING,'/client/api/TransactionsToRefund');
+    return await super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionsToRefund');
   }
 
   public async readAllRefundReports(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {

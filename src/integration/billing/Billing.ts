@@ -1,17 +1,16 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import BackendError from '../../exception/BackendError';
-import BillingFactory from './BillingFactory';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import { Action } from '../../types/Authorization';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
+import Transaction from '../../types/Transaction';
+import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Transaction from '../../types/Transaction';
-import User from '../../types/User';
-import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
-
-  // Protected because only used in subclasses at the moment
   protected readonly tenantID: string; // Assuming GUID or other string format ID
   protected settings: T;
 
@@ -25,155 +24,203 @@ export default abstract class Billing<T extends BillingSetting> {
   }
 
   public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
-    // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
-    if (!billingImpl) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'Billing settings are not configured',
-        module: 'BillingService',
-        method: 'handleSynchronizeUsers',
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-      });
-    }
     // Check
-    const actionsDone = {
+    const actionsDone: BillingUserSynchronizeAction = {
       synchronized: 0,
       error: 0
-    } as BillingUserSynchronizeAction;
-    // Get recently updated customers from Billing application
-    let userIDsChangedInBilling = await billingImpl.getUpdatedUserIDsInBilling();
+    };
+    // Get users already in Billing synchronization error
+    const usersBillingInError = await UserStorage.getUsersInError(tenantID,
+      { errorTypes: [UserInErrorType.FAILED_BILLING_SYNCHRO] }, Constants.DB_PARAMS_MAX_LIMIT);
+    actionsDone.error = usersBillingInError.result.length;
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
-    const usersNotSynchronized = await UserStorage.getUsers(tenantID,
-      { 'statuses': [Constants.USER_STATUS_ACTIVE], 'notSynchronizedBillingData': true },
+    const newUsersToSyncInBilling = await UserStorage.getUsers(tenantID,
+      { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
       { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
-    if (usersNotSynchronized.count > 0) {
+    if (newUsersToSyncInBilling.count > 0) {
       // Process them
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        message: `${usersNotSynchronized.count} users are going to be synchronized in the Billing system`
+        action: Action.SYNCHRONIZE_BILLING,
+        module: 'Billing', method: 'synchronizeUsers',
+        message: `${newUsersToSyncInBilling.count} new e-Mobility user(s) are going to be synchronized in the billing system`
       });
-      for (const user of usersNotSynchronized.result) {
+      for (const user of newUsersToSyncInBilling.result) {
+        // Synchronize user
         try {
-          // Synchronize
-          let newBillingUserData;
-          if (user.billingData) {
-            // Update
-            newBillingUserData = await billingImpl.updateUser(user);
-          } else {
-            // Create
-            newBillingUserData = await billingImpl.createUser(user);
-          }
-          // Save Billing data
-          await UserStorage.saveUserBillingData(tenantID, user.id, newBillingUserData);
-          actionsDone.synchronized++;
-          // Log
+          await this.synchronizeUser(user, tenantID);
           Logging.logInfo({
             tenantID: tenantID,
-            user: user,
+            actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
-            module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: 'User have been synchronized successfully'
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: 'Successfully synchronized in the billing system'
           });
-          // Delete duplicate customers
-          if (userIDsChangedInBilling && userIDsChangedInBilling.length > 0) {
-            userIDsChangedInBilling = userIDsChangedInBilling.filter((id) => id !== newBillingUserData.customerID);
-          }
+          actionsDone.synchronized++;
         } catch (error) {
           actionsDone.error++;
-          // Log
           Logging.logError({
             tenantID: tenantID,
-            user: user,
+            actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
-            module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: `Synchronization error: ${error.message}`,
-            detailedMessages: error
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: 'Failed to synchronize in the billing system'
           });
         }
       }
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        message: `${usersNotSynchronized.count} users have been synchronized successfully in the Billing system`
-      });
     }
+    // Get recently updated customers from Billing application
+    const userBillingIDsChangedInBilling = await this.getUpdatedUserIDsInBilling();
     // Synchronize e-Mobility User's Billing data
-    if (userIDsChangedInBilling && userIDsChangedInBilling.length > 0) {
+    if (userBillingIDsChangedInBilling.length > 0) {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        message: `${userIDsChangedInBilling.length} e-Mobility users are going to be synchronized with Billing users`
+        action: Action.SYNCHRONIZE_BILLING,
+        module: 'Billing', method: 'synchronizeUsers',
+        message: `${userBillingIDsChangedInBilling.length} billing user(s) are going to be synchronized with e-Mobility users`
       });
-      for (const userIDChangedInBilling of userIDsChangedInBilling) {
-        // Get Billing User
-        const billingUser = await billingImpl.getUser(userIDChangedInBilling);
-        if (billingUser) {
-          // Get e-Mobility User
-          const user = await UserStorage.getUserByEmail(tenantID, billingUser.email);
-          if (user) {
-            // Update & Save
-            user.billingData.customerID = billingUser.billingData.customerID;
-            user.billingData.lastChangedOn = new Date();
-            await UserStorage.saveUser(tenantID, user, false);
-            actionsDone.synchronized++;
-            // Log
-            Logging.logInfo({
-              tenantID: tenantID,
-              user: user,
-              source: Constants.CENTRAL_SERVER,
-              action: Constants.ACTION_SYNCHRONIZE_BILLING,
-              module: 'BillingService', method: 'handleSynchronizeUsers',
-              message: 'User have been synchronized successfully'
-            });
-          } else {
-            actionsDone.error++;
-            // Log
-            Logging.logError({
-              tenantID: tenantID,
-              source: Constants.CENTRAL_SERVER,
-              action: Constants.ACTION_SYNCHRONIZE_BILLING,
-              module: 'BillingService', method: 'handleSynchronizeUsers',
-              message: `Billing user with ID '${userIDChangedInBilling}' and email '${billingUser.email}' does not exist in e-Mobility`
-            });
-          }
-        } else {
+      for (const userBillingIDChangedInBilling of userBillingIDsChangedInBilling) {
+        // Get e-Mobility User
+        const user = await UserStorage.getUserByBillingID(tenantID, userBillingIDChangedInBilling);
+        if (!user) {
           actionsDone.error++;
-          // Log
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
-            action: Constants.ACTION_SYNCHRONIZE_BILLING,
-            module: 'BillingService', method: 'handleSynchronizeUsers',
-            message: `Billing user with ID '${userIDChangedInBilling}' does not exist`
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in e-Mobility`
+          });
+          continue;
+        }
+        // Get Billing User
+        const billingUser = await this.getUser(userBillingIDChangedInBilling);
+        if (!billingUser) {
+          // Only triggers an error if e-Mobility user is not deleted
+          actionsDone.error++;
+          user.billingData.hasSynchroError = true;
+          await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+          Logging.logError({
+            tenantID: tenantID,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            actionOnUser: user,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in billing system`
+          });
+          continue;
+        }
+        // Synchronize several times the user in case of fail before setting it in error
+        try {
+          await this.synchronizeUser(user, tenantID);
+          Logging.logInfo({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: 'Successfully synchronized in the billing system'
+          });
+          actionsDone.synchronized++;
+        } catch (error) {
+          actionsDone.error++;
+          Logging.logError({
+            tenantID: tenantID,
+            actionOnUser: user,
+            source: Constants.CENTRAL_SERVER,
+            action: Action.SYNCHRONIZE_BILLING,
+            module: 'Billing', method: 'synchronizeUsers',
+            message: 'Failed to synchronize in the billing system'
           });
         }
       }
+    }
+    // Log
+    if (actionsDone.synchronized || actionsDone.error) {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        message: `${userIDsChangedInBilling.length} e-Mobility users have been synchronized successfully`
+        action: Action.SYNCHRONIZE_BILLING,
+        module: 'Billing', method: 'synchronizeUsers',
+        message: `${actionsDone.synchronized} user(s) were successfully synchronized, ${actionsDone.error} got errors`
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SYNCHRONIZE_BILLING,
+        module: 'Billing', method: 'synchronizeUsers',
+        message: 'All the users are up to date'
       });
     }
     // Update last synchronization
     const billingSettings = await SettingStorage.getBillingSettings(tenantID);
-    // Save last synchronization
     billingSettings.stripe.lastSynchronizedOn = new Date();
-    // Save
     await SettingStorage.saveBillingSettings(tenantID, billingSettings);
-
+    // Result
     return actionsDone;
+  }
+
+  public async synchronizeUser(user: User, tenantID) {
+    try {
+      const exists = await this.userExists(user);
+      let newBillingData: BillingUserData;
+      if (!exists) {
+        newBillingData = await this.createUser(user);
+      } else {
+        newBillingData = await this.updateUser(user);
+      }
+      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+    } catch (error) {
+      if (!user.billingData) {
+        user.billingData = {};
+      }
+      user.billingData.hasSynchroError = true;
+      await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Billing', method: 'synchronizeUser',
+        action: Action.SYNCHRONIZE_BILLING,
+        actionOnUser: user,
+        message: `Cannot synchronize user '${user.email}' with billing system`,
+        detailedMessages: error
+      });
+    }
+  }
+
+  public async forceSynchronizeUser(user: User, tenantID) {
+    try {
+      // Exists in Billing?
+      const billingUser = await this.userExists(user);
+      if (billingUser) {
+        await this.deleteUser(user);
+      }
+      // Recreate the Billing user
+      delete user.billingData;
+      const newBillingData = await this.createUser(user);
+      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SYNCHRONIZE_BILLING,
+        actionOnUser: user,
+        module: 'Billing', method: 'forceSynchronizeUser',
+        message: `Successfully forced the synchronization of the user '${user.email}'`,
+      });
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Billing', method: 'forceSynchronizeUser',
+        action: Action.SYNCHRONIZE_BILLING,
+        actionOnUser: user,
+        message: `Cannot force synchronize user '${user.email}' with billing system`,
+        detailedMessages: error
+      });
+    }
   }
 
   async abstract checkConnection();

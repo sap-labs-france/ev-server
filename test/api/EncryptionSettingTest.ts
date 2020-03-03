@@ -116,13 +116,13 @@ describe('Encryption Setting tests', function() {
       // Housekeeping set the pricing setting back to simple pricing
       testData.data = JSON.parse(`{
         "id":"${read.data.result[0].id}",
-        "identifier":"pricing",
+        "identifier": "pricing",
         "sensitiveData":[],
         "content":{
-          "type":"simple",
-          "simple":{
-              "price":"1",
-              "currency":"EUR"
+          "type": "simple",
+          "simple": {
+              "price": "1",
+              "currency": "EUR"
           }
         }
       }`);

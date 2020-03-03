@@ -1,5 +1,6 @@
-import { ChargingProfile, ChargingSchedule, PowerLimitUnits } from '../ChargingStation';
+import { ChargingProfile, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 import { KeyValue } from '../GlobalType';
+import { PowerLimitUnits } from '../ChargingStation';
 
 export enum OCPPChargingStationCommand {
   CLEAR_CACHE = 'ClearCache',
@@ -26,6 +27,11 @@ export interface OCPPResetCommandParam extends OCPPCommandParam {
 
 export interface OCPPResetCommandResult {
   status: OCPPResetStatus;
+}
+
+export enum OCPPStatus {
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected'
 }
 
 export enum OCPPResetStatus {
@@ -111,14 +117,14 @@ export enum OCPPUnlockStatus {
 
 export interface OCPPSetChargingProfileCommandParam extends OCPPCommandParam {
   connectorId: number;
-  csChargingProfiles?: ChargingProfile;
+  csChargingProfiles?: Profile;
 }
 
 export interface OCPPSetChargingProfileCommandResult {
-  status: OCPPSetCompositeScheduleStatus;
+  status: OCPPChargingProfileStatus;
 }
 
-export enum OCPPSetCompositeScheduleStatus {
+export enum OCPPChargingProfileStatus {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
   NOT_SUPPORTED = 'NotSupported'
@@ -134,7 +140,7 @@ export interface OCPPGetCompositeScheduleCommandResult {
   status: OCPPGetCompositeScheduleStatus;
   connectorId?: number;
   scheduleStart?: Date;
-  chargingSchedule: ChargingSchedule;
+  chargingSchedule?: ChargingSchedule;
 }
 
 export enum OCPPGetCompositeScheduleStatus {
@@ -186,10 +192,10 @@ export enum OCPPAvailabilityStatus {
 
 export interface OCPPGetDiagnosticsCommandParam extends OCPPCommandParam {
   location: string;
-  retries: number;
-  retryInterval: number;
-  startTime: Date;
-  stopTime: Date;
+  retries?: number;
+  retryInterval?: number;
+  startTime?: Date;
+  stopTime?: Date;
 }
 
 export interface OCPPGetDiagnosticsCommandResult {
@@ -198,7 +204,7 @@ export interface OCPPGetDiagnosticsCommandResult {
 
 export interface OCPPUpdateFirmwareCommandParam extends OCPPCommandParam {
   location: string;
-  retries: number;
+  retries?: number;
   retrieveDate: Date;
-  retryInterval: number;
+  retryInterval?: number;
 }

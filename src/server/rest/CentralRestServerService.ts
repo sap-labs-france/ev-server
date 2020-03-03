@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
+import { Action } from '../../types/Authorization';
+import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
+import BuildingService from './service/BuildingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectorService from './service/ConnectorService';
@@ -18,9 +21,6 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
-import VehicleManufacturerService from './service/VehicleManufacturerService';
-import VehicleService from './service/VehicleService';
-import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -32,28 +32,20 @@ class RequestMapper {
     switch (httpVerb) {
       // Create
       case 'POST':
-        // Register Charging Stations actions
         this.registerOneActionManyPaths(
-          async (action: string, req: Request, res: Response, next: NextFunction) => {
-            action = action.slice(15);
-            await ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
-          },
-          'ChargingStationSetMaxIntensitySocket'
-        );
-        this.registerOneActionManyPaths(
-          async (action: string, req: Request, res: Response, next: NextFunction) => {
+          async (action: Action, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)
-            action = action.slice(15);
+            action = action.slice(15) as Action;
             // TODO: To Remove
             // Hack for mobile app not sending the RemoteStopTransaction yet
-            if (action === 'StartTransaction') {
-              action = 'RemoteStartTransaction';
+            if (action === Action.START_TRANSACTION) {
+              action = Action.REMOTE_START_TRANSACTION;
             }
-            if (action === 'StopTransaction') {
-              action = 'RemoteStopTransaction';
+            if (action === Action.STOP_TRANSACTION) {
+              action = Action.REMOTE_STOP_TRANSACTION;
             }
             // Type it
-            const chargingStationCommand: OCPPChargingStationCommand = action as OCPPChargingStationCommand;
+            const chargingStationCommand: OCPPChargingStationCommand = action as unknown as OCPPChargingStationCommand;
             // Delegate
             await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
@@ -80,9 +72,8 @@ class RequestMapper {
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
+          BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
-          VehicleCreate: VehicleService.handleCreateVehicle.bind(this),
-          VehicleManufacturerCreate: VehicleManufacturerService.handleCreateVehicleManufacturer.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),
           AddUsersToSite: SiteService.handleAddUsersToSite.bind(this),
           RemoveUsersFromSite: SiteService.handleRemoveUsersFromSite.bind(this),
@@ -93,9 +84,15 @@ class RequestMapper {
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           SettingCreate: SettingService.handleCreateSetting.bind(this),
           SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
+          SynchronizeUserForBilling: BillingService.handleSynchronizeUser.bind(this),
+          ForceSynchronizeUserForBilling: BillingService.handleForceSynchronizeUser.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointTriggerJobs: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
+          OcpiEndpointPullCdrs: OCPIEndpointService.handlePullCdrsEndpoint.bind(this),
+          OcpiEndpointPullLocations: OCPIEndpointService.handlePullLocationsEndpoint.bind(this),
+          OcpiEndpointPullSessions: OCPIEndpointService.handlePullSessionsEndpoint.bind(this),
+          OcpiEndpointPullTokens: OCPIEndpointService.handlePullTokensEndpoint.bind(this),
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
@@ -117,24 +114,22 @@ class RequestMapper {
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
+          ChargingProfiles: ChargingStationService.handleGetChargingProfiles.bind(this),
           RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           StatusNotifications: ChargingStationService.handleGetStatusNotifications.bind(this),
           BootNotifications: ChargingStationService.handleGetBootNotifications.bind(this),
           Companies: CompanyService.handleGetCompanies.bind(this),
           Company: CompanyService.handleGetCompany.bind(this),
           CompanyLogo: CompanyService.handleGetCompanyLogo.bind(this),
+          Buildings: BuildingService.handleGetBuildings.bind(this),
+          Building: BuildingService.handleGetBuilding.bind(this),
+          BuildingImage: BuildingService.handleGetBuildingImage.bind(this),
           Sites: SiteService.handleGetSites.bind(this),
           Site: SiteService.handleGetSite.bind(this),
           SiteImage: SiteService.handleGetSiteImage.bind(this),
           SiteUsers: SiteService.handleGetUsers.bind(this),
           Tenants: TenantService.handleGetTenants.bind(this),
           Tenant: TenantService.handleGetTenant.bind(this),
-          Vehicles: VehicleService.handleGetVehicles.bind(this),
-          Vehicle: VehicleService.handleGetVehicle.bind(this),
-          VehicleImage: VehicleService.handleGetVehicleImage.bind(this),
-          VehicleManufacturers: VehicleManufacturerService.handleGetVehicleManufacturers.bind(this),
-          VehicleManufacturer: VehicleManufacturerService.handleGetVehicleManufacturer.bind(this),
-          VehicleManufacturerLogo: VehicleManufacturerService.handleGetVehicleManufacturerLogo.bind(this),
           SiteAreas: SiteAreaService.handleGetSiteAreas.bind(this),
           SiteArea: SiteAreaService.handleGetSiteArea.bind(this),
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage.bind(this),
@@ -182,7 +177,7 @@ class RequestMapper {
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),
           IntegrationConnection: ConnectorService.handleGetConnection.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this),
-          Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
+          Ping: (action: Action, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
         break;
 
@@ -195,14 +190,14 @@ class RequestMapper {
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
           ChargingStationLimitPower: ChargingStationService.handleChargingStationLimitPower.bind(this),
+          ChargingProfileUpdate: ChargingStationService.handleUpdateChargingProfile.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
           CompanyUpdate: CompanyService.handleUpdateCompany.bind(this),
+          BuildingUpdate: BuildingService.handleUpdateBuilding.bind(this),
           SiteUserAdmin: SiteService.handleUpdateSiteUserAdmin.bind(this),
           SiteOwner: SiteService.handleUpdateSiteOwner.bind(this),
-          VehicleUpdate: VehicleService.handleUpdateVehicle.bind(this),
-          VehicleManufacturerUpdate: VehicleManufacturerService.handleUpdateVehicleManufacturer.bind(this),
           TransactionSoftStop: TransactionService.handleTransactionSoftStop.bind(this),
           AssignTransactionsToUser: TransactionService.handleAssignTransactionsToUser.bind(this),
           SettingUpdate: SettingService.handleUpdateSetting.bind(this),
@@ -224,9 +219,9 @@ class RequestMapper {
           SiteDelete: SiteService.handleDeleteSite.bind(this),
           SiteAreaDelete: SiteAreaService.handleDeleteSiteArea.bind(this),
           CompanyDelete: CompanyService.handleDeleteCompany.bind(this),
+          BuildingDelete: BuildingService.handleDeleteBuilding.bind(this),
           ChargingStationDelete: ChargingStationService.handleDeleteChargingStation.bind(this),
-          VehicleDelete: VehicleService.handleDeleteVehicle.bind(this),
-          VehicleManufacturerDelete: VehicleManufacturerService.handleDeleteVehicleManufacturer.bind(this),
+          ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
           TransactionsDelete: TransactionService.handleDeleteTransactions.bind(this),
           IntegrationConnectionDelete: ConnectorService.handleDeleteConnection.bind(this),
@@ -269,9 +264,9 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req: Request, res: Response, next: NextFunction): void {
+  async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = req.params.action as Action;
     // Check Context
     switch (req.method) {
       // Create Request
@@ -279,9 +274,20 @@ export default {
         // Check Context
         switch (action) {
           // Ping
-          case 'Ping':
+          case Action.PING:
             res.sendStatus(200);
             break;
+          // FirmwareDownload
+          case Action.FIRMWARE_DOWNLOAD:
+            try {
+              await ChargingStationService.handleGetFirmware(action, req, res, next);
+            } catch (error) {
+              Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            }
+            break;
+          default:
+            // Delegate
+            UtilsService.handleUnknownAction(action, req, res, next);
         }
         break;
     }
@@ -289,20 +295,17 @@ export default {
 
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
-
+    const action = req.params.action as Action;
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
-
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
         'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
-
     try {
       // Get the action
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);

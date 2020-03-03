@@ -3,6 +3,7 @@ import i18n from 'i18n-js';
 import moment from 'moment';
 import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
+import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -57,7 +58,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'No secret key provided for connection to Stripe'
       });
     }
@@ -77,7 +78,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: `Error occured when connecting to Stripe: ${error.message}`,
         detailedMessages: error
       });
@@ -86,7 +87,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'Error occured when connecting to Stripe: Invalid key'
       });
     }
@@ -123,6 +124,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (customer && customer.email) {
       return {
         email: customer.email,
+        name: customer.name,
         billingData: {
           customerID: customer.id
         }
@@ -138,6 +140,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (request) {
       return {
         email: email,
+        name: request.name,
         billingData: {
           customerID: request.id
         }
@@ -168,69 +171,42 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
     const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
-    let stillData = true;
-    let lastEventID: string;
     let events: Stripe.IList<Stripe.events.IEvent>;
-    let skipCustomer: boolean;
-    let lastCustomerID: string;
     const collectedCustomerIDs: string[] = [];
+    const request = {
+      created: { gt: createdSince },
+      limit: StripeBilling.STRIPE_MAX_LIST,
+      type: 'customer.*',
+    };
+
     try {
       // Check Stripe
       this.checkIfStripeIsInitialized();
       // Loop until all users are read
-      while (stillData) {
-        if (lastEventID) {
-          events = await this.stripe.events.list(
-            {
-              created: { gt: createdSince },
-              limit: 20,
-              type: 'customer.*',
-              starting_after: lastEventID
-            }
-          );
-        } else {
-          events = await this.stripe.events.list(
-            {
-              created: { gt: createdSince },
-              limit: 20,
-              type: 'customer.*'
-            }
-          );
-        }
-        if (events.data.length > 0) {
-          for (const evt of events.data) {
-            skipCustomer = false;
-            lastEventID = evt.id;
-            lastCustomerID = evt.data.object.customer ? evt.data.object.customer :
-              ((evt.data.object.object === 'customer') ? evt.data.object.id : null);
-            if (!lastCustomerID) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer && (collectedCustomerIDs.length > 0) &&
-              (collectedCustomerIDs.findIndex((id) => id === lastCustomerID) > -1)) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer) {
-              collectedCustomerIDs.push(lastCustomerID);
+
+      do {
+        events = await this.stripe.events.list(request);
+        for (const evt of events.data) {
+          if (evt.data.object.object === 'customer' && evt.data.object.id) {
+            if (!collectedCustomerIDs.includes(evt.data.object.id)) {
+              collectedCustomerIDs.push(evt.data.object.id);
             }
           }
-          stillData = events.data.length <= 20;
-        } else {
-          stillData = false;
         }
-      }
-      if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
-        return collectedCustomerIDs;
-      }
+        if (request['has_more']) {
+          request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
+        }
+      } while (request['has_more']);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_SYNCHRONIZE_BILLING,
+        action: Action.SYNCHRONIZE_BILLING,
         module: 'StripeBilling', method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: error
       });
     }
+    return collectedCustomerIDs;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
@@ -288,7 +264,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'startTransaction',
         message: `Billing error in Start Transaction: ${error.message}`,
         detailedMessages: error
@@ -310,13 +286,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         });
       }
       // Only relevant for Advance Billing to stop the running transaction, if the credit amount is no more sufficient
-
     } catch (error) {
       Logging.logError({
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Update Transaction: ${error.message}`,
         detailedMessages: error
@@ -476,7 +451,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_BILLING_TRANSACTION,
+        action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Stop Transaction: ${error.message}`,
         detailedMessages: error
@@ -509,8 +484,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     this.checkIfStripeIsInitialized();
     // Check connection
     await this.checkConnection();
-
-
     I18nManager.switchLocale(user.locale);
     let customer: Stripe.customers.ICustomer = null;
     if (user.billingData && user.billingData.customerID) {
@@ -530,22 +503,37 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       paymentMethod = customer.default_source;
     }
     if (!paymentMethod && !this.settings.noCardAllowed) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
       });
+      return false;
     }
     const billingMethod = this.retrieveBillingMethod(user);
     if (!billingMethod) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
       });
+      return false;
     }
     if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
           (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
       });
+      return false;
     }
     const subscription = (customer.subscriptions && customer.subscriptions.data && customer.subscriptions.data.length > 0)
       ? customer.subscriptions.data[0] : null;
@@ -554,88 +542,95 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       billingPlan = await this.retrieveBillingPlan();
     }
     if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-      throw new BackendError({
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
       });
+      return false;
     }
     if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       const plan = await this.getBillingPlan(billingPlan);
       if (!plan || !plan.id || plan.id !== billingPlan) {
-        throw new BackendError({
+        Logging.logError({
+          tenantID: this.tenantID,
+          action: Action.USER_DELETE,
+          actionOnUser: user,
+          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
         });
+        return false;
       } else if (plan.currency.toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
-        throw new BackendError({
+        Logging.logError({
+          tenantID: this.tenantID,
+          action: Action.USER_DELETE,
+          actionOnUser: user,
+          module: 'StripeBilling', method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan.currency}`
         });
+        return false;
       }
     }
     return true;
   }
 
   public async checkIfUserCanBeDeleted(user: User): Promise<boolean> {
-    try {
-      // Check Stripe
-      this.checkIfStripeIsInitialized();
-      // No billing in progress
-      if (!user.billingData || !user.billingData.customerID) {
-        return true;
-      }
-      // Check connection
-      await this.checkConnection();
-
-      if (this.checkIfTestMode()) {
-        const customer = await this.getCustomerByEmail(user.email);
-        if (customer && !customer.livemode) {
-          return true;
-        }
-      }
-      let list = await this.stripe.invoices.list(
-        {
-          customer: user.billingData.customerID,
-          status: 'open',
-        }
-      );
-      if (list && list.data && list.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
-        });
-      }
-      list = await this.stripe.invoices.list(
-        {
-          customer: user.billingData.customerID,
-          status: 'draft',
-        }
-      );
-      if (list && list.data && list.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Open invoice still exist in Stripe`
-        });
-      }
-      const itemsList = await this.stripe.invoiceItems.list(
-        {
-          customer: user.billingData.customerID,
-          pending: true,
-        }
-      );
-      if (itemsList && itemsList.data && itemsList.data.length > 0) {
-        throw new BackendError({
-          message: `User '${Utils.buildUserFullName(user, false)}' cannot be deleted in Stripe: Pending invoice items still exist in Stripe`
-        });
-      }
+    // Check Stripe
+    this.checkIfStripeIsInitialized();
+    // Check connection
+    await this.checkConnection();
+    // No billing in progress
+    if (!user.billingData || !user.billingData.customerID) {
       return true;
-    } catch (error) {
+    }
+    // Check connection
+    await this.checkConnection();
+    // Check invoices
+    let list = await this.stripe.invoices.list({
+      customer: user.billingData.customerID,
+      status: 'open',
+    });
+    if (list && list.data && list.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        user: user,
-        source: Constants.CENTRAL_SERVER,
-        action: Constants.ACTION_DELETE,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
         module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
-        message: `Billing error in Stop Transaction: ${error.message}`,
-        detailedMessages: error
+        message: 'Cannot delete user: Opened invoice still exist in Stripe'
       });
       return false;
     }
+    list = await this.stripe.invoices.list({
+      customer: user.billingData.customerID,
+      status: 'draft',
+    });
+    if (list && list.data && list.data.length > 0) {
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
+        message: 'Cannot delete user: Draft invoice still exist in Stripe'
+      });
+      return false;
+    }
+    const itemsList = await this.stripe.invoiceItems.list({
+      customer: user.billingData.customerID,
+      pending: true,
+    });
+    if (itemsList && itemsList.data && itemsList.data.length > 0) {
+      Logging.logError({
+        tenantID: this.tenantID,
+        action: Action.USER_DELETE,
+        actionOnUser: user,
+        module: 'StripeBilling', method: 'checkIfUserCanBeDeleted',
+        message: 'Cannot delete user: Pending invoice still exist in Stripe'
+      });
+      return false;
+    }
+    return true;
   }
 
   public async createUser(user: User): Promise<BillingUserData> {
@@ -647,7 +642,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'createUser',
-        action: Constants.ACTION_CREATE,
+        action: Action.USER_CREATE,
         user: user,
         message: 'Cannot create the user'
       });
@@ -664,7 +659,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'updateUser',
-        action: Constants.ACTION_CREATE,
+        action: Action.USER_CREATE,
         user: user,
         message: 'Cannot update the user'
       });
@@ -675,17 +670,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async deleteUser(user: User) {
     // Check Stripe
     this.checkIfStripeIsInitialized();
-    // Check
-    const success = await this.checkIfUserCanBeDeleted(user);
-    if (!success) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: 'StripeBilling', method: 'deleteUser',
-        action: Constants.ACTION_CREATE,
-        user: user,
-        message: 'Cannot delete the user'
-      });
-    }
     if (user.billingData && user.billingData.customerID) {
       const customer = await this.getCustomerByEmail(user.email);
       if (customer && customer.id) {
@@ -697,7 +681,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'updateUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.USER_CREATE,
             user: user,
             message: 'Cannot delete the User'
           });
@@ -765,7 +749,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     I18nManager.switchLocale(user.locale);
     const description = i18n.t('billing.generatedUser', { email: user.email });
-    let customer = await this.getCustomerByEmail(user.email);
+    let customer;
+    if (user.billingData && user.billingData.customerID) {
+      customer = await this.getCustomerByID(user.billingData.customerID);
+    } else {
+      customer = await this.getCustomerByEmail(user.email);
+    }
     if (!customer) {
       try {
         customer = await this.stripe.customers.create({
@@ -778,7 +767,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
           detailedMessages: error
@@ -791,6 +780,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     if (customer.name !== fullName) {
       dataToUpdate.name = fullName;
+    }
+    if (customer.email !== user.email) {
+      dataToUpdate.email = user.email;
     }
     if (locale &&
         (!customer.preferred_locales ||
@@ -809,7 +801,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
           detailedMessages: error
@@ -828,7 +820,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     //     throw new BackendError({
     //       source: Constants.CENTRAL_SERVER,
     //       module: 'StripeBilling', method: 'modifyUser',
-    //       action: Constants.ACTION_CREATE,
+    //       action: Action.USER_CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
     //       detailedMessages: error
@@ -875,7 +867,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'modifyUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: error
@@ -893,7 +885,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: 'StripeBilling', method: 'modifyUser',
-            action: Constants.ACTION_CREATE,
+            action: Action.CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: error
@@ -937,7 +929,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'StripeBilling', method: 'modifyUser',
-          action: Constants.ACTION_CREATE,
+          action: Action.USER_CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
           detailedMessages: error
@@ -949,7 +941,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       customerID: customer.id,
       cardID: (customer.default_source && typeof (customer.default_source) === 'string' && customer.default_source.substr(0, 4) === 'card') ? customer.default_source : '',
       subscriptionID: subscription && subscription.id ? subscription.id : '',
-      lastChangedOn: new Date()
+      lastChangedOn: new Date(),
+      hasSynchroError: false
     };
   }
 
@@ -958,7 +951,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkIfStripeIsInitialized',
-        action: Constants.ACTION_CHECK_CONNECTION_BILLING,
+        action: Action.CHECK_CONNECTION_BILLING,
         message: 'No connection to Stripe available'
       });
     }

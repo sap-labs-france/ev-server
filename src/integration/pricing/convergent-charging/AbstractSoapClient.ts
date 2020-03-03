@@ -9,8 +9,6 @@ export default abstract class AbstractSoapClient {
   private service: any;
   private client: any;
 
-  // TODO: type service, clientSSLSecurity, client. for the latter two need
-  // to reverse-engineer strong-soap (Package @types/strong-soap doesn't exist)...
   public constructor(
     readonly endpointUrl: string,
     readonly wsdlPath: string,
@@ -22,14 +20,12 @@ export default abstract class AbstractSoapClient {
     this.service = service;
   }
 
-  // TODO: type incoming request.
   public execute(request: any): Promise<{executionTime: number; headers: any; data: any}> {
     return this._execute(
       this._buildSOAPRequest(request.getName(), request)
     );
   }
 
-  // TODO: soap headers and data has to be typed.
   private async _execute(request: SoapRequest): Promise<{executionTime: number; headers: any; data: any}> {
     // Init Client (Done only once)
     await this._initSOAPClient();
@@ -51,7 +47,6 @@ export default abstract class AbstractSoapClient {
       // Execute it
       t0 = performance.now();
       const functionToCall = this.service[request.name];
-      // TODO: type this
       // eslint-disable-next-line no-unused-vars
       const { result, envelope, soapHeader } = await functionToCall(payload);
       t1 = performance.now();
@@ -72,7 +67,7 @@ export default abstract class AbstractSoapClient {
         executionTime: -1,
         headers: false,
         data: false
-      }; // TODO: check if this is wanted behavior. Why not throw an error?
+      };
     }
   }
 

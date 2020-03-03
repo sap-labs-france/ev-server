@@ -1,20 +1,16 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-
-export enum ComponentType {
-  OCPI = 'ocpi',
-  ORGANIZATION = 'organization',
-  PRICING = 'pricing',
-  BILLING = 'billing',
-  REFUND = 'refund',
-  STATISTICS = 'statistics',
-  ANALYTICS = 'analytics',
-  SMART_CHARGING = 'smartCharging'
-}
+import TenantComponents from './TenantComponents';
 
 export interface Setting {
   id?: string;
-  identifier: ComponentType;
-  sensitiveData: string[];
+  identifier: TenantComponents;
+  sensitiveData?: string[];
+  category?: 'business' | 'technical';
+}
+
+// Database Settings interface
+export interface SettingDB extends CreatedUpdatedProps, Setting {
+  content: SettingDBContent;
 }
 
 export interface SettingLink {
@@ -25,15 +21,9 @@ export interface SettingLink {
   url: string;
 }
 
-// Database Settings interface
-export interface SettingDB extends CreatedUpdatedProps, Setting {
-  category?: 'business' | 'technical';
-  content: SettingDBContent;
-}
-
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | BuildingSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -50,7 +40,7 @@ export enum PricingSettingsType {
 }
 
 export interface PricingSettings extends Setting {
-  identifier: ComponentType.PRICING;
+  identifier: TenantComponents.PRICING;
   type: PricingSettingsType;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -76,7 +66,7 @@ export enum RoamingSettingsType {
 }
 
 export interface RoamingSettings extends Setting {
-  identifier: ComponentType.OCPI;
+  identifier: TenantComponents.OCPI;
   type: RoamingSettingsType;
   ocpi?: OcpiSetting;
 }
@@ -95,7 +85,7 @@ export interface OcpiIdentifier {
 export interface OcpiBusinessDetails {
   name: string;
   website: string;
-  logo: {
+  logo?: {
     url: string;
     thumbnail: string;
     category: string;
@@ -103,14 +93,14 @@ export interface OcpiBusinessDetails {
     width: string;
     height: string;
   };
-};
+}
 
 export enum AnalyticsSettingsType {
   SAC = 'sac'
 }
 
 export interface AnalyticsSettings extends Setting {
-  identifier: ComponentType.ANALYTICS;
+  identifier: TenantComponents.ANALYTICS;
   type: AnalyticsSettingsType;
   sac?: SacAnalyticsSetting;
   links: SettingLink[];
@@ -126,7 +116,7 @@ export enum SmartChargingSettingsType {
 }
 
 export interface SmartChargingSettings extends Setting {
-  identifier: ComponentType.SMART_CHARGING;
+  identifier: TenantComponents.SMART_CHARGING;
   type: SmartChargingSettingsType;
   sapSmartCharging?: SapSmartChargingSetting;
 }
@@ -142,7 +132,7 @@ export enum RefundSettingsType {
 }
 
 export interface RefundSettings extends Setting {
-  identifier: ComponentType.REFUND;
+  identifier: TenantComponents.REFUND;
   type: RefundSettingsType;
   concur?: ConcurRefundSetting;
 }
@@ -164,7 +154,7 @@ export enum BillingSettingsType {
 }
 
 export interface BillingSettings extends Setting{
-  identifier: ComponentType.BILLING;
+  identifier: TenantComponents.BILLING;
   type: BillingSettingsType;
   stripe?: StripeBillingSetting;
 }
@@ -183,4 +173,32 @@ export interface StripeBillingSetting extends BillingSetting {
   advanceBillingAllowed: boolean;
   currency: string;
   taxID: string;
+}
+
+export interface BuildingSettings extends Setting {
+  identifier: TenantComponents.BUILDING;
+  type: BuildingSettingsType;
+}
+
+export enum BuildingSettingsType {
+}
+
+export enum PricingContentType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
+}
+
+export enum RefundContentType {
+  CONCUR = 'concur',
+  GIREVE = 'gireve',
+  OCPI = 'ocpi',
+  SAC = 'sac',
+}
+
+export enum BillingContentType {
+  STRIPE = 'stripe',
+}
+
+export enum SmartChargingContentType {
+  SAP_SMART_CHARGING = 'sapSmartCharging',
 }

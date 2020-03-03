@@ -1,13 +1,14 @@
-import { AnalyticsSettings, BillingSettings, BillingSettingsType, ComponentType, PricingSettings, PricingSettingsType, RefundSettings, RoamingSettings, SettingDB, RefundSettingsType, AnalyticsSettingsType, RoamingSettingsType } from '../../types/Setting';
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
-import Utils from '../../utils/Utils';
+import BackendError from '../../exception/BackendError';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB } from '../../types/Setting';
+import TenantComponents from '../../types/TenantComponents';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<SettingDB> {
@@ -69,10 +70,10 @@ export default class SettingStorage {
 
   public static async getOCPISettings(tenantID: string): Promise<RoamingSettings> {
     const ocpiSettings = {
-      identifier: ComponentType.OCPI,
+      identifier: TenantComponents.OCPI,
     } as RoamingSettings;
     // Get the Ocpi settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.OCPI }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       // ID
@@ -88,10 +89,10 @@ export default class SettingStorage {
 
   public static async getAnalyticsSettings(tenantID: string): Promise<AnalyticsSettings> {
     const analyticsSettings = {
-      identifier: ComponentType.ANALYTICS,
+      identifier: TenantComponents.ANALYTICS,
     } as AnalyticsSettings;
     // Get the analytics settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.ANALYTICS }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.ANALYTICS }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       analyticsSettings.id = settings.result[0].id;
@@ -110,9 +111,9 @@ export default class SettingStorage {
 
   public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
     const refundSettings = {
-      identifier: ComponentType.REFUND
+      identifier: TenantComponents.REFUND
     } as RefundSettings;
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.REFUND }, Constants.DB_PARAMS_MAX_LIMIT);
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
       refundSettings.id = settings.result[0].id;
@@ -137,10 +138,10 @@ export default class SettingStorage {
 
   public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
     const pricingSettings = {
-      identifier: ComponentType.PRICING,
+      identifier: TenantComponents.PRICING,
     } as PricingSettings;
     // Get the Pricing settings
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.PRICING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.PRICING }, Constants.DB_PARAMS_MAX_LIMIT);
     // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;
@@ -186,9 +187,9 @@ export default class SettingStorage {
 
   public static async getBillingSettings(tenantID: string): Promise<BillingSettings> {
     const billingSettings = {
-      identifier: ComponentType.BILLING,
+      identifier: TenantComponents.BILLING,
     } as BillingSettings;
-    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
     const config = settings.result[0].content;
 
     if (settings && settings.count > 0 && settings.result[0].content) {

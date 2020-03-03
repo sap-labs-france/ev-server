@@ -1,44 +1,46 @@
 import { NextFunction, Request, Response } from 'express';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import Site from '../../../types/Site';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import Site from '../../../types/Site';
-import SiteSecurity from './security/SiteSecurity';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import UserSecurity from './security/UserSecurity';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import SiteSecurity from './security/SiteSecurity';
+import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
 
 export default class SiteService {
 
-  public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAddUsersToSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAddUsersToSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleAddUsersToSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleAddUsersToSite',
         value: filteredRequest.siteID
       });
     }
-    UtilsService.assertIdIsProvided(filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
         module: 'SiteService',
         method: 'filterAssignSiteUsers',
@@ -50,7 +52,7 @@ export default class SiteService {
     if (!site) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
         module: 'SiteService',
         method: 'handleAddUsersToSite',
@@ -63,7 +65,7 @@ export default class SiteService {
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `The User with ID '${userID}' does not exist`,
           module: 'SiteService',
           method: 'handleAddUsersToSite',
@@ -84,18 +86,17 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteUserAdmin(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteUserAdmin(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteUserAdmin');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleUpdateSiteUserAdmin');
     // Filter
     const filteredRequest = SiteSecurity.filterUpdateSiteUserAdminRequest(req.body);
     // Check
     if (!filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -105,17 +106,17 @@ export default class SiteService {
     if (!filteredRequest.siteID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
     }
-    if (!filteredRequest.hasOwnProperty('siteAdmin')) {
+    if (!Utils.objectHasProperty(filteredRequest, 'siteAdmin')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -125,7 +126,7 @@ export default class SiteService {
     if (req.user.id === filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -135,10 +136,10 @@ export default class SiteService {
     }
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
         value: filteredRequest.siteID
@@ -149,7 +150,7 @@ export default class SiteService {
     if (!site) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -162,7 +163,7 @@ export default class SiteService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.userID}' does not exist`,
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -174,7 +175,7 @@ export default class SiteService {
     if (!Authorizations.isBasic(user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Only Users with Basic role can be Site Admin',
         module: 'SiteService',
         method: 'handleUpdateSiteUserAdmin',
@@ -196,28 +197,27 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteOwner(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteOwner(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleUpdateSiteOwner'
       });
     }
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteOwner');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleUpdateSiteOwner');
     // Filter
     const filteredRequest = SiteSecurity.filterUpdateSiteOwnerRequest(req.body);
     // Check
     if (!filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteOwner',
@@ -227,17 +227,17 @@ export default class SiteService {
     if (!filteredRequest.siteID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteOwner',
         user: req.user
       });
     }
-    if (!filteredRequest.hasOwnProperty('siteOwner')) {
+    if (!Utils.objectHasProperty(filteredRequest, 'siteOwner')) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
         module: 'SiteService',
         method: 'handleUpdateSiteUserOwner',
@@ -249,7 +249,7 @@ export default class SiteService {
     if (!site) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
         module: 'SiteService',
         method: 'handleUpdateSiteUserOwner',
@@ -262,7 +262,7 @@ export default class SiteService {
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.userID}' does not exist`,
         module: 'SiteService',
         method: 'handleUpdateSiteUserOwner',
@@ -284,19 +284,18 @@ export default class SiteService {
     next();
   }
 
-  public static async handleRemoveUsersFromSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRemoveUsersFromSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleRemoveUsersFromSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleRemoveUsersFromSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleRemoveUsersFromSite',
         value: filteredRequest.siteID
@@ -307,7 +306,7 @@ export default class SiteService {
     if (!site) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
         module: 'SiteService',
         method: 'handleRemoveUsersFromSite',
@@ -321,7 +320,7 @@ export default class SiteService {
       if (!user) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `The User with ID '${userID}' does not exist`,
           module: 'SiteService',
           method: 'handleRemoveUsersFromSite',
@@ -342,11 +341,10 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleGetUsersFromSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleGetUsersFromSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     // Check Mandatory fields
@@ -354,7 +352,7 @@ export default class SiteService {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site\'s ID must be provided',
         module: 'SiteService',
         method: 'handleGetUsersFromSite',
@@ -366,7 +364,7 @@ export default class SiteService {
     if (!site) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.SiteID}' does not exist`,
         module: 'SiteService',
         method: 'handleGetUsersFromSite',
@@ -376,10 +374,10 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleGetUsersFromSite',
         value: site.id
@@ -410,22 +408,21 @@ export default class SiteService {
     next();
   }
 
-  public static async handleDeleteSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_DELETE, Constants.ENTITY_SITE, 'SiteService', 'handleDeleteSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.DELETE, Entity.SITE, 'SiteService', 'handleDeleteSite');
     // Filter
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleDeleteSite', req.user);
+    UtilsService.assertIdIsProvided(action, siteID, 'SiteService', 'handleDeleteSite', req.user);
     // Check
     if (!Authorizations.canDeleteSite(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.DELETE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleDeleteSite',
         value: siteID
@@ -433,7 +430,7 @@ export default class SiteService {
     }
     // Get
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
-    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -448,21 +445,20 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_SITE, 'SiteService', 'handleGetSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.READ, Entity.SITE, 'SiteService', 'handleGetSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
     // Check auth
     if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SITE,
+        action: Action.READ,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleGetSite',
         value: filteredRequest.ID
@@ -470,7 +466,7 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
     // Return
     res.json(
       // Filter
@@ -479,18 +475,17 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.LIST, Entity.SITES, 'SiteService', 'handleGetSites');
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_SITES,
+        action: Action.LIST,
+        entity: Entity.SITES,
         module: 'SiteService',
         method: 'handleGetSites'
       });
@@ -526,22 +521,21 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSiteImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_READ, Constants.ENTITY_SITE, 'SiteService', 'handleGetSiteImage');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.READ, Entity.SITE, 'SiteService', 'handleGetSiteImage');
 
     // Filter
     const siteID = SiteSecurity.filterSiteRequestByID(req.query);
-    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleGetSiteImage', req.user);
+    UtilsService.assertIdIsProvided(action, siteID, 'SiteService', 'handleGetSiteImage', req.user);
     // Check auth
     if (!Authorizations.canReadSite(req.user, siteID)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SITE,
+        action: Action.READ,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleGetSiteImage',
         value: siteID
@@ -549,7 +543,7 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
-    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, siteID);
     // Return
@@ -557,18 +551,17 @@ export default class SiteService {
     next();
   }
 
-  public static async handleCreateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_CREATE, Constants.ENTITY_SITE, 'SiteService', 'handleCreateSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.CREATE, Entity.SITE, 'SiteService', 'handleCreateSite');
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.CREATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleCreateSite'
       });
@@ -579,7 +572,7 @@ export default class SiteService {
     Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
-    UtilsService.assertObjectExists(company, `Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
+    UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
     const site: Site = {
       ...filteredRequest,
@@ -600,11 +593,10 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.SITE, 'SiteService', 'handleUpdateSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
     // Check
@@ -612,10 +604,10 @@ export default class SiteService {
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SITE,
+        action: Action.UPDATE,
+        entity: Entity.SITE,
         module: 'SiteService',
         method: 'handleUpdateSite',
         value: filteredRequest.id
@@ -623,7 +615,7 @@ export default class SiteService {
     }
     // Get Site
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
     // Update
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();

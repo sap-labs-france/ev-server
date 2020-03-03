@@ -1,19 +1,21 @@
+import ChargingStationConfiguration from '../../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../../types/GlobalType';
 import { OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Logging from '../../../../utils/Logging';
+import OCPPService from '../../services/OCPPService';
 
 const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
-  public chargingStationService: any;
-  private chargingStationConfig: any;
+  public chargingStationService: OCPPService;
+  private chargingStationConfig: ChargingStationConfiguration;
 
-  constructor(chargingStationConfig) {
+  constructor(chargingStationConfig: ChargingStationConfiguration) {
     this.chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
     this.chargingStationService = global.centralSystemJson.getChargingStationService(OCPPVersion.VERSION_16);
   }
 
-  async _handle(command, headers, payload) {
+  public async _handle(command, headers, payload) {
     try {
       // Handle
       return await this.chargingStationService['handle' + command](headers, payload);
@@ -23,7 +25,7 @@ export default class JsonChargingStationService {
     }
   }
 
-  async handleBootNotification(headers, payload) {
+  public async handleBootNotification(headers, payload) {
     // Forward
     const result = await this._handle('BootNotification', headers, payload);
     // Return the response
@@ -34,7 +36,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  async handleHeartbeat(headers, payload) {
+  public async handleHeartbeat(headers, payload) {
     // Forward
     const result = await this._handle('Heartbeat', headers, payload);
     // Return the response
@@ -43,21 +45,21 @@ export default class JsonChargingStationService {
     };
   }
 
-  async handleStatusNotification(headers, payload) {
+  public async handleStatusNotification(headers, payload) {
     // Forward
     await this._handle('StatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  async handleMeterValues(headers, payload) {
+  public async handleMeterValues(headers, payload) {
     // Forward
     await this._handle('MeterValues', headers, payload);
     // Return the response
     return {};
   }
 
-  async handleAuthorize(headers, payload) {
+  public async handleAuthorize(headers, payload) {
     // Forward
     const result = await this._handle('Authorize', headers, payload);
     // Return the response
@@ -68,21 +70,21 @@ export default class JsonChargingStationService {
     };
   }
 
-  async handleDiagnosticsStatusNotification(headers, payload) {
+  public async handleDiagnosticsStatusNotification(headers, payload) {
     // Forward
     await this._handle('DiagnosticsStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  async handleFirmwareStatusNotification(headers, payload) {
+  public async handleFirmwareStatusNotification(headers, payload) {
     // Forward
     await this._handle('FirmwareStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
-  async handleStartTransaction(headers, payload) {
+  public async handleStartTransaction(headers, payload) {
     // Forward
     const result = await this._handle('StartTransaction', headers, payload);
     // Return the response
@@ -94,7 +96,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  async handleDataTransfer(headers, payload) {
+  public async handleDataTransfer(headers, payload) {
     // Forward
     const result = await this._handle('DataTransfer', headers, payload);
     // Return the response
@@ -103,7 +105,7 @@ export default class JsonChargingStationService {
     };
   }
 
-  async handleStopTransaction(headers, payload) {
+  public async handleStopTransaction(headers, payload) {
     // Forward
     const result = await this._handle('StopTransaction', headers, payload);
     // Return the response

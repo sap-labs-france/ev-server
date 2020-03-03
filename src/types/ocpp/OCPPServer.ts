@@ -69,6 +69,12 @@ export interface OCPPStatusNotificationResponse {
 export interface OCPPHeartbeatRequest {
 }
 
+export interface OCPPHeartbeatRequestExtended extends OCPPHeartbeatRequest {
+  chargeBoxID: string;
+  timestamp: Date;
+  timezone: string;
+}
+
 export interface OCPPHeartbeatResponse {
   currentTime: string;
 }

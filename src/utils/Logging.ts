@@ -1,20 +1,22 @@
 import CFLog from 'cf-nodejs-logging-support';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
+import { NextFunction, Request, Response } from 'express';
 import os from 'os';
 import { PerformanceObserver, performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import Configuration from '../utils/Configuration';
-import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import { HTTPError } from '../types/HTTPError';
+import { Log, LogLevel, LogType } from '../types/Log';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
+import Configuration from '../utils/Configuration';
+import Constants from './Constants';
 import Utils from './Utils';
-import { NextFunction, Request, Response } from 'express';
-import { Log, LogLevel, LogType } from '../types/Log';
+
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -145,8 +147,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Received',
       action: action,
       detailedMessages: payload
@@ -158,8 +159,7 @@ export default class Logging {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
-      module: module,
-      method: action,
+      module: module, method: action,
       message: '>> OCPP Request Sent',
       action: action,
       detailedMessages: args
@@ -168,15 +168,25 @@ export default class Logging {
 
   // Log
   public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: string, detailedMessages: any): void {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargeBoxID,
-      module: module,
-      method: action,
-      message: '<< OCPP Request Returned',
-      action: action,
-      detailedMessages: detailedMessages
-    });
+    if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: '<< OCPP Request Returned',
+        action: action,
+        detailedMessages: detailedMessages
+      });
+    } else {
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargeBoxID,
+        module: module, method: action,
+        message: '<< OCPP Request Returned',
+        action: action,
+        detailedMessages: detailedMessages
+      });
+    }
   }
 
   // Used to log exception in catch(...) only
@@ -212,7 +222,7 @@ export default class Logging {
   // Used to log exception in catch(...) only
   public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
-    if (action === 'login' && req.body.password) {
+    if (action === 'Login' && req.body.password) {
       req.body.password = '####';
     }
     if (req.user && req.user.tenantID) {
@@ -226,7 +236,7 @@ export default class Logging {
     // Log Backend Error
     } else if (exception instanceof BackendError) {
       Logging._logActionBackendExceptionMessage(tenantID, action, exception);
-      statusCode = Constants.HTTP_GENERAL_ERROR;
+      statusCode = HTTPError.GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
@@ -235,7 +245,7 @@ export default class Logging {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
-    res.status(statusCode ? statusCode : Constants.HTTP_GENERAL_ERROR).send({
+    res.status(statusCode ? statusCode : HTTPError.GENERAL_ERROR).send({
       'message': Utils.hideShowMessage(exception.message)
     });
     next();

@@ -1,17 +1,21 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import uuid = require('uuid');
-import Utils from '../../../../utils/Utils';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { HTTPError } from '../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../../../types/Tenant';
+import { UserStatus } from '../../../../types/User';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
+import uuid = require('uuid');
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -29,7 +33,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIResponse> {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
     switch (req.method) {
       case 'POST':
         return await this.authorizeRequest(req, res, next, tenant);
@@ -54,7 +58,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
 
     // Get all tokens
-    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset);
+    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset, req.query.date_from, req.query.date_to);
 
     // Set header
     res.set({
@@ -63,7 +67,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     });
 
     // Return next link
-    const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, tokens.count);
+    const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tokens.count);
     if (nextUrl) {
       res.links({
         next: nextUrl
@@ -90,9 +94,9 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -103,9 +107,9 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing LocationReference',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
     if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
@@ -113,9 +117,9 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing EVSE Id.',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
     if (locationReference.evse_uids.length > 1) {
@@ -123,21 +127,22 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
-    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, locationReference.evse_uids[0]);
+    const chargingStationId = OCPIUtils.buildChargingStationId(locationReference.location_id, locationReference.evse_uids[0]);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
     if (!chargingStation || chargingStation.issuer) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2003_UNKNOW_LOCATION_ERROR
+        ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
       });
     }
 
@@ -147,9 +152,9 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'authorizeRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'UNKNOWN USER',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
 
@@ -162,10 +167,10 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
       allowedStatus = 'NOT_ALLOWED';
     } else {
       switch (user.status) {
-        case Constants.USER_STATUS_ACTIVE:
+        case UserStatus.ACTIVE:
           allowedStatus = 'ALLOWED';
           break;
-        case Constants.USER_STATUS_BLOCKED:
+        case UserStatus.BLOCKED:
           allowedStatus = 'BLOCKED';
           break;
         default:

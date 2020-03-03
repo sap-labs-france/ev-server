@@ -1,5 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType } from '../../src/types/Setting';
+import TenantComponents from '../../src/types/TenantComponents';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
@@ -57,7 +59,8 @@ describe('Tenant Settings test', function() {
         billing: { active: false, type: null },
         smartCharging: { active: false, type: null },
         statistics: { active: false, type: null },
-        analytics: { active: false, type: null }
+        analytics: { active: false, type: null },
+        building: { active: false, type: null }
       }
     };
     const res = await testData.superAdminCentralService.updateEntity(
@@ -78,14 +81,15 @@ describe('Tenant Settings test', function() {
         email: testData.credentials.email,
         subdomain: 'utnothing',
         components: {
-          ocpi: { active: true, type: 'gireve' },
+          ocpi: { active: true, type: RoamingSettingsType.GIREVE },
           organization: { active: false, type: null },
           pricing: { active: false, type: null },
           refund: { active: false, type: null },
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(
@@ -93,7 +97,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('ocpi', 'gireve');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.OCPI, RoamingSettingsType.GIREVE);
     });
 
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {
@@ -106,12 +110,13 @@ describe('Tenant Settings test', function() {
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
-          pricing: { active: true, type: 'simple' },
+          pricing: { active: true, type: PricingSettingsType.SIMPLE },
           refund: { active: false, type: null },
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(
@@ -121,7 +126,7 @@ describe('Tenant Settings test', function() {
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
 
     it('Billing : Check that the setting has been created in the tenant after activation', async function() {
@@ -136,10 +141,11 @@ describe('Tenant Settings test', function() {
           organization: { active: false, type: null },
           pricing: { active: false, type: null },
           refund: { active: false, type: null },
-          billing: { active: true, type: 'stripe' },
+          billing: { active: true, type: BillingSettingsType.STRIPE },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -155,12 +161,13 @@ describe('Tenant Settings test', function() {
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
-          pricing: { active: true, type: 'simple' },
+          pricing: { active: true, type: PricingSettingsType.SIMPLE },
           refund: { active: false, type: null },
-          billing: { active: true, type: 'stripe' },
+          billing: { active: true, type: BillingSettingsType.STRIPE },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(
@@ -169,8 +176,8 @@ describe('Tenant Settings test', function() {
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(2);
-      expect(settings.data.result[0]).to.be.validatedSetting('billing', 'stripe');
-      expect(settings.data.result[1]).to.be.validatedSetting('pricing', 'simple');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BILLING, BillingSettingsType.STRIPE);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
     });
 
     it('Refund : Check that the setting has been created in the tenant after activation', async function() {
@@ -184,11 +191,12 @@ describe('Tenant Settings test', function() {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
           pricing: { active: false, type: null },
-          refund: { active: true, type: 'concur' },
+          refund: { active: true, type: RefundSettingsType.CONCUR },
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -204,12 +212,13 @@ describe('Tenant Settings test', function() {
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
-          pricing: { active: true, type: 'simple' },
-          refund: { active: true, type: 'concur' },
+          pricing: { active: true, type: PricingSettingsType.SIMPLE },
+          refund: { active: true, type: RefundSettingsType.CONCUR },
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -217,8 +226,8 @@ describe('Tenant Settings test', function() {
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(2);
-      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
-      expect(settings.data.result[1]).to.be.validatedSetting('refund', 'concur');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.SIMPLE);
+      expect(settings.data.result[1]).to.be.validatedSetting(TenantComponents.REFUND, RefundSettingsType.CONCUR);
     });
 
     it('SmartCharging : Check that the setting has been created in the tenant after activation', async function() {
@@ -236,7 +245,8 @@ describe('Tenant Settings test', function() {
           billing: { active: false, type: null },
           smartCharging: { active: true, type: 'sapSmartCharging' },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -256,7 +266,8 @@ describe('Tenant Settings test', function() {
           billing: { active: false, type: null },
           smartCharging: { active: true, type: 'sapSmartCharging' },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -282,7 +293,8 @@ describe('Tenant Settings test', function() {
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: false, type: null }
+          analytics: { active: false, type: null },
+          building: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -290,7 +302,7 @@ describe('Tenant Settings test', function() {
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'convergentCharging');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.PRICING, PricingSettingsType.CONVERGENT_CHARGING);
     });
 
     it('Analytics : Check that the setting has been created in the tenant after activation', async function() {
@@ -309,7 +321,8 @@ describe('Tenant Settings test', function() {
           billing: { active: false, type: null },
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
-          analytics: { active: true, type: 'sac' }
+          analytics: { active: true, type: 'sac' },
+          building: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -318,7 +331,34 @@ describe('Tenant Settings test', function() {
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('analytics', 'sac');
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ANALYTICS, AnalyticsSettingsType.SAC);
+    });
+
+    it('Building : Check that the setting has been created in the tenant after activation', async function() {
+      // Fill in the data
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null },
+          building: { active: true, type: null }
+        }
+      };
+      const res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data);
+      expect(res.status).to.equal(200);
+      const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.data.count).to.equal(1);
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BUILDING, null);
     });
   });
 });

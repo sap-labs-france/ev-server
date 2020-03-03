@@ -1,13 +1,15 @@
 import moment from 'moment-timezone';
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import { Action } from '../../../types/Authorization';
 import ChargingStation from '../../../types/ChargingStation';
 import Consumption from '../../../types/Consumption';
 import { PricedConsumption } from '../../../types/Pricing';
+import { RefundStatus } from '../../../types/Refund';
 import { ConvergentChargingPricingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
-import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Pricing from '../Pricing';
@@ -15,7 +17,6 @@ import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from 
 import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/RateRequest';
 import { RateResult } from './model/RateResult';
 import StatefulChargingService from './StatefulChargingService';
-import { RefundStatus } from '../../../types/Refund';
 
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
@@ -81,7 +82,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('startSession', consumptionData, result);
+    await this.handleError(Action.START_TRANSACTION, consumptionData, result);
     return null;
 
   }
@@ -111,7 +112,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('updateSession', consumptionData, result);
+    await this.handleError(Action.STOP_TRANSACTION, consumptionData, result);
     return null;
 
   }
@@ -138,12 +139,12 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
         pricingSource: 'ConvergentCharging'
       };
     }
-    await this.handleError('stopSession', consumptionData, result);
+    await this.handleError(Action.UPDATE_TRANSACTION, consumptionData, result);
     return null;
 
   }
 
-  async handleError(action: string, consumptionData: Consumption, result) {
+  async handleError(action: Action, consumptionData: Consumption, result) {
     const chargingResult = result.data.chargingResult;
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
     Logging.logError({
@@ -160,6 +161,14 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
       if (chargingStation) {
         // Execute OCPP Command
         const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+        if (!chargingStationClient) {
+          throw new BackendError({
+            source: chargingStation.id,
+            action: action,
+            module: 'ConvergentCharging', method: 'handleError',
+            message: 'Charging Station is not connected to the backend',
+          });
+        }
         await chargingStationClient.remoteStopTransaction({
           transactionId: this.transaction.id
         });

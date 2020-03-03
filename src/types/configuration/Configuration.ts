@@ -21,6 +21,8 @@ import LoggingConfiguration from './LoggingConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
 import HealthCheckConfiguration from './HealthCheckConfiguration';
 import MigrationConfiguration from './MigrationConfiguration';
+import OCPIEndpointConfiguration from './OCPIEndpointConfiguration';
+import EVDatabaseConfiguration from './EVDatabaseAPIConfiguration';
 
 export interface Configuration {
   Crypto: CryptoConfiguration;
@@ -31,6 +33,7 @@ export interface Configuration {
   CentralSystemFrontEnd: CentralSystemFrontEndConfiguration;
   WSDLEndpoint: WSDLEndpointConfiguration;
   JsonEndpoint: JsonEndpointConfiguration;
+  OCPIEndpoint: OCPIEndpointConfiguration;
   WSClient: WSClientConfiguration;
   OCPIService: OCPIServiceConfiguration;
   ODataService: ODataServiceConfiguration;
@@ -46,4 +49,5 @@ export interface Configuration {
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
   Migration?: MigrationConfiguration;
+  EVDatabase: EVDatabaseConfiguration;
 }

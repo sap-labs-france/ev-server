@@ -3,6 +3,7 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import { RefundStatus } from '../../types/Refund';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -10,7 +11,7 @@ import SchedulerTask from '../SchedulerTask';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)) {
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.REFUND)) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',

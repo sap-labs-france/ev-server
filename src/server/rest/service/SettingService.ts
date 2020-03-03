@@ -1,3 +1,5 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import _ from 'lodash';
@@ -12,17 +14,17 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import UtilsService from './UtilsService';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.DELETE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleDeleteSetting',
         value: settingID
@@ -30,7 +32,7 @@ export default class SettingService {
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(setting, `Tenant with ID '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
@@ -45,17 +47,17 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleGetSetting', req.user);
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.READ,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleGetSetting',
         value: settingID
@@ -63,7 +65,7 @@ export default class SettingService {
     }
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(setting, `Setting with ID '${settingID}' does not exist`, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`, 'SettingService', 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -75,14 +77,14 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettings(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_SETTINGS,
+        action: Action.LIST,
+        entity: Entity.SETTINGS,
         module: 'SettingService',
         method: 'handleGetSettings'
       });
@@ -106,14 +108,14 @@ export default class SettingService {
     next();
   }
 
-  public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_CREATE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.CREATE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleCreateSetting'
       });
@@ -139,17 +141,17 @@ export default class SettingService {
     next();
   }
 
-  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_SETTING,
+        action: Action.UPDATE,
+        entity: Entity.SETTING,
         module: 'SettingService',
         method: 'handleUpdateSetting',
         value: settingUpdate.id
@@ -157,7 +159,7 @@ export default class SettingService {
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
-    UtilsService.assertObjectExists(setting, `Setting with ID '${settingUpdate.id}' does not exist anymore`,
+    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' doesn't exist anymore`,
       'SettingService', 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
@@ -165,7 +167,7 @@ export default class SettingService {
       if (!Array.isArray(settingUpdate.sensitiveData)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
           module: 'SettingService',
           method: 'handleUpdateSetting',

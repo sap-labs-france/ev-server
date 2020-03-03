@@ -28,7 +28,9 @@ const userFactory = Factory.define('user')
     sendUserAccountInactivity: false,
     sendPreparingSessionNotStarted: false,
     sendOfflineChargingStations: false,
-    sendBillingUserSynchronizationFailed: false
+    sendBillingUserSynchronizationFailed: false,
+    sendSessionNotStarted: false,
+    sendCarSynchronizationFailed: false
   }))
   .attr('role', 'B')
   .attr('status', 'A')
@@ -36,7 +38,9 @@ const userFactory = Factory.define('user')
   .attr('tags', () => [
     { id: faker.random.alphaNumeric(8).toUpperCase(),
       description: '',
-      issuer: true
+      issuer: true,
+      deleted: false,
+      ocpiToken: null
     }
   ]);
 

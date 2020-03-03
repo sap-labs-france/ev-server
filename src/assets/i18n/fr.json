@@ -1,5 +1,9 @@
 {
-	"notifications": {
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Session Non Démarrée",
+      "body": "Vous avez badgé sur la borne '{{chargeBoxID}}', mais aucune session n'a été démarrée"
+    },
 		"sessionStarted": {
 			"title": "Session Démarrée",
 			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès dans l'organisation '{{tenantName}}'"
@@ -56,7 +60,7 @@
 		},
     "billingUserSynchronizationFailed": {
       "title": "Synchro Utilisateurs",
-      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de Facturation dans l'organisation '{{tenantName}}'"
+      "body": "Impossible de synchronizer {{nbrUsersInError}} utilisateur(s) avec le service de facturation dans l'organisation '{{tenantName}}'"
     }
 	},
   "billing": {

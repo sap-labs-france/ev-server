@@ -12,47 +12,122 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
+import ChargingStation from '../../types/ChargingStation';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import moment from 'moment';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
-    super(tenant, settings, ocpiEndpoint, Constants.OCPI_ROLE.CPO);
+    super(tenant, settings, ocpiEndpoint, OCPIRole.CPO);
 
-    if (ocpiEndpoint.role !== Constants.OCPI_ROLE.CPO) {
-      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${Constants.OCPI_ROLE.CPO}`);
+    if (ocpiEndpoint.role !== OCPIRole.CPO) {
+      throw new Error(`CpoOcpiClient requires Ocpi Endpoint with role ${OCPIRole.CPO}`);
     }
   }
 
   /**
-   * Get Tokens
+   * Pull Tokens
    */
-  async getTokens() {
+  async pullTokens(partial = true) {
+    // Result
+    const sendResult = {
+      success: 0,
+      failure: 0,
+      total: 0,
+      logs: []
+    };
     // Get tokens endpoint url
-    const tokensUrl = this.getEndpointUrl('tokens');
+    let tokensUrl = this.getEndpointUrl('tokens');
+    if (partial) {
+      const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
+      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=25`;
+    } else {
+      tokensUrl = `${tokensUrl}?limit=25`;
+    }
 
-    // Log
-    Logging.logDebug({
-      tenantID: this.tenant.id,
-      action: 'OcpiPatchLocations',
-      message: `Get Tokens at ${tokensUrl}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'getTokens'
-    });
+    let nextResult = true;
 
-    // Call IOP
-    const response = await axios.get(tokensUrl,
-      {
-        headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
+    while (nextResult) {
+      // Log
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: 'OcpiPullTokens',
+        message: `Pull Tokens at ${tokensUrl}`,
+        source: 'OCPI Client',
+        module: 'OCPIClient',
+        method: 'pullTokens'
       });
 
-    // Check response
-    if (response.data) {
-      Logging.logDebug(`${response.data.length} Tokens retrieved`);
+      // Call IOP
+      const response = await axios.get(tokensUrl,
+        {
+          headers: {
+            Authorization: `Token ${this.ocpiEndpoint.token}`
+          },
+          timeout: 10000
+        });
+
+      // Check response
+      if (response.status !== 200 || !response.data) {
+        throw new Error(`Invalid response code ${response.status} from Pull tokens`);
+      }
+      if (!response.data.data) {
+        throw new Error(`Invalid response from Pull tokens: ${JSON.stringify(response.data)}`);
+      }
+
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: 'OcpiPullTokens',
+        message: `${response.data.data.length} Tokens retrieved from ${tokensUrl}`,
+        source: 'OCPI Client',
+        module: 'OCPIClient',
+        method: 'pullTokens'
+      });
+
+      for (const token of response.data.data) {
+        try {
+          await OCPITokensService.updateToken(this.tenant.id, this.ocpiEndpoint, token);
+          sendResult.success++;
+          sendResult.logs.push(
+            `Token ${token.uid} successfully updated`
+          );
+        } catch (error) {
+          sendResult.failure++;
+          sendResult.logs.push(
+            `Failure updating token:${token.uid}:${error.message}`
+          );
+        }
+      }
+
+      const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
+      if (nextUrl && nextUrl.length > 0 && nextUrl !== tokensUrl) {
+        tokensUrl = nextUrl;
+      } else {
+        nextResult = false;
+      }
     }
+    return sendResult;
+  }
+
+  async patchChargingStationStatus(chargingStation: ChargingStation, status: ChargePointStatus) {
+    if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
+      throw new Error('Charging Station must be associated to a site area');
+    }
+    if (!chargingStation.issuer) {
+      throw new Error('Only charging Station issued locally can be exposed to IOP');
+    }
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+    await this.patchEVSEStatus(siteID, chargingStation.id, OCPIMapping.convertStatus2OCPIStatus(status));
   }
 
   /**
@@ -273,6 +348,7 @@ export default class CpoOCPIClient extends OCPIClient {
 
   async triggerJobs(): Promise<any> {
     return {
+      tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses()
     };
   }

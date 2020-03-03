@@ -1,8 +1,11 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -13,7 +16,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
-      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
           module: 'OCPIGetTokensTask',
@@ -24,7 +27,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
         return;
       }
       // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: Constants.OCPI_ROLE.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
+      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
       for (const ocpiEndpoint of ocpiEndpoints.result) {
         await this.processOCPIEndpoint(tenant, ocpiEndpoint);
       }
@@ -37,7 +40,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
   // eslint-disable-next-line no-unused-vars
   async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
     // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.status !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+    if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'OCPIGetTokensTask',
@@ -63,12 +66,13 @@ export default class OCPIGetTokensTask extends SchedulerTask {
     // Build OCPI Client
     const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
     // Send EVSE statuses
-    const result = await ocpiClient.getTokens();
+    const result = await ocpiClient.pullTokens();
     Logging.logInfo({
       tenantID: tenant.id,
       module: 'OCPIGetTokensTask',
       method: 'patch', action: 'OcpiGetTokens',
-      message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`
+      message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
+      detailedMessages: result
     });
   }
 }

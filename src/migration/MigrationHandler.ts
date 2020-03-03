@@ -18,6 +18,7 @@ import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
+import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -51,6 +52,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
       currentMigrationTasks.push(new AddIssuerFieldTask());
       currentMigrationTasks.push(new CleanupOrphanBadgeTask());
+      currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -65,12 +67,6 @@ export default class MigrationHandler {
         );
         // Already processed?
         if (migrationTaskDone) {
-          Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
-            source: 'Migration', action: 'Migration',
-            module: 'MigrationHandler', method: 'migrate',
-            message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
-          });
           continue;
         }
         // Check
@@ -90,7 +86,7 @@ export default class MigrationHandler {
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Migration', action: 'Migration',
         module: 'MigrationHandler', method: 'migrate',
-        message: `All synchronous migration tasks have been run successfully in ${totalMigrationTimeSecs} secs`
+        message: `The migration has been run in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
       Logging.logError({

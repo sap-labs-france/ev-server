@@ -7,7 +7,9 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import global from '../../../src/types/GlobalType';
+import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import Site from '../../../src/types/Site';
+import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import Constants from '../../../src/utils/Constants';
 import Utils from '../../../src/utils/Utils';
@@ -16,10 +18,16 @@ import Factory from '../../factories/Factory';
 import TenantFactory from '../../factories/TenantFactory';
 import UserFactory from '../../factories/UserFactory';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from './ContextConstants';
+import CONTEXTS, { TenantDefinition } from './ContextConstants';
 import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
+import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
+import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
+import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
+import Company from '../../../src/types/Company';
 
 export default class ContextBuilder {
 
@@ -64,13 +72,6 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * It will first destroy all Unit Test tenants
-   * Then it will create new ones with the minimum entities
-   * All definition is coming from ContextConstants.js
-   *
-   * @memberof ContextBuilder
-   */
   async prepareContexts() {
     await this.init();
     await this.destroy();
@@ -82,26 +83,17 @@ export default class ContextBuilder {
     }
   }
 
-  /**
-   * Private method
-   * It will build the necessary tenants
-   * Precondition: The tenant MUST not exist already in the DB
-   *
-   * @param {*} tenantContextDef
-   * @returns
-   * @memberof ContextBuilder
-   */
-  async buildTenantContext(tenantContextDef: any) {
+  async buildTenantContext(tenantContextDef: TenantDefinition) {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
-      for (const component in Constants.COMPONENTS) {
-        const componentName = Constants.COMPONENTS[component];
-        if (tenantContextDef.componentSettings.hasOwnProperty(componentName)) {
+      for (const component in TenantComponents) {
+        const componentName = TenantComponents[component];
+        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName)) {
           components[componentName] = {
             active: true
           };
-          if (tenantContextDef.componentSettings[componentName].hasOwnProperty('type')) {
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
             components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
           }
         }
@@ -126,11 +118,10 @@ export default class ContextBuilder {
     buildTenant.components = components;
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
-    console.log('CREATE tenant context ' + buildTenant.id +
-      ' ' + buildTenant.subdomain);
-
+    console.log('CREATE tenant context ' + buildTenant.id + ' ' + buildTenant.subdomain);
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'issuer': true,
       'name': 'Admin',
       'firstName': 'User',
       'email': config.get('admin.username'),
@@ -147,34 +138,58 @@ export default class ContextBuilder {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tags);
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
-
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
-
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
       const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       expect(allSettings.status).to.equal(200);
-      for (const setting in tenantContextDef.componentSettings) {
+      for (const componentSettingKey in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === componentSettingKey);
         }
         if (!foundSetting) {
           // Create new settings
-          const settingInput = {
-            identifier: setting,
-            content: tenantContextDef.componentSettings[setting].content
+          const settingInput: SettingDB = {
+            identifier: componentSettingKey as TenantComponents,
+            content: tenantContextDef.componentSettings[componentSettingKey].content as SettingDBContent
           };
-          console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
-          const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
-            settingInput);
+          console.log(`CREATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          await localCentralServiceService.createEntity(localCentralServiceService.settingApi, settingInput);
         } else {
-          console.log(`UPDATE settings for ${setting} in tenant ${buildTenant.name}`);
-          foundSetting.content = tenantContextDef.componentSettings[setting].content;
-          const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
-            foundSetting);
+          console.log(`UPDATE settings for ${componentSettingKey} in tenant ${buildTenant.name}`);
+          foundSetting.content = tenantContextDef.componentSettings[componentSettingKey].content;
+          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi, foundSetting);
+        }
+        if (componentSettingKey === TenantComponents.OCPI) {
+          const cpoEndpoint = {
+            name: 'CPO Endpoint',
+            role: OCPIRole.CPO,
+            countryCode: 'FR',
+            partyId: 'CPO',
+            baseUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/emsp/versions',
+            versionUrl: 'https://ocpi-pp-iop.gireve.com/emsp/cpo/2.1.1',
+            version: '2.1.1',
+            status: OCPIRegistrationStatus.REGISTERED,
+            localToken: ContextBuilder.generateLocalToken(OCPIRole.CPO, tenantContextDef.subdomain),
+            token: 'TOIOP-OCPI-TOKEN-cpo-xxxx-xxxx-yyyy'
+          } as OCPIEndpoint;
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, cpoEndpoint);
+          const emspEndpoint = {
+            name: 'EMSP Endpoint',
+            role: OCPIRole.EMSP,
+            countryCode: 'FR',
+            partyId: 'EMSP',
+            baseUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/cpo/versions',
+            versionUrl: 'https://ocpi-pp-iop.gireve.com/ocpi/cpo/2.1.1',
+            version: '2.1.1',
+            status: OCPIRegistrationStatus.REGISTERED,
+            localToken: ContextBuilder.generateLocalToken(OCPIRole.EMSP, tenantContextDef.subdomain),
+            token: 'TOIOP-OCPI-TOKEN-emsp-xxxx-xxxx-yyyy'
+          } as OCPIEndpoint;
+          await OCPIEndpointStorage.saveOcpiEndpoint(buildTenant.id, emspEndpoint);
         }
       }
     }
@@ -194,6 +209,7 @@ export default class ContextBuilder {
       const userDef = CONTEXTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
+      createUser.issuer = true;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.id = userDef.id;
@@ -210,7 +226,7 @@ export default class ContextBuilder {
         userListToAssign.push(userModel);
       }
       // Set back password to clear value for login/logout
-      (userModel as any).passwordClear = config.get('admin.password'); // TODO?
+      (userModel as any).passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     // Persist tenant context
@@ -218,14 +234,15 @@ export default class ContextBuilder {
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
-    if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
-      buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
+    if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
+      buildTenant.components[TenantComponents.ORGANIZATION].active) {
       // Create the company
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
-        const dummyCompany: any = Factory.company.build();
+        const dummyCompany = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
+        dummyCompany.issuer = true;
         await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
       }
@@ -240,6 +257,7 @@ export default class ContextBuilder {
         siteTemplate.name = siteContextDef.name;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
+        siteTemplate.issuer = true;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
         await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
@@ -251,6 +269,7 @@ export default class ContextBuilder {
           siteAreaTemplate.name = siteAreaDef.name;
           siteAreaTemplate.accessControl = siteAreaDef.accessControl;
           siteAreaTemplate.siteID = site.id;
+          siteAreaTemplate.issuer = true;
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
@@ -301,5 +320,13 @@ export default class ContextBuilder {
         break;
     }
     return newTenantContext;
+  }
+
+  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
+    const newToken: any = {};
+    newToken.ak = role;
+    newToken.tid = tenantSubdomain;
+    newToken.zk = role;
+    return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 }

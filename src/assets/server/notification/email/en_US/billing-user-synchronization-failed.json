@@ -1,6 +1,7 @@
 {
   "subject": "Billing - User Synchronization Failed",
   "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
       "title": "Billing - User Synchronization Failed",

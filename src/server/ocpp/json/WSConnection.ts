@@ -1,32 +1,35 @@
+import * as http from 'http';
 import uuid from 'uuid/v4';
 import { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
+import OCPPError from '../../../exception/OcppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import OCPPError from '../../../exception/OcppError';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
-  public code: any;
-  public message: any;
-  public details: any;
-  protected initialized: any;
-  protected wsServer: any;
+  public code: string;
+  public message: string;
+  public details: string;
+  protected initialized: boolean;
+  protected wsServer: JsonCentralSystemServer;
   private readonly url: string;
   private readonly ip: string;
-  private readonly wsConnection: any;
-  private req: any;
+  private readonly wsConnection: WebSocket;
+  private req: http.IncomingMessage;
   private _requests: any = {};
   private tenantIsValid: boolean;
   private readonly chargingStationID: string;
   private readonly tenantID: string;
   private readonly token: string;
 
-  constructor(wsConnection, req, wsServer) {
+  constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     this.ip = Utils.getRequestIP(req);
@@ -76,16 +79,15 @@ export default class WSConnection {
         message: 'The Charging Station ID is invalid'
       });
     }
-
     // Handle incoming messages
-    this.wsConnection.on('message', this.onMessage.bind(this));
+    this.wsConnection.onmessage = this.onMessage.bind(this);
     // Handle Error on Socket
-    this.wsConnection.on('error', this.onError.bind(this));
+    this.wsConnection.onerror = this.onError.bind(this);
     // Handle Socket close
-    this.wsConnection.on('close', this.onClose.bind(this));
+    this.wsConnection.onclose = this.onClose.bind(this);
   }
 
-  async initialize() {
+  public async initialize() {
     try {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
@@ -100,12 +102,12 @@ export default class WSConnection {
           // Update CF Instance
           chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
           // Save it
-          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
+          await ChargingStationStorage.saveChargingStation(Action.WS_CONNECTION, this.tenantID, chargingStation);
         }
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, 'WSConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      Logging.logException(error, 'WsConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
 
       throw new BackendError({
         source: this.getChargingStationID(),
@@ -116,16 +118,15 @@ export default class WSConnection {
     }
   }
 
-  onError(error) {
+  public onError(event: Event) {
   }
 
-  onClose(code, reason?) {
+  public onClose(closeEvent: CloseEvent) {
   }
 
-  public async onMessage(message): Promise<void> {
+  public async onMessage(messageEvent: MessageEvent) {
     // Parse the message
-    const [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
-
+    const [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
     try {
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
@@ -176,7 +177,7 @@ export default class WSConnection {
             action: 'WSError',
             message: {
               messageID: messageId,
-              error: JSON.stringify(message, null, ' ')
+              error: JSON.stringify(messageEvent.data, null, ' ')
             }
           });
           if (!this._requests[messageId]) {
@@ -232,32 +233,32 @@ export default class WSConnection {
     }
   }
 
-  async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload) {
     // To implement in sub-class
   }
 
-  getWSConnection() {
+  public getWSConnection() {
     return this.wsConnection;
   }
 
-  getWSServer() {
+  public getWSServer() {
     return this.wsServer;
   }
 
-  getURL(): string {
+  public getURL(): string {
     return this.url;
   }
 
-  getIP(): string {
+  public getIP(): string {
     return this.ip;
   }
 
-  send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
+  public send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
   }
 
-  sendError(messageId, err) {
+  public sendError(messageId, err) {
     // Check exception: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
@@ -270,7 +271,7 @@ export default class WSConnection {
     return this.sendMessage(messageId, error, Constants.OCPP_JSON_CALL_ERROR_MESSAGE);
   }
 
-  async sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = '') {
+  public async sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = ''): Promise<any> {
     // Send a message through WSConnection
     const self = this;
     // Create a promise
@@ -338,11 +339,11 @@ export default class WSConnection {
     });
   }
 
-  getChargingStationID(): string {
+  public getChargingStationID(): string {
     return this.chargingStationID;
   }
 
-  getTenantID(): string {
+  public getTenantID(): string {
     // Check
     if (this.isTenantValid()) {
       // Ok verified
@@ -352,19 +353,19 @@ export default class WSConnection {
     return Constants.DEFAULT_TENANT;
   }
 
-  getToken(): string {
+  public getToken(): string {
     return this.token;
   }
 
-  getID(): string {
+  public getID(): string {
     return `${this.getTenantID()}~${this.getChargingStationID()}}`;
   }
 
-  isTenantValid(): boolean {
+  public isTenantValid(): boolean {
     return this.tenantIsValid;
   }
 
-  isWSConnectionOpen(): boolean {
+  public isWSConnectionOpen(): boolean {
     return this.wsConnection.readyState === OPEN;
   }
 }

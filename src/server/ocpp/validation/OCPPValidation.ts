@@ -1,9 +1,9 @@
 import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
+import { Action } from '../../../types/Authorization';
 import ChargingStation from '../../../types/ChargingStation';
 import global from '../../../types/GlobalType';
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequest, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
-import Constants from '../../../utils/Constants';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
@@ -21,12 +21,12 @@ export default class OCPPValidation extends SchemaValidator {
 
   constructor() {
     super('OCPPValidation');
-    this._bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/boot-notification-request.json`, 'utf8'));
-    this._authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/authorize-request.json`, 'utf8'));
-    this._statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/status-notification-request.json`, 'utf8'));
-    this._startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/start-transaction-request.json`, 'utf8'));
-    this._stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-15.json`, 'utf8'));
-    this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-16.json`, 'utf8'));
+    this._bootNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/boot-notification-request.json`, 'utf8'));
+    this._authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/authorize-request.json`, 'utf8'));
+    this._statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/status-notification-request.json`, 'utf8'));
+    this._startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/start-transaction-request.json`, 'utf8'));
+    this._stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-15.json`, 'utf8'));
+    this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/schemas/stop-transaction-request-16.json`, 'utf8'));
   }
 
   static getInstance(): OCPPValidation {
@@ -36,7 +36,7 @@ export default class OCPPValidation extends SchemaValidator {
     return OCPPValidation.instance;
   }
 
-  validateHeartbeat(heartbeat: OCPPHeartbeatRequest) {
+  validateHeartbeat(heartbeat: OCPPHeartbeatRequestExtended) {
   }
 
   validateStatusNotification(statusNotification: OCPPStatusNotificationRequestExtended) {
@@ -71,7 +71,7 @@ export default class OCPPValidation extends SchemaValidator {
         module: 'OCPPValidation',
         method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        action: Constants.ACTION_START_TRANSACTION
+        action: Action.START_TRANSACTION
       });
     }
   }
@@ -92,7 +92,7 @@ export default class OCPPValidation extends SchemaValidator {
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
     if (meterValues.connectorId === 0) {
-      // BUG KEBA: Connector ID must be > 0 according OCPP
+      // KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
         tenantID: tenantID,
         source: chargingStation.id, module: 'OCPPValidation', method: 'validateMeterValues',
@@ -106,7 +106,7 @@ export default class OCPPValidation extends SchemaValidator {
       (connector) => connector.connectorId === meterValues.connectorId);
     const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.activeTransactionID : 0);
     // Transaction is provided in MeterValue?
-    if (meterValues.hasOwnProperty('transactionId')) {
+    if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer
       meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
       // Yes: Check Transaction ID (ABB)

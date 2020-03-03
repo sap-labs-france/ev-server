@@ -1,10 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
+import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import config from '../../config';
-import { ComponentType, PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';
+import BuildingApi from './BuildingApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import LogsApi from './LogsApi';
@@ -29,6 +31,7 @@ export default class CentralServerService {
 
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
+  public buildingApi: BuildingApi;
   public companyApi: CompanyApi;
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
@@ -93,6 +96,7 @@ export default class CentralServerService {
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.buildingApi = new BuildingApi(this.authenticatedApi);
   }
 
   public static get DefaultInstance(): CentralServerService {
@@ -113,7 +117,7 @@ export default class CentralServerService {
     let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
       setting = {} as SettingDB;
-      setting.identifier = ComponentType.PRICING;
+      setting.identifier = TenantComponents.PRICING;
       newSetting = true;
     }
     setting.content = {
@@ -158,7 +162,7 @@ export default class CentralServerService {
       // Check if ok
       expect(response.status).to.equal(200);
       expect(response.data.id).is.eql(entity.id);
-      expect(response.data).to.deep.include(entity);
+      expect(response.data).to.containSubset(entity);
       // Return the entity
       return response.data;
     }

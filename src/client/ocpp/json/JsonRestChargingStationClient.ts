@@ -1,15 +1,16 @@
 import uuid from 'uuid/v4';
 import ChargingStation from '../../../types/ChargingStation';
+import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingStationCommand, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import WSClient from '../../WSClient';
+import WSClient from '../../websocket/WSClient';
 import ChargingStationClient from '../ChargingStationClient';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
-  private serverURL: any;
+  private serverURL: string;
   private chargingStation: ChargingStation;
   private requests: any;
   private wsConnection: WSClient;
@@ -79,8 +80,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this._sendMessage(this._buildRequest(OCPPChargingStationCommand.GET_DIAGNOSTICS, params));
   }
 
-  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
-    await this._sendMessage(this._buildRequest(OCPPChargingStationCommand.UPDATE_FIRMWARE, params));
+  public updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+    return this._sendMessage(this._buildRequest(OCPPChargingStationCommand.UPDATE_FIRMWARE, params));
   }
 
   private async _openConnection(): Promise<any> {
@@ -108,7 +109,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           protocol: 'rest'
         };
       }
-      const wsClientOptions = {
+      const wsClientOptions: JsonWSClientConfiguration = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
         autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
@@ -174,8 +175,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 source: this.chargingStation.id,
                 method: 'onMessage',
                 action: 'WSRestClientErrorResponse',
-                message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
-                detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
+                message: `${messageJson[3]}`,
+                detailedMessages: messageJson
               });
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });

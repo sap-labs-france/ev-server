@@ -1,0 +1,36 @@
+{
+    "title": "start-transaction-request",
+    "description": "Defines the StartTransaction.req PDU",
+    "type": "object",
+    "properties": {
+        "connectorId": {
+            "type": "integer",
+            "description": "number defining the connector identifier of the charge point"
+        },
+        "idTag": {
+            "type": "string",
+            "description": "string defining identification token, e.g. RFID or credit card number. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "string defining the status notification timestamp"
+        },
+        "meterStart": {
+            "type": "number",
+            "description": "number defining the meter start of the transaction"
+        },
+        "reservationId": {
+            "type": "integer",
+            "description": "number defining the reservation identifier of the transaction"
+        }
+    },
+    "required": [
+        "connectorId",
+        "idTag",
+        "timestamp",
+        "meterStart"
+    ]
+}

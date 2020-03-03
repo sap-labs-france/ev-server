@@ -1,16 +1,23 @@
+import fs from 'fs';
 import moment from 'moment';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
+import { Action } from '../../types/Authorization';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
-import fs from 'fs';
 
 export default class ChargingStationStorage {
 
@@ -26,7 +33,7 @@ export default class ChargingStationStorage {
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'updateChargingStationTemplatesFromFile', error);
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'UpdateChargingStationTemplatesFromFile', error);
       }
     }
     // Debug
@@ -86,8 +93,10 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStations(tenantID: string,
-    params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean; },
+    params: {
+      search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; connectorStatus?: ChargePointStatus;
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date; issuer?: boolean;
+    },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -110,7 +119,7 @@ export default class ChargingStationStorage {
       filters.$and.push({
         _id: params.chargingStationID
       });
-    // Search filters
+      // Search filters
     } else if (params.search) {
       filters.$and.push({
         '$or': [
@@ -124,11 +133,12 @@ export default class ChargingStationStorage {
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
       filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
-
+    // Issuer
     if (params.issuer === true || params.issuer === false) {
       filters.$and.push({ 'issuer': params.issuer });
     }
-
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -137,6 +147,15 @@ export default class ChargingStationStorage {
     if (params.includeDeleted) {
       filters.$and[0].$or.push({
         'deleted': true
+      });
+    }
+    // With Status
+    if (params.connectorStatus) {
+      // TODO: MongoDB 4.2, use for removing connector from collection:
+      // { $pull: { 'connectors': { status: { $ne: 'Available' } } } }
+      filters.$and.push({
+        'connectors.status': params.connectorStatus,
+        'inactive': false
       });
     }
     // With no Site Area
@@ -152,9 +171,10 @@ export default class ChargingStationStorage {
         });
       }
       // Site Area
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        { tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
+      DatabaseUtils.pushSiteAreaLookupInAggregation({
+        tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      });
     }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs)) {
@@ -163,17 +183,21 @@ export default class ChargingStationStorage {
         return { count: 0, result: [] };
       }
       // Build filter
-      aggregation.push({ $match: {
-        'siteArea.siteID': {
-          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+      aggregation.push({
+        $match: {
+          'siteArea.siteID': {
+            $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+          }
         }
-      } });
+      });
     }
     // Site
     if (params.withSite && !params.withNoSiteArea) {
       DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-          asField: 'siteArea.site', oneToOneCardinality: true });
+        {
+          tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
+          asField: 'siteArea.site', oneToOneCardinality: true
+        });
     }
     // Convert siteID back to string after having queried the site
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteArea.siteID');
@@ -229,7 +253,7 @@ export default class ChargingStationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Add clean connectors in case of corrupted DB
-    this.cleanAndUpdateConnectors(chargingStationsMDB);
+    this.cleanAndUpdateConnectors(chargingStationsMDB, params.connectorStatus);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -241,7 +265,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsByConnectorStatus(tenantID: string,
-    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<DataResult<ChargingStation>> {
+    params: { statusChangedBefore?: Date; connectorStatus: ChargePointStatus }): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
     // Check Tenant
@@ -249,9 +273,14 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Create filters
-    const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }] };
+    const filters: any = { $and: [{ $or: DatabaseUtils.getNotDeletedFilter() }] };
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Filter on status preparing
-    filters.$and.push({ 'connectors.status': params.connectorStatus });
+    filters.$and.push({
+      'connectors.status': params.connectorStatus,
+      'inactive': false
+    });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
       filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
@@ -277,7 +306,7 @@ export default class ChargingStationStorage {
     const chargingStations = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-      // Debug
+    // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
     return {
       count: chargingStations.length,
@@ -287,7 +316,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
-    dbParams: DbParams): Promise<DataResult<ChargingStation>> {
+    dbParams: DbParams): Promise<DataResult<ChargingStationInError>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -298,6 +327,8 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
+    // Add Charging Station inactive flag
+    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
@@ -331,17 +362,19 @@ export default class ChargingStationStorage {
     });
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
-      aggregation.push({ $match: {
-        'sitearea.siteID': {
-          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+      aggregation.push({
+        $match: {
+          'sitearea.siteID': {
+            $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+          }
         }
-      } });
+      });
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'ChargingStationStorage',
@@ -415,13 +448,13 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
+  public static async saveChargingStation(action: Action, tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    UtilsService.assertIdIsProvided(chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
+    UtilsService.assertIdIsProvided(action, chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
     // Build Request
     const chargingStationFilter = {
       _id: chargingStationToSave.id
@@ -548,6 +581,8 @@ export default class ChargingStationStorage {
     // Delete Configuration
     await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
+    // Delete Charging Profiles
+    await this.deleteChargingProfiles(tenantID, id);
     // Delete Charging Station
     await global.database.getCollection<any>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
@@ -626,6 +661,165 @@ export default class ChargingStationStorage {
     return configuration;
   }
 
+  public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfile');
+    // Query single Site
+    const chargingProfilesMDB = await ChargingStationStorage.getChargingProfiles(tenantID,
+      { chargingProfileID: id },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfile', uniqueTimerID, { id });
+    return chargingProfilesMDB.count > 0 ? chargingProfilesMDB.result[0] : null;
+  }
+
+  public static async getChargingProfiles(tenantID: string,
+    params: {
+      chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
+    } = {},
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingProfiles');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Query by chargingStationID
+    const filters: any = {};
+    if (params.chargingProfileID) {
+      filters._id = params.chargingProfileID;
+    } else {
+      if (params.chargingStationID) {
+        filters.chargingStationID = params.chargingStationID;
+      }
+      if (params.connectorID) {
+        filters.connectorID = params.connectorID;
+      }
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const chargingProfilesCountMDB = await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (chargingProfilesCountMDB.length > 0 ? chargingProfilesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Rename ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Sort
+    if (dbParams.sort) {
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    } else {
+      aggregation.push({
+        $sort: {
+          identifier: 1
+        }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingProfiles', uniqueTimerID, { params, dbParams });
+    return {
+      count: (chargingProfilesCountMDB.length > 0 ?
+        (chargingProfilesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingProfilesCountMDB[0].count) : 0),
+      result: chargingProfilesMDB
+    };
+  }
+
+  public static async saveChargingProfile(tenantID: string, chargingProfileToSave: ChargingProfile): Promise<string> {
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const chargingProfileFilter: any = {};
+    // Build Request
+    if (chargingProfileToSave.id) {
+      chargingProfileFilter._id = chargingProfileToSave.id;
+    } else {
+      chargingProfileFilter._id =
+        Cypher.hash(`${chargingProfileToSave.chargingStationID}~${chargingProfileToSave.connectorID}~${chargingProfileToSave.profile.chargingProfileId}`);
+    }
+    // Properties to save
+    const chargingProfileMDB: any = {
+      _id: chargingProfileFilter._id,
+      chargingStationID: chargingProfileToSave.chargingStationID,
+      connectorID: chargingProfileToSave.connectorID,
+      profile: chargingProfileToSave.profile
+    };
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
+      chargingProfileFilter,
+      { $set: chargingProfileMDB },
+      { upsert: true });
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingProfile', uniqueTimerID);
+    return chargingProfileFilter._id;
+  }
+
+  public static async deleteChargingProfile(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profile
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ '_id': id });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
+  }
+
+  public static async deleteChargingProfiles(tenantID: string, chargingStationID: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingProfile');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete Charging Profiles
+    await global.database.getCollection<any>(tenantID, 'chargingprofiles')
+      .findOneAndDelete({ 'chargingStationID': chargingStationID });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingProfile', uniqueTimerID);
+  }
+
+  public static getChargingStationFirmware(filename: string): GridFSBucketReadStream {
+    // Get the bucket
+    const bucket: GridFSBucket = global.database.getGridFSBucket('default.firmwares');
+    // Get the file
+    return bucket.openDownloadStreamByName(filename);
+  }
+
   public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'removeChargingStationsFromSiteArea');
@@ -686,7 +880,7 @@ export default class ChargingStationStorage {
 
   private static getChargerInErrorFacet(errorType: string) {
     switch (errorType) {
-      case 'missingSettings':
+      case ChargingStationInErrorType.MISSING_SETTINGS:
         return [{
           $match: {
             $or: [
@@ -702,31 +896,31 @@ export default class ChargingStationStorage {
             ]
           }
         },
-        { $addFields: { 'errorCode': 'missingSettings' } }
+        { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
-      case 'connectionBroken': {
+      case ChargingStationInErrorType.CONNECTION_BROKEN: {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
-          { $addFields: { 'errorCode': 'connectionBroken' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
         ];
       }
-      case 'connectorError':
+      case ChargingStationInErrorType.CONNECTOR_ERROR:
         return [
           { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
-          { $addFields: { 'errorCode': 'connectorError' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTOR_ERROR } }
         ];
-      case 'missingSiteArea':
+      case ChargingStationInErrorType.MISSING_SITE_AREA:
         return [
           { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
-          { $addFields: { 'errorCode': 'missingSiteArea' } }
+          { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SITE_AREA } }
         ];
       default:
         return [];
     }
   }
 
-  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[]) {
+  private static cleanAndUpdateConnectors(chargingStationsMDB: ChargingStation[], connectorStatus?: ChargePointStatus) {
     if (chargingStationsMDB.length > 0) {
       for (const chargingStationMDB of chargingStationsMDB) {
         if (!chargingStationMDB.connectors) {
@@ -735,14 +929,13 @@ export default class ChargingStationStorage {
         } else {
           const cleanedConnectors = [];
           for (const connector of chargingStationMDB.connectors) {
-            if (connector) {
+            // TODO: Remove connectorStatus from this method and use MongoDB 4.2 $pull as mentioned above
+            if (connector && (!connectorStatus || connector.status == connectorStatus)) {
               cleanedConnectors.push(connector);
             }
           }
           chargingStationMDB.connectors = cleanedConnectors;
         }
-        // Add Inactive flag
-        chargingStationMDB.inactive = Utils.getIfChargingStationIsInactive(chargingStationMDB);
       }
     }
   }
