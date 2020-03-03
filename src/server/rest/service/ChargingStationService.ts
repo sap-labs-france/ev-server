@@ -149,6 +149,10 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'cannotChargeInParallel')) {
       chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
+    // Update Private property
+    if (Utils.objectHasProperty(filteredRequest, 'private')) {
+      chargingStation.private = filteredRequest.private;
+    }
     // Update Site Area
     if (filteredRequest.siteArea) {
       chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
