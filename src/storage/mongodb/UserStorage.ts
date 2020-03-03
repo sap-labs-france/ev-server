@@ -123,7 +123,6 @@ export default class UserStorage {
       if (tagsMDB[0].userID) {
         user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
       }
-
       if (!user) {
         Logging.logError({
           tenantID: tenantID,
@@ -320,7 +319,7 @@ export default class UserStorage {
 
   public static async saveUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUserTag');
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const tagMDB = {
@@ -333,7 +332,7 @@ export default class UserStorage {
     };
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
-
+    // Save
     await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
       {
         '_id': tag.id,
@@ -342,7 +341,7 @@ export default class UserStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd('UserStorage', 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async deleteUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
@@ -350,6 +349,7 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUserTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Delete
     await global.database.getCollection<any>(tenantID, 'tags').deleteOne(
       {
         '_id': tag.id,
@@ -741,7 +741,6 @@ export default class UserStorage {
         }
       }
     }
-
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
       params,

@@ -384,7 +384,6 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
-    const previousTags = user.tags;
     // Update user
     user = { ...user, ...filteredRequest, tags: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
@@ -424,12 +423,12 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
-      for (const previousTag of previousTags) {
+      for (const previousTag of user.tags) {
         const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
         if (!foundTag) {
           // Tag not found in the current tag list, will be deleted or deactivated.
           if (previousTag.sessionCount > 0) {
-            if (previousTag.active === true) {
+            if (previousTag.active) {
               previousTag.active = false;
               previousTag.lastChangedOn = filteredRequest.lastChangedOn;
               previousTag.lastChangedBy = filteredRequest.lastChangedBy;
@@ -445,7 +444,6 @@ export default class UserService {
         tag.lastChangedBy = filteredRequest.lastChangedBy;
         await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, tag);
       }
-
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -453,7 +451,7 @@ export default class UserService {
           const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
           if (ocpiClient) {
             // Invalidate no more used tags
-            for (const previousTag of previousTags) {
+            for (const previousTag of user.tags) {
               const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
               if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
@@ -470,7 +468,7 @@ export default class UserService {
             }
             // Push new valid tags
             for (const currentTag of filteredRequest.tags) {
-              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
+              const foundTag = user.tags.find((tag) => tag.id === currentTag.id);
               if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
@@ -496,7 +494,6 @@ export default class UserService {
           });
         }
       }
-
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -591,12 +588,11 @@ export default class UserService {
       });
     }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-      {
-        mobileToken: filteredRequest.mobileToken,
-        mobileOs: filteredRequest.mobileOS,
-        mobileLastChangedOn: new Date()
-      });
+    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
+      mobileToken: filteredRequest.mobileToken,
+      mobileOs: filteredRequest.mobileOS,
+      mobileLastChangedOn: new Date()
+    });
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
