@@ -561,7 +561,7 @@ export default class OCPPService {
     }
   }
 
-  private buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
+  private buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): Consumption {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
@@ -607,7 +607,7 @@ export default class OCPPService {
       transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
-  private buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
+  private buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Consumption {
 
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
@@ -673,7 +673,7 @@ export default class OCPPService {
       if (OCPPUtils.isSocMeterValue(meterValue) ||
         OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(tenantID, transaction, meterValue, chargingStation);
+        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(tenantID, transaction, meterValue);
         const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
         const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
         consumption.limitAmps = connectorLimit.limitAmps;
