@@ -671,14 +671,17 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-        OCPPUtils.isConsumptionMeterValue(meterValue)) {
+          OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
-        const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-        const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
-        consumption.limitAmps = connectorLimit.limitAmps;
-        consumption.limitWatts = connectorLimit.limitWatts;
         if (consumption) {
+          // Get the curent limit of the connector
+          const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+          if (chargingStationClient) {
+            const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+            consumption.limitAmps = connectorLimit.limitAmps;
+            consumption.limitWatts = connectorLimit.limitWatts;
+          }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
             (c) => c.endedAt.getTime() === consumption.endedAt.getTime());

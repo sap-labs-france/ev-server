@@ -3,7 +3,7 @@ import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../types/Authorization';
-import { ChargingProfile } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingRateUnitType } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPChargingProfileStatus } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
@@ -285,24 +285,54 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,
-    connectorID: number): Promise<ConnectorCurrentLimit> {
-    const compositeSchedule = await this.getCompositeSchedule(tenantID, chargingStation, connectorID, 60);
-    if (compositeSchedule[0].chargingSchedule) {
-      return {
-        limitAmps: compositeSchedule[0].chargingSchedule.chargingSchedulePeriod[0].limit,
-        limitWatts: Utils.convertAmpToPowerWatts(chargingStation, compositeSchedule[0].chargingSchedule.chargingSchedulePeriod[0].limit)
-      };
+      connectorID: number): Promise<ConnectorCurrentLimit> {
+    // Should fail safe!
+    try {
+      if (connectorID === 0) {
+        throw new BackendError({
+          source: chargingStation.id,
+          action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+          module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+          message: 'Cannot get the current connector limit on Connector ID 0',
+        });
+      }
+      // Can only get one result
+      const compositeSchedule = await this.getCompositeSchedule(tenantID, chargingStation, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
+      // Get the current connector limitation from the charging plan
+      // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
+      if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
+          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 && compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+        const connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
+        return {
+          limitAmps: connectorLimitAmps,
+          limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
+        };
+      }
+      // Get the current connector limitation from OCPP parameter
+      const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
+        tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
+      if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
+          ocppConfiguration.configurationKey[0].value) {
+        const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+        return {
+          limitAmps: connectorLimitAmps,
+          limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
+        };
+      }
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+        message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
+        module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+        detailedMessages: error
+      });
     }
-    const staticLimit = await OCPPUtils.requestChargingStationConfiguration(tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
-    if (staticLimit.configurationKey[0].value) {
-      return {
-        limitAmps: staticLimit.configurationKey[0].value as unknown as number,
-        limitWatts: Utils.convertAmpToPowerWatts(chargingStation, staticLimit.configurationKey[0].value as unknown as number)
-      };
-    }
+    // Default on current connector
     return {
       limitAmps: chargingStation.connectors[connectorID - 1].amperageLimit,
-      limitWatts: chargingStation.connectors[connectorID - 1].power
+      limitWatts: Utils.convertAmpToPowerWatts(chargingStation, chargingStation.connectors[connectorID - 1].amperageLimit)
     };
   }
 }

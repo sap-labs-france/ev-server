@@ -467,7 +467,7 @@ export default class Utils {
   }
 
   public static convertAmpToPowerWatts(charger: ChargingStation, ampValue: number): number {
-    if (charger.connectors[0].numberOfConnectedPhase) {
+    if (charger && charger.connectors && charger.connectors.length > 0 && charger.connectors[0].numberOfConnectedPhase) {
       return this.convertAmpToW(charger.connectors[0].numberOfConnectedPhase, ampValue);
     }
     return 0;
