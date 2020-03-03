@@ -28,7 +28,7 @@ export default class CONTEXTS {
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
     TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
-    TENANT_BUILDING: 'ut-building', // Only refund component is active
+    TENANT_BUILDING: 'ut-building', // Only building component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
