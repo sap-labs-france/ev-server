@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
@@ -19,7 +20,7 @@ export default abstract class ChargingStationVendor {
   public abstract getOCPPParamNameForChargingLimitation(): string;
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     if (connectorID > 0) {
       throw new BackendError({
         source: chargingStation.id,
@@ -76,8 +77,9 @@ export default abstract class ChargingStationVendor {
     }
     return result;
   }
+
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-      ocppParamName: string, ocppParamValue: string) {
+    ocppParamName: string, ocppParamValue: string) {
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
       // Update the charger
       for (const connector of chargingStation.connectors) {
@@ -97,7 +99,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult|OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -146,7 +148,7 @@ export default abstract class ChargingStationVendor {
           return results;
         }
         return result;
-      // Connector ID > 0
+        // Connector ID > 0
       } else {
         return chargingStationClient.setChargingProfile({
           connectorId: schneiderChargingProfile.connectorID,
@@ -164,7 +166,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult|OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -203,7 +205,7 @@ export default abstract class ChargingStationVendor {
           return results;
         }
         return result;
-      // Connector ID > 0
+        // Connector ID > 0
       } else {
         // Clear the Profile
         return chargingStationClient.clearChargingProfile({
@@ -221,7 +223,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult|OCPPGetCompositeScheduleCommandResult[]> {
+    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -264,7 +266,7 @@ export default abstract class ChargingStationVendor {
           return results;
         }
         return result;
-      // Connector ID > 0
+        // Connector ID > 0
       } else {
         // Get the Composite Schedule
         return chargingStationClient.getCompositeSchedule({
@@ -291,7 +293,21 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number): Promise<ConnectorCurrentLimit> {
+    connectorID: number): Promise<ConnectorCurrentLimit> {
+    const compositeSchedule = await this.getCompositeSchedule(tenantID, chargingStation, connectorID, 60);
+    if (compositeSchedule[0].chargingSchedule) {
+      return {
+        limitAmps: compositeSchedule[0].chargingSchedule.chargingSchedulePeriod[0].limit,
+        limitWatts: Utils.convertAmpToPowerWatts(chargingStation, compositeSchedule[0].chargingSchedule.chargingSchedulePeriod[0].limit)
+      };
+    }
+    const staticLimit = await OCPPUtils.requestChargingStationConfiguration(tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
+    if (staticLimit.configurationKey) {
+      return {
+        limitAmps: staticLimit.configurationKey[0].value as unknown as number,
+        limitWatts: Utils.convertAmpToPowerWatts(chargingStation, staticLimit.configurationKey[0].value as unknown as number)
+      };
+    }
     return {
       limitAmps: chargingStation.connectors[connectorID - 1].amperageLimit,
       limitWatts: chargingStation.connectors[connectorID - 1].power

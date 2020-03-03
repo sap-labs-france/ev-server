@@ -3,7 +3,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetConfigurationCommandResult, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
@@ -422,6 +422,16 @@ export default class OCPPUtils {
       // Retrieve and Save it
       await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
     }
+    // Return
+    return result;
+  }
+
+  public static async requestChargingStationConfiguration(
+    tenantID: string, chargingStation: ChargingStation, params: OCPPGetConfigurationCommandParam) {
+    // Get the OCPP Client
+    const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+    // Get the configuration
+    const result = await chargingStationClient.getConfiguration(params);
     // Return
     return result;
   }

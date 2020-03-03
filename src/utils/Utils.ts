@@ -466,6 +466,24 @@ export default class Utils {
     return userID;
   }
 
+  public static convertAmpToPowerWatts(charger: ChargingStation, ampValue: number): number {
+    if (charger.connectors[0].numberOfConnectedPhase) {
+      return this.convertAmpToW(charger.connectors[0].numberOfConnectedPhase, ampValue);
+    }
+    return 0;
+  }
+
+  public static convertAmpToW(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
+    // Compute it
+    if (numberOfConnectedPhase === 0) {
+      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+    }
+    if (numberOfConnectedPhase === 3) {
+      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+    }
+    return Math.floor(230 * maxIntensityInAmper);
+  }
+
   public static isEmptyArray(array): boolean {
     if (Array.isArray(array) && array.length > 0) {
       return false;

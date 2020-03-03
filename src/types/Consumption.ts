@@ -21,4 +21,6 @@ export default interface Consumption {
   stateOfCharge: number;
   userID: string;
   toPrice?: boolean;
+  limitAmps?: number;
+  limitWatts?: number;
 }

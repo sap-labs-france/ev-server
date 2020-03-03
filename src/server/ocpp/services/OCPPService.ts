@@ -8,6 +8,7 @@ import PricingFactory from '../../../integration/pricing/PricingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -34,6 +35,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import ChargingStationVendor from '../../../integration/charging-station-vendor/ChargingStationVendor';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -524,7 +526,7 @@ export default class OCPPService {
           // Save Meter Values
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
           // Handle Meter Values
-          await this.updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues);
+          await this.updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station Consumption
@@ -560,7 +562,7 @@ export default class OCPPService {
     }
   }
 
-  private buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): Consumption {
+  private buildConsumptionAndUpdateTransactionFromMeterValue(tenantID: string, transaction: Transaction, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
@@ -603,10 +605,11 @@ export default class OCPPService {
     }
     // Compute consumption
     return this.buildConsumptionFromTransactionAndMeterValue(
-      transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+      tenantID, transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue, chargingStation);
   }
 
-  private buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Consumption {
+  private buildConsumptionFromTransactionAndMeterValue(tenantID: string, transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
+
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isConsumptionMeterValue(meterValue)) {
@@ -619,7 +622,7 @@ export default class OCPPService {
         siteID: transaction.siteID,
         userID: transaction.userID,
         startedAt: new Date(startedAt),
-        endedAt: new Date(endedAt)
+        endedAt: new Date(endedAt),
       } as Consumption;
       // Set SoC
       if (OCPPUtils.isSocMeterValue(meterValue)) {
@@ -641,7 +644,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction, meterValues: OCPPNormalizedMeterValues) {
+  private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction, meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
     // Build consumptions
     const consumptions: Consumption[] = [];
     for (const meterValue of meterValues.values) {
@@ -671,7 +674,11 @@ export default class OCPPService {
       if (OCPPUtils.isSocMeterValue(meterValue) ||
         OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
+        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(tenantID, transaction, meterValue, chargingStation);
+        const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+        const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+        consumption.limitAmps = connectorLimit.limitAmps;
+        consumption.limitWatts = connectorLimit.limitWatts;
         if (consumption) {
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
