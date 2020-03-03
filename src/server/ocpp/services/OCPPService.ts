@@ -35,7 +35,6 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import ChargingStationVendor from '../../../integration/charging-station-vendor/ChargingStationVendor';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);

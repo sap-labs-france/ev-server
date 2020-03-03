@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
