@@ -50,6 +50,9 @@ export default class OCPPUtils {
       if (Utils.objectHasProperty(chargingStationTemplate.template, 'cannotChargeInParallel')) {
         chargingStation.cannotChargeInParallel = chargingStationTemplate.template.cannotChargeInParallel;
       }
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'private')) {
+        chargingStation.private = chargingStationTemplate.template.private;
+      }
       if (Utils.objectHasProperty(chargingStationTemplate.template, 'maximumPower')) {
         chargingStation.maximumPower = chargingStationTemplate.template.maximumPower;
       }

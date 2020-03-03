@@ -453,7 +453,7 @@ export default class OCPPService {
 
   private async updateOCPIStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+    if (chargingStation.issuer && !chargingStation.private && Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
         if (ocpiClient) {
