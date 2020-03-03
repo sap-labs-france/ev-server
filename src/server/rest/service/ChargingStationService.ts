@@ -1308,8 +1308,8 @@ export default class ChargingStationService {
       csv += `${chargingStation.chargeBoxSerialNumber}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.chargePointVendor}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.firmwareVersion}` + Constants.CSV_SEPARATOR;
-      if (chargingStation.lastFirmwareStatus) {
-        csv += `${chargingStation.lastFirmwareStatus}` + Constants.CSV_SEPARATOR;
+      if (chargingStation.latestFirmwareUpdateStatus) {
+        csv += `${chargingStation.latestFirmwareUpdateStatus}` + Constants.CSV_SEPARATOR;
       }
       csv += `${chargingStation.ocppVersion}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
