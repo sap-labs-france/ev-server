@@ -537,6 +537,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_TAXES);
   }
 
+  public static canReadBillingInvoices(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_INVOICES);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }

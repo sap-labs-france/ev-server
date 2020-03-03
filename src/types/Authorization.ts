@@ -65,6 +65,7 @@ export enum Action {
   SYNCHRONIZE_CARS = 'SynchronizeCars',
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
+  READ_BILLING_INVOICES = 'ReadBillingInvoices',
   POWER_LIMITATION = 'PowerLimitation',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',

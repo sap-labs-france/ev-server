@@ -46,3 +46,12 @@ export interface BillingTax {
   displayName: string;
   percentage: number;
 }
+
+export interface BillingInvoice {
+  id: string;
+  status: string;
+  amountDue: number;
+  currency: string;
+  customerID: string;
+  createdOn: Date;
+}

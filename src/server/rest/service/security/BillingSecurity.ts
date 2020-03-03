@@ -1,8 +1,8 @@
-import sanitize from 'mongo-sanitize';
+import { BillingInvoice, BillingTax } from '../../../../types/Billing';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingTax } from '../../../../types/Billing';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
+import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -21,7 +21,7 @@ export default class BillingSecurity {
   }
 
   static filterTaxResponse(tax: BillingTax, loggedUser: UserToken): BillingTax {
-    const filteredTax: BillingTax = {} as BillingTax;
+    const filteredTax = {} as BillingTax;
     if (!tax) {
       return null;
     }
@@ -34,6 +34,38 @@ export default class BillingSecurity {
       filteredTax.percentage = tax.percentage;
     }
     return filteredTax;
+  }
+
+  static filterInvoicesResponse(invoices: BillingInvoice[], loggedUser: UserToken): BillingInvoice[] {
+    const filteredInvoices = [];
+    if (!invoices) {
+      return null;
+    }
+    for (const invoice of invoices) {
+      // Filter
+      const filteredInvoice = BillingSecurity.filterInvoiceResponse(invoice, loggedUser);
+      if (filteredInvoices) {
+        filteredInvoices.push(filteredInvoice);
+      }
+    }
+    return filteredInvoices;
+  }
+
+  static filterInvoiceResponse(invoice: BillingInvoice, loggedUser: UserToken): BillingInvoice {
+    const filteredInvoice = {} as BillingInvoice;
+    if (!invoice) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadBillingInvoices(loggedUser)) {
+      // Set only necessary info
+      filteredInvoice.id = invoice.id;
+      filteredInvoice.status = invoice.status;
+      filteredInvoice.amountDue = invoice.amountDue;
+      filteredInvoice.amountPaid = invoice.amountPaid;
+      filteredInvoice.createdOn = invoice.createdOn;
+    }
+    return filteredInvoice;
   }
 
   static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {

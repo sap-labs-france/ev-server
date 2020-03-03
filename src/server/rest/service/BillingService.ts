@@ -13,6 +13,8 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
+import {DataResult} from "../../../types/DataResult";
+import {BillingInvoice} from "../../../types/Billing";
 
 
 export default class BillingService {
@@ -245,5 +247,50 @@ export default class BillingService {
     // Return
     taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
+  }
+
+  public static async handleGetUserInvoices(action: Action, req: Request, res: Response, next: NextFunction) {
+    if (!Authorizations.canReadBillingInvoices(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.USER, action: Action.READ_BILLING_TAXES,
+        module: 'BillingService', method: 'handleGetBillingTaxes',
+      });
+    }
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing or Pricing not active in this Tenant',
+        module: 'BillingService', method: 'handleGetUserInvoices',
+        action: action,
+        user: req.user
+      });
+    }
+    // Get Billing implementation from factory
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: 'BillingService', method: 'handleGetUserInvoices',
+        action: action,
+        user: req.user
+      });
+    }
+    const user = await UserStorage.getUser(tenant.id, req.user.id);
+    let invoices = await billingImpl.getUserInvoices(user);
+    invoices = BillingSecurity.filterInvoicesResponse(invoices, req.user);
+    // Return
+    const result = {
+      result: invoices,
+      count: invoices.length
+    } as DataResult<BillingInvoice>;
+    res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
+    next();
   }
 }

@@ -2,7 +2,7 @@ import BackendError from '../../exception/BackendError';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
 import Transaction from '../../types/Transaction';
@@ -254,4 +254,6 @@ export default abstract class Billing<T extends BillingSetting> {
   async abstract userExists(user: User): Promise<boolean>;
 
   async abstract getTaxes(): Promise<BillingTax[]>;
+
+  async abstract getUserInvoices(user: User): Promise<BillingInvoice[]>;
 }

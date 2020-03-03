@@ -4,7 +4,7 @@ import moment from 'moment';
 import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import {BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData} from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -146,6 +146,30 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         }
       };
     }
+  }
+
+  public async getUserInvoices(user: User): Promise<BillingInvoice[]> {
+    this.checkIfStripeIsInitialized();
+    const invoices = [] as BillingInvoice[];
+    let request;
+    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    do {
+      request = await this.stripe.invoices.list(requestParams);
+      for (const invoice of request.data) {
+        invoices.push({
+          id: invoice.id,
+          status: invoice.status,
+          amountDue: invoice.amount_due,
+          currency: invoice.currency,
+          customerID: invoice.customer,
+          createdOn: invoice.created
+        });
+      }
+      if (request.has_more) {
+        requestParams['starting_after'] = invoices[invoices.length - 1].id;
+      }
+    } while (request.has_more);
+    return invoices;
   }
 
   public async getTaxes(): Promise<BillingTax[]> {
