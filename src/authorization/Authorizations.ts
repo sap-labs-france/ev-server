@@ -23,6 +23,7 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
+import BackendError from '../exception/BackendError';
 
 export default class Authorizations {
 
@@ -636,9 +637,8 @@ export default class Authorizations {
       const tag = user.tags.find((value) => value.id === tagID);
       if (!tag.active) {
         // Reject but save ok
-        throw new AppError({
+        throw new BackendError({
           source: chargingStation.id,
-          errorCode: HTTPError.GENERAL_ERROR,
           message: `Tag ID '${tagID}' of user '${user.id}' is deactivated'`,
           module: 'Authorizations',
           method: 'isTagIDAuthorizedOnChargingStation',

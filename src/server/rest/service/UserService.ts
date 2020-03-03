@@ -173,7 +173,7 @@ export default class UserService {
       });
     }
     // Check Billing
-    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
         if (!billingImpl) {
@@ -248,7 +248,7 @@ export default class UserService {
     }
 
     // Delete billing user
-    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
@@ -385,26 +385,28 @@ export default class UserService {
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
     const previousTags = user.tags;
-    // For integration with Billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
     user = { ...user, ...filteredRequest, tags: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
-    if (billingImpl) {
-      try {
-        const billingData = await billingImpl.updateUser(user);
-        await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
-      } catch (error) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleUpdateUser',
-          action: action,
-          user: req.user, actionOnUser: user,
-          message: 'User cannot be updated in billing system',
-          detailedMessages: error
-        });
+    // Check Billing
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (billingImpl) {
+        try {
+          const billingData = await billingImpl.updateUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleUpdateUser',
+            action: action,
+            user: req.user, actionOnUser: user,
+            message: 'User cannot be updated in billing system',
+            detailedMessages: error
+          });
+        }
       }
     }
     // Save User password

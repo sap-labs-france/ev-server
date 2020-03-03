@@ -677,7 +677,7 @@ export default class ChargingStationService {
     res.json(
       // Filter
       ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION))
+        chargingStation, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION))
     );
     next();
   }
@@ -799,7 +799,8 @@ export default class ChargingStationService {
       }
     );
     // Build the result
-    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION));
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user,
+      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     // Return
     res.json(chargingStations);
     next();
@@ -1270,7 +1271,7 @@ export default class ChargingStationService {
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Filter
       ChargingStationSecurity.filterChargingStationsResponse(
-        chargingStations, req.user, req.user.activeComponents.includes(TenantComponents.ORGANIZATION));
+        chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     }
     return chargingStations;
   }
