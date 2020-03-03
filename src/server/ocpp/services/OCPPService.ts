@@ -561,7 +561,7 @@ export default class OCPPService {
     }
   }
 
-  private buildConsumptionAndUpdateTransactionFromMeterValue(tenantID: string, transaction: Transaction, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
+  private buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
@@ -604,10 +604,10 @@ export default class OCPPService {
     }
     // Compute consumption
     return this.buildConsumptionFromTransactionAndMeterValue(
-      tenantID, transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue, chargingStation);
+      transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
-  private buildConsumptionFromTransactionAndMeterValue(tenantID: string, transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
+  private buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue, chargingStation: ChargingStation): Consumption {
 
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||

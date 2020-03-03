@@ -301,7 +301,7 @@ export default abstract class ChargingStationVendor {
       };
     }
     const staticLimit = await OCPPUtils.requestChargingStationConfiguration(tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
-    if (staticLimit.configurationKey) {
+    if (staticLimit.configurationKey[0].value) {
       return {
         limitAmps: staticLimit.configurationKey[0].value as unknown as number,
         limitWatts: Utils.convertAmpToPowerWatts(chargingStation, staticLimit.configurationKey[0].value as unknown as number)
