@@ -21,6 +21,7 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
+import CarService from './service/CarService';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -111,6 +112,7 @@ class RequestMapper {
           Logging: LoggingService.handleGetLogging.bind(this),
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
+          Cars: CarService.handleGetCars.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),

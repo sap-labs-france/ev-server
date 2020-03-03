@@ -29,7 +29,9 @@ export enum Entity {
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
   BUILDING = 'Building',
-  BUILDINGS = 'Buildings'
+  BUILDINGS = 'Buildings',
+  CAR = 'Car',
+  CARS = 'Cars'
 }
 
 export enum Action {
