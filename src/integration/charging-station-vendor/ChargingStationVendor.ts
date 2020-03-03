@@ -282,13 +282,6 @@ export default abstract class ChargingStationVendor {
         status: error.status
       };
     }
-    // Execute it
-    return chargingStationClient.getCompositeSchedule({
-      connectorId: connectorID,
-      duration: durationSecs,
-      chargingRateUnit: chargingStation.powerLimitUnit
-    });
-
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,
