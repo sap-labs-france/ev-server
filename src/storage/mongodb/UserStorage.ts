@@ -93,49 +93,17 @@ export default class UserStorage {
   }
 
   public static async getUserByTagId(tenantID: string, tagID: string): Promise<User> {
-    let user: User;
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByTagId');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
-      .aggregate([
-        {
-          $match: {
-            '_id': tagID
-          }
-        },
-        {
-          $project: {
-            id: '$_id',
-            _id: 0,
-            userID: { $toString: '$userID' },
-            active: 1,
-            issuer: 1
-          }
-        }
-      ])
-      .limit(1)
-      .toArray();
     // Check
-    if (tagsMDB && tagsMDB.length > 0) {
-      if (tagsMDB[0].userID) {
-        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
-      }
-      if (!user) {
-        Logging.logError({
-          tenantID: tenantID,
-          module: 'UserStorage',
-          method: 'getUserByTagId',
-          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
-          detailedMessages: tagsMDB[0]
-        });
-      }
+    if (!tagID) {
+      return null;
     }
     // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByTagId');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { tagID: tagID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
-    return user;
+    return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
@@ -535,7 +503,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -573,6 +541,12 @@ export default class UserStorage {
     if (params.email) {
       filters.$and.push({
         'email': params.email
+      });
+    }
+    // TagID
+    if (params.tagID) {
+      filters.$and.push({
+        'tags.id': params.tagID
       });
     }
     // Password Reset Hash
