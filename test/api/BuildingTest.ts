@@ -50,11 +50,11 @@ describe('Building Test', function() {
     });
 
     after(async () => {
-      // Delete any created site
-      testData.createdBuildings.forEach(async (site) => {
+      // Delete any created building
+      testData.createdBuildings.forEach(async (building) => {
         await testData.centralUserService.deleteEntity(
-          testData.centralUserService.siteApi,
-          site,
+          testData.centralUserService.buildingApi,
+          building,
           false
         );
       });
