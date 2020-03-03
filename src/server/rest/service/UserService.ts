@@ -421,7 +421,7 @@ export default class UserService {
         });
     }
     // Save Admin info
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user)) {
       // Save Tags
       for (const previousTag of user.tags) {
         const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
@@ -494,6 +494,8 @@ export default class UserService {
           });
         }
       }
+    }
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -912,7 +914,7 @@ export default class UserService {
         });
     }
     // Save Admin Data
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user)) {
       // Save the Tag IDs
       for (const tag of filteredRequest.tags) {
         tag.lastChangedOn = filteredRequest.createdOn;
@@ -976,6 +978,9 @@ export default class UserService {
           });
         }
       }
+    }
+
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
