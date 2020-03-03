@@ -673,7 +673,7 @@ export default class OCPPService {
       if (OCPPUtils.isSocMeterValue(meterValue) ||
         OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(tenantID, transaction, meterValue);
+        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
         const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
         consumption.limitAmps = connectorLimit.limitAmps;
