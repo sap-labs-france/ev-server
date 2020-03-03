@@ -83,7 +83,14 @@
                       "active": { "type": "boolean" },
                         "type": { "type": "string" }
                     }
-              }
+              },
+              "car": {
+                "type": "object",
+                "properties": {
+                    "active": { "type": "boolean" },
+                      "type": { "type": "string" }
+                  }
+            }
             }
         }
     },
