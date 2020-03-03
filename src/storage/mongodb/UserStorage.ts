@@ -599,6 +599,12 @@ export default class UserStorage {
       tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
 
+    if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
+      DatabaseUtils.pushTransactionsLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'sessionsCount', countField: 'tagID'
+      });
+    }
+
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
       filters.$and.push({
@@ -659,6 +665,7 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -691,28 +698,14 @@ export default class UserStorage {
     // Clean user object
     for (const userMDB of usersMDB) {
       delete (userMDB as any).siteusers;
-      if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
-        const sessionsCount = await global.database.getCollection<{ _id: string; count: number }>(tenantID, 'transactions').aggregate(
-          [
-            {
-              $match: {
-                userID: Utils.convertToObjectID(userMDB.id)
-              }
-            },
-            {
-              $group: {
-                _id: '$tagID',
-                count: { $sum: 1 }
-              }
-            }
-          ]
-        ).toArray();
-        for (const sessionCount of sessionsCount) {
-          const tag = userMDB.tags.find((value) => value.id === sessionCount._id);
+      if ((userMDB as any).sessionsCount) {
+        for (const sessionCount of (userMDB as any).sessionsCount) {
+          const tag = userMDB.tags.find((value) => value.id === sessionCount.id);
           if (tag) {
             tag.sessionCount = sessionCount.count;
           }
         }
+        delete (userMDB as any).sessionsCount;
       }
     }
     // Debug

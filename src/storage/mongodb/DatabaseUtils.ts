@@ -55,6 +55,12 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('transactions', {
+      ...lookupParams
+    });
+  }
+
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
@@ -85,6 +91,7 @@ export default class DatabaseUtils {
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
+      objectIDFields: ['lastChangedBy'],
       projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
     });
@@ -99,6 +106,14 @@ export default class DatabaseUtils {
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
+    if (lookupParams.countField) {
+      pipeline.push({
+        '$group': {
+          '_id': `$${lookupParams.countField}`,
+          'count': { '$sum': 1 }
+        }
+      });
+    }
     // Replace ID field
     DatabaseUtils.renameDatabaseID(pipeline);
     // Convert ObjectID fields to String
