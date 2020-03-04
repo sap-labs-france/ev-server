@@ -54,7 +54,7 @@ describe('Firmware Update Status Tests', function() {
     describe('Where any user', () => {
 
       after(async () => {
-        // After tests ensure thaT the charging station are Idle
+        // After tests ensure that the charging station are Idle
         const response = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.IDLE);
         expect(response.data).to.eql({});
       });
@@ -102,7 +102,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLING);
       });
 
-      it('Should make connectors unavailable while Installing', async () => {
+      it('Should make the connectors unavailable while Installing', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
