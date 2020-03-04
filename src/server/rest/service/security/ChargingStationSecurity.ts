@@ -29,6 +29,7 @@ export default class ChargingStationSecurity {
       chargeBoxID: sanitize(request.chargeBoxID),
       connectorId: sanitize(request.connectorId),
       ampLimitValue: sanitize(request.ampLimitValue),
+      forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
     };
   }
 

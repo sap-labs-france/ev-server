@@ -10,6 +10,7 @@ export interface HttpChargingStationLimitPowerRequest {
   chargeBoxID: string;
   connectorId: number;
   ampLimitValue: number;
+  forceUpdateChargingPlan: boolean;
 }
 
 export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {

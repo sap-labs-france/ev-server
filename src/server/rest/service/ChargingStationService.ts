@@ -30,6 +30,7 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import { ChargingProfile } from '../../../types/ChargingProfile';
 
 export default class ChargingStationService {
 
@@ -212,9 +213,9 @@ export default class ChargingStationService {
     if (filteredRequest.ampLimitValue < StaticLimitAmps.MIN_LIMIT) {
       throw new AppError({
         source: filteredRequest.chargeBoxID,
-        action: Action.POWER_LIMITATION,
+        action: action,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Limitation to ${filteredRequest.ampLimitValue} Amps is too low, min required is ${StaticLimitAmps.MIN_LIMIT} Amps`,
+        message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT}A`,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
       });
@@ -235,7 +236,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.POWER_LIMITATION,
+        action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         value: chargingStation.id
@@ -245,7 +246,7 @@ export default class ChargingStationService {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: 'Charging Station does not support power limitation',
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
@@ -257,12 +258,61 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         user: req.user
       });
+    }
+    // Check Charging Profile
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
+      { chargingStationID: chargingStation.id, connectorID: 0 },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    const updatedChargingProfiles: ChargingProfile[] = Utils.cloneJSonDocument(chargingProfiles.result) as ChargingProfile[];
+    for (let index = 0; index < updatedChargingProfiles.length; index++) {
+      const updatedChargingProfile = updatedChargingProfiles[index];
+      let planHasBeenAdjusted = false;
+      // Check schedules
+      if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
+          updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+          // Check the limit max is beyond the new values
+          if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
+            // Adjust it
+            planHasBeenAdjusted = true;
+            chargingSchedulePeriod.limit = filteredRequest.ampLimitValue;
+          }
+        }
+      }
+      // Charging plan updated?
+      if (planHasBeenAdjusted) {
+        // Check Force Update?
+        if (!filteredRequest.forceUpdateChargingPlan) {
+          throw new AppError({
+            source: chargingStation.id,
+            action: action,
+            user: req.user,
+            errorCode: HTTPError.GENERAL_ERROR,
+            message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
+            module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+            detailedMessages: chargingProfiles.result[index]
+          });
+        }
+        // Log
+        Logging.logWarning({
+          tenantID: req.user.tenantID,
+          source: chargingStation.id,
+          action: action,
+          user: req.user,
+          module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+          message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
+          detailedMessages: { chargingProfile: chargingProfiles.result[index] }
+        });
+        // Apply & Save charging plan
+        await ChargingStationService.applyAndSaveChargingProfile(action, chargingStation, updatedChargingProfile, req.user);
+        break;
+      }
     }
     // Call the limitation
     const result = await chargingStationVendor.setPowerLimitation(
@@ -270,10 +320,10 @@ export default class ChargingStationService {
     if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: action,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
-        message: `Cannot limit the charger's power: '${result.status}'`,
+        message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
         detailedMessages: result,
         user: req.user
       });
@@ -281,10 +331,10 @@ export default class ChargingStationService {
     Logging.logInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id,
-      action: Action.POWER_LIMITATION,
+      action: action,
       user: req.user,
       module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
-      message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue} Amps`,
+      message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: result
     });
     // Ok
@@ -302,7 +352,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.GET_CHARGING_PROFILE,
+        action: Action.READ,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleGetChargingProfiles',
@@ -336,38 +386,46 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
         method: 'handleUpdateChargingProfile',
         value: chargingStation.id
       });
     }
-    // Check if charging profile is supported
+    // Check if Charging Profile is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
+        action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         user: req.user,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `Charging Station '${chargingStation.id}' does not support charging profiles`,
+        message: `Charging Station '${chargingStation.id}' does not support Charging Profiles`,
       });
     }
+    // Apply & Save charging plan
+    await ChargingStationService.applyAndSaveChargingProfile(action, chargingStation, filteredRequest, req.user);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  private static async applyAndSaveChargingProfile(action: Action, chargingStation: ChargingStation, chargingProfile: ChargingProfile, user: UserToken) {
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
-        user: req.user,
+        action: action,
+        user: user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
+        module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }
-    // Set charging profile
-    const result = await chargingStationVendor.setChargingProfile(req.user.tenantID, chargingStation, filteredRequest);
+    // Set Charging Profile
+    const result = await chargingStationVendor.setChargingProfile(user.tenantID, chargingStation, chargingProfile);
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
@@ -383,29 +441,26 @@ export default class ChargingStationService {
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
-        user: req.user,
+        action: action,
+        user: user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `Cannot set the Charging Station's charging profile!`,
-        detailedMessages: result,
+        module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+        message: `Cannot set the Charging Profile!`,
+        detailedMessages: { result, chargingProfile },
       });
     }
     // Save
-    await ChargingStationStorage.saveChargingProfile(req.user.tenantID, filteredRequest);
+    await ChargingStationStorage.saveChargingProfile(user.tenantID, chargingProfile);
     // Log
     Logging.logInfo({
-      tenantID: req.user.tenantID,
+      tenantID: user.tenantID,
       source: chargingStation.id,
       action: action,
-      user: req.user,
-      module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-      message: 'Charging Profile has been successfully set',
-      detailedMessages: { chargingProfile: filteredRequest }
+      user: user,
+      module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+      message: 'Charging Profile has been successfully pushed and saved',
+      detailedMessages: { chargingProfile }
     });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
   }
 
   public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -431,21 +486,21 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         value: chargingStation.id
       });
     }
-    // Check if charging profile is supported
+    // Check if Charging Profile is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
+        action: action,
         user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        message: `Charging Station '${chargingStation.id}' does not support the charging profiles`,
+        message: `Charging Station '${chargingStation.id}' does not support the Charging Profiles`,
       });
     }
     // Get Vendor Instance
@@ -453,14 +508,14 @@ export default class ChargingStationService {
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
+        action: action,
         user: req.user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a charging profile`,
+        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }
-    // Clear charging profile
+    // Clear Charging Profile
     const result = await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
     // Check for Array
     let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
@@ -477,10 +532,10 @@ export default class ChargingStationService {
     if (resultStatus !== OCPPClearChargingProfileStatus.ACCEPTED) {
       throw new AppError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
+        action: action,
         user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `Cannot clear the Charging Station's charging profiles!`,
+        message: `Cannot clear the Charging Station's Charging Profiles!`,
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         detailedMessages: result,
       });
@@ -993,10 +1048,10 @@ export default class ChargingStationService {
       if (!chargingStationVendor) {
         throw new AppError({
           source: chargingStation.id,
-          action: Action.POWER_LIMITATION,
+          action: command as unknown as Action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
           message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
-          module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+          module: 'ChargingStationService', method: 'handleAction',
           user: req.user
         });
       }
@@ -1464,8 +1519,7 @@ export default class ChargingStationService {
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
-        module: 'ChargingStationService',
-        method: 'handleChargingStationCommand',
+        module: 'ChargingStationService', method: 'handleChargingStationCommand',
         user: user,
         detailedMessages: { params, error }
       });
