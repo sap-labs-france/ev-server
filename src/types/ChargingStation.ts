@@ -7,6 +7,7 @@ import SiteArea from './SiteArea';
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
   issuer: boolean;
+  private: boolean;
   siteAreaID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
@@ -108,6 +109,7 @@ export interface ChargingStationTemplate {
     chargeBoxSerialNumber?: string;
   };
   template: {
+    private: boolean;
     cannotChargeInParallel: boolean;
     currentType: ChargingStationCurrentType;
     maximumPower: number;

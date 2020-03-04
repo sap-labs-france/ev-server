@@ -100,7 +100,7 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (chargingStation.issuer === true) {
+      if (chargingStation.issuer === true && !chargingStation.private) {
         if (!chargingStation.cannotChargeInParallel) {
           evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
         } else {

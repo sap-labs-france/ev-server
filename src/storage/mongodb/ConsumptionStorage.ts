@@ -38,6 +38,8 @@ export default class ConsumptionStorage {
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
+      limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
+      limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       userID: consumptionToSave.userID
     };
     // Modify

@@ -480,6 +480,7 @@ export default class ChargingStationStorage {
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       issuer: chargingStationToSave.issuer,
+      private: chargingStationToSave.private,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
