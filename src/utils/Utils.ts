@@ -867,16 +867,16 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s start date must not be in the past',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
+    // if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+    //   throw new AppError({
+    //     source: Constants.CENTRAL_SERVER,
+    //     action: Action.SET_CHARGING_PROFILE,
+    //     errorCode: HTTPError.GENERAL_ERROR,
+    //     message: 'Charging Profile\'s start date must not be in the past',
+    //     module: 'Utils', method: 'checkIfChargingProfileIsValid',
+    //     user: req.user.id
+    //   });
+    // }
     // Check End of Schedule <= 24h
     const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
       filteredRequest.profile.chargingSchedule.duration * 1000);
