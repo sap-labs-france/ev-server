@@ -242,6 +242,17 @@ export default class UserService {
       await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
+
+      for (const tag of user.tags) {
+        if (tag.sessionCount > 0) {
+          tag.active = false;
+          tag.lastChangedOn = new Date();
+          tag.lastChangedBy = { id: req.user.id };
+          await UserStorage.saveUserTag(req.user.tenantID, user.id, tag);
+        } else {
+          await UserStorage.deleteUserTag(req.user.tenantID, user.id, tag);
+        }
+      }
     } else {
       // Physically
       await UserStorage.deleteUser(req.user.tenantID, user.id);
