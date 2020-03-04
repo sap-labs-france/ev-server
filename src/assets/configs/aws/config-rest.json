@@ -1,0 +1,194 @@
+{
+  "Crypto": {
+    "key": "6pKSrPeSgE6ZNwQXvJPxpsH1E6JWCUyy",
+    "algorithm": "aes-256-ctr"
+  },
+  "Cluster": {
+    "enabled": false,
+    "numWorkers": 2
+  },
+  "CentralSystems": [
+    {
+      "type": "ocpp",
+      "implementation": "soap",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8000,
+      "debug": false
+    },
+    {
+      "type": "ocpp",
+      "implementation": "json",
+      "protocol": "ws",
+      "host": "localhost",
+      "port": 8010,
+      "keepaliveinterval": 40,
+      "debug": false
+    }
+  ],
+  "CentralSystemRestService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 8090,
+    "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
+    "passwordWrongNumberOfTrial": 3,
+    "passwordBlockedWaitTimeMin": 5,
+    "captchaSecretKey": "6LfzXSIUAAAAADsOFS9OOkFirIYBSfywdAhNhcv-",
+    "debug": false
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 8080,
+    "distEnabled": false,
+    "distPath": "../dist/front-end"
+  },
+  "CentralSystemServer": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 8090
+  },
+  "OCPIService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9090,
+    "debug": false,
+    "externalProtocol": "http",
+    "tenantEnabled": [
+      "slf"
+    ],
+    "eMI3id": {
+      "slf": {
+        "country_id": "FR",
+        "party_id": "SLF"
+      }
+    }
+  },
+  "ODataService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9292,
+    "debug": false,
+    "externalProtocol": "http"
+  },
+  "WSDLEndpoint": {
+    "baseUrl": "http://localhost:8000"
+  },
+  "JsonEndpoint": {
+    "baseUrl": "ws://localhost:8010"
+  },
+  "OCPIEndpoint": {
+    "baseUrl": "http://localhost:9090"
+  },
+  "WSClient": {
+    "autoReconnectMaxRetries": 5,
+    "autoReconnectTimeout": 60
+  },
+  "Storage": {
+    "implementation": "mongodb",
+    "uri": null,
+    "host": "evse-qa-xoo6t.mongodb.net",
+    "port": 27017,
+    "user": "evse-user",
+    "password": "$ss#iD$Tr*uv$L$M*tD$P#ss$S#l$B#t#rd",
+    "database": "9ae827b035146036",
+    "poolSize": 200,
+    "replicaSet": "rs0",
+    "monitorDBChange": true,
+    "debug": false
+  },
+  "Email": {
+    "from": "do.not.reply2@e-mobility-solution.com",
+    "admins": [
+      "fabiano.serge@chargeangels.fr"
+    ],
+    "bcc": "",
+    "smtp": {
+      "host": "auth.smtp.1and1.fr",
+      "port": 465,
+      "secure": true,
+      "requireTLS": false,
+      "user": "do.not.reply2@e-mobility-solution.com",
+      "password": "vtfe"
+    }
+  },
+  "Notification": {
+    "Email": {
+      "enabled": false
+    },
+    "RemotePushNotification": {
+      "enabled": false
+    }
+  },
+  "Authorization": {
+    "debug": false
+  },
+  "ChargingStation": {
+    "heartbeatIntervalSecs": 60,
+    "checkEndOfChargeNotificationAfterMin": 5,
+    "notifBeforeEndOfChargeEnabled": true,
+    "notifBeforeEndOfChargePercent": 85,
+    "notifEndOfChargeEnabled": true,
+    "notifEndOfChargePercent": 0,
+    "notifStopTransactionAndUnlockConnector": false
+  },
+  "Locales": {
+    "default": "en_US",
+    "supported": [
+      "en_US",
+      "fr_FR"
+    ]
+  },
+  "Advanced": {
+    "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Migration": {
+    "active": true
+  },
+  "Scheduler": {
+    "active": true,
+    "tasks": [
+      {
+        "name": "LoggingDatabaseTableCleanupTask",
+        "active": true,
+        "periodicity": "0 0 * * 1",
+        "config": {
+          "retentionPeriodWeeks": 4,
+          "securityRetentionPeriodWeeks": 12
+        }
+      },
+      {
+        "name": "OCPIPatchLocationsTask",
+        "active": false,
+        "periodicity": "0-59/5 * * * *",
+        "config": {}
+      },
+      {
+        "name": "SynchronizeRefundTransactionsTask",
+        "active": false,
+        "periodicity": "0 * * * *",
+        "config": {}
+      }
+    ]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "trace": false,
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
+  }
+}
