@@ -3,9 +3,9 @@ import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../types/Authorization';
-import { ChargingProfile, ChargingRateUnitType } from '../../types/ChargingProfile';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPChargingProfileStatus } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
@@ -189,8 +189,8 @@ export default abstract class ChargingStationVendor {
             tenantID: tenantID,
             source: chargingStation.id,
             action: Action.CLEAR_CHARGING_PROFILE,
-            message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
+            message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
           let results = [] as OCPPClearChargingProfileCommandResult[];
@@ -199,17 +199,33 @@ export default abstract class ChargingStationVendor {
             const result = await chargingStationClient.clearChargingProfile({
               connectorId: connector.connectorId
             });
+            // Reapply the current limitation
+            if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
+              await this.setPowerLimitation(tenantID, chargingStation,
+                connector.connectorId, connector.amperageLimit);
+            }
             results.push(result);
           }
           return results;
+        }
+        // Reapply the current limitation
+        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
+          await this.setPowerLimitation(tenantID, chargingStation, chargingProfile.connectorID,
+            chargingStation.connectors[chargingProfile.connectorID-1].amperageLimit);
         }
         return result;
         // Connector ID > 0
       } else {
         // Clear the Profile
-        return chargingStationClient.clearChargingProfile({
+        const result = await chargingStationClient.clearChargingProfile({
           connectorId: chargingProfile.connectorID
         });
+        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
+          // Reapply the current limitation
+          await this.setPowerLimitation(tenantID, chargingStation, chargingProfile.connectorID,
+            chargingStation.connectors[chargingProfile.connectorID-1].amperageLimit);
+        }
+        return result;
       }
     } catch (error) {
       if (!error.status) {
