@@ -867,7 +867,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+    // pragma if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
     //     action: Action.SET_CHARGING_PROFILE,
