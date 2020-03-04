@@ -102,7 +102,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         module: 'ChargingStationVendor', method: 'setChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
@@ -129,7 +129,7 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CLEAR_CHARGING_PROFILE,
+            action: Action.CHARGING_PROFILE_DELETE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
@@ -169,7 +169,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CLEAR_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_DELETE,
         module: 'ChargingStationVendor', method: 'clearChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
@@ -186,7 +186,7 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CLEAR_CHARGING_PROFILE,
+            action: Action.CHARGING_PROFILE_DELETE,
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
