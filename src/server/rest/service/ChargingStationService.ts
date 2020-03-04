@@ -17,7 +17,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPStatus, OCPPClearChargingProfileCommandResult, OCPPSetChargingProfileCommandResult } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -366,14 +366,14 @@ export default class ChargingStationService {
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+      for (const oneResult of result) {
         if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
           resultStatus = oneResult.status;
           break;
         }
       }
     } else {
-      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+      resultStatus = (result).status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
@@ -382,7 +382,7 @@ export default class ChargingStationService {
         user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
-        message: `Cannot set the Charging Station's charging profile!`,
+        message: 'Cannot set the Charging Station\'s charging profile!',
         detailedMessages: result,
       });
     }
@@ -460,14 +460,14 @@ export default class ChargingStationService {
     // Check for Array
     let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPClearChargingProfileCommandResult[]) {
+      for (const oneResult of result) {
         if (oneResult.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
           resultStatus = oneResult.status;
           break;
         }
       }
     } else {
-      resultStatus = (result as OCPPClearChargingProfileCommandResult).status;
+      resultStatus = (result).status;
     }
     if (resultStatus !== OCPPClearChargingProfileStatus.ACCEPTED) {
       throw new AppError({
@@ -475,7 +475,7 @@ export default class ChargingStationService {
         action: Action.SET_CHARGING_PROFILE,
         user: req.user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: `Cannot clear the Charging Station's charging profiles!`,
+        message: 'Cannot clear the Charging Station\'s charging profiles!',
         module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
         detailedMessages: result,
       });

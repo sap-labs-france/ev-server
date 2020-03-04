@@ -5,7 +5,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult, OCPPClearChargingProfileCommandResult, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPChargingProfileStatus } from '../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
@@ -19,7 +19,7 @@ export default abstract class ChargingStationVendor {
   public abstract getOCPPParamNameForChargingLimitation(): string;
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     if (connectorID > 0) {
       throw new BackendError({
         source: chargingStation.id,
@@ -76,8 +76,9 @@ export default abstract class ChargingStationVendor {
     }
     return result;
   }
+
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-      ocppParamName: string, ocppParamValue: string) {
+    ocppParamName: string, ocppParamValue: string) {
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
       // Update the charger
       for (const connector of chargingStation.connectors) {
@@ -97,7 +98,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult|OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult|OCPPSetChargingProfileCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -135,7 +136,7 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          let results = [] as OCPPSetChargingProfileCommandResult[];
+          const results = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             const result = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
@@ -147,12 +148,12 @@ export default abstract class ChargingStationVendor {
         }
         return result;
       // Connector ID > 0
-      } else {
-        return chargingStationClient.setChargingProfile({
-          connectorId: schneiderChargingProfile.connectorID,
-          csChargingProfiles: schneiderChargingProfile.profile
-        });
       }
+      return chargingStationClient.setChargingProfile({
+        connectorId: schneiderChargingProfile.connectorID,
+        csChargingProfiles: schneiderChargingProfile.profile
+      });
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -164,7 +165,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult|OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult|OCPPClearChargingProfileCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -192,7 +193,7 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          let results = [] as OCPPClearChargingProfileCommandResult[];
+          const results = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
             const result = await chargingStationClient.clearChargingProfile({
@@ -204,12 +205,12 @@ export default abstract class ChargingStationVendor {
         }
         return result;
       // Connector ID > 0
-      } else {
-        // Clear the Profile
-        return chargingStationClient.clearChargingProfile({
-          connectorId: chargingProfile.connectorID
-        });
       }
+      // Clear the Profile
+      return chargingStationClient.clearChargingProfile({
+        connectorId: chargingProfile.connectorID
+      });
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -221,7 +222,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult|OCPPGetCompositeScheduleCommandResult[]> {
+    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult|OCPPGetCompositeScheduleCommandResult[]> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -251,7 +252,7 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'getCompositeSchedule',
             detailedMessages: { result }
           });
-          let results = [] as OCPPGetCompositeScheduleCommandResult[];
+          const results = [] as OCPPGetCompositeScheduleCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Get the Composite Schedule
             const result = await chargingStationClient.getCompositeSchedule({
@@ -265,14 +266,14 @@ export default abstract class ChargingStationVendor {
         }
         return result;
       // Connector ID > 0
-      } else {
-        // Get the Composite Schedule
-        return chargingStationClient.getCompositeSchedule({
-          connectorId: connectorID,
-          duration: durationSecs,
-          chargingRateUnit: chargingStation.powerLimitUnit
-        });
       }
+      // Get the Composite Schedule
+      return chargingStationClient.getCompositeSchedule({
+        connectorId: connectorID,
+        duration: durationSecs,
+        chargingRateUnit: chargingStation.powerLimitUnit
+      });
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -291,7 +292,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number): Promise<ConnectorCurrentLimit> {
+    connectorID: number): Promise<ConnectorCurrentLimit> {
     return {
       limitAmps: chargingStation.connectors[connectorID - 1].amperageLimit,
       limitWatts: chargingStation.connectors[connectorID - 1].power

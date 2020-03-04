@@ -117,7 +117,7 @@
     "mocha": "^6.2.0",
     "mocha-parallel-tests": "^2.2.1",
     "mochawesome": "^4.1.0",
-    "npm-check": "^5.9.0",
+    "npm-check": "^5.9.2",
     "nyc": "^14.1.1",
     "querystring": "^0.2.0",
     "rosie": "^2.0.1",
