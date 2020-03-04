@@ -5,14 +5,14 @@ files:
     destination: /opt/server
 hooks:
   AfterInstall:
-    - location scripts/configure_server.sh
+    - location src/aws/configure_server.sh
       timeout: 300
       runas root
   ApplicationStart:
-    - location: scripts/start_server.sh
+    - location: src/aws/start_server.sh
       timeout: 300
       runas: root
   ApplicationStop:
-    - location: scripts/stop_server.sh
+    - location: src/aws/stop_server.sh
       timeout: 300
       runas: root
