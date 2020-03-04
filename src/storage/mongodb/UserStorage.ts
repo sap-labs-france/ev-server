@@ -1159,7 +1159,7 @@ export default class UserStorage {
       }
       case UserInErrorType.FAILED_BILLING_SYNCHRO:
         return [
-          { $match: { $or: [{ 'billingData.hasSynchroError': { $eq: true } }, { 'billingData.hasSynchroError': { $exists: false } }] } },
+          { $match: { $or: [{ 'billingData.hasSynchroError': { $eq: true } }, { $and: [{ billingData: { $exists: true } }, { 'billingData.hasSynchroError': { $exists: false } }] }] } },
           { $addFields: { 'errorCode': UserInErrorType.FAILED_BILLING_SYNCHRO } }
         ];
       case UserInErrorType.NO_BILLING_DATA:
