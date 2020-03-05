@@ -1,9 +1,10 @@
-import faker from 'faker';
+import CONTEXTS from '../contextProvider/ContextConstants';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
-import CONTEXTS from '../contextProvider/ContextConstants';
+import { OCPPFirmwareStatus } from '../../../src/types/ocpp/OCPPServer';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
+import faker from 'faker';
 
 export default class ChargingStationContext {
 
@@ -382,6 +383,13 @@ export default class ChargingStationContext {
         chargePointVendor: this.chargingStation.chargePointVendor,
         firmwareVersion: this.chargingStation.firmwareVersion
       });
+    return response;
+  }
+
+  async sendFirmwareStatusNotification(status: OCPPFirmwareStatus) {
+    const response = await this.ocppService.executeFirmwareStatusNotification(
+      this.chargingStation.id, { status: status }
+    );
     return response;
   }
 

@@ -1,7 +1,8 @@
-import { ObjectID } from 'mongodb';
-import DbLookup from '../../types/database/DbLookup';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import DbLookup from '../../types/database/DbLookup';
+import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
@@ -151,18 +152,27 @@ export default class DatabaseUtils {
     aggregation.push({
       $addFields: {
         inactive: {
-          $gte: [
+          $or: [
             {
-              $divide: [
-                {
-                  $subtract: [
-                    new Date(), '$lastHeartBeat'
-                  ]
-                },
-                60 * 1000
+              $eq: [
+                '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING
               ]
             },
-            config.heartbeatIntervalSecs * 5
+            {
+              $gte: [
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        new Date(), '$lastHeartBeat'
+                      ]
+                    },
+                    60 * 1000
+                  ]
+                },
+                config.heartbeatIntervalSecs * 5
+              ]
+            }
           ]
         }
       }

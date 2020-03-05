@@ -10,7 +10,7 @@ import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -556,22 +556,35 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
 
-  public static async saveChargingStationHeartBeat(tenantID: string, chargingStation: ChargingStation): Promise<void> {
+  public static async saveChargingStationHeartBeat(tenantID: string, id: string,
+      params: { lastHeartBeat: Date, currentIPAddress: string;}): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
-    const updatedFields: any = {};
-    updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
-    updatedFields['currentIPAddress'] = chargingStation.currentIPAddress;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
-      { '_id': chargingStation.id },
-      { $set: updatedFields },
+      { '_id': id },
+      { $set: params },
       { upsert: true });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
+  }
+
+  public static async saveChargingStationFirmwareStatus(tenantID: string, id: string, firmwareUpdateStatus: OCPPFirmwareStatus): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationFirmwareStatus');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set data
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': id },
+      { $set: { firmwareUpdateStatus } },
+      { upsert: true });
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationFirmwareStatus', uniqueTimerID);
   }
 
   public static async deleteChargingStation(tenantID: string, id: string): Promise<void> {

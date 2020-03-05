@@ -176,6 +176,7 @@
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "test:billing": "cross-env TS_NODE_FILES=true mocha test/**/BillingTest.ts --exit",
+    "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
