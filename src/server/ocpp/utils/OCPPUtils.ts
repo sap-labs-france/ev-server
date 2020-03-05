@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
+import { Action } from '../../../types/Authorization';
 
 export default class OCPPUtils {
 
@@ -49,6 +50,9 @@ export default class OCPPUtils {
       // Assign props
       if (Utils.objectHasProperty(chargingStationTemplate.template, 'cannotChargeInParallel')) {
         chargingStation.cannotChargeInParallel = chargingStationTemplate.template.cannotChargeInParallel;
+      }
+      if (Utils.objectHasProperty(chargingStationTemplate.template, 'private')) {
+        chargingStation.private = chargingStationTemplate.template.private;
       }
       if (Utils.objectHasProperty(chargingStationTemplate.template, 'maximumPower')) {
         chargingStation.maximumPower = chargingStationTemplate.template.maximumPower;
@@ -293,6 +297,14 @@ export default class OCPPUtils {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+      if (!chargingStationClient) {
+        throw new BackendError({
+          source: chargingStation.id,
+          action: Action.GET_CONFIGURATION,
+          module: 'OCPPUtils', method: 'requestAndSaveChargingStationOcppConfiguration',
+          message: 'Charging Station is not connected to the backend',
+        });
+      }
       // Get the OCPP Configuration
       const ocppConfiguration = await chargingStationClient.getConfiguration({});
       // Log
@@ -348,6 +360,14 @@ export default class OCPPUtils {
     }
     // Get the Charging Station client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.CHANGE_CONFIGURATION,
+        module: 'OCPPUtils', method: 'checkAndUpdateChargingStationOcppParameters',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
     // Merge Standard and Specific parameters
     const ocppParameters = chargingStation.ocppStandardParameters.concat(chargingStation.ocppVendorParameters);
     // Check Standard OCPP Params
@@ -412,9 +432,17 @@ export default class OCPPUtils {
   }
 
   public static async requestChangeChargingStationConfiguration(
-    tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
+      tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
+    if (!chargingStationClient) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.CHANGE_CONFIGURATION,
+        module: 'OCPPUtils', method: 'requestChangeChargingStationConfiguration',
+        message: 'Charging Station is not connected to the backend',
+      });
+    }
     // Get the configuration
     const result = await chargingStationClient.changeConfiguration(params);
     // Request the new Configuration?

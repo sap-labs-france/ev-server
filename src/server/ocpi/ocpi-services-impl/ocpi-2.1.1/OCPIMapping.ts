@@ -100,7 +100,7 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (chargingStation.issuer === true) {
+      if (chargingStation.issuer === true && !chargingStation.private) {
         if (!chargingStation.cannotChargeInParallel) {
           evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
         } else {
@@ -210,7 +210,7 @@ export default class OCPIMapping {
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: user.name,
-        valid: !tag.deleted,
+        valid: tag.active,
         whitelist: 'ALLOWED_OFFLINE',
         language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn

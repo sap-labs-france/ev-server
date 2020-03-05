@@ -21,7 +21,7 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus, OCPPFirmwareStatus } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
@@ -238,7 +238,10 @@ export default class OCPPService {
         timezone: Utils.getTimezone(chargingStation.coordinates)
       };
       // Save Charging Station
-      await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
+        lastHeartBeat: chargingStation.lastHeartBeat,
+        currentIPAddress: chargingStation.currentIPAddress
+      });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
       // Log
@@ -454,7 +457,7 @@ export default class OCPPService {
 
   private async updateOCPIStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended) {
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
-    if (Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+    if (chargingStation.issuer && !chargingStation.private && Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
       try {
         const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
         if (ocpiClient) {
@@ -671,14 +674,17 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-        OCPPUtils.isConsumptionMeterValue(meterValue)) {
+          OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
-        const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-        const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
-        consumption.limitAmps = connectorLimit.limitAmps;
-        consumption.limitWatts = connectorLimit.limitWatts;
         if (consumption) {
+          // Get the curent limit of the connector
+          const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+          if (chargingStationClient) {
+            const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+            consumption.limitAmps = connectorLimit.limitAmps;
+            consumption.limitWatts = connectorLimit.limitWatts;
+          }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
             (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
@@ -1138,6 +1144,8 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      // Save the status to Charging Station
+      await ChargingStationStorage.saveChargingStationFirmwareStatus(headers.tenantID, chargingStation.id, firmwareStatusNotification.status);
       // Set the Charging Station ID
       firmwareStatusNotification.chargeBoxID = chargingStation.id;
       firmwareStatusNotification.timestamp = new Date();

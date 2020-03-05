@@ -29,6 +29,7 @@ export default class ChargingStationSecurity {
       chargeBoxID: sanitize(request.chargeBoxID),
       connectorId: sanitize(request.connectorId),
       ampLimitValue: sanitize(request.ampLimitValue),
+      forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
     };
   }
 
@@ -209,6 +210,9 @@ export default class ChargingStationSecurity {
     }
     if (Utils.objectHasProperty(request, 'cannotChargeInParallel')) {
       filteredRequest.cannotChargeInParallel = UtilsSecurity.filterBoolean(request.cannotChargeInParallel);
+    }
+    if (Utils.objectHasProperty(request, 'private')) {
+      filteredRequest.private = UtilsSecurity.filterBoolean(request.private);
     }
     if (Utils.objectHasProperty(request, 'siteArea')) {
       filteredRequest.siteArea = sanitize(request.siteArea);

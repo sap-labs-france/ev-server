@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
+import moment from 'moment';
 import { ObjectID } from 'mongodb';
 import path from 'path';
 import tzlookup from 'tz-lookup';
@@ -15,7 +16,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
 import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation from '../types/ChargingStation';
+import ChargingStation, { StaticLimitAmps } from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
@@ -32,7 +33,6 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
-import moment from 'moment';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -407,7 +407,7 @@ export default class Utils {
     }
   }
 
-  public static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
+  public static isComponentActiveFromToken(userToken: UserToken, componentName: TenantComponents): boolean {
     return userToken.activeComponents.includes(componentName);
   }
 
@@ -467,7 +467,7 @@ export default class Utils {
   }
 
   public static convertAmpToPowerWatts(charger: ChargingStation, ampValue: number): number {
-    if (charger.connectors[0].numberOfConnectedPhase) {
+    if (charger && charger.connectors && charger.connectors.length > 0 && charger.connectors[0].numberOfConnectedPhase) {
       return this.convertAmpToW(charger.connectors[0].numberOfConnectedPhase, ampValue);
     }
     return 0;
@@ -635,6 +635,10 @@ export default class Utils {
 
   public static firstLetterInLowerCase(value: string): string {
     return value[0].toLowerCase() + value.substring(1);
+  }
+
+  public static cloneJSonDocument(jsonDocument: object): object {
+    return JSON.parse(JSON.stringify(jsonDocument));
   }
 
   public static getConnectorLetterFromConnectorID(connectorID: number): string {
@@ -828,7 +832,7 @@ export default class Utils {
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
@@ -840,7 +844,7 @@ export default class Utils {
         !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
@@ -850,7 +854,7 @@ export default class Utils {
     if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile\'s Schedule',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
@@ -860,35 +864,49 @@ export default class Utils {
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
-    if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Charging Profile\'s start date must not be in the past',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
-        user: req.user.id
-      });
-    }
+    // if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+    //   throw new AppError({
+    //     source: Constants.CENTRAL_SERVER,
+    //     action: Action.CHARGING_PROFILE_UPDATE,
+    //     errorCode: HTTPError.GENERAL_ERROR,
+    //     message: 'Charging Profile\'s start date must not be in the past',
+    //     module: 'Utils', method: 'checkIfChargingProfileIsValid',
+    //     user: req.user.id
+    //   });
+    // }
     // Check End of Schedule <= 24h
     const endScheduleDate = new Date(new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() +
       filteredRequest.profile.chargingSchedule.duration * 1000);
     if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SET_CHARGING_PROFILE,
+        action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule should not exeed 24 hours',
         module: 'Utils', method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
+    }
+    // Check Min Limitation of each Schedule
+    for (const chargingSchedulePeriod of filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
+      if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: Action.CHARGING_PROFILE_UPDATE,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
+          module: 'Utils', method: 'checkIfChargingProfileIsValid',
+          user: req.user.id,
+          detailedMessages: { chargingSchedulePeriod }
+        });
+      }
     }
   }
 
