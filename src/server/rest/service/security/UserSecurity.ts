@@ -251,7 +251,7 @@ export default class UserSecurity {
         id: sanitize(tag.id),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),
         description: sanitize(tag.description),
-        deleted: false
+        active: UtilsSecurity.filterBoolean(tag.active)
       };
     }
     return filteredTag;
