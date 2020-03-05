@@ -64,9 +64,6 @@ describe('Firmware Update Status Tests', function() {
         const response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
         expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
-          console.log('====================================');
-          console.log(firmwareUpdateStatus);
-          console.log('====================================');
           if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
             return true;
           }
