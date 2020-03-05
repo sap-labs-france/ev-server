@@ -93,49 +93,17 @@ export default class UserStorage {
   }
 
   public static async getUserByTagId(tenantID: string, tagID: string): Promise<User> {
-    let user: User;
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByTagId');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
-      .aggregate([
-        {
-          $match: {
-            '_id': tagID,
-            'deleted': false
-          }
-        },
-        {
-          $project: {
-            id: '$_id',
-            _id: 0,
-            userID: { $toString: '$userID' }
-          }
-        }
-      ])
-      .limit(1)
-      .toArray();
     // Check
-    if (tagsMDB && tagsMDB.length > 0) {
-      if (tagsMDB[0].userID) {
-        user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
-      }
-
-      if (!user) {
-        Logging.logError({
-          tenantID: tenantID,
-          module: 'UserStorage',
-          method: 'getUserByTagId',
-          message: `No user with id ${tagsMDB[0].userID}  was found but a tag with id '${tagID}' exists`,
-          detailedMessages: tagsMDB[0]
-        });
-      }
+    if (!tagID) {
+      return null;
     }
     // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByTagId');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { tagID: tagID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
     Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
-    return user;
+    return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
@@ -317,34 +285,46 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserTags(tenantID: string, userID: string, userTags: Tag[]): Promise<void> {
+  public static async saveUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTags');
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Cleanup Tags
-    const userTagsToSave = userTags ? userTags.filter((tag) => tag && tag.id !== '') : [];
-
-    if (userTagsToSave.length > 0) {
-      const tagCollection = global.database.getCollection<any>(tenantID, 'tags');
-      await tagCollection.deleteMany({ '_id': { $in: userTags.map((tag) => tag.id) } });
-      await tagCollection.deleteMany({ 'userID': Utils.convertToObjectID(userID) });
-      await tagCollection.insertMany(userTagsToSave.map((tag) => {
-        const tagMDB = {
-          _id: tag.id,
-          userID: Utils.convertToObjectID(userID),
-          issuer: tag.issuer,
-          description: tag.description,
-          deleted: tag.deleted,
-          ocpiToken: tag.ocpiToken
-        };
-        // Check Created/Last Changed By
-        DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
-        return tagMDB;
-      }));
-    }
+    const tagMDB = {
+      _id: tag.id,
+      userID: Utils.convertToObjectID(userID),
+      issuer: tag.issuer,
+      active: tag.active,
+      ocpiToken: tag.ocpiToken,
+      description: tag.description
+    };
+    // Check Created/Last Changed By
+    DatabaseUtils.addLastChangedCreatedProps(tagMDB, tag);
+    // Save
+    await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
+      {
+        '_id': tag.id,
+        'userID': Utils.convertToObjectID(userID)
+      },
+      { $set: tagMDB },
+      { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTags });
+    Logging.traceEnd('UserStorage', 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
+  }
+
+  public static async deleteUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUserTag');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<any>(tenantID, 'tags').deleteOne(
+      {
+        '_id': tag.id,
+        'userID': Utils.convertToObjectID(userID)
+      });
+    // Debug
+    Logging.traceEnd('UserStorage', 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -523,7 +503,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
-      userID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
+      userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
@@ -561,6 +541,12 @@ export default class UserStorage {
     if (params.email) {
       filters.$and.push({
         'email': params.email
+      });
+    }
+    // TagID
+    if (params.tagID) {
+      filters.$and.push({
+        'tags.id': params.tagID
       });
     }
     // Password Reset Hash
@@ -612,6 +598,12 @@ export default class UserStorage {
     DatabaseUtils.pushTagLookupInAggregation({
       tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
+
+    if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
+      DatabaseUtils.pushTransactionsLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'sessionsCount', countField: 'tagID'
+      });
+    }
 
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
@@ -673,6 +665,7 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -705,6 +698,15 @@ export default class UserStorage {
     // Clean user object
     for (const userMDB of usersMDB) {
       delete (userMDB as any).siteusers;
+      if ((userMDB as any).sessionsCount) {
+        for (const sessionCount of (userMDB as any).sessionsCount) {
+          const tag = userMDB.tags.find((value) => value.id === sessionCount.id);
+          if (tag) {
+            tag.sessionCount = sessionCount.count;
+          }
+        }
+        delete (userMDB as any).sessionsCount;
+      }
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
@@ -729,7 +731,6 @@ export default class UserStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-
 
     // Create Aggregation
     const aggregation = [];
@@ -797,7 +798,7 @@ export default class UserStorage {
         _id: 0,
         userID: { $toString: '$userID' },
         lastChangedOn: 1,
-        deleted: 1,
+        active: 1,
         ocpiToken: 1,
         description: 1,
         issuer: 1
@@ -865,7 +866,7 @@ export default class UserStorage {
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-          ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
+        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -1164,7 +1165,7 @@ export default class UserStorage {
         ];
       case UserInErrorType.NO_BILLING_DATA:
         return [
-          { $match: { $and: [ { 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } } ] } },
+          { $match: { $and: [{ 'status': { $eq: UserStatus.ACTIVE } }, { 'billingData': { $exists: false } }] } },
           { $addFields: { 'errorCode': UserInErrorType.NO_BILLING_DATA } }
         ];
       default:
