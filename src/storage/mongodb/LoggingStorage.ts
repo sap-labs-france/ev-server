@@ -57,9 +57,7 @@ export default class LoggingStorage {
 
   public static async saveLog(tenantID, logToSave: Log) {
     // Check Tenant
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      await Utils.checkTenant(tenantID);
-    }
+    await Utils.checkTenant(tenantID);
     // Set
     const logMDB: any = {
       userID: logToSave.user ? Utils.convertUserToObjectID(logToSave.user) : null,
