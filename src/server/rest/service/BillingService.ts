@@ -295,49 +295,4 @@ export default class BillingService {
     res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
-
-  public static async handleDownloadInvoiceAsPdf(action: Action, req: Request, res: Response, next: NextFunction) {
-    if (!Authorizations.canDownloadBillingInvoice(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        entity: Entity.USER, action: Action.READ_BILLING_TAXES,
-        module: 'BillingService', method: 'handleDownloadInvoice',
-      });
-    }
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService', method: 'handleDownloadInvoice',
-        action: action,
-        user: req.user
-      });
-    }
-    // Get Billing implementation from factory
-    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
-    if (!billingImpl) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleDownloadInvoice',
-        action: action,
-        user: req.user
-      });
-    }
-    const filteredRequest = BillingSecurity.filterDownloadInvoiceRequest(req.query);
-    if (filteredRequest.invoice) {
-      const user = await UserStorage.getUser(tenant.id, req.user.id);
-      const downloadUrl = await billingImpl.getUrlDownloadInvoiceAsPdf(user, filteredRequest.invoice);
-      res.download(downloadUrl, (downloadError) => {
-        if (downloadError) {
-          throw downloadError;
-        }
-      });
-    }
-  }
 }

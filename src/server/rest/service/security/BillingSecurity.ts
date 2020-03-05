@@ -64,6 +64,7 @@ export default class BillingSecurity {
       filteredInvoice.status = invoice.status;
       filteredInvoice.amountDue = invoice.amountDue;
       filteredInvoice.createdOn = invoice.createdOn;
+      filteredInvoice.downloadUrl = invoice.downloadUrl;
     }
     return filteredInvoice;
   }

@@ -154,63 +154,44 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]> {
     this.checkIfStripeIsInitialized();
     const invoices = [] as BillingInvoice[];
-    let request;
-    const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
-    if (params) {
-      if (params.status) {
-        Object.assign(requestParams, { status: params.status });
-      }
-      if (params.startDateTime) {
-        Object.assign(requestParams, { created: { gte: new Date(params.startDateTime).getTime() / 1000 } });
-      }
-      if (params.endDateTime) {
-        if (requestParams.created) {
-          Object.assign(requestParams.created, { lte: new Date(params.endDateTime).getTime() / 1000 });
-        } else {
-          Object.assign(requestParams, { created: { lte: new Date(params.endDateTime).getTime() / 1000 } });
+    if (await this.userExists(user)) {
+      let request;
+      const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+      if (params) {
+        if (params.status) {
+          Object.assign(requestParams, { status: params.status });
+        }
+        if (params.startDateTime) {
+          Object.assign(requestParams, { created: { gte: new Date(params.startDateTime).getTime() / 1000 } });
+        }
+        if (params.endDateTime) {
+          if (requestParams.created) {
+            Object.assign(requestParams.created, { lte: new Date(params.endDateTime).getTime() / 1000 });
+          } else {
+            Object.assign(requestParams, { created: { lte: new Date(params.endDateTime).getTime() / 1000 } });
+          }
         }
       }
+      do {
+        request = await this.stripe.invoices.list(requestParams);
+        for (const invoice of request.data) {
+          invoices.push({
+            id: invoice.id,
+            number: invoice.number,
+            status: invoice.status,
+            amountDue: invoice.amount_due,
+            currency: invoice.currency,
+            customerID: invoice.customer,
+            createdOn: new Date(invoice.created * 1000),
+            downloadUrl: invoice.invoice_pdf
+          });
+        }
+        if (request.has_more) {
+          requestParams['starting_after'] = invoices[invoices.length - 1].id;
+        }
+      } while (request.has_more);
     }
-    do {
-      request = await this.stripe.invoices.list(requestParams);
-      for (const invoice of request.data) {
-        invoices.push({
-          id: invoice.id,
-          number: invoice.number,
-          status: invoice.status,
-          amountDue: invoice.amount_due,
-          currency: invoice.currency,
-          customerID: invoice.customer,
-          createdOn: new Date(invoice.created * 1000),
-        });
-      }
-      if (request.has_more) {
-        requestParams['starting_after'] = invoices[invoices.length - 1].id;
-      }
-    } while (request.has_more);
     return invoices;
-  }
-
-  public async getUrlDownloadInvoiceAsPdf(user: User, invoiceID: string): Promise<string> {
-    const invoice = await this.stripe.invoices.retrieve(invoiceID);
-    if (invoice) {
-      if (invoice.customer === user.billingData.customerID) {
-        return invoice.invoice_pdf;
-      }
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.DOWNLOAD,
-        module: 'StripeBilling', method: 'getUrlDownloadInvoiceAsPdf',
-        message: `Not authorized to download invoice: ${invoice.number}`,
-        detailedMessages: `User ${user.id} attempted to download a someone else invoice ${invoiceID}`
-      });
-    }
-    throw new BackendError({
-      source: Constants.CENTRAL_SERVER,
-      action: Action.DOWNLOAD,
-      module: 'StripeBilling', method: 'getUrlDownloadInvoiceAsPdf',
-      message: `Invoice ${invoice.number} does not exists in Stripe`,
-    });
   }
 
   public async getTaxes(): Promise<BillingTax[]> {

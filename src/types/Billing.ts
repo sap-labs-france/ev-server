@@ -55,4 +55,5 @@ export interface BillingInvoice {
   currency: string;
   customerID: string;
   createdOn: Date;
+  downloadUrl: string;
 }
