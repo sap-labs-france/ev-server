@@ -94,6 +94,15 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOAD_FAILED);
       });
 
+      it('Should have the connectors to available before Installing', async () => {
+        const response = await testData.chargingStationContext.readChargingStation();
+        expect(response.status).to.equal(200);
+        const chargingStation = response.data;
+        for (let i = 0; i < chargingStation.connectors.length; i++) {
+          expect(chargingStation.connectors[i].status).to.equal('Available');
+        }
+      });
+
       it('Should correctly assign Installing Status', async () => {
         let response = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLING);
         expect(response.data).to.eql({});
@@ -117,6 +126,15 @@ describe('Firmware Update Status Tests', function() {
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
         expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
+      });
+
+      it('Should restore the connectors to available after Installing', async () => {
+        const response = await testData.chargingStationContext.readChargingStation();
+        expect(response.status).to.equal(200);
+        const chargingStation = response.data;
+        for (let i = 0; i < chargingStation.connectors.length; i++) {
+          expect(chargingStation.connectors[i].status).to.equal('Available');
+        }
       });
 
       it('Should correctly assign Installation Failed Status', async () => {
