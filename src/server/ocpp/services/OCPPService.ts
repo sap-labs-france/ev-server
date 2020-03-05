@@ -238,7 +238,10 @@ export default class OCPPService {
         timezone: Utils.getTimezone(chargingStation.coordinates)
       };
       // Save Charging Station
-      await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
+        lastHeartBeat: chargingStation.lastHeartBeat,
+        currentIPAddress: chargingStation.currentIPAddress
+      });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
       // Log
@@ -1142,9 +1145,7 @@ export default class OCPPService {
       // Check props
       OCPPValidation.getInstance().validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
       // Save the status to Charging Station
-      const chargingStationToSave = chargingStation;
-      chargingStationToSave.latestFirmwareUpdateStatus = firmwareStatusNotification.status;
-      await ChargingStationStorage.saveChargingStation(Action.UPDATE, headers.tenantID, chargingStationToSave);
+      await ChargingStationStorage.saveChargingStationFirmwareStatus(headers.tenantID, chargingStation.id, firmwareStatusNotification.status);
       // Set the Charging Station ID
       firmwareStatusNotification.chargeBoxID = chargingStation.id;
       firmwareStatusNotification.timestamp = new Date();
