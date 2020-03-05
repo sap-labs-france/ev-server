@@ -39,8 +39,7 @@ const userFactory = Factory.define('user')
     { id: faker.random.alphaNumeric(8).toUpperCase(),
       description: '',
       issuer: true,
-      deleted: false,
-      ocpiToken: null
+      active: true
     }
   ]);
 

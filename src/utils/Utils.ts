@@ -407,7 +407,7 @@ export default class Utils {
     }
   }
 
-  public static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
+  public static isComponentActiveFromToken(userToken: UserToken, componentName: TenantComponents): boolean {
     return userToken.activeComponents.includes(componentName);
   }
 
