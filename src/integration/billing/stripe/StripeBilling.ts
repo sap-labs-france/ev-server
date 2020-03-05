@@ -3,7 +3,7 @@ import i18n from 'i18n-js';
 import moment from 'moment';
 import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
-import { Action } from '../../../types/Authorization';
+import { Action, Entity } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -18,6 +18,8 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
 import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
+import AppAuthError from '../../../exception/AppAuthError';
+import { HTTPAuthError } from '../../../types/HTTPError';
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -187,6 +189,28 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
     } while (request.has_more);
     return invoices;
+  }
+
+  public async getUrlDownloadInvoiceAsPdf(user: User, invoiceID: string): Promise<string> {
+    const invoice = await this.stripe.invoices.retrieve(invoiceID);
+    if (invoice) {
+      if (invoice.customer === user.billingData.customerID) {
+        return invoice.invoice_pdf;
+      }
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.DOWNLOAD,
+        module: 'StripeBilling', method: 'getUrlDownloadInvoiceAsPdf',
+        message: `Not authorized to download invoice: ${invoice.number}`,
+        detailedMessages: `User ${user.id} attempted to download a someone else invoice ${invoiceID}`
+      });
+    }
+    throw new BackendError({
+      source: Constants.CENTRAL_SERVER,
+      action: Action.DOWNLOAD,
+      module: 'StripeBilling', method: 'getUrlDownloadInvoiceAsPdf',
+      message: `Invoice ${invoice.number} does not exists in Stripe`,
+    });
   }
 
   public async getTaxes(): Promise<BillingTax[]> {

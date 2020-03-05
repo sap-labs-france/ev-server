@@ -56,7 +56,7 @@ const GRANTS = {
         resource: 'Billing',
         action: ['CheckBillingConnection', 'SynchronizeUsersBilling', 'ReadBillingTaxes']
       },
-      { resource: 'Invoices', action: 'List', attributes: ['*'] },
+      { resource: 'Invoices', action: ['List', 'Download'], attributes: ['*'] },
       { resource: 'Building', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Buildings', action: 'List', attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
@@ -86,7 +86,7 @@ const GRANTS = {
         resource: 'Company', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
-      { resource: 'Invoices', action: ['List'], attributes: ['*'] },
+      { resource: 'Invoices', action: ['List', 'Download'], attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
       {
         resource: 'Site', action: 'Read', attributes: ['*'],

@@ -173,6 +173,7 @@ class RequestMapper {
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),
           BillingTaxes: BillingService.handleGetBillingTaxes.bind(this),
           BillingUserInvoices: BillingService.handleGetUserInvoices.bind(this),
+          DownloadInvoiceAsPdf: BillingService.handleDownloadInvoiceAsPdf.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),

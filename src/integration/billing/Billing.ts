@@ -257,4 +257,6 @@ export default abstract class Billing<T extends BillingSetting> {
   async abstract getTaxes(): Promise<BillingTax[]>;
 
   async abstract getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]>;
+
+  async abstract getUrlDownloadInvoiceAsPdf(user: User, invoiceID: string): Promise<string>;
 }

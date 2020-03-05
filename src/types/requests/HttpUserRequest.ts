@@ -16,6 +16,10 @@ export interface HttpGetUserInvoicesRequest {
   endDateTime: Date;
 }
 
+export interface HttpDownloadInvoiceRequest {
+  invoice: string;
+}
+
 export interface HttpUserMobileTokenRequest {
   id: string;
   mobileToken: string;
