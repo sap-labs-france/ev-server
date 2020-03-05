@@ -63,8 +63,11 @@ describe('Firmware Update Status Tests', function() {
       it('An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.firmwareUpdateStatus).to.satisfy(function(firmwareUpdateStatus) {
-          if (firmwareUpdateStatus === null || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
+        expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
+          console.log('====================================');
+          console.log(firmwareUpdateStatus);
+          console.log('====================================');
+          if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
             return true;
           }
           return false;
