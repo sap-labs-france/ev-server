@@ -155,7 +155,7 @@ export default class DatabaseUtils {
           $or: [
             {
               $eq: [
-                '$latestFirmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING
+                '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING
               ]
             },
             {

@@ -59,11 +59,11 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
       });
 
-      it('An idle Charging station should have the latestFirmwareUpdateStatus set to Idle or be empty', async () => {
+      it('An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.satisfy(function(status) {
-          if (status === null || status === OCPPFirmwareStatus.IDLE) {
+        expect(response.data.firmwareUpdateStatus).to.satisfy(function(firmwareUpdateStatus) {
+          if (firmwareUpdateStatus === null || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
             return true;
           }
           return false;
@@ -75,7 +75,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADING);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADING);
       });
 
       it('Should correctly assign Downloaded Status', async () => {
@@ -83,7 +83,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADED);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOADED);
       });
 
       it('Should correctly assign Download Failed Status', async () => {
@@ -91,7 +91,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOAD_FAILED);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOAD_FAILED);
       });
 
       it('Should have the connectors to available before Installing', async () => {
@@ -108,7 +108,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLING);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLING);
       });
 
       it('Should make the connectors unavailable while Installing', async () => {
@@ -125,7 +125,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
       });
 
       it('Should restore the connectors to available after Installing', async () => {
@@ -142,7 +142,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLATION_FAILED);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLATION_FAILED);
       });
 
       it('Should correctly assign Idle Status', async () => {
@@ -150,7 +150,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data).to.eql({});
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.latestFirmwareUpdateStatus).to.equal(OCPPFirmwareStatus.IDLE);
+        expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.IDLE);
       });
 
     });
