@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
-import CONTEXTS from './contextProvider/ContextConstants';
+import chaiSubset from 'chai-subset';
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import { OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
 import SiteAreaContext from './contextProvider/SiteAreaContext';
 import SiteContext from './contextProvider/SiteContext';
 import TenantContext from './contextProvider/TenantContext';
-import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 
@@ -45,6 +45,7 @@ describe('Firmware Update Status Tests', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      await testData.chargingStationContext.sendHeartbeat()
     });
 
     after(async () => {
@@ -99,7 +100,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal('Available');
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
         }
       });
 
@@ -116,7 +117,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal('Unavailable');
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.UNAVAILABLE);
         }
       });
 
