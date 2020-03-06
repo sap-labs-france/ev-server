@@ -16,3 +16,4 @@ artifacts:
     - appspec.yml
     - 'src/aws/*.sh'
     - 'dist/**/*'
+    - 'node_modules/**/*'
