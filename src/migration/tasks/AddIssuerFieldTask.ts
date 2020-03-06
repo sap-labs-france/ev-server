@@ -32,7 +32,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddIssuerFieldTask', method: 'migrateTenant',
         action: 'Migrate',
-        message: `${result.modifiedCount} object(s) has been updated in the collection '${collectionName}' of Tenant '${tenant.name}'`
+        message: `${result.modifiedCount} Object(s) has been updated in the collection '${collectionName}' of Tenant '${tenant.name}'`
       });
     }
   }

@@ -28,12 +28,14 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
       }
     }
     // Log in the default tenant
-    Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: 'CleanupOrphanBadgeTask', method: 'migrateTenant',
-      action: 'Migrate',
-      message: `${counter} tags(s) have been deleted in Tenant '${tenant.name}'`
-    });
+    if (counter > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: 'CleanupOrphanBadgeTask', method: 'migrateTenant',
+        action: 'Migrate',
+        message: `${counter} Tags(s) have been deleted in Tenant '${tenant.name}'`
+      });
+    }
   }
 
   getVersion() {

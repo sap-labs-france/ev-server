@@ -44,12 +44,14 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
       }
     }
     // Log in the default tenant
-    Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: 'AddLastChangePropertiesToBadgeTask', method: 'migrateTenant',
-      action: 'Migrate',
-      message: `${counter} tags(s) have been updated in Tenant '${tenant.name}'`
-    });
+    if (counter > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: 'AddLastChangePropertiesToBadgeTask', method: 'migrateTenant',
+        action: 'Migrate',
+        message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
+      });
+    }
   }
 
   getVersion() {
