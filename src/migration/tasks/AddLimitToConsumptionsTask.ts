@@ -43,7 +43,7 @@ export default class AddLimitToConsumptionsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddLimitToConsumptions', method: 'migrateTenant',
         action: 'AddLimitToConsumptions',
-        message: `${modifiedCount} consumptions limits have been updated in Tenant '${tenant.name}'`
+        message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
       });
     }
   }
