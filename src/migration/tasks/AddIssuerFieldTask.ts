@@ -31,7 +31,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddIssuerFieldTask', method: 'migrateTenant',
-        action: 'Migrate',
+        action: 'AddIssuerField',
         message: `${result.modifiedCount} Object(s) has been updated in the collection '${collectionName}' of Tenant '${tenant.name}'`
       });
     }

@@ -41,7 +41,7 @@ export default class AddLimitToConsumptionsTask extends MigrationTask {
     if (modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'AddLimitToConsumptions', method: 'migrateTenant',
+        module: 'AddLimitToConsumptionsTask', method: 'migrateTenant',
         action: 'AddLimitToConsumptions',
         message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
       });

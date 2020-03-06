@@ -62,7 +62,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'UpdateChargingStationTemplatesTask',
+        action: 'UpdateChargingStationTemplates',
         module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsWithTemplate',
         message: `${updated} Charging Stations have been updated with Template in Tenant '${tenant.name}'`
       });
@@ -83,7 +83,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'UpdateChargingStationTemplatesTask',
+        action: 'UpdateChargingStationTemplates',
         module: 'UpdateChargingStationTemplatesTask', method: 'removeChargingStationUnusedProps',
         message: `${result.modifiedCount} Charging Stations unused properties have been removed in Tenant '${tenant.name}'`
       });

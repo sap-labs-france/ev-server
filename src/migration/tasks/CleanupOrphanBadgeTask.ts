@@ -32,7 +32,7 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'CleanupOrphanBadgeTask', method: 'migrateTenant',
-        action: 'Migrate',
+        action: 'CleanupOrphanBadge',
         message: `${counter} Tags(s) have been deleted in Tenant '${tenant.name}'`
       });
     }

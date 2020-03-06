@@ -48,7 +48,7 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddLastChangePropertiesToBadgeTask', method: 'migrateTenant',
-        action: 'Migrate',
+        action: 'AddLastChangePropertiesToBadge',
         message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
       });
     }

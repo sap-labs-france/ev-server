@@ -45,7 +45,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -78,7 +78,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -111,7 +111,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -144,7 +144,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -177,7 +177,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
       });
     }
