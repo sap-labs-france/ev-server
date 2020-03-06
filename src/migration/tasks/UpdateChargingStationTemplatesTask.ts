@@ -64,7 +64,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: 'UpdateChargingStationTemplatesTask',
         module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsWithTemplate',
-        message: `${updated} Charging Stations' have been updated with Template in Tenant '${tenant.name}'`
+        message: `${updated} Charging Stations have been updated with Template in Tenant '${tenant.name}'`
       });
     }
   }
@@ -85,7 +85,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: 'UpdateChargingStationTemplatesTask',
         module: 'UpdateChargingStationTemplatesTask', method: 'removeChargingStationUnusedProps',
-        message: `${result.modifiedCount} Charging Stations' unused properties have been removed in Tenant '${tenant.name}'`
+        message: `${result.modifiedCount} Charging Stations unused properties have been removed in Tenant '${tenant.name}'`
       });
     }
   }
