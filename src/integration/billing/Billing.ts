@@ -237,7 +237,7 @@ export default abstract class Billing<T extends BillingSetting> {
       } catch (e) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Billing', method: 'synchronizeUser',
+          module: 'Billing', method: 'forceSynchronizeUser',
           action: Action.SYNCHRONIZE_BILLING,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
