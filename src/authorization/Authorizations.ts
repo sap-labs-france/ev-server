@@ -645,28 +645,30 @@ export default class Authorizations {
           user: user
         });
       }
-      // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
-      // Authorized?
-      const context = {
-        user: transaction ? transaction.userID : null,
-        tagIDs: userToken.tagIDs,
-        tagID: transaction ? transaction.tagID : null,
-        owner: userToken.id,
-        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
-        sites: userToken.sites,
-        sitesAdmin: userToken.sitesAdmin
-      };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: userToken,
-          action: action,
-          entity: Entity.CHARGING_STATION,
-          value: chargingStation.id,
-          module: 'Authorizations',
-          method: 'isTagIDAuthorizedOnChargingStation',
-        });
+      if (user.issuer) {
+        // Build the JWT Token
+        const userToken = await Authorizations.buildUserToken(tenantID, user);
+        // Authorized?
+        const context = {
+          user: transaction ? transaction.userID : null,
+          tagIDs: userToken.tagIDs,
+          tagID: transaction ? transaction.tagID : null,
+          owner: userToken.id,
+          site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
+          sites: userToken.sites,
+          sitesAdmin: userToken.sitesAdmin
+        };
+        if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.ERROR,
+            user: userToken,
+            action: action,
+            entity: Entity.CHARGING_STATION,
+            value: chargingStation.id,
+            module: 'Authorizations',
+            method: 'isTagIDAuthorizedOnChargingStation',
+          });
+        }
       }
     }
     return user;

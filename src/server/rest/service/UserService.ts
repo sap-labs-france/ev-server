@@ -28,6 +28,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
+import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
 
 export default class UserService {
 
@@ -285,12 +286,12 @@ export default class UserService {
             if (tag.issuer) {
               await ocpiClient.pushToken({
                 uid: tag.id,
-                type: 'RFID',
+                type: OCPITokenType.RFID,
                 'auth_id': user.id,
                 'visual_number': user.id,
                 issuer: tenant.name,
                 valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
+                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                 'last_updated': new Date()
               });
             }
@@ -467,12 +468,12 @@ export default class UserService {
               if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: previousTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
                   valid: false,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
@@ -483,12 +484,12 @@ export default class UserService {
               if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
                   valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
@@ -942,12 +943,12 @@ export default class UserService {
               if (tag.issuer) {
                 await ocpiClient.pushToken({
                   uid: tag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': newUserID,
                   'visual_number': newUserID,
                   issuer: tenant.name,
                   valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
