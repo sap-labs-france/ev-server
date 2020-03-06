@@ -28,9 +28,7 @@ export default class AddLimitToConsumptions extends MigrationTask {
       },
     });
     aggregation.push({ $limit: 10000 });
-
-    // Call
-    let consumptionsMDB: Consumption[] = await global.database.getCollection<any>(tenant.id, 'consumptions').aggregate(aggregation).toArray();
+    let consumptionsMDB = [];
     do {
       // Call
       consumptionsMDB = await global.database.getCollection<any>(tenant.id, 'consumptions')
@@ -49,15 +47,13 @@ export default class AddLimitToConsumptions extends MigrationTask {
         }
         // Update
         await global.database.getCollection(tenant.id, 'consumptions').findOneAndUpdate(
-          { '_id': consumptionMDB['_id'] },
+          { '_id': consumptionMDB._id },
           { $set: { 'limitAmps': consumptionMDB.limitAmps, 'limitWatts': consumptionMDB.limitWatts } },
           { upsert: true, returnOriginal: false }
         );
         modifiedCount++;
       }
-    }
-    while (consumptionsMDB.length !== 0);
-
+    } while (consumptionsMDB.length !== 0);
     // Log in the default tenant
     if (modifiedCount > 0) {
       Logging.logDebug({
