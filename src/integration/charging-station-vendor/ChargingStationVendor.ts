@@ -4,7 +4,7 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation, { ConnectorCurrentLimit } from '../../types/ChargingStation';
+import ChargingStation, { ConnectorCurrentLimit, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -22,7 +22,14 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         module: 'ChargingStationVendor', method: 'setPowerLimitation',
-        message: `Cannot limit the power for connector '${connectorID}', only for the whole Charging Station`,
+        message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
+      });
+    }
+    if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
+      throw new BackendError({
+        source: chargingStation.id,
+        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
     }
     if (Utils.isEmptyArray(chargingStation.connectors)) {
@@ -197,19 +204,17 @@ export default abstract class ChargingStationVendor {
             const result = await chargingStationClient.clearChargingProfile({
               connectorId: connector.connectorId
             });
-            // Reapply the current limitation
-            if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-              await this.setPowerLimitation(tenantID, chargingStation,
-                connector.connectorId, connector.amperageLimit);
-            }
             results.push(result);
           }
+          // Reapply the current limitation
+          await this.setPowerLimitation(tenantID, chargingStation, 0,
+            Utils.getTotalAmpsOfChargingStation(chargingStation));
           return results;
         }
         // Reapply the current limitation
         if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-          await this.setPowerLimitation(tenantID, chargingStation, chargingProfile.connectorID,
-            chargingStation.connectors[chargingProfile.connectorID - 1].amperageLimit);
+          await this.setPowerLimitation(tenantID, chargingStation, 0,
+            Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
         return result;
       }
@@ -220,8 +225,8 @@ export default abstract class ChargingStationVendor {
       });
       if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
         // Reapply the current limitation
-        await this.setPowerLimitation(tenantID, chargingStation, chargingProfile.connectorID,
-          chargingStation.connectors[chargingProfile.connectorID - 1].amperageLimit);
+        await this.setPowerLimitation(tenantID, chargingStation, 0,
+          Utils.getTotalAmpsOfChargingStation(chargingStation));
       }
       return result;
 

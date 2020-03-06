@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
-import CONTEXTS from './contextProvider/ContextConstants';
+import chaiSubset from 'chai-subset';
+import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import { OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
 import SiteAreaContext from './contextProvider/SiteAreaContext';
 import SiteContext from './contextProvider/SiteContext';
 import TenantContext from './contextProvider/TenantContext';
-import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 
@@ -45,6 +45,7 @@ describe('Firmware Update Status Tests', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      await testData.chargingStationContext.sendHeartbeat();
     });
 
     after(async () => {
@@ -62,8 +63,8 @@ describe('Firmware Update Status Tests', function() {
       it('An idle Charging station should have the firmwareUpdateStatus set to Idle or be empty', async () => {
         const response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
-        expect(response.data.firmwareUpdateStatus).to.satisfy(function(firmwareUpdateStatus) {
-          if (firmwareUpdateStatus === null || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
+        expect(response.data.firmwareUpdateStatus).to.satisfy((firmwareUpdateStatus) => {
+          if (!firmwareUpdateStatus || firmwareUpdateStatus === OCPPFirmwareStatus.IDLE) {
             return true;
           }
           return false;
@@ -94,6 +95,15 @@ describe('Firmware Update Status Tests', function() {
         expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.DOWNLOAD_FAILED);
       });
 
+      it('Should have the connectors to available before Installing', async () => {
+        const response = await testData.chargingStationContext.readChargingStation();
+        expect(response.status).to.equal(200);
+        const chargingStation = response.data;
+        for (let i = 0; i < chargingStation.connectors.length; i++) {
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.AVAILABLE);
+        }
+      });
+
       it('Should correctly assign Installing Status', async () => {
         let response = await testData.chargingStationContext.sendFirmwareStatusNotification(OCPPFirmwareStatus.INSTALLING);
         expect(response.data).to.eql({});
@@ -107,7 +117,7 @@ describe('Firmware Update Status Tests', function() {
         expect(response.status).to.equal(200);
         const chargingStation = response.data;
         for (let i = 0; i < chargingStation.connectors.length; i++) {
-          expect(chargingStation.connectors[i].status).to.equal('Unavailable');
+          expect(chargingStation.connectors[i].status).to.equal(ChargePointStatus.UNAVAILABLE);
         }
       });
 
@@ -117,6 +127,15 @@ describe('Firmware Update Status Tests', function() {
         response = await testData.chargingStationContext.readChargingStation();
         expect(response.status).to.equal(200);
         expect(response.data.firmwareUpdateStatus).to.equal(OCPPFirmwareStatus.INSTALLED);
+      });
+
+      it('Should restore the connectors to available after Installing', async () => {
+        const response = await testData.chargingStationContext.readChargingStation();
+        expect(response.status).to.equal(200);
+        const chargingStation = response.data;
+        for (let i = 0; i < chargingStation.connectors.length; i++) {
+          expect(chargingStation.connectors[i].status).to.equal('Available');
+        }
       });
 
       it('Should correctly assign Installation Failed Status', async () => {

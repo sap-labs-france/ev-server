@@ -466,11 +466,19 @@ export default class Utils {
     return userID;
   }
 
-  public static convertAmpToPowerWatts(charger: ChargingStation, ampValue: number): number {
-    if (charger && charger.connectors && charger.connectors.length > 0 && charger.connectors[0].numberOfConnectedPhase) {
-      return this.convertAmpToW(charger.connectors[0].numberOfConnectedPhase, ampValue);
+  public static convertAmpToPowerWatts(chargingStation: ChargingStation, ampValue: number): number {
+    if (chargingStation && chargingStation.connectors && chargingStation.connectors.length > 0 && chargingStation.connectors[0].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[0].numberOfConnectedPhase, ampValue);
     }
     return 0;
+  }
+
+  public static getTotalAmpsOfChargingStation(chargingStation: ChargingStation): number {
+    let totalAmps = 0;
+    for (const connector of chargingStation.connectors) {
+      totalAmps += connector.amperageLimit;
+    }
+    return totalAmps;
   }
 
   public static convertAmpToW(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {

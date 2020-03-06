@@ -516,30 +516,11 @@ export default class ChargingStationService {
       });
     }
     // Clear Charging Profile
-    const result = await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
-    // Check for Array
-    let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
-    if (Array.isArray(result)) {
-      for (const oneResult of result) {
-        if (oneResult.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
-          resultStatus = oneResult.status;
-          break;
-        }
-      }
-    } else {
-      resultStatus = (result).status;
-    }
-    if (resultStatus !== OCPPClearChargingProfileStatus.ACCEPTED) {
-      throw new AppError({
-        source: chargingStation.id,
-        action: action,
-        user: req.user,
-        errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        message: 'Cannot clear the Charging Station\'s Charging Profiles!',
-        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-        detailedMessages: result,
-      });
-    }
+    // Do not check the result beacause:
+    // 1\ Charging Profile exists and has been delete: Status = ACCEPTED
+    // 2\ Charging Profile does not exist : Status = UNKNOWN
+    // As there are only 2 statuses, testing them is not necessary
+    await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
     // Delete
     await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingProfile.id);
     // Log
