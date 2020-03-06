@@ -19,6 +19,7 @@ import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTem
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
+import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 
 export default class MigrationHandler {
@@ -54,6 +55,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddIssuerFieldTask());
       currentMigrationTasks.push(new CleanupOrphanBadgeTask());
       currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
+      currentMigrationTasks.push(new AddLimitToConsumptionsTask());
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
 
       // Get the already done migrations from the DB

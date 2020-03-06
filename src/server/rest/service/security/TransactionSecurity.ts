@@ -320,7 +320,8 @@ export default class TransactionSecurity {
           ...consumption,
           date: consumption.endedAt,
           value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
+          cumulated: consumption.cumulatedConsumption,
+          limitWatts: consumption.limitWatts
         };
         if (consumption.stateOfCharge === null) {
           delete newConsumption.stateOfCharge;
@@ -340,7 +341,8 @@ export default class TransactionSecurity {
           stateOfCharge: consumption.stateOfCharge,
           date: consumption.endedAt,
           value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
+          cumulated: consumption.cumulatedConsumption,
+          limitWatts: consumption.limitWatts
         };
         if (consumption.stateOfCharge) {
           newConsumption.stateOfCharge = consumption.stateOfCharge;
@@ -369,6 +371,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
+    initialValue.limitWatts = 0;
     if (Authorizations.isAdmin(loggedUser)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;
