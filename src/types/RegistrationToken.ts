@@ -8,6 +8,7 @@ export default interface RegistrationToken extends CreatedUpdatedProps {
   revocationDate?: Date;
   siteAreaID?: string;
   siteArea?: SiteArea;
-  ocpp15Url?: string;
-  ocpp16Url?: string;
+  ocpp15SOAPUrl?: string;
+  ocpp16SOAPUrl?: string;
+  ocpp16JSONUrl?: string;
 }

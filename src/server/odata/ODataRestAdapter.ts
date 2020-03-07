@@ -1,19 +1,19 @@
 import auth from 'basic-auth';
-import CentralServiceApi from './client/CentralServiceApi';
-import Constants from '../../utils/Constants';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import TenantComponents from '../../types/TenantComponents';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import CentralServiceApi from './client/CentralServiceApi';
 import ODataBootNotifications from './odata-entities/ODataBootNotifications';
 import ODataChargingStations from './odata-entities/ODataChargingStations';
 import ODataCompanies from './odata-entities/ODataCompanies';
-import ODataModel from './odata-model/ODataModel';
-import ODataSites from './odata-entities/ODataSites';
 import ODataSiteAreas from './odata-entities/ODataSiteAreas';
+import ODataSites from './odata-entities/ODataSites';
 import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Utils from '../../utils/Utils';
+import ODataModel from './odata-model/ODataModel';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {
@@ -42,19 +42,16 @@ export default class ODataRestAdapter {
         return;
       }
       // Check if sac setting is active
-      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ANALYTICS)) {
+      if (!Utils.isTenantComponentActive(tenant, TenantComponents.ANALYTICS)) {
         cb(Error('SAP Analytics Cloud Interface not enabled'));
         return;
       }
       // Default timezone
       req.timezone = 'UTC';
       // Get settings
-      const sacSetting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.ANALYTICS);
-      if (sacSetting) {
-        const configuration = sacSetting.content;
-        if (configuration && configuration.sac && configuration.sac.timezone) {
-          req.timezone = configuration.sac.timezone;
-        }
+      const sacSetting = await SettingStorage.getAnalyticsSettings(tenant.id);
+      if (sacSetting && sacSetting.sac && sacSetting.sac.timezone) {
+        req.timezone = sacSetting.sac.timezone;
       }
 
       // Build AuthenticatedApi

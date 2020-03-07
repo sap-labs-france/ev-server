@@ -1,7 +1,13 @@
 import Ajv from 'ajv';
+import ajvSanitizer from 'ajv-sanitizer';
+import sanitize from 'mongo-sanitize';
 import AppError from '../../../exception/AppError';
+import { HTTPError } from '../../../types/HTTPError';
 import Constants from '../../../utils/Constants';
-import HttpStatus from 'http-status-codes';
+
+const extraSanitizers = {
+  mongo: (value) => sanitize(value),
+};
 
 export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
@@ -14,7 +20,7 @@ export default class SchemaValidator {
       useDefaults: true,
       coerceTypes: true
     }) {
-    this.ajv = new Ajv(config);
+    this.ajv = ajvSanitizer(new Ajv(config), extraSanitizers);
   }
 
   public validate(schema: object, content: any): void {
@@ -28,10 +34,9 @@ export default class SchemaValidator {
         message: error.message ? error.message : ''
       }));
       const concatenatedError = { path: errors.map((e) => e.path).join(','), message: errors.map((e) => e.message).join(',') };
-
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: concatenatedError.message,
         module: this.moduleName,
         method: 'validate',

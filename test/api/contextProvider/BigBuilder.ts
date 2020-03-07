@@ -1,40 +1,42 @@
-import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
 import { ObjectID } from 'mongodb';
-import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Constants from '../../../src/utils/Constants';
-import CONTEXTS from './ContextConstants';
-import Factory from '../../factories/Factory';
-import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
-import Site from '../../../src/types/Site';
-import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
-import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import TenantContext from './TenantContext';
-import TenantFactory from '../../factories/TenantFactory';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
-import User from '../../../src/types/User';
-import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import global from '../../../src/types/GlobalType';
+import { PricingSettingsType, RoamingSettingsType, SettingDB } from '../../../src/types/Setting';
+import Site from '../../../src/types/Site';
+import TenantComponents from '../../../src/types/TenantComponents';
+import User from '../../../src/types/User';
+import Constants from '../../../src/utils/Constants';
 import Utils from '../../../src/utils/Utils';
+import config from '../../config';
+import Factory from '../../factories/Factory';
+import TenantFactory from '../../factories/TenantFactory';
+import UserFactory from '../../factories/UserFactory';
+import CentralServerService from '../client/CentralServerService';
+import CONTEXTS, { TenantDefinition } from './ContextConstants';
+import SiteAreaContext from './SiteAreaContext';
+import SiteContext from './SiteContext';
+import TenantContext from './TenantContext';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
 const NBR_SITES = 5; // Number of sites PER company
 const NBR_SITEAREAS = 5; // Number of site areas per site
 const NBR_CHARGINGSTATIONS = 5; // Number of charging stations per site area
-const BIG_CONTEXT = [{
+const BIG_CONTEXT: TenantDefinition[] = [{
   tenantName: 'Big',
   id: 'b1b1b1b1b1b1b1b1b1b1b1b1',
   subdomain: 'big',
   componentSettings: {
     pricing: {
-      type: 'simple',
       content: {
+        type: PricingSettingsType.SIMPLE,
         simple: {
           price: 1,
           currency: 'EUR'
@@ -42,14 +44,22 @@ const BIG_CONTEXT = [{
       },
     },
     ocpi: {
-      type: 'gireve',
       content: {
-        countryCode: 'FR',
-        partyId: 'UT',
-        businessDetails: {
-          name: 'Test OCPI',
-          website: 'http://www.uttest.net'
-        }
+        type: RoamingSettingsType.GIREVE,
+        ocpi: {
+          cpo: {
+            countryCode: 'FR',
+            partyID: 'UT',
+          },
+          emsp: {
+            countryCode: 'FR',
+            partyID: 'UT',
+          },
+          businessDetails: {
+            name: 'Test OCPI',
+            website: 'http://www.uttest.net'
+          }
+        },
       }
     },
     organization: {},
@@ -132,13 +142,13 @@ export default class ContextBuilder {
     // Build component list
     const components = {};
     if (tenantContextDef.componentSettings) {
-      for (const component in Constants.COMPONENTS) {
-        const componentName = Constants.COMPONENTS[component];
-        if (tenantContextDef.componentSettings.hasOwnProperty(componentName)) {
+      for (const component in TenantComponents) {
+        const componentName = TenantComponents[component];
+        if (Utils.objectHasProperty(tenantContextDef.componentSettings, componentName)) {
           components[componentName] = {
             active: true
           };
-          if (tenantContextDef.componentSettings[componentName].hasOwnProperty('type')) {
+          if (Utils.objectHasProperty(tenantContextDef.componentSettings[componentName], 'type')) {
             components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
           }
         }
@@ -181,7 +191,7 @@ export default class ContextBuilder {
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
       defaultAdminUser.tags = CONTEXTS.TENANT_USER_LIST[0].tags ? CONTEXTS.TENANT_USER_LIST[0].tags : [
-        { id: faker.random.alphaNumeric(8).toUpperCase(), issuer: true, deleted: false }];
+        { id: faker.random.alphaNumeric(8).toUpperCase(), issuer: true, active: true }];
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
@@ -204,8 +214,8 @@ export default class ContextBuilder {
         }
         if (!foundSetting) {
           // Create new settings
-          const settingInput = {
-            identifier: setting,
+          const settingInput: SettingDB = {
+            identifier: setting as TenantComponents,
             content: tenantContextDef.componentSettings[setting].content
           };
           console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
@@ -239,7 +249,7 @@ export default class ContextBuilder {
           {
             id: `A1234${index}`,
             issuer: false,
-            deleted: false
+            active: true
           }
         ]
       };
@@ -270,8 +280,8 @@ export default class ContextBuilder {
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
-    if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
-      buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
+    if (buildTenant.components && Utils.objectHasProperty(buildTenant.components, TenantComponents.ORGANIZATION) &&
+      buildTenant.components[TenantComponents.ORGANIZATION].active) {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
         const companyDef = {

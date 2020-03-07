@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
-import OCPIEndpoint from '../../../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { HttpOCPIEndpointsRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 import { DataResult } from '../../../../types/DataResult';
 
@@ -41,6 +41,12 @@ export default class OCPIEndpointSecurity {
 
   static filterOcpiEndpointPingRequest(request: any): OCPIEndpoint {
     return OCPIEndpointSecurity._filterOcpiEndpointRequest(request) as OCPIEndpoint;
+  }
+
+  static filterOcpiEndpointTriggerJobRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
   }
 
   static filterOcpiEndpointSendEVSEStatusesRequest(request: any): Partial<OCPIEndpoint> {

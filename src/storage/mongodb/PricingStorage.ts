@@ -1,5 +1,5 @@
-import Database from '../../utils/Database';
 import global from '../../types/GlobalType';
+import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 

@@ -3,19 +3,21 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import { PricingSettingsType } from '../../src/types/Setting';
+import { InactivityStatus } from '../../src/types/Transaction';
 import User from '../../src/types/User';
 import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
-import { InactivityStatus } from '../../src/types/Transaction';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import TenantContext from './contextProvider/TenantContext';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
 export default class OCPPCommonTests {
 
-  public tenantContext: any;
+  public tenantContext: TenantContext;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
@@ -50,7 +52,7 @@ export default class OCPPCommonTests {
   public anyUser: User;
   public createdUsers: User[] = [];
 
-  public constructor(tenantContext, centralUserContext, createAnyUser = false) {
+  public constructor(tenantContext: TenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;
@@ -140,9 +142,9 @@ export default class OCPPCommonTests {
     if (this.createAnyUser) {
       this.anyUser = await this.createUser(Factory.user.build({
         tags: [
-          { id: this.validTag, issuer: true, deleted: false },
-          { id: this.invalidTag, issuer: true, deleted: false },
-          { id: this.numberTag.toString(), issuer: true, deleted: false }
+          { id: this.validTag, issuer: true, active: true },
+          { id: this.invalidTag, issuer: true, active: true },
+          { id: this.numberTag.toString(), issuer: true, active: true }
         ]
       }));
       if (!this.createdUsers) {
@@ -450,7 +452,7 @@ export default class OCPPCommonTests {
         'totalDurationSecs': moment.duration(moment(this.transactionCurrentTime).diff(this.newTransaction.timestamp)).asSeconds(),
         'price': this.totalPrice,
         'priceUnit': 'EUR',
-        'pricingSource': 'simple',
+        'pricingSource': PricingSettingsType.SIMPLE,
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),

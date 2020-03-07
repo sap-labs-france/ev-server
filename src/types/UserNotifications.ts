@@ -1,20 +1,25 @@
 import User from './User';
 import NotificationTask from '../notification/NotificationTask';
+import ChargingStation from './ChargingStation';
 
 export default interface UserNotifications {
-  sendSessionStarted?: boolean;
-  sendOptimalChargeReached?: boolean;
-  sendEndOfCharge?: boolean;
-  sendEndOfSession?: boolean;
-  sendUserAccountStatusChanged?: boolean;
-  sendUnknownUserBadged?: boolean;
-  sendChargingStationStatusError?: boolean;
-  sendChargingStationRegistered?: boolean;
-  sendOcpiPatchStatusError?: boolean;
-  sendSmtpAuthError?: boolean;
-  sendUserAccountInactivity?: boolean;
-  sendPreparingSessionNotStarted?: boolean;
-  sendOfflineChargingStations?: boolean;
+  sendSessionStarted: boolean;
+  sendOptimalChargeReached: boolean;
+  sendEndOfCharge: boolean;
+  sendEndOfSession: boolean;
+  sendUserAccountStatusChanged: boolean;
+  sendNewRegisteredUser: boolean;
+  sendUnknownUserBadged: boolean;
+  sendChargingStationStatusError: boolean;
+  sendChargingStationRegistered: boolean;
+  sendOcpiPatchStatusError: boolean;
+  sendSmtpAuthError: boolean;
+  sendUserAccountInactivity: boolean;
+  sendPreparingSessionNotStarted: boolean;
+  sendOfflineChargingStations: boolean;
+  sendBillingUserSynchronizationFailed: boolean;
+  sendCarSynchronizationFailed: boolean;
+  sendSessionNotStarted: boolean;
 }
 
 export type UserNotificationKeys =
@@ -30,7 +35,10 @@ export type UserNotificationKeys =
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
  'sendPreparingSessionNotStarted' |
- 'sendOfflineChargingStations'
+ 'sendOfflineChargingStations' |
+ 'sendBillingUserSynchronizationFailed' |
+ 'sendSessionNotStarted' |
+ 'sendCarSynchronizationFailed'
 ;
 
 export enum UserNotificationType {
@@ -46,7 +54,10 @@ export enum UserNotificationType {
   SMTP_AUTH_ERROR = 'SmtpAuthError',
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
-  OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
+  OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+  CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize'
 }
 
 export enum NotificationSeverity {
@@ -198,6 +209,15 @@ export interface OfflineChargingStationNotification extends BaseNotification {
   evseDashboardURL: string;
 }
 
+export interface BillingUserSynchronizationFailedNotification extends BaseNotification {
+  nbrUsersInError: number;
+  evseDashboardURL: string;
+  evseDashboardBillingURL: string;
+}
+export interface CarSynchronizationFailedNotification extends BaseNotification {
+  nbrCarsInError: number;
+  evseDashboardURL: string;
+}
 export interface NotificationSource {
   channel: 'email'|'remote-push-notification';
   notificationTask: NotificationTask;
@@ -212,5 +232,12 @@ export interface Notification {
   sourceDescr: string;
   data: any;
   chargeBoxID: string;
+}
+
+export interface SessionNotStartedNotification extends BaseNotification {
+  chargeBoxID: string;
+  user: User;
+  evseDashboardURL: string;
+  evseDashboardChargingStationURL: string;
 }
 

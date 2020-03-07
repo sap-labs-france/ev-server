@@ -6,5 +6,6 @@ export interface OCPIToken {
   issuer: string;
   valid: boolean;
   whitelist: string;
+  language?: string;
   last_updated: Date;
 }

@@ -1,4 +1,8 @@
 {
+  "EVDatabase": {
+    "url":"",
+    "key":""
+  },
   "Crypto": {
     "key": "",
     "algorithm": "aes-256-ctr"
@@ -33,11 +37,12 @@
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketNotificationIntervalSecs": 2,
+    "socketIO": false,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
     "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-    "socketIO": false,
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -50,16 +55,7 @@
     "host": "localhost",
     "port": 9090,
     "debug": false,
-    "externalProtocol": "http",
-    "tenantEnabled": [
-      "slf"
-    ],
-    "eMI3id": {
-      "slf": {
-        "country_id": "FR",
-        "party_id": "SLF"
-      }
-    }
+    "externalProtocol": "http"
   },
   "CentralSystemServer": {
     "protocol": "http",
@@ -77,6 +73,9 @@
     "baseUrl": ""
   },
   "JsonEndpoint": {
+    "baseUrl": ""
+  },
+  "OCPIEndpoint": {
     "baseUrl": ""
   },
   "WSClient": {
@@ -150,6 +149,9 @@
   "Advanced": {
     "chargeCurveTimeFrameSecsPoint": 60
   },
+  "Migration": {
+    "active": true
+  },
   "Scheduler": {
     "active": true,
     "tasks": [
@@ -169,9 +171,48 @@
         "config": {}
       },
       {
+        "name": "OCPIGetCdrsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetLocationsTask",
+        "active": true,
+        "periodicity": "0 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetSessionsTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetTokensTask",
+        "active": true,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
         "name": "SynchronizeRefundTransactionsTask",
         "active": true,
         "periodicity": "0 * * * *",
+        "config": {}
+      },
+      {
+        "name": "CheckSessionNotStartedAfterAuthorizeTask",
+        "active": true,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "checkPastAuthorizeMins": 60,
+          "sessionShouldBeStartedAfterMins": 10
+        }
+      },
+      {
+        "name": "SynchronizeCarsTask",
+        "active": true,
+        "periodicity": "0 0 1 * *",
         "config": {}
       }
     ]

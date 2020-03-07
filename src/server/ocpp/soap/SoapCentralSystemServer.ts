@@ -3,11 +3,13 @@ import sanitize from 'express-sanitizer';
 import fs from 'fs';
 import morgan from 'morgan';
 import { soap } from 'strong-soap';
-import CentralSystemServer from '../CentralSystemServer';
-import Constants from '../../../utils/Constants';
-import expressTools from '../../ExpressTools';
+import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../types/GlobalType';
+import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import expressTools from '../../ExpressTools';
+import CentralSystemServer from '../CentralSystemServer';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
@@ -17,7 +19,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
 
   private express: express.Application;
 
-  constructor(centralSystemConfig, chargingStationConfig) {
+  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
@@ -103,7 +105,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   }
 
   readWsdl(filename) {
-    return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/${filename}`, 'utf8');
+    return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
   _handleSoapServerMessage(ocppVersion, request, methodName) {

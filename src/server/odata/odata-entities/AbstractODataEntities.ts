@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import moment from 'moment-timezone';
+import Utils from '../../../utils/Utils';
 
 export default class AbstractODataEntities {
   public buildParams(query) {
@@ -66,9 +67,9 @@ export default class AbstractODataEntities {
     const date = moment(timestamp).tz(req.timezone);
     return {
       date: date.format('YYYY-MM-DD'),
-      dayOfTheWeek: parseInt(date.format('d')),
+      dayOfTheWeek: Utils.convertToInt(date.format('d')),
       hourOfTheDay: date.hours(),
-      weekOfTheYear: parseInt(date.format('W'))
+      weekOfTheYear: Utils.convertToInt(date.format('W'))
     };
   }
 

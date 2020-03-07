@@ -1,4 +1,5 @@
 import { TransactionSet } from './TransactionSet';
+import Utils from '../../../../utils/Utils';
 
 export class RateResult {
   public amountToConfirm: any;
@@ -45,7 +46,7 @@ export class RateResult {
   parseAmount(amount) {
     if (amount) {
       return {
-        value: parseFloat(amount.substr(4)),
+        value: Utils.convertToFloat(amount.substr(4)),
         currency: amount.substr(0, 3)
       };
     }

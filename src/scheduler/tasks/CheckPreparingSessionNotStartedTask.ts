@@ -2,6 +2,7 @@ import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import { CheckPreparingSessionNotStartedTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -15,14 +16,14 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
     try {
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate();
-      const params = { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };
+      const params = { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': ChargePointStatus.PREPARING };
       // Get Charging Stations
       const chargingStations = await ChargingStationStorage.getChargingStationsByConnectorStatus(tenant.id, params);
       for (const chargingStation of chargingStations.result) {
         // Find connector
         let connectorId = 1;
         for (const connector of chargingStation.connectors) {
-          if (connector && connector.status === Constants.CONN_STATUS_PREPARING) {
+          if (connector && connector.status === ChargePointStatus.PREPARING) {
             connectorId = connector.connectorId;
             break;
           }

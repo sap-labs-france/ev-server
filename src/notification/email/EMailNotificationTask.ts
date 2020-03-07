@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import global from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BillingUserSynchronizationFailedNotification, CarSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -102,13 +102,23 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Send it
     return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
+  public sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('session-not-started-after-authorize', data, user, tenant, severity);
+  }
+
   public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
-    // Send it
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
+  }
+
+  public sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
+  }
+
+  public sendCarSynchronizationFailed(data: CarSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('car-synchronization-failed', data, user, tenant, severity);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, retry = false): Promise<void> {
@@ -153,12 +163,10 @@ export default class EMailNotificationTask implements NotificationTask {
       // Render the subject
       emailTemplate.subject = ejs.render(emailTemplate.subject, data);
       // Render the tenant name
-      if (data.tenant) {
-        emailTemplate.tenant = data.tenant;
-      } else if (tenant.id !== Constants.DEFAULT_TENANT) {
-        emailTemplate.tenant = tenant.name;
-      } else {
+      if (tenant.id === Constants.DEFAULT_TENANT) {
         emailTemplate.tenant = Constants.DEFAULT_TENANT;
+      } else {
+        emailTemplate.tenant = tenant.name;
       }
       // Render Base URL
       emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
@@ -227,12 +235,6 @@ export default class EMailNotificationTask implements NotificationTask {
         htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
       }
       const html = htmlTemp;
-      // Add Admins in BCC from Configuration
-      let adminEmails = null;
-      if (data.adminUsers && data.adminUsers.length > 0) {
-        // Add Admins
-        adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
-      }
       // Send the email
       await this.sendEmail({
         to: user.email,
@@ -242,7 +244,8 @@ export default class EMailNotificationTask implements NotificationTask {
       }, data, tenant, user, severity, retry);
     } catch (error) {
       Logging.logError({
-        tenantID: tenant, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+        tenantID: tenant.id,
+        source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
         message: 'Error in preparing email for user',
@@ -280,7 +283,8 @@ export default class EMailNotificationTask implements NotificationTask {
         // Log
         try {
           Logging.logError({
-            tenantID: tenant.id, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+            tenantID: tenant.id,
+            source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
@@ -299,7 +303,7 @@ export default class EMailNotificationTask implements NotificationTask {
               }
             ]
           });
-        // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
+          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
         } catch (error) {
         }
         // Retry?
@@ -310,7 +314,7 @@ export default class EMailNotificationTask implements NotificationTask {
         // Email sent successfully
         Logging.logInfo({
           tenantID: tenant.id,
-          source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+          source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
           actionOnUser: user,

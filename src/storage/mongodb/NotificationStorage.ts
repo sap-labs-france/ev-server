@@ -1,12 +1,12 @@
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { Notification } from '../../types/UserNotifications';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import DatabaseUtils from './DatabaseUtils';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import { Notification } from '../../types/UserNotifications';
-import { DataResult } from '../../types/DataResult';
-import DbParams from '../../types/database/DbParams';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class NotificationStorage {
 

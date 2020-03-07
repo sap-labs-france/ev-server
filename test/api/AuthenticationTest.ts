@@ -4,6 +4,7 @@ import config from '../config';
 import jwt from 'jsonwebtoken';
 import CentralServerService from './client/CentralServerService';
 import UserFactory from '../factories/UserFactory';
+import User from '../types/User';
 
 chai.use(chaiSubset);
 
@@ -71,7 +72,7 @@ describe('Authentication Service', function() {
       response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
-      const user = response.data.result[0];
+      const user: User = response.data.result[0];
       testData.createdUsersAdminTenant.push(user);
       expect(user).to.have.property('email', newUser.email);
       expect(user).to.have.property('name', newUser.name);
@@ -91,6 +92,19 @@ describe('Authentication Service', function() {
       expect(user.iNumber).to.be.null;
       expect(user.mobile).to.be.null;
       expect(user.phone).to.be.null;
+      expect(user).to.have.property('notifications');
+      expect(user.notifications).not.null;
+      expect(user.notifications).not.undefined;
+      expect(user.notifications).to.have.property('sendSessionStarted');
+      expect(user.notifications.sendSessionStarted).to.eql(true);
+      expect(user.notifications).to.have.property('sendOptimalChargeReached');
+      expect(user.notifications.sendOptimalChargeReached).to.eql(true);
+      expect(user.notifications).to.have.property('sendEndOfCharge');
+      expect(user.notifications.sendEndOfCharge).to.eql(true);
+      expect(user.notifications).to.have.property('sendEndOfSession');
+      expect(user.notifications.sendEndOfSession).to.eql(true);
+      expect(user.notifications).to.have.property('sendUserAccountStatusChanged');
+      expect(user.notifications.sendUserAccountStatusChanged).to.eql(true);
     });
 
     it('Should be possible to register a new user on the default tenant', async () => {

@@ -6,6 +6,10 @@ export interface OCPIEvse {
   status: OCPIEvseStatus;
   capabilities: OCPICapability[];
   connectors: OCPIConnector[];
+  coordinates: {
+    latitude: string;
+    longitude: string;
+  };
 }
 
 export enum OCPIEvseStatus {

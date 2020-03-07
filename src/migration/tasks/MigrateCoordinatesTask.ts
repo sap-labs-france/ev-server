@@ -4,6 +4,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 export default class MigrateCoordinatesTask extends MigrationTask {
   async migrate() {
@@ -23,11 +24,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const company of companies) {
-      if (company.address && company.address.hasOwnProperty('longitude') && company.address.hasOwnProperty('latitude')) {
+      if (company.address && Utils.objectHasProperty(company.address, 'longitude') && Utils.objectHasProperty(company.address, 'latitude')) {
         if (company.address.longitude && company.address.latitude) {
           company.address.coordinates = [
-            parseFloat(company.address.longitude),
-            parseFloat(company.address.latitude)
+            Utils.convertToFloat(company.address.longitude),
+            Utils.convertToFloat(company.address.latitude)
           ];
         }
         delete company.address.longitude;
@@ -44,7 +45,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -56,11 +57,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const site of sites) {
-      if (site.address && site.address.hasOwnProperty('longitude') && site.address.hasOwnProperty('latitude')) {
+      if (site.address && Utils.objectHasProperty(site.address, 'longitude') && Utils.objectHasProperty(site.address, 'latitude')) {
         if (site.address.longitude && site.address.latitude) {
           site.address.coordinates = [
-            parseFloat(site.address.longitude),
-            parseFloat(site.address.latitude)
+            Utils.convertToFloat(site.address.longitude),
+            Utils.convertToFloat(site.address.latitude)
           ];
         }
         delete site.address.longitude;
@@ -77,7 +78,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -89,11 +90,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const sitearea of siteareas) {
-      if (sitearea.address && sitearea.address.hasOwnProperty('longitude') && sitearea.address.hasOwnProperty('latitude')) {
+      if (sitearea.address && Utils.objectHasProperty(sitearea.address, 'longitude') && Utils.objectHasProperty(sitearea.address, 'latitude')) {
         if (sitearea.address.longitude && sitearea.address.latitude) {
           sitearea.address.coordinates = [
-            parseFloat(sitearea.address.longitude),
-            parseFloat(sitearea.address.latitude)
+            Utils.convertToFloat(sitearea.address.longitude),
+            Utils.convertToFloat(sitearea.address.latitude)
           ];
         }
         delete sitearea.address.longitude;
@@ -110,7 +111,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -122,11 +123,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const user of users) {
-      if (user.address && user.address.hasOwnProperty('longitude') && user.address.hasOwnProperty('latitude')) {
+      if (user.address && Utils.objectHasProperty(user.address, 'longitude') && Utils.objectHasProperty(user.address, 'latitude')) {
         if (user.address.longitude && user.address.latitude) {
           user.address.coordinates = [
-            parseFloat(user.address.longitude),
-            parseFloat(user.address.latitude)
+            Utils.convertToFloat(user.address.longitude),
+            Utils.convertToFloat(user.address.latitude)
           ];
         }
         delete user.address.longitude;
@@ -143,7 +144,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -155,11 +156,11 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       []).toArray();
     // Process each setting
     for (const chargingstation of chargingstations) {
-      if (chargingstation.hasOwnProperty('longitude') && chargingstation.hasOwnProperty('latitude')) {
+      if (Utils.objectHasProperty(chargingstation, 'longitude') && Utils.objectHasProperty(chargingstation, 'latitude')) {
         if (chargingstation.longitude && chargingstation.latitude) {
           chargingstation.coordinates = [
-            parseFloat(chargingstation.longitude),
-            parseFloat(chargingstation.latitude)
+            Utils.convertToFloat(chargingstation.longitude),
+            Utils.convertToFloat(chargingstation.latitude)
           ];
         }
         delete chargingstation.longitude;
@@ -176,7 +177,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinatesTask',
+        action: 'MigrateCoordinates',
         message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
       });
     }

@@ -1,8 +1,23 @@
 import faker from 'faker';
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SimplePricingSetting, SmartChargingSettingsType } from '../../../src/types/Setting';
 
-/**
- * Available contexts that can be used in the unit tests
- */
+export interface TenantDefinition {
+  id: string;
+  subdomain: string;
+  tenantName: string;
+  componentSettings?: {
+    pricing?: { content?: SettingDBContent };
+    ocpi?: { content?: SettingDBContent };
+    organization?: { content?: SettingDBContent };
+    statistics?: { content?: SettingDBContent };
+    refund?: { content?: SettingDBContent };
+    analytics?: { content?: SettingDBContent };
+    smartCharging?: { content?: SettingDBContent };
+    billing?: { content?: SettingDBContent };
+    building?: { content?: SettingDBContent };
+  };
+}
+
 export default class CONTEXTS {
   static readonly TENANT_CONTEXTS: any = {
     TENANT_WITH_ALL_COMPONENTS: 'ut-all', // All components are active
@@ -12,7 +27,8 @@ export default class CONTEXTS {
     TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
-    TENANT_BILLING: 'ut-billing' // Only billing and pricing component is active
+    TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
+    TENANT_BUILDING: 'ut-building', // Only building component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -69,15 +85,14 @@ export default class CONTEXTS {
   /**
    * Definition of the different contexts
    */
-  static readonly TENANT_CONTEXT_LIST: any = [{
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+  static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
     subdomain: 'utall',
     componentSettings: {
       pricing: {
-        type: 'simple',
         content: {
+          type: PricingSettingsType.SIMPLE,
           simple: {
             price: 1,
             currency: 'EUR'
@@ -85,24 +100,33 @@ export default class CONTEXTS {
         },
       },
       ocpi: {
-        type: 'gireve',
         content: {
-          countryCode: 'FR',
-          partyId: 'UT',
-          businessDetails: {
-            name: 'Test OCPI',
-            website: 'http://www.uttest.net'
+          type: RoamingSettingsType.GIREVE,
+          ocpi: {
+            cpo: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            emsp: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            businessDetails: {
+              name: 'Test OCPI',
+              website: 'http://www.uttest.net'
+            }
           }
         }
       },
       organization: {},
       statistics: {},
       refund: {
-        type: 'concur',
         content: {
+          type: RefundSettingsType.CONCUR,
           concur: {
             authenticationUrl: '',
             apiUrl: '',
+            appUrl: '',
             clientId: '',
             clientSecret: '',
             paymentTypeId: '',
@@ -113,23 +137,27 @@ export default class CONTEXTS {
         }
       },
       analytics: {
-        type: 'sac',
         content: {
-          mainUrl: '',
-          timezone: 'Europe/Paris'
+          type: AnalyticsSettingsType.SAC,
+          sac: {
+            mainUrl: '',
+            timezone: 'Europe/Paris'
+          }
         }
       },
       smartCharging: {
-        type: 'sapSmartCharging',
         content: {
-          optimizerUrl: '',
-          user: '',
-          password: ''
+          type: SmartChargingSettingsType.SAP_SMART_CHARGING,
+          sapSmartCharging: {
+            optimizerUrl: '',
+            user: '',
+            password: ''
+          }
         }
       },
       billing: {
-        type: 'stripe',
         content: {
+          type: BillingSettingsType.STRIPE,
           stripe: {
             currency: 'EUR',
             url: '',
@@ -139,19 +167,18 @@ export default class CONTEXTS {
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             advanceBillingAllowed: true,
+            taxID: ''
           }
         }
       }
     },
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
     subdomain: 'utnothing',
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
     subdomain: 'utorg',
@@ -160,14 +187,13 @@ export default class CONTEXTS {
     }
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
     subdomain: 'utprice',
     componentSettings: {
       pricing: {
-        type: 'simple',
         content: {
+          type: PricingSettingsType.SIMPLE,
           simple: {
             price: 1,
             currency: 'EUR'
@@ -177,14 +203,13 @@ export default class CONTEXTS {
     },
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
     subdomain: 'utconvcharg',
     componentSettings: {
       pricing: {
-        type: 'convergentCharging',
         content: {
+          type: PricingSettingsType.CONVERGENT_CHARGING,
           convergentCharging: {
             url: '',
             chargeableItemName: '',
@@ -196,36 +221,43 @@ export default class CONTEXTS {
     },
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
     subdomain: 'utocpi',
     componentSettings: {
       ocpi: {
-        type: 'gireve',
         content: {
-          countryCode: 'FR',
-          partyId: 'UT',
-          businessDetails: {
-            name: 'Test OCPI',
-            website: 'http://www.uttest.net'
+          type: RoamingSettingsType.GIREVE,
+          ocpi: {
+            cpo: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            emsp: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            businessDetails: {
+              name: 'Test OCPI',
+              website: 'http://www.uttest.net'
+            }
           }
         }
       },
     },
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
     subdomain: 'utrefund',
     componentSettings: {
       refund: {
-        type: 'concur',
         content: {
+          type: RefundSettingsType.CONCUR,
           concur: {
             authenticationUrl: '',
             apiUrl: '',
+            appUrl: '',
             clientId: '',
             clientSecret: '',
             paymentTypeId: '',
@@ -238,14 +270,13 @@ export default class CONTEXTS {
     }
   },
   {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa8',
     subdomain: 'utbilling',
     componentSettings: {
       pricing: {
-        type: 'simple',
         content: {
+          type: PricingSettingsType.SIMPLE,
           simple: {
             price: 1,
             currency: 'EUR'
@@ -253,8 +284,8 @@ export default class CONTEXTS {
         }
       },
       billing: {
-        type: 'stripe',
         content: {
+          type: BillingSettingsType.STRIPE,
           stripe: {
             currency: 'EUR',
             url: '',
@@ -264,10 +295,19 @@ export default class CONTEXTS {
             immediateBillingAllowed: true,
             periodicBillingAllowed: true,
             advanceBillingAllowed: true,
+            taxID: ''
           }
         }
       }
     },
+  },
+  {
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BUILDING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
+    subdomain: 'utbuilding',
+    componentSettings: {
+      building: {}
+    }
   }];
 
   // List of users created in a tenant
@@ -287,7 +327,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Admin not assigned
@@ -305,7 +345,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user
@@ -323,7 +363,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Demo user
@@ -341,7 +381,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user unassigned
@@ -359,7 +399,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user pending
@@ -377,7 +417,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user Locked
@@ -395,7 +435,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user No Tags
@@ -413,7 +453,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     }
   ];

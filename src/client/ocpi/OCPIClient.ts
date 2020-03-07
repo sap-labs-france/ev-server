@@ -1,21 +1,24 @@
 import Constants from '../../utils/Constants';
+import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSettings } from '../../types/Setting';
+import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 
 export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
   protected role: string;
-  protected settings: OcpiSettings;
+  protected settings: OcpiSetting;
 
-  protected constructor(tenant: Tenant, settings: OcpiSettings, ocpiEndpoint: OCPIEndpoint, role: string) {
-    if (role !== Constants.OCPI_ROLE.CPO && role !== Constants.OCPI_ROLE.EMSP) {
+  protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
+    if (role !== OCPIRole.CPO && role !== OCPIRole.EMSP) {
       throw new Error(`Invalid OCPI role '${role}'`);
     }
 
@@ -46,7 +49,7 @@ export default abstract class OCPIClient {
       }
     } catch (error) {
       pingResult.message = error.message;
-      pingResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      pingResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -80,7 +83,7 @@ export default abstract class OCPIClient {
       await this.deleteCredentials();
 
       // Save endpoint
-      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+      this.ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
       // Send success
@@ -88,7 +91,7 @@ export default abstract class OCPIClient {
       unregisterResult.statusText = 'OK';
     } catch (error) {
       unregisterResult.message = error.message;
-      unregisterResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      unregisterResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -126,6 +129,7 @@ export default abstract class OCPIClient {
 
       // Set available endpoints
       this.ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(services.data.data);
+      this.ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(this.tenant.subdomain);
 
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
@@ -139,7 +143,7 @@ export default abstract class OCPIClient {
       this.ocpiEndpoint.businessDetails = credential.business_details;
 
       // Save endpoint
-      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED;
+      this.ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
       await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
       // Send success
@@ -147,7 +151,7 @@ export default abstract class OCPIClient {
       registerResult.statusText = 'OK';
     } catch (error) {
       registerResult.message = error.message;
-      registerResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
+      registerResult.statusCode = (error.response) ? error.response.status : HTTPError.GENERAL_ERROR;
     }
 
     // Return result
@@ -169,8 +173,7 @@ export default abstract class OCPIClient {
 
     const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
@@ -199,8 +202,7 @@ export default abstract class OCPIClient {
 
     const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Token ${this.ocpiEndpoint.token}`
       },
       timeout: 10000
     });
@@ -252,7 +254,7 @@ export default abstract class OCPIClient {
     // Get credentials url
     const credentialsUrl = this.getEndpointUrl('credentials');
 
-    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
+    const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({
@@ -283,7 +285,7 @@ export default abstract class OCPIClient {
     return respOcpiCredentials;
   }
 
-  protected getLocalCountryCode(): string {
+  getLocalCountryCode(): string {
     if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
@@ -293,7 +295,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].countryCode;
   }
 
-  protected getLocalPartyID(): string {
+  getLocalPartyID(): string {
     if (!this.settings[this.role]) {
       throw new Error(`OCPI settings are missing for role ${this.role}`);
     }
@@ -302,6 +304,8 @@ export default abstract class OCPIClient {
     }
     return this.settings[this.role].partyID;
   }
+
+  async abstract triggerJobs();
 
   protected getEndpointUrl(service) {
     if (this.ocpiEndpoint.availableEndpoints) {

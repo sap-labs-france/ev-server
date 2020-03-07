@@ -1,19 +1,13 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+import Utils from '../../../../utils/Utils';
 
 export default class TenantSecurity {
-  public static filterTenantDeleteRequest(request: any): HttpTenantDeleteRequest {
-    return {
-      ID: sanitize(request.ID),
-      forced: sanitize(request.forced)
-    };
-  }
-
   public static filterTenantRequestByID(request: any): string {
     return sanitize(request.ID);
   }
@@ -27,18 +21,6 @@ export default class TenantSecurity {
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
-  }
-
-  public static filterTenantRequest(request: any): Partial<Tenant> {
-    const filteredRequest: Partial<Tenant> = {};
-    if ('id' in request) {
-      filteredRequest.id = sanitize(request.id);
-    }
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.subdomain = sanitize(request.subdomain);
-    filteredRequest.email = sanitize(request.email);
-    filteredRequest.components = sanitize(request.components);
     return filteredRequest;
   }
 

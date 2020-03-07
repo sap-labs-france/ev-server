@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Les bornes suivantes sont hors ligne dans votre organisation : <b><%- chargeBoxIDs %></b> ",
+      "Les bornes suivantes sont hors ligne dans votre organisation : <b><%- chargeBoxIDs %></b>",
       ""
     ],
     "action": {

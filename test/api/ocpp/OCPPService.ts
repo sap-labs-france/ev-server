@@ -1,51 +1,29 @@
 
-export default class OCPPService {
+export default abstract class OCPPService {
   public serverUrl: string;
   public constructor(serverUrl: string) {
     this.serverUrl = serverUrl;
   }
 
-  public getVersion(): string {
-    throw new Error('Method not implemented!');
-  }
+  public abstract getVersion(): string;
 
-  public executeAuthorize(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeAuthorize(chargeBoxIdentity, data): any;
 
-  public executeStartTransaction(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeStartTransaction(chargeBoxIdentity, data): any;
 
-  public executeStopTransaction(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeStopTransaction(chargeBoxIdentity, data): any;
 
-  public executeHeartbeat(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeHeartbeat(chargeBoxIdentity, data): any;
 
-  public executeMeterValues(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeMeterValues(chargeBoxIdentity, data): any;
 
-  public executeBootNotification(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeBootNotification(chargeBoxIdentity, data): any;
 
-  public executeStatusNotification(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeStatusNotification(chargeBoxIdentity, data): any;
 
-  public executeFirmwareStatusNotification(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeFirmwareStatusNotification(chargeBoxIdentity, data): any;
 
-  public executeDiagnosticsStatusNotification(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeDiagnosticsStatusNotification(chargeBoxIdentity, data): any;
 
-  public executeDataTransfer(chargeBoxIdentity, data): any {
-    throw new Error('Method not implemented!');
-  }
+  public abstract executeDataTransfer(chargeBoxIdentity, data): any;
 }

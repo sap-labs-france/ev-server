@@ -12,28 +12,34 @@ import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
 import Consumption from '../../../types/Consumption';
+import { ActionsResponse } from '../../../types/GlobalType';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { TransactionInErrorType } from '../../../types/InError';
+import { RefundStatus } from '../../../types/Refund';
+import TenantComponents from '../../../types/TenantComponents';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
-import I18nManager from '../../../utils/I18nManager';
-import UserToken from '../../../types/UserToken';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_TRANSACTION,
+          action: Action.UPDATE,
+          entity: Entity.TRANSACTION,
           module: 'TransactionService',
           method: 'handleSynchronizeRefundedTransactions'
         });
@@ -53,14 +59,14 @@ export default class TransactionService {
     }
   }
 
-  public static async handleRefundTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRefundTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
     if (!filteredRequest.transactionIds) {
       // Not Found!
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
         module: 'TransactionService',
         method: 'handleRefundTransactions',
@@ -81,7 +87,7 @@ export default class TransactionService {
         });
         continue;
       }
-      if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== Constants.REFUND_STATUS_CANCELLED) {
+      if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== RefundStatus.CANCELLED) {
         Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
@@ -94,10 +100,10 @@ export default class TransactionService {
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_REFUND_TRANSACTION,
-          entity: Constants.ENTITY_TRANSACTION,
+          action: Action.REFUND_TRANSACTION,
+          entity: Entity.TRANSACTION,
           module: 'TransactionService',
           method: 'handleRefundTransactions',
           value: transaction.id.toString()
@@ -107,12 +113,12 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
+    UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
         module: 'TransactionService',
         method: 'handleRefundTransactions',
@@ -135,14 +141,14 @@ export default class TransactionService {
   }
 
 
-  public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUnassignedTransactionsCount(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount'
       });
@@ -152,7 +158,7 @@ export default class TransactionService {
     if (!filteredRequest.UserID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'UserID must be provided',
         module: 'TransactionService',
         method: 'handleGetUnassignedTransactionsCount',
@@ -162,7 +168,7 @@ export default class TransactionService {
     }
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
     // Return
@@ -170,14 +176,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignTransactionsToUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleAssignTransactionsToUser'
       });
@@ -188,7 +194,7 @@ export default class TransactionService {
     if (!filteredRequest.UserID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID must be provided',
         module: 'TransactionService',
         method: 'handleAssignTransactionsToUser',
@@ -198,82 +204,68 @@ export default class TransactionService {
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
-    UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
+    UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
     // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  public static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_DELETE,
-        entity: Constants.ENTITY_TRANSACTION,
-        module: 'TransactionService',
-        method: 'handleDeleteTransaction',
+        action: Action.DELETE,
+        entity: Entity.TRANSACTION,
+        module: 'TransactionService', method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
     }
-    // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(transactionId, 'TransactionsService', 'handleDeleteTransaction', req.user);
-    // Get Transaction
+    // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
-    if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'A refunded transaction cannot be deleted',
-        module: 'TransactionService',
-        method: 'handleDeleteTransaction',
-        user: req.user
-      });
-    }
-    // Handle active transactions
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    if (!transaction.stop) {
-      // Free the Charging Station
-      UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
-      const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
-      if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-        OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
-        await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
-      }
-    }
-    // Delete Transaction
-    await TransactionStorage.deleteTransaction(req.user.tenantID, transaction);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-      module: 'TransactionService', method: 'handleDeleteTransaction',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-      action: action, detailedMessages: transaction
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+    // Delete
+    const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
-  public static async handleTransactionSoftStop(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
+    // Check auth
+    if (!Authorizations.canDeleteTransaction(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.DELETE,
+        entity: Entity.TRANSACTION,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        value: transactionsIds.toString()
+      });
+    }
+    // Delete
+    const result = await TransactionService.deleteTransactions(action, req.user, transactionsIds);
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
+  }
+
+  public static async handleTransactionSoftStop(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
+    UtilsService.assertIdIsProvided(action, transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_UPDATE,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.UPDATE,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleTransactionSoftStop',
         value: transactionId.toString()
@@ -281,23 +273,23 @@ export default class TransactionService {
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID ${transactionId} does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
+    UtilsService.assertObjectExists(action, transaction, `Transaction with ID ${transactionId} does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     // Check User
     let user: User;
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
-      UtilsService.assertObjectExists(user, `User with ID '${transaction.userID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
+      UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     }
     if (!chargingStation.inactive) {
       for (const connector of chargingStation.connectors) {
         if (connector && connector.activeTransactionID === transaction.id) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_GENERAL_ERROR,
+            errorCode: HTTPError.GENERAL_ERROR,
             message: `The active transaction ${transaction.id} on the active charging station ${chargingStation.id} must be stopped remotely`,
             module: 'TransactionService',
             method: 'handleTransactionSoftStop',
@@ -314,6 +306,7 @@ export default class TransactionService {
       },
       {
         transactionId: transactionId,
+        chargeBoxID: chargingStation.id,
         idTag: req.user.tagIDs[0],
         timestamp: Utils.convertToDate(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp).toISOString(),
         meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart
@@ -333,23 +326,23 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetConsumptionFromTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(filteredRequest.TransactionId, 'TransactionService',
+    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, 'TransactionService',
       'handleGetConsumptionFromTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
+    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
       'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.READ,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetConsumptionFromTransaction',
         value: transaction.id.toString()
@@ -359,7 +352,7 @@ export default class TransactionService {
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_GENERAL_ERROR,
+        errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
         module: 'TransactionService',
         method: 'handleGetConsumptionFromTransaction',
@@ -382,21 +375,21 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`, 'TransactionService',
+    UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`, 'TransactionService',
       'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_READ,
-        entity: Constants.ENTITY_TRANSACTION,
+        action: Action.READ,
+        entity: Entity.TRANSACTION,
         module: 'TransactionService',
         method: 'handleGetTransaction',
         value: filteredRequest.ID.toString()
@@ -410,25 +403,25 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetChargingStationTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetChargingStationTransactions'
       });
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'TransactionService', 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
-    UtilsService.assertIdIsProvided(filteredRequest.ConnectorId, 'TransactionService', 'handleGetChargingStationTransactions:ConnectorId', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'TransactionService', 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorId, 'TransactionService', 'handleGetChargingStationTransactions:ConnectorId', req.user);
     // Get Charge Box
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 'TransactionService',
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 'TransactionService',
       'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
@@ -446,7 +439,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionYears(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionYears(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Transactions
     const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
     const result: any = {};
@@ -459,14 +452,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsActive(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsActive(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsActive'
       });
@@ -483,7 +476,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -512,14 +505,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsCompleted(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsCompleted(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsCompleted'
       });
@@ -537,7 +530,7 @@ export default class TransactionService {
       filter.ownerID = req.user.id;
     }
     // Check Organization
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -579,14 +572,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsToRefund(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefund(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsToRefund'
       });
@@ -603,7 +596,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -643,14 +636,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetRefundReports(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetRefundReports(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetRefundReports'
       });
@@ -661,7 +654,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -684,14 +677,14 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsExport'
       });
@@ -708,7 +701,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -758,14 +751,14 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsToRefundExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefundExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsToRefundExport'
       });
@@ -782,7 +775,7 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -842,14 +835,14 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
-        errorCode: Constants.HTTP_AUTH_ERROR,
+        errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Constants.ACTION_LIST,
-        entity: Constants.ENTITY_TRANSACTIONS,
+        action: Action.LIST,
+        entity: Entity.TRANSACTIONS,
         module: 'TransactionService',
         method: 'handleGetTransactionsInError'
       });
@@ -863,7 +856,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
@@ -879,10 +872,10 @@ export default class TransactionService {
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
-    } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price'];
+    } else if (Utils.isComponentActiveFromToken(req.user, TenantComponents.PRICING)) {
+      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_PRICE, TransactionInErrorType.MISSING_USER];
     } else {
-      filter.errorType = ['long_inactivity', 'negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption'];
+      filter.errorType = [TransactionInErrorType.LONG_INACTIVITY, TransactionInErrorType.NEGATIVE_ACTIVITY, TransactionInErrorType.NEGATIVE_DURATION, TransactionInErrorType.OVER_CONSUMPTION, TransactionInErrorType.INVALID_START_DATE, TransactionInErrorType.NO_CONSUMPTION, TransactionInErrorType.MISSING_USER];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
@@ -920,5 +913,87 @@ export default class TransactionService {
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;
+  }
+
+  private static async deleteTransactions(action: Action, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+    const transactionsIDsToDelete = [];
+    const result: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    };
+    const specificError: { refunded: number; notFound: number; refundedIDs: number[]; notFoundIDs: number[] } = {
+      refunded: 0,
+      notFound: 0,
+      refundedIDs: [],
+      notFoundIDs: []
+    };
+    // Check if transaction has been refunded
+    const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
+    for (const transactionId of transactionsIDs) {
+      // Get
+      const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
+      // Not Found
+      if (!transaction) {
+        result.inError++;
+        specificError.notFound++;
+        specificError.notFoundIDs.push(transactionId);
+        // Already Refunded
+      } else if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+        result.inError++;
+        specificError.refunded++;
+        specificError.refundedIDs.push(transactionId);
+      } else {
+        // Ongoing transaction?
+        if (!transaction.stop) {
+          if (!transaction.chargeBox) {
+            transactionsIDsToDelete.push(transactionId);
+          } else {
+            // Check connector
+            const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+            if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
+              // Clear connector
+              OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+              await ChargingStationStorage.saveChargingStation(action, loggedUser.tenantID, transaction.chargeBox);
+            }
+            // To Delete
+            transactionsIDsToDelete.push(transactionId);
+          }
+        } else {
+          // To Delete
+          transactionsIDsToDelete.push(transactionId);
+        }
+      }
+    }
+    // Delete All Transactions
+    result.inSuccess = await TransactionStorage.deleteTransactions(loggedUser.tenantID, transactionsIDsToDelete);
+    // Adjust
+    result.inError += transactionsIDsToDelete.length - result.inSuccess;
+    // Log
+    if (result.inError > 0) {
+      const errorDetails = [];
+      if (specificError.notFound) {
+        errorDetails.push(`${specificError.notFound} session IDs have not been found: ${specificError.notFoundIDs.join(', ')}`);
+      }
+      if (specificError.refunded) {
+        errorDetails.push(`${specificError.refunded} session IDs has been refunded and cannot be deleted: ${specificError.refundedIDs.join(', ')}`);
+      }
+      Logging.logError({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
+        action: action,
+        detailedMessages: errorDetails
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: loggedUser.tenantID,
+        user: loggedUser,
+        module: 'TransactionService', method: 'handleDeleteTransactions',
+        message: `${result.inSuccess} transaction(s) have been deleted successfully`,
+        action: action
+      });
+    }
+    return result;
   }
 }

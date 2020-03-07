@@ -1,8 +1,8 @@
-import Cypher from '../../utils/Cypher';
+import Consumption from '../../types/Consumption';
 import global from '../../types/GlobalType';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Consumption from '../../types/Consumption';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class ConsumptionStorage {
@@ -38,6 +38,8 @@ export default class ConsumptionStorage {
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
+      limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
+      limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       userID: consumptionToSave.userID
     };
     // Modify
@@ -51,16 +53,16 @@ export default class ConsumptionStorage {
     return consumptionMDB._id;
   }
 
-  static async deleteConsumptions(tenantID: string, transactionId: number): Promise<void> {
+  static async deleteConsumptions(tenantID: string, transactionIDs: number[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'deleteConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
-    // Delete
+    // DeleFte
     await global.database.getCollection<any>(tenantID, 'consumptions')
-      .deleteMany({ 'transactionId': transactionId });
+      .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
@@ -101,7 +103,9 @@ export default class ConsumptionStorage {
         amount: { $last: '$amount' },
         cumulatedAmount: { $last: '$cumulatedAmount' },
         roundedAmount: { $last: '$roundedAmount' },
-        currencyCode: { $last: '$currencyCode' }
+        currencyCode: { $last: '$currencyCode' },
+        limitWatts: { $last: '$limitWatts' },
+        limitAmps: { $last: '$limitAmps' },
       }
     });
     // Convert Object ID to string

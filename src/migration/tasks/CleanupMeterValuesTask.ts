@@ -25,7 +25,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     this.startTime = moment();
     // Create Aggregation
     const aggregation = [];
-    // Add Charger
+    // Add Charging Station
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenant.id, 'transactions'),
@@ -51,7 +51,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'CleanupMeterValuesTask', action: 'Migration',
-        module: 'CleanupMeterValuesTask', method: 'migrate',
+        module: 'CleanupMeterValues', method: 'migrate',
         message: `Tenant ${tenant.name} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }

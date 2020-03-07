@@ -1,13 +1,15 @@
-import Constants from '../../utils/Constants';
+import CentralSystemConfiguration from '../../types/configuration/CentralSystemConfiguration';
+import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
+import { OCPPVersion } from '../../types/ocpp/OCPPServer';
 import OCPPService from './services/OCPPService';
 
 export default class CentralSystemServer {
-  protected centralSystemConfig: any;
-  protected chargingStationConfig: any;
+  protected centralSystemConfig: CentralSystemConfiguration;
+  protected chargingStationConfig: ChargingStationConfiguration;
   private chargingStationService: OCPPService;
 
   // Common constructor for Central System Server
-  constructor(centralSystemConfig, chargingStationConfig) {
+  constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Check
     if (new.target === CentralSystemServer) {
       throw new TypeError('Cannot construct CentralSystemServer instances directly');
@@ -21,11 +23,11 @@ export default class CentralSystemServer {
   start() {
   }
 
-  getChargingStationService(protocol): OCPPService {
-    switch (protocol) {
-      case Constants.OCPP_VERSION_12:
-      case Constants.OCPP_VERSION_15:
-      case Constants.OCPP_VERSION_16:
+  getChargingStationService(ocppVersion: OCPPVersion): OCPPService {
+    switch (ocppVersion) {
+      case OCPPVersion.VERSION_12:
+      case OCPPVersion.VERSION_15:
+      case OCPPVersion.VERSION_16:
       default:
         if (!this.chargingStationService) {
           this.chargingStationService = new OCPPService(this.chargingStationConfig);

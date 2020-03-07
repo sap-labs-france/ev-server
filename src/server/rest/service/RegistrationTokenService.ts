@@ -1,42 +1,39 @@
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import DbParams from '../../../types/database/DbParams';
-import Logging from '../../../utils/Logging';
-import RegistrationToken from '../../../types/RegistrationToken';
-import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import DbParams from '../../../types/database/DbParams';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import RegistrationToken from '../../../types/RegistrationToken';
+import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
+import UtilsService from './UtilsService';
 
 export default class RegistrationTokenService {
-  static async handleCreateRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleCreateRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenCreateRequest(req.body);
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && filteredRequest.siteAreaID) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-        if (!siteArea) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-            message: `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`,
-            module: 'RegistrationTokenService',
-            method: 'handleCreateRegistrationToken',
-            user: req.user
-          });
-        }
+        UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+          'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
           throw new AppAuthError({
-            errorCode: Constants.HTTP_AUTH_ERROR,
+            errorCode: HTTPAuthError.ERROR,
             user: req.user,
-            action: Constants.ACTION_CREATE,
-            entity: Constants.ENTITY_TOKEN,
+            action: Action.CREATE,
+            entity: Entity.TOKEN,
             module: 'RegistrationTokenService',
             method: 'handleCreateRegistrationToken'
           });
@@ -44,10 +41,10 @@ export default class RegistrationTokenService {
       } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_CREATE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.CREATE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleCreateRegistrationToken'
         });
@@ -56,7 +53,7 @@ export default class RegistrationTokenService {
       if (!filteredRequest.description) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'The description must be provided',
           module: 'RegistrationTokenService',
           method: 'handleCreateRegistrationToken',
@@ -73,8 +70,9 @@ export default class RegistrationTokenService {
       };
       const registrationTokenID = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
       registrationToken.id = registrationTokenID;
-      registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
-      registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
+      registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+      registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
       // Ok
       res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
       next();
@@ -84,14 +82,14 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleDeleteRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleDeleteRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
       if (!tokenID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
           module: 'RegistrationTokenService',
           method: 'handleDeleteRegistrationToken',
@@ -101,10 +99,10 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canDeleteRegistrationToken(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_DELETE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.DELETE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleDeleteRegistrationToken',
           value: tokenID
@@ -112,17 +110,8 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      if (!registrationToken) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Token with ID '${tokenID}' does not exist anymore`,
-          module: 'RegistrationTokenService',
-          method: 'handleDeleteRegistrationToken',
-          user: req.user
-        });
-      }
-
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+        'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
       await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
       // Log
       Logging.logSecurityInfo({
@@ -141,14 +130,14 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleRevokeRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleRevokeRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
       if (!tokenID) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_GENERAL_ERROR,
+          errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
           module: 'RegistrationTokenService',
           method: 'handleRevokeRegistrationToken',
@@ -158,10 +147,10 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canUpdateRegistrationToken(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_UPDATE,
-          entity: Constants.ENTITY_TOKEN,
+          action: Action.UPDATE,
+          entity: Entity.TOKEN,
           module: 'RegistrationTokenService',
           method: 'handleRevokeRegistrationToken',
           value: tokenID
@@ -169,17 +158,8 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      if (!registrationToken) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Token with ID '${tokenID}' does not exist anymore`,
-          module: 'RegistrationTokenService',
-          method: 'handleRevokeRegistrationToken',
-          user: req.user
-        });
-      }
-
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+        'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
       registrationToken.revocationDate = new Date();
       registrationToken.lastChangedBy = { 'id': req.user.id };
       registrationToken.lastChangedOn = new Date();
@@ -201,16 +181,16 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleGetRegistrationTokens(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetRegistrationTokens(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListRegistrationTokens(req.user)) {
         // Not Authorized!
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_TOKENS,
+          action: Action.LIST,
+          entity: Entity.TOKENS,
           module: 'RegistrationTokenService',
           method: 'handleGetRegistrationTokens'
         });
@@ -221,7 +201,7 @@ export default class RegistrationTokenService {
         siteAreaID: filteredRequest.siteAreaID
       };
 
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
         params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user, null);
       }
 
@@ -234,8 +214,9 @@ export default class RegistrationTokenService {
 
       const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID, params, dbParams);
       registrationTokens.result.forEach((registrationToken) => {
-        registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
-        registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
+        registrationToken.ocpp15SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_15, OCPPProtocol.SOAP, registrationToken.id);
+        registrationToken.ocpp16SOAPUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.SOAP, registrationToken.id);
+        registrationToken.ocpp16JSONUrl = Utils.buildOCPPServerURL(req.user.tenantID, OCPPVersion.VERSION_16, OCPPProtocol.JSON, registrationToken.id);
         return registrationToken;
       });
       // Filter

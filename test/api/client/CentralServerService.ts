@@ -1,12 +1,14 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
+import TenantComponents from '../../../src/types/TenantComponents';
+import User from '../../../src/types/User';
 import config from '../../config';
-import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import AuthenticationApi from './AuthenticationApi';
-import BaseApi from './utils/BaseApi';
+import BillingApi from './BillingApi';
+import BuildingApi from './BuildingApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
-import Constants from './utils/Constants';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
@@ -17,9 +19,10 @@ import SiteAreaApi from './SiteAreaApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
-import User from '../../../src/types/User';
 import UserApi from './UserApi';
-import BillingApi from './BillingApi';
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import BaseApi from './utils/BaseApi';
+import Constants from './utils/Constants';
 
 // Set
 chai.use(chaiSubset);
@@ -28,6 +31,7 @@ export default class CentralServerService {
 
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
+  public buildingApi: BuildingApi;
   public companyApi: CompanyApi;
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
@@ -92,6 +96,7 @@ export default class CentralServerService {
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.buildingApi = new BuildingApi(this.authenticatedApi);
   }
 
   public static get DefaultInstance(): CentralServerService {
@@ -109,13 +114,14 @@ export default class CentralServerService {
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
-    let setting = settings.data.result.find((s) => s.identifier === 'pricing');
+    let setting: SettingDB = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
-      setting = {};
-      setting.identifier = 'pricing';
+      setting = {} as SettingDB;
+      setting.identifier = TenantComponents.PRICING;
       newSetting = true;
     }
     setting.content = {
+      type: PricingSettingsType.SIMPLE,
       simple: {
         price: priceKWH,
         currency: priceUnit
@@ -156,7 +162,7 @@ export default class CentralServerService {
       // Check if ok
       expect(response.status).to.equal(200);
       expect(response.data.id).is.eql(entity.id);
-      expect(response.data).to.deep.include(entity);
+      expect(response.data).to.containSubset(entity);
       // Return the entity
       return response.data;
     }

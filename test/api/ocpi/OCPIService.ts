@@ -2,6 +2,8 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../../config';
 import BaseApi from '../client/utils/BaseApi';
+import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
+import TenantContext from '../contextProvider/TenantContext';
 
 // Set
 chai.use(chaiSubset);
@@ -9,19 +11,15 @@ chai.use(chaiSubset);
 export default class OCPIService {
 
   public baseURL: string;
-  public role: string;
+  public role: OCPIRole;
   public token: string;
   public baseApi: BaseApi;
 
-  constructor(role: string) {
+  constructor(role: OCPIRole) {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
     this.role = role;
-
-    // Build token
-    this.token = `Token ${config.get('ocpi.token')}`;
-
-    // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
+    this.token = OCPIService.getToken(role);
   }
 
   /**
@@ -32,8 +30,12 @@ export default class OCPIService {
 
   }
 
-  static getToken() {
-    return (config.get('ocpi.token'));
+  static getToken(role: OCPIRole) {
+    if (role === OCPIRole.CPO) {
+      return `Token ${config.get('ocpi.cpoToken')}`;
+    }
+    return `Token ${config.get('ocpi.emspToken')}`;
+
   }
 
   /**

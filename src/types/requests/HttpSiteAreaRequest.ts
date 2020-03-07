@@ -7,6 +7,7 @@ export interface HttpSiteAreaRequest extends HttpByIDRequest {
 }
 
 export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
+  Issuer: boolean;
   Search: string;
   SiteID?: string;
   WithSite?: boolean;

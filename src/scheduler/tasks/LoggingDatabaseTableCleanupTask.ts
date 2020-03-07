@@ -9,7 +9,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
     try {
       // Delete date
-      const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate().toISOString();
+      const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, 'w').startOf('week').toDate();
       // Delete
       let result = await LoggingStorage.deleteLogs(tenant.id, deleteUpToDate);
       // Ok?

@@ -4,6 +4,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 export type HttpSiteRequest = HttpByIDRequest;
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
+  Issuer: boolean;
   WithAvailableChargers: boolean;
   WithCompany: boolean;
   UserID: string;

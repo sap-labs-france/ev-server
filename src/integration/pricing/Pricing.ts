@@ -14,13 +14,10 @@ export default abstract class Pricing<T extends PricingSetting> {
     this.transaction = transaction;
   }
 
-  // eslint-disable-next-line no-unused-vars
   async abstract startSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
-  // eslint-disable-next-line no-unused-vars
   async abstract updateSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
-  // eslint-disable-next-line no-unused-vars
   async abstract stopSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   protected getSettings(): T {

@@ -66,7 +66,7 @@ mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 
 ##### As a Windows service
 
-Add to /path/to/mongod.cfg:
+Add to /path/to/mongod.cfg (open -a TextEdit /usr/local/etc/mongod.cfg)
 ```
 ...
 replication:
@@ -119,21 +119,6 @@ Create Admin User on Admin schema:
   })
 ```
 
-#### Create the Application User
-
-Create Application User on EVSE schema
-```
-  use evse
-  db.createUser({
-    user: "evse-user",
-    pwd: "<YourPassword>",
-    roles: [
-      "readWrite"
-    ],
-    passwordDigestor: "server"
-  })
-```
-
 #### Restart MongoDB with authentication enabled
 
 ##### Manually
@@ -157,6 +142,27 @@ security:
 Restart the MongoDB service with Powershell as an administrator:
 
     Restart-Service -Name "MongoDB"
+
+#### Create the Application User
+
+Connect using the admin user
+
+```
+mongo -u evse-admin -p <YourPassword>  --authenticationDatabase admin
+```
+
+Create Application User on EVSE schema
+```
+  use evse
+  db.createUser({
+    user: "evse-user",
+    pwd: "<YourPassword>",
+    roles: [
+      "readWrite"
+    ],
+    passwordDigestor: "server"
+  })
+```
 
 Now your database is ready to be used.
 
@@ -225,7 +231,9 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketNotificationIntervalSecs": 5,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "debug": false
   }
 ```
@@ -240,7 +248,9 @@ To set the end point, fill the following information in the **config.json** file
     "userTokenKey": "YourSecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-    "webSocketNotificationIntervalSecs": 5,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
     "debug": false
   }
 ```

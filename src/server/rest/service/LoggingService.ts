@@ -1,25 +1,28 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
-import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
+import AppAuthError from '../../../exception/AppAuthError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import LoggingSecurity from './security/LoggingSecurity';
-import Utils from '../../../utils/Utils';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
 import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import LoggingSecurity from './security/LoggingSecurity';
 
 export default class LoggingService {
-  static async handleGetLoggings(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggings(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_LOGGINGS,
+          action: Action.LIST,
+          entity: Entity.LOGGINGS,
           module: 'LoggingService',
           method: 'handleGetLoggings'
         });
@@ -27,7 +30,7 @@ export default class LoggingService {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query);
       // Check if organization component is active
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+      if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
         // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
         const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
           { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -78,15 +81,15 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLoggingsExport(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggingsExport(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_LIST,
-          entity: Constants.ENTITY_LOGGINGS,
+          action: Action.LIST,
+          entity: Entity.LOGGINGS,
           module: 'LoggingService',
           method: 'handleGetLoggingsExport'
         });
@@ -135,7 +138,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLogging(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLogging(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query);
@@ -144,10 +147,10 @@ export default class LoggingService {
       // Check auth
       if (!Authorizations.canReadLogging(req.user)) {
         throw new AppAuthError({
-          errorCode: Constants.HTTP_AUTH_ERROR,
+          errorCode: HTTPAuthError.ERROR,
           user: req.user,
-          action: Constants.ACTION_READ,
-          entity: Constants.ENTITY_LOGGING,
+          action: Action.READ,
+          entity: Entity.LOGGING,
           module: 'LoggingService',
           method: 'handleGetLogging'
         });

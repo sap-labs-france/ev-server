@@ -1,4 +1,5 @@
 import { Notification } from './Notification';
+import Utils from '../../../../utils/Utils';
 
 export class CCTransaction {
   public details: any;
@@ -24,7 +25,7 @@ export class CCTransaction {
         let value;
         switch (detail.type) {
           case 'decimal':
-            value = Number.parseFloat(detail.value);
+            value = Utils.convertToFloat(detail.value);
             break;
           case 'date':
             value = new Date(detail.value);
@@ -50,7 +51,7 @@ export class CCTransaction {
   }
 
   getAmountValue(): number {
-    return Number.parseFloat(this.getAmount().substr(4));
+    return Utils.convertToFloat(this.getAmount().substr(4));
   }
 
   getChargePlanId(): string {

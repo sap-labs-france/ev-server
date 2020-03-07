@@ -5,7 +5,8 @@ import Site from './Site';
 export default interface Company extends CreatedUpdatedProps {
   id: string;
   name: string;
-  address: Address;
+  issuer: boolean;
+  address?: Address;
   logo?: string;
   sites?: Site[];
 }

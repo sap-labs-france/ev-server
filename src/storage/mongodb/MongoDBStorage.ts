@@ -1,12 +1,14 @@
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
-import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
+import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
-import RunLock from './../../utils/Locking';
-import StorageCfg from '../../types/configuration/StorageConfiguration';
 import BackendError from '../../exception/BackendError';
+import { Action } from '../../types/Authorization';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
+import Constants from '../../utils/Constants';
+import Utils from '../../utils/Utils';
+import RunLock from './../../utils/Locking';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -24,7 +26,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -34,7 +36,8 @@ export default class MongoDBStorage {
     return this.db.watch(pipeline, options);
   }
 
-  public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string, name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
+  public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
+    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
     // Safety check
     if (!this.db) {
       throw new BackendError({
@@ -42,10 +45,9 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
-
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
     const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
@@ -67,11 +69,9 @@ export default class MongoDBStorage {
         if (!foundIndex) {
           // Index creation RunLock
           const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-
           if (await indexCreationLock.tryAcquire()) {
             // Create Index
-            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-
+            this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             // Release the index creation RunLock
             await indexCreationLock.release();
           }
@@ -93,14 +93,13 @@ export default class MongoDBStorage {
           if (await indexDropLock.tryAcquire()) {
             // Drop Index
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-
             // Release the index drop RunLock
             await indexDropLock.release();
           }
         }
       }
     }
-    return false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
+    return false;
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
@@ -111,10 +110,9 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
-
     const name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
     const collections = await this.db.listCollections({ name: name }).toArray();
@@ -189,10 +187,9 @@ export default class MongoDBStorage {
           module: 'MongoDBStorage',
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: 'MongoDB'
+          action: Action.MONGO_DB
         });
       }
-
       // Get all the collections
       const collections = await this.db.listCollections().toArray();
       // Check and Delete
@@ -214,7 +211,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     // Migrate not prefixed collections
@@ -235,7 +232,7 @@ export default class MongoDBStorage {
         module: 'MongoDBStorage',
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: 'MongoDB'
+        action: Action.MONGO_DB
       });
     }
     // Get all the collections
@@ -278,8 +275,6 @@ export default class MongoDBStorage {
         await this.db.collection(collection.name).drop();
       }
     }
-
-    // TODO: could create class representing tenant collection for great typechecking
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
@@ -289,9 +284,12 @@ export default class MongoDBStorage {
     }
   }
 
+  public getGridFSBucket(name: string): GridFSBucket {
+    return new GridFSBucket(this.db, { bucketName: name });
+  }
+
   async start(): Promise<void> {
     // Log
-    // eslint-disable-next-line no-console
     console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Build EVSE URL
     let mongoUrl: string;
@@ -303,7 +301,7 @@ export default class MongoDBStorage {
       // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
-        port: Number.parseInt(urlencode(this.dbConfig.port + '')),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port + '')),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),
@@ -328,10 +326,8 @@ export default class MongoDBStorage {
     );
     // Get the EVSE DB
     this.db = mongoDBClient.db(this.dbConfig.schema);
-
     // Check Database
     await this.checkDatabase();
-    // eslint-disable-next-line no-console
     console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
   }
 }
