@@ -25,7 +25,7 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddActivePropertyToTagsTask', method: 'migrateTenant',
-        action: 'AddActivePropertyToTagsTask',
+        action: 'AddActivePropertyToTags',
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

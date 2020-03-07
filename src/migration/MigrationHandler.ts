@@ -4,12 +4,12 @@ import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
-import AddInactivityStatusInTransactions from './tasks/AddInactivityStatusInTransactions';
+import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
-import CleanupAllTransactions from './tasks/CleanupAllTransactions';
+import CleanupAllTransactionsTask from './tasks/CleanupAllTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
@@ -19,6 +19,7 @@ import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTem
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
+import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 
 export default class MigrationHandler {
@@ -46,14 +47,15 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new MigrateCoordinatesTask());
       currentMigrationTasks.push(new MigrateOcpiSettingTask());
       currentMigrationTasks.push(new AddTagTypeTask());
-      currentMigrationTasks.push(new CleanupAllTransactions());
+      currentMigrationTasks.push(new CleanupAllTransactionsTask());
       currentMigrationTasks.push(new CleanupMeterValuesTask());
       currentMigrationTasks.push(new RenameTagPropertiesTask());
-      currentMigrationTasks.push(new AddInactivityStatusInTransactions());
+      currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
       currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
       currentMigrationTasks.push(new AddIssuerFieldTask());
       currentMigrationTasks.push(new CleanupOrphanBadgeTask());
       currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
+      currentMigrationTasks.push(new AddLimitToConsumptionsTask());
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
 
       // Get the already done migrations from the DB
@@ -115,7 +117,7 @@ export default class MigrationHandler {
       });
       // Log in the console also
       // eslint-disable-next-line no-console
-      console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
@@ -139,7 +141,7 @@ export default class MigrationHandler {
       });
       // Log in the console also
       // eslint-disable-next-line no-console
-      console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
       // Release the migration lock
       await migrationLock.release();
     }
