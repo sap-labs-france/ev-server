@@ -17,7 +17,7 @@ export default class InitialCarImportTask extends MigrationTask {
             message: `${synchronizeAction.synchronized} Cars were imported successfully, ${synchronizeAction.error} in error`,
           });
         } else if (synchronizeAction.synchronized > 0) {
-          Logging.logError({
+          Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'InitialCarImportTask', method: 'migrate',
             action: 'InitialCarImport',
