@@ -8,22 +8,7 @@ export default class InitialCarImportTask extends MigrationTask {
     try {
       const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
       if (carDatabaseImpl) {
-        const synchronizeAction = await carDatabaseImpl.synchronizeCars();
-        if (synchronizeAction.error > 0) {
-          Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
-            module: 'InitialCarImportTask', method: 'migrate',
-            action: 'InitialCarImport',
-            message: `${synchronizeAction.synchronized} Cars were imported successfully, ${synchronizeAction.error} got errors`,
-          });
-        } else if (synchronizeAction.synchronized > 0) {
-          Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
-            module: 'InitialCarImportTask', method: 'migrate',
-            action: 'InitialCarImport',
-            message: `${synchronizeAction.synchronized} Cars were imported successfully`,
-          });
-        }
+        await carDatabaseImpl.synchronizeCars();
       }
     } catch (error) {
       Logging.logError({
