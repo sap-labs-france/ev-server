@@ -4,23 +4,24 @@ import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
+import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
+import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
+import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
+import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddTagTypeTask from './tasks/AddTagTypeTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import CleanupAllTransactionsTask from './tasks/CleanupAllTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
+import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
+import InitialCarImportTask from './tasks/InitialCarImportTask';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
-import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
-import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
-import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
-import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
-import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -57,6 +58,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
       currentMigrationTasks.push(new AddLimitToConsumptionsTask());
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
+      currentMigrationTasks.push(new InitialCarImportTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
