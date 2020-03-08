@@ -40,7 +40,7 @@ export default class MigrateOcpiSettingTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'MigrateOcpiSettingTask', method: 'migrateTenant',
-        action: 'MigrateOcpiSettingTask',
+        action: 'MigrateOcpiSetting',
         message: `OCPI setting has been updated in Tenant '${tenant.name}'`
       });
     }

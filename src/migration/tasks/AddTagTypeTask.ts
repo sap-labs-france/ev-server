@@ -27,7 +27,7 @@ export default class AddTagTypeTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddTagTypeTask', method: 'migrateTenant',
-        action: 'AddTagTypeTask',
+        action: 'AddTagType',
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

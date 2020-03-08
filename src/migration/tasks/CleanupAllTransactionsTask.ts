@@ -7,7 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 
-export default class CleanupAllTransactions extends MigrationTask {
+export default class CleanupAllTransactionsTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
@@ -66,8 +66,8 @@ export default class CleanupAllTransactions extends MigrationTask {
     if (modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'CleanupAllTransactions', method: 'migrateTenant',
-        action: 'CleanUpTransactions',
+        module: 'CleanupAllTransactionsTask', method: 'migrateTenant',
+        action: 'CleanupAllTransactions',
         message: `${modifiedCount} Transactions' extra inactivity have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -96,7 +96,7 @@ export default class CleanupAllTransactions extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'CleanupAllTransactions', method: 'migrateTenant',
+        module: 'CleanupAllTransactionsTask', method: 'migrateTenant',
         action: 'CleanUpTransactions',
         message: `${result.modifiedCount} Transactions have been cleaned in Tenant '${tenant.name}'`
       });
