@@ -1,9 +1,9 @@
 import { Request } from 'express';
-import Constants from '../../utils/Constants';
 import AppError from '../../exception/AppError';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
 
 /**
  * OCPI Utils
@@ -109,6 +109,70 @@ export default class OCPIUtils {
    */
   public static buildSiteAreaName(countryCode: string, partyId: string, locationId: string): string {
     return `${countryCode}*${partyId}-${locationId}`;
+  }
+
+  /**
+   * Build evse_id from charging station
+   * @param {*} countryCode the code of the CPO
+   * @param {*} partyId the partyId of the CPO
+   * @param {*} chargingStation the charging station used to build the evse ID
+   * @param {*} connector the connector used to build the evse id
+   */
+  public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
+    let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
+    if (!chargingStation.cannotChargeInParallel) {
+      if (!connector) {
+        for (const _connector of chargingStation.connectors) {
+          if (_connector) {
+            connector = _connector;
+            break;
+          }
+        }
+      }
+      evseID = `${evseID}*${connector.connectorId}`;
+    }
+    return evseID.replace(/[\W_]+/g, '*').toUpperCase();
+  }
+
+  /**
+   * Build evse UID from charging station
+   * @param {*} chargingStation the charging station used to build the evse ID
+   * @param {*} connector the connector used to build the evse id
+   */
+  public static buildEvseUID(chargingStation: ChargingStation, connector?: Connector): string {
+    if (chargingStation.cannotChargeInParallel) {
+      return chargingStation.id;
+    }
+    if (!connector) {
+      for (const _connector of chargingStation.connectors) {
+        if (_connector) {
+          connector = _connector;
+          break;
+        }
+      }
+    }
+    return `${chargingStation.id}*${connector.connectorId}`;
+  }
+
+  /**
+   * Build evse UIDs from charging station
+   * @param {*} chargingStation the charging station used to build the evse ID
+   * @param {*} connector the connector used to build the evse id
+   */
+  public static buildEvseUIDs(chargingStation: ChargingStation, connector?: Connector): string[] {
+    const evseUIDs = [];
+    if (chargingStation.cannotChargeInParallel) {
+      evseUIDs.push(chargingStation.id);
+    } else if (connector) {
+      evseUIDs.push(`${chargingStation.id}*${connector.connectorId}`);
+    } else if (chargingStation.connectors) {
+      for (const _connector of chargingStation.connectors) {
+        if (_connector) {
+          evseUIDs.push(`${chargingStation.id}*${_connector.connectorId}`);
+        }
+      }
+    }
+    return evseUIDs;
   }
 
   /**
