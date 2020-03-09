@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-cd /opt/server
-npm run start:prod
+source conf.sh
+
+node -r source-map-support/register --stack-trace-limit=1024 $install_dir/dist/start.js
