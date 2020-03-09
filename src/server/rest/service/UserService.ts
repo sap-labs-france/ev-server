@@ -389,6 +389,7 @@ export default class UserService {
     // Update timestamp
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
+    const previousTags = user.tags;
     // Clean up request
     delete filteredRequest.passwords;
 
@@ -435,7 +436,7 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user)) {
       // Save Tags
-      for (const previousTag of user.tags) {
+      for (const previousTag of previousTags) {
         const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
         if (!foundTag) {
           // Tag not found in the current tag list, will be deleted or deactivated.
@@ -463,7 +464,7 @@ export default class UserService {
           const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
           if (ocpiClient) {
             // Invalidate no more used tags
-            for (const previousTag of user.tags) {
+            for (const previousTag of previousTags) {
               const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
               if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
@@ -480,7 +481,7 @@ export default class UserService {
             }
             // Push new valid tags
             for (const currentTag of filteredRequest.tags) {
-              const foundTag = user.tags.find((tag) => tag.id === currentTag.id);
+              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
               if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
