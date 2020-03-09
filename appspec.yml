@@ -12,7 +12,7 @@ hooks:
     - location: src/aws/start_server.sh
       timeout: 300
       runas: root
-  # ApplicationStop:
-  #   - location: src/aws/stop_server.sh
-  #     timeout: 300
-  #     runas: root
+  ApplicationStop:
+    - location: src/aws/stop_server.sh
+      timeout: 300
+      runas: root
