@@ -42,6 +42,7 @@ export default class BuildingSecurity {
   public static _filterBuildingRequest(request: any): Partial<Building> {
     return {
       name: sanitize(request.name),
+      siteAreaID: sanitize(request.siteAreaID),
       address: UtilsSecurity.filterAddressRequest(request.address),
       image: request.image
     };
@@ -64,6 +65,7 @@ export default class BuildingSecurity {
         filteredBuilding = {};
         filteredBuilding.id = building.id;
         filteredBuilding.name = building.name;
+        filteredBuilding.siteAreaID = building.siteAreaID;
         filteredBuilding.image = building.image;
         filteredBuilding.address = UtilsSecurity.filterAddressRequest(building.address);
       }

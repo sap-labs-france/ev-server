@@ -135,7 +135,7 @@ export default class BuildingService {
         search: filteredRequest.Search,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country']
+      [ 'id', 'name', 'siteAreaID', 'address.coordinates', 'address.city', 'address.country']
     );
     // Filter
     BuildingSecurity.filterBuildingsResponse(buildings, req.user);
@@ -209,6 +209,7 @@ export default class BuildingService {
     Utils.checkIfBuildingValid(filteredRequest, req);
     // Update
     building.name = filteredRequest.name;
+    building.siteAreaID = filteredRequest.siteAreaID;
     building.address = filteredRequest.address;
     building.image = filteredRequest.image;
     building.lastChangedBy = { 'id': req.user.id };

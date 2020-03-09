@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
-import SiteStorage from './SiteStorage';
 
 export default class BuildingStorage {
 
@@ -51,6 +50,7 @@ export default class BuildingStorage {
     const buildingMDB: any = {
       _id: !buildingToSave.id ? new ObjectID() : Utils.convertToObjectID(buildingToSave.id),
       name: buildingToSave.name,
+      siteAreaID: buildingToSave.siteAreaID,
       issuer: buildingToSave.issuer,
     };
     if (buildingToSave.address) {
