@@ -50,7 +50,7 @@ export default class BuildingStorage {
     const buildingMDB: any = {
       _id: !buildingToSave.id ? new ObjectID() : Utils.convertToObjectID(buildingToSave.id),
       name: buildingToSave.name,
-      siteAreaID: buildingToSave.siteAreaID,
+      siteAreaID: !buildingToSave.siteAreaID ? new ObjectID() : Utils.convertToObjectID(buildingToSave.siteAreaID),
       issuer: buildingToSave.issuer,
     };
     if (buildingToSave.address) {
