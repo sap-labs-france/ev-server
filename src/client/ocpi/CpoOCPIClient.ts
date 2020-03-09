@@ -12,13 +12,15 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import { OcpiSetting } from '../../types/Setting';
-import ChargingStation from '../../types/ChargingStation';
-import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import moment from 'moment';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -113,12 +115,85 @@ export default class CpoOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async patchChargingStationStatus(chargingStation: ChargingStation, status: ChargePointStatus) {
+  async authorizeToken(token: OCPIToken, chargingStation: ChargingStation, connector?: Connector): Promise<string> {
+    // Get tokens endpoint url
+    const tokensUrl = `${this.getEndpointUrl('tokens')}/${token.uid}/authorize`;
+
+    let siteID;
+    if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(this.tenant.id, chargingStation.siteAreaID);
+      siteID = siteArea ? siteArea.siteID : null;
+    } else {
+      siteID = chargingStation.siteArea.siteID;
+    }
+
+    // Build payload
+    const payload: OCPILocationReference =
+      {
+        'location_id': siteID,
+        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation, connector)]
+      };
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: 'OcpiAuthorizeToken',
+      message: `Post authorize at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'authorizeToken',
+      detailedMessages: payload
+    });
+
+    // Call IOP
+    // eslint-disable-next-line no-case-declarations
+    const response = await axios.post(tokensUrl, payload,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Post Authorize`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Post Authorize: ${JSON.stringify(response.data)}`);
+    }
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: 'OcpiPullTokens',
+      message: `Authorization response retrieved from ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'authorizeToken',
+      detailedMessages: response.data.data
+    });
+
+    const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
+
+    if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
+      throw new Error(`OCPI Authorization rejected with result : ${JSON.stringify(authorizationInfo)}`);
+    }
+    if (!authorizationInfo.authorization_id) {
+      throw new Error(`OCPI Authorization allowed without 'authorization_id' : ${JSON.stringify(authorizationInfo)}`);
+    }
+
+    return authorizationInfo.authorization_id;
+  }
+
+  async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {
     if (!chargingStation.siteAreaID && !chargingStation.siteArea) {
       throw new Error('Charging Station must be associated to a site area');
     }
     if (!chargingStation.issuer) {
       throw new Error('Only charging Station issued locally can be exposed to IOP');
+    }
+    if (chargingStation.private) {
+      throw new Error('Private charging Station cannot be exposed to IOP');
     }
     let siteID;
     if (!chargingStation.siteArea || !chargingStation.siteArea.siteID) {
@@ -127,15 +202,15 @@ export default class CpoOCPIClient extends OCPIClient {
     } else {
       siteID = chargingStation.siteArea.siteID;
     }
-    await this.patchEVSEStatus(siteID, chargingStation.id, OCPIMapping.convertStatus2OCPIStatus(status));
+    await this.patchEVSEStatus(siteID, OCPIUtils.buildEvseUID(chargingStation, connector), OCPIMapping.convertStatus2OCPIStatus(connector.status));
   }
 
   /**
    * PATH EVSE Status
    */
-  async patchEVSEStatus(locationId: string, evseId: string, newStatus: any) {
+  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: any) {
     // Check for input parameter
-    if (!locationId || !evseId || !newStatus) {
+    if (!locationId || !evseUID || !newStatus) {
       throw new Error('Invalid parameters');
     }
 
@@ -147,7 +222,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const partyID = this.getLocalPartyID();
 
     // Build url to EVSE
-    const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
+    const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseUID}`;
 
     // Build payload
     const payload = { 'status': newStatus };
