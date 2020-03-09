@@ -28,6 +28,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
+import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
 
 export default class UserService {
 
@@ -285,12 +286,12 @@ export default class UserService {
             if (tag.issuer) {
               await ocpiClient.pushToken({
                 uid: tag.id,
-                type: 'RFID',
+                type: OCPITokenType.RFID,
                 'auth_id': user.id,
                 'visual_number': user.id,
                 issuer: tenant.name,
                 valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
+                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                 'last_updated': new Date()
               });
             }
@@ -388,6 +389,7 @@ export default class UserService {
     // Update timestamp
     const lastChangedBy = { id: req.user.id };
     const lastChangedOn = new Date();
+    const previousTags = user.tags;
     // Clean up request
     delete filteredRequest.passwords;
 
@@ -434,7 +436,7 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user)) {
       // Save Tags
-      for (const previousTag of user.tags) {
+      for (const previousTag of previousTags) {
         const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
         if (!foundTag) {
           // Tag not found in the current tag list, will be deleted or deactivated.
@@ -462,33 +464,33 @@ export default class UserService {
           const ocpiClient: EmspOCPIClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.EMSP) as EmspOCPIClient;
           if (ocpiClient) {
             // Invalidate no more used tags
-            for (const previousTag of user.tags) {
+            for (const previousTag of previousTags) {
               const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
               if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: previousTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
                   valid: false,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
             }
             // Push new valid tags
             for (const currentTag of filteredRequest.tags) {
-              const foundTag = user.tags.find((tag) => tag.id === currentTag.id);
+              const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
               if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
                   valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
@@ -942,12 +944,12 @@ export default class UserService {
               if (tag.issuer) {
                 await ocpiClient.pushToken({
                   uid: tag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': newUserID,
                   'visual_number': newUserID,
                   issuer: tenant.name,
                   valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }

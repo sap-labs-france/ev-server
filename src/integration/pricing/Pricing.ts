@@ -4,12 +4,12 @@ import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
 
 export default abstract class Pricing<T extends PricingSetting> {
-  protected readonly tenantId: string;
+  protected readonly tenantID: string;
   protected readonly setting: T;
   protected readonly transaction: Transaction;
 
-  protected constructor(tenantId: string, setting: T, transaction: Transaction) {
-    this.tenantId = tenantId;
+  protected constructor(tenantID: string, setting: T, transaction: Transaction) {
+    this.tenantID = tenantID;
     this.setting = setting;
     this.transaction = transaction;
   }

@@ -15,6 +15,7 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
 import uuid = require('uuid');
 
 const EP_IDENTIFIER = 'tokens';
@@ -160,30 +161,31 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
 
     const tag = user.tags.find((value) => value.id === tokenId);
 
-    let allowedStatus;
+    let allowedStatus: OCPIAllowed;
     if (user.deleted) {
-      allowedStatus = 'EXPIRED';
+      allowedStatus = OCPIAllowed.EXPIRED;
     } else if (!tag.issuer) {
-      allowedStatus = 'NOT_ALLOWED';
+      allowedStatus = OCPIAllowed.NOT_ALLOWED;
     } else {
       switch (user.status) {
         case UserStatus.ACTIVE:
-          allowedStatus = 'ALLOWED';
+          allowedStatus = OCPIAllowed.ALLOWED;
           break;
         case UserStatus.BLOCKED:
-          allowedStatus = 'BLOCKED';
+          allowedStatus = OCPIAllowed.BLOCKED;
           break;
         default:
-          allowedStatus = 'NOT_ALLOWED';
+          allowedStatus = OCPIAllowed.NOT_ALLOWED;
       }
     }
 
-    return OCPIUtils.success(
-      {
-        allowed: allowedStatus,
-        authorization_id: uuid(),
-        location: locationReference
-      });
+    const authorizationInfo: OCPIAuthorizationInfo = {
+      allowed: allowedStatus,
+      'authorization_id': uuid(),
+      location: locationReference
+    };
+
+    return OCPIUtils.success(authorizationInfo);
   }
 }
 

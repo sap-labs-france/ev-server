@@ -253,6 +253,7 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
   timestamp: Date;
   timezone: string;
   user: User;
+  authorizationId?: string;
 }
 
 export interface OCPPAuthorizeResponse {

@@ -1,5 +1,6 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
 import NotificationHandler from '../notification/NotificationHandler';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
@@ -23,7 +24,6 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
-import BackendError from '../exception/BackendError';
 
 export default class Authorizations {
 
@@ -645,28 +645,30 @@ export default class Authorizations {
           user: user
         });
       }
-      // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
-      // Authorized?
-      const context = {
-        user: transaction ? transaction.userID : null,
-        tagIDs: userToken.tagIDs,
-        tagID: transaction ? transaction.tagID : null,
-        owner: userToken.id,
-        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
-        sites: userToken.sites,
-        sitesAdmin: userToken.sitesAdmin
-      };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: userToken,
-          action: action,
-          entity: Entity.CHARGING_STATION,
-          value: chargingStation.id,
-          module: 'Authorizations',
-          method: 'isTagIDAuthorizedOnChargingStation',
-        });
+      if (user.issuer) {
+        // Build the JWT Token
+        const userToken = await Authorizations.buildUserToken(tenantID, user);
+        // Authorized?
+        const context = {
+          user: transaction ? transaction.userID : null,
+          tagIDs: userToken.tagIDs,
+          tagID: transaction ? transaction.tagID : null,
+          owner: userToken.id,
+          site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
+          sites: userToken.sites,
+          sitesAdmin: userToken.sitesAdmin
+        };
+        if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.ERROR,
+            user: userToken,
+            action: action,
+            entity: Entity.CHARGING_STATION,
+            value: chargingStation.id,
+            module: 'Authorizations',
+            method: 'isTagIDAuthorizedOnChargingStation',
+          });
+        }
       }
     }
     return user;
