@@ -16,4 +16,10 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
   protected getSettings(): T {
     return this.setting;
   }
+
+  public static async computeAndApplyChargingProfiles(siteArea: SiteArea) {
+    // Get the factory
+    // Call the charging plans
+    // Apply the charging plans
+  }
 }
