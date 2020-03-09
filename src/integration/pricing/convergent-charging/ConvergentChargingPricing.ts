@@ -21,8 +21,8 @@ import StatefulChargingService from './StatefulChargingService';
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
 
-  constructor(tenantId: string, setting: ConvergentChargingPricingSetting, transaction: Transaction) {
-    super(tenantId, setting, transaction);
+  constructor(tenantID: string, setting: ConvergentChargingPricingSetting, transaction: Transaction) {
+    super(tenantID, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
   }
 
@@ -62,7 +62,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async startSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantID, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
@@ -88,7 +88,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async updateSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantID, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
 
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -118,7 +118,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async stopSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantID, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
@@ -146,9 +146,9 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   async handleError(action: Action, consumptionData: Consumption, result) {
     const chargingResult = result.data.chargingResult;
-    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantID,this.transaction.chargeBoxID);
     Logging.logError({
-      tenantID: this.tenantId,
+      tenantID: this.tenantID,
       source: chargingStation.id, module: 'ConvergentCharging',
       method: 'handleError', action: action,
       message: chargingResult.message,
@@ -160,7 +160,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     if (chargingResult.status === 'error') {
       if (chargingStation) {
         // Execute OCPP Command
-        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+        const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantID, chargingStation);
         if (!chargingStationClient) {
           throw new BackendError({
             source: chargingStation.id,
@@ -184,11 +184,11 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
               case 'CSMS_INFO':
-                chargingStation = await ChargingStationStorage.getChargingStation(this.tenantId, this.transaction.chargeBoxID);
+                chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.transaction.chargeBoxID);
                 if (chargingStation) {
                   // TODO: To fill proper parameters
                   // // Get the client
-                  // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantId, chargingStation);
+                  // const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(this.tenantID, chargingStation);
                   // // Set Charging Profile
                   // await chargingStationClient.setChargingProfile({
                   //   csChargingProfiles: null,
