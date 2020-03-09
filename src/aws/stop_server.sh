@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-killall -q node
+proc_name="node"
+if pgrep $proc_name; then pkill $proc_name; fi
