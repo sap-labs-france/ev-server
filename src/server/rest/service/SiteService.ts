@@ -510,7 +510,7 @@ export default class SiteService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
-        'autoUserSiteAssignment']
+        'autoUserSiteAssignment', 'issuer']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {
@@ -576,6 +576,7 @@ export default class SiteService {
     // Create site
     const site: Site = {
       ...filteredRequest,
+      issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
