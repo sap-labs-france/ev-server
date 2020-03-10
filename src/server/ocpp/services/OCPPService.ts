@@ -361,6 +361,7 @@ export default class OCPPService {
           Logging.logInfo({
             tenantID: headers.tenantID, source: chargingStation.id,
             module: Action.OCPP_SERVICE, method: 'handleMeterValues', action: 'MeterValues',
+            user: transaction.userID,
             message: `Connector '${meterValues.connectorId}' > Transaction ID '${meterValues.transactionId}' > MeterValue have been saved`,
             detailedMessages: meterValues
           });
@@ -1275,6 +1276,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id, module: Action.OCPP_SERVICE,
+        user: transaction.userID,
         method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
         message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW.h, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
       });
