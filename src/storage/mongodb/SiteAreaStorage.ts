@@ -158,11 +158,10 @@ export default class SiteAreaStorage {
     aggregation.pop();
     // Charging Stations
     if (params.withChargeBoxes || params.withAvailableChargers) {
-      DatabaseUtils.pushChargingStationLookupInAggregation(
-        {
-          tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
-          asField: 'chargingStations'
-        });
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
+        asField: 'chargingStations'
+      });
     }
     // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');

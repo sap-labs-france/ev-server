@@ -1005,17 +1005,17 @@ export default class TransactionStorage {
     // Add filter
     aggregation.push({
       $match: {
-        timestamp: { $gt: new Date(params.authorizeDate.toISOString()) }
+        timestamp: { $gt: Utils.convertToDate(params.authorizeDate) }
       }
     });
     // Group by tagID
     aggregation.push({
       $group: {
         _id: '$tagID',
-        date: {
+        dateStart: {
           $last: '$timestamp'
         },
-        chargingStation: {
+        chargeBoxID: {
           $last: '$chargeBoxID'
         },
         userID: {
@@ -1023,57 +1023,30 @@ export default class TransactionStorage {
         }
       }
     });
-    // Convert date to milliseconds and add the tolerated amount of time
+    // Add number of mins
     aggregation.push({
       $addFields: {
-        compareDateInMill: { $add: [{ $toLong: '$date' }, 60000 * params.sessionShouldBeStartedAfterMins] }
-      }
-    });
-    // Convert milliseconds to date
-    aggregation.push({
-      $addFields: {
-        compareDate: { $toDate: '$compareDateInMill' }
+        dateEnd: {
+          $toDate: { $add: [{ $toLong: '$dateStart' },  params.sessionShouldBeStartedAfterMins * 60 * 1000] }
+        }
       }
     });
     // Lookup for transactions
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-        let: { tagID: '$_id', authDate: '$compareDate' },
+        let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
         pipeline: [{
           $match: {
+            'stop': { $exists: false },
             $and: [
-              {
-                $expr:
-                  { $eq: ['$$tagID', '$tagID'] }
-              },
-              {
-                $expr: {
-                  $lte: ['$$authDate', '$timestamp']
-                }
-              }
+              { $expr: { $eq: ['$tagID', '$$tagID'] }},
+              { $expr: { $gt: ['$timestamp', '$$dateStart'] }},
+              { $expr: { $lt: ['$timestamp', '$$dateEnd'] }}
             ]
           }
         }],
         as: 'transaction'
-      }
-    });
-    // Lookup for users
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Lookup for charging station
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-        localField: 'chargingStation',
-        foreignField: '_id',
-        as: 'chargingStation'
       }
     });
     // Get only authorize with no transactions
@@ -1082,24 +1055,31 @@ export default class TransactionStorage {
         transaction: { $size: 0 }
       }
     });
+    // Lookup for users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID, aggregation, localField: 'userID', foreignField: '_id',
+      asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
+    // Lookup for charging station
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargingStation', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
     // Format Data
     aggregation.push({
       $project: {
         _id: 0,
         tagID: '$_id',
-        authDate: '$date',
-        chargingStation: { $arrayElemAt: ['$chargingStation', 0] },
-        user: { $arrayElemAt: ['$user', 0] }
+        authDate: '$dateStart',
+        chargingStation: 1,
+        user: 1
       }
     });
-    // Change ID Charging Station
-    DatabaseUtils.renameDatabaseID(aggregation, 'chargingStation');
-    // Change ID User
-    DatabaseUtils.renameDatabaseID(aggregation, 'user');
     // Read DB
-    const notifySessionNotStarted: NotifySessionNotStarted[] = await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
-      .toArray();
+    const notifySessionNotStarted: NotifySessionNotStarted[] =
+      await global.database.getCollection<NotifySessionNotStarted>(tenantID, 'authorizes')
+        .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+        .toArray();
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getNotStartedTransactions', uniqueTimerID);
     return {
