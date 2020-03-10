@@ -220,6 +220,7 @@ export default class SiteAreaService {
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.siteID = filteredRequest.siteID;
     siteArea.lastChangedBy = { 'id': req.user.id };

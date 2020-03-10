@@ -61,6 +61,7 @@ export default class SiteAreaStorage {
       name: siteAreaToSave.name,
       issuer: siteAreaToSave.issuer,
       accessControl: siteAreaToSave.accessControl,
+      smartCharging: siteAreaToSave.smartCharging,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     };
     if (siteAreaToSave.address) {
