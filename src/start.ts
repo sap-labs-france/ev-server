@@ -1,27 +1,27 @@
+import cluster from 'cluster';
+import MigrationHandler from './migration/MigrationHandler';
+import SchedulerManager from './scheduler/SchedulerManager';
+import OCPIServer from './server/ocpi/OCPIServer';
+import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
+import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
+import ODataServer from './server/odata/ODataServer';
 import CentralRestServer from './server/rest/CentralRestServer';
+import LockingStorage from './storage/mongodb/LockingStorage';
+import MongoDBStorage from './storage/mongodb/MongoDBStorage';
+import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';
 import CentralSystemRestServiceConfiguration from './types/configuration/CentralSystemRestServiceConfiguration';
 import ChargingStationConfiguration from './types/configuration/ChargingStationConfiguration';
+import MigrationConfiguration from './types/configuration/MigrationConfiguration';
+import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
+import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
+import StorageConfiguration from './types/configuration/StorageConfiguration';
+import global from './types/GlobalType';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
-import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
-import LockingStorage from './storage/mongodb/LockingStorage';
 import Logging from './utils/Logging';
-import MigrationConfiguration from './types/configuration/MigrationConfiguration';
-import MigrationHandler from './migration/MigrationHandler';
-import MongoDBStorage from './storage/mongodb/MongoDBStorage';
-import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
-import OCPIServer from './server/ocpi/OCPIServer';
-import OCPIServiceConfiguration from './types/configuration/OCPIServiceConfiguration';
-import ODataServer from './server/odata/ODataServer';
-import ODataServiceConfiguration from './types/configuration/ODataServiceConfiguration';
-import SchedulerManager from './scheduler/SchedulerManager';
-import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
-import StorageConfiguration from './types/configuration/StorageConfiguration';
 import Utils from './utils/Utils';
-import cluster from 'cluster';
-import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -66,7 +66,6 @@ export default class Bootstrap {
       // Init global user and tenant IDs hashmap
       global.userHashMapIDs = new Map<string, string>();
       global.tenantHashMapIDs = new Map<string, string>();
-
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
         // Check database implementation
@@ -102,13 +101,11 @@ export default class Bootstrap {
       if (cluster.isMaster && Bootstrap.databaseDone) {
         await LockingStorage.cleanLocks();
       }
-
       if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
         Bootstrap.migrationDone = true;
       }
-
       // Listen to promise failure
       process.on('unhandledRejection', (reason: any, p): void => {
         // eslint-disable-next-line no-console
@@ -120,20 +117,17 @@ export default class Bootstrap {
           detailedMessages: (reason ? reason.stack : null)
         });
       });
-
       if (cluster.isMaster && Bootstrap.isClusterEnabled) {
         Bootstrap.startMaster();
       } else {
         await Bootstrap.startServersListening();
       }
-
       if (cluster.isMaster) {
         // -------------------------------------------------------------------------
         // Init the Scheduler
         // -------------------------------------------------------------------------
         SchedulerManager.init();
       }
-
     } catch (error) {
       // Log
       // eslint-disable-next-line no-console

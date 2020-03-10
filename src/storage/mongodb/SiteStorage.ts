@@ -116,11 +116,10 @@ export default class SiteStorage {
       });
     }
     // Get users
-    DatabaseUtils.pushUserLookupInAggregation(
-      {
-        tenantID, aggregation, localField: 'userID', foreignField: '_id',
-        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
-      });
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID, aggregation, localField: 'userID', foreignField: '_id',
+      asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
     // Filter deleted users
     aggregation.push({
       $match: {

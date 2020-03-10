@@ -6,7 +6,7 @@
     },
 		"sessionStarted": {
 			"title": "Session Démarrée",
-			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès dans l'organisation '{{tenantName}}'"
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a été démarrée avec succès dans l'organisation '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
 			"title": "Mise à jour Statuts",
