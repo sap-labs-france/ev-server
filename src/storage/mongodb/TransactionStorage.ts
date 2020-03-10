@@ -1038,7 +1038,6 @@ export default class TransactionStorage {
         let: { tagID: '$_id', dateStart: '$dateStart', dateEnd: '$dateEnd' },
         pipeline: [{
           $match: {
-            'stop': { $exists: false },
             $and: [
               { $expr: { $eq: ['$tagID', '$$tagID'] }},
               { $expr: { $gt: ['$timestamp', '$$dateStart'] }},
