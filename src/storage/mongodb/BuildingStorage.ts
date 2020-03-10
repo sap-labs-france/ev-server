@@ -10,18 +10,30 @@ import DatabaseUtils from './DatabaseUtils';
 
 export default class BuildingStorage {
 
-  public static async getBuilding(tenantID: string, id: string): Promise<Building> {
+  public static async getBuilding(tenantID: string, id: string,
+    params: { withSiteArea?: boolean} = {}): Promise<Building> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuilding');
     // Reuse
-    const buildingsMDB = await BuildingStorage.getBuildings(tenantID, { buildingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const buildingsMDB = await BuildingStorage.getBuildings(
+      tenantID,
+      {
+        buildingID: id,
+        withSiteArea: params.withSiteArea
+      },
+      Constants.DB_PARAMS_SINGLE_RECORD
+    );
     let building: Building = null;
     // Check
     if (buildingsMDB && buildingsMDB.count > 0) {
       building = buildingsMDB.result[0];
     }
     // Debug
-    Logging.traceEnd('BuildingStorage', 'getBuilding', uniqueTimerID, { id });
+    Logging.traceEnd('BuildingStorage', 'getBuilding', uniqueTimerID,
+    {
+      id,
+      withSiteArea: params.withSiteArea
+    });
     return building;
   }
 
@@ -74,7 +86,7 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[] } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSiteArea?: boolean; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -113,6 +125,14 @@ export default class BuildingStorage {
       aggregation.push({
         $match: filters
       });
+    }
+    // Site Area
+    if(params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation(
+        {
+          tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true
+        });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {

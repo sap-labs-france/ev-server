@@ -14,13 +14,15 @@ export default class BuildingSecurity {
 
   public static filterBuildingRequest(request: any): HttpBuildingRequest {
     return {
-      ID: sanitize(request.ID)
-    };
+      ID: sanitize(request.ID),
+      WithSiteArea: !request.WithSiteArea ? false : sanitize(request.WithSiteArea)
+    } as HttpBuildingRequest;
   }
 
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
     const filteredRequest: HttpBuildingsRequest = {
       Search: sanitize(request.Search),
+      WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
