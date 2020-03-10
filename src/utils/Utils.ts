@@ -1037,7 +1037,7 @@ export default class Utils {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Building Site area is mandatory',
+        message: 'Building Site Area is mandatory',
         module: 'BuildingService',
         method: 'checkIfBuildingValid',
         user: req.user.id
