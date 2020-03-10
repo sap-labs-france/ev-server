@@ -15,7 +15,7 @@ export default class BuildingSecurity {
   public static filterBuildingRequest(request: any): HttpBuildingRequest {
     return {
       ID: sanitize(request.ID),
-      WithSiteArea: !request.WithSiteArea ? false : sanitize(request.WithSiteArea)
+      WithSiteArea: UtilsSecurity.filterBoolean(request.WithSiteArea)
     } as HttpBuildingRequest;
   }
 
