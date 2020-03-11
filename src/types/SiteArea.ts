@@ -13,6 +13,7 @@ export default interface SiteArea extends CreatedUpdatedProps {
   image: string;
   siteID: string;
   site: Site;
+  smartCharging: boolean;
   accessControl: boolean;
   chargingStations: ChargingStation[];
   availableChargers?: number;
