@@ -11,6 +11,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -24,7 +25,8 @@ export default class SiteAreaService {
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
     // Found?
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
+      'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -64,7 +66,8 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes });
     // Found?
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
+      'SiteAreaService', 'handleGetSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -95,7 +98,8 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
+      'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -110,7 +114,8 @@ export default class SiteAreaService {
     }
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
-    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(action, siteAreaImage, `Site Area Image with ID '${siteAreaID}' does not exist`,
+      'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Return
     res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
     next();
@@ -171,6 +176,10 @@ export default class SiteAreaService {
         method: 'handleCreateSiteArea'
       });
     }
+    // Check Site
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
+      'SiteAreaService', 'handleCreateSiteArea', req.user);
     // Create site
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -180,7 +189,6 @@ export default class SiteAreaService {
     } as SiteArea;
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
-    // Ok
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
@@ -200,8 +208,8 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
-    // Check
-    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
+      'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -216,6 +224,10 @@ export default class SiteAreaService {
     }
     // Check Mandatory fields
     Utils.checkIfSiteAreaValid(filteredRequest, req);
+    // Check Site
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
+    UtilsService.assertObjectExists(action, site, `Site ID '${filteredRequest.siteID}' does not exist`,
+      'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
