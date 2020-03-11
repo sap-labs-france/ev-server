@@ -290,6 +290,9 @@ export default class ChargingStationSecurity {
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
       }
+      if (Utils.objectHasProperty(request.args, 'connectorID')) {
+        filteredRequest.args.connectorId = sanitize(request.args.connectorID);
+      }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);
       }
