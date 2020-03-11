@@ -335,7 +335,28 @@ describe('Tenant Settings test', function() {
     });
 
     it('Building : Check that the setting has been created in the tenant after activation', async function() {
-      // Fill in the data
+      // Test only Building (should fail)
+      testData.data = {
+        id: testData.credentials.tenantId,
+        name: 'ut-nothing',
+        email: testData.credentials.email,
+        subdomain: 'utnothing',
+        components: {
+          ocpi: { active: false, type: null },
+          organization: { active: false, type: null },
+          pricing: { active: false, type: null },
+          refund: { active: false, type: null },
+          billing: { active: false, type: null },
+          smartCharging: { active: false, type: null },
+          statistics: { active: false, type: null },
+          analytics: { active: false, type: null },
+          building: { active: true, type: null }
+        }
+      };
+      let res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data, false);
+      expect(res.status).to.equal(500);
+      // Test Building with Organization
       testData.data = {
         id: testData.credentials.tenantId,
         name: 'ut-nothing',
@@ -353,7 +374,7 @@ describe('Tenant Settings test', function() {
           building: { active: true, type: null }
         }
       };
-      const res = await testData.superAdminCentralService.updateEntity(
+      res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
