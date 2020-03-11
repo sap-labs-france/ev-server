@@ -11,6 +11,7 @@ import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
+import moment = require('moment');
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -995,17 +996,23 @@ export default class TransactionStorage {
   }
 
   public static async getNotStartedTransactions(tenantID: string,
-    params: { authorizeDate: Date; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
+    params: { checkPastAuthorizeMins: number; sessionShouldBeStartedAfterMins: number }): Promise<DataResult<NotifySessionNotStarted>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getNotStartedTransactions');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Compute the date some minutes ago
+    const authorizeStartDate = moment().subtract(params.checkPastAuthorizeMins, 'minutes').toDate();
+    const authorizeEndDate = moment().subtract(params.sessionShouldBeStartedAfterMins, 'minutes').toDate();
     // Create Aggregation
     const aggregation = [];
-    // Add filter
+    // Authorization window
     aggregation.push({
       $match: {
-        timestamp: { $gt: Utils.convertToDate(params.authorizeDate) }
+        timestamp: {
+          $gt: Utils.convertToDate(authorizeStartDate),
+          $lt: Utils.convertToDate(authorizeEndDate)
+        }
       }
     });
     // Group by tagID

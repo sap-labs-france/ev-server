@@ -290,6 +290,10 @@ export default class ChargingStationSecurity {
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
       }
+      // TODO: To be removed when mobile will be version 1.3
+      if (Utils.objectHasProperty(request.args, 'connectorID')) {
+        filteredRequest.args.connectorId = sanitize(request.args.connectorID);
+      }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);
       }
