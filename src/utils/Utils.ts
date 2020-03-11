@@ -988,7 +988,7 @@ export default class Utils {
     }
     // Smart Charging?
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
-      if (siteArea.smartCharging && siteArea.maximumPower <= 0) {
+      if (siteArea.maximumPower <= 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
