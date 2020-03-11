@@ -92,7 +92,8 @@
                 "car": {
                     "type": "object",
                     "properties": {
-                        "active": { "type": "boolean", "sanitize": "mongo" }
+                        "active": { "type": "boolean" },
+                        "type": { "type": "string" }
                     }
                 }
             }

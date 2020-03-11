@@ -55,6 +55,7 @@ export default class SiteAreaSecurity {
       address: UtilsSecurity.filterAddressRequest(request.address),
       image: sanitize(request.image),
       maximumPower: sanitize(request.maximumPower),
+      smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
       accessControl: UtilsSecurity.filterBoolean(request.accessControl),
       siteID: sanitize(request.siteID)
     };

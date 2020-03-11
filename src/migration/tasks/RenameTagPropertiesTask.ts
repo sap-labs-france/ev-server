@@ -25,7 +25,7 @@ export default class RenameTagPropertiesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'RenameTagPropertiesTask', method: 'migrateTenant',
-        action: 'RenameTagPropertiesTask',
+        action: 'RenameTagProperties',
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

@@ -1,5 +1,6 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
 import NotificationHandler from '../notification/NotificationHandler';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
@@ -645,28 +646,41 @@ export default class Authorizations {
           user: user
         });
       }
-      // Build the JWT Token
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
-      // Authorized?
-      const context = {
-        user: transaction ? transaction.userID : null,
-        tagIDs: userToken.tagIDs,
-        tagID: transaction ? transaction.tagID : null,
-        owner: userToken.id,
-        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
-        sites: userToken.sites,
-        sitesAdmin: userToken.sitesAdmin
-      };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
-        throw new AppAuthError({
-          errorCode: HTTPAuthError.ERROR,
-          user: userToken,
-          action: action,
-          entity: Entity.CHARGING_STATION,
-          value: chargingStation.id,
+      const tag = user.tags.find((value) => value.id === tagID);
+      if (!tag.active) {
+        // Reject but save ok
+        throw new BackendError({
+          source: chargingStation.id,
+          message: `Tag ID '${tagID}' of user '${user.id}' is deactivated'`,
           module: 'Authorizations',
           method: 'isTagIDAuthorizedOnChargingStation',
+          user: user
         });
+      }
+      if (user.issuer) {
+        // Build the JWT Token
+        const userToken = await Authorizations.buildUserToken(tenantID, user);
+        // Authorized?
+        const context = {
+          user: transaction ? transaction.userID : null,
+          tagIDs: userToken.tagIDs,
+          tagID: transaction ? transaction.tagID : null,
+          owner: userToken.id,
+          site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
+          sites: userToken.sites,
+          sitesAdmin: userToken.sitesAdmin
+        };
+        if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
+          throw new AppAuthError({
+            errorCode: HTTPAuthError.ERROR,
+            user: userToken,
+            action: action,
+            entity: Entity.CHARGING_STATION,
+            value: chargingStation.id,
+            module: 'Authorizations',
+            method: 'isTagIDAuthorizedOnChargingStation',
+          });
+        }
       }
     }
     return user;
@@ -695,12 +709,12 @@ export default class Authorizations {
       // Save User TagIDs
       const tag: Tag = {
         id: tagID,
-        deleted: false,
+        active: true,
         issuer: false,
         userID: user.id,
         lastChangedOn: new Date()
       };
-      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
+      await UserStorage.saveUserTag(tenantID, user.id, tag);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role

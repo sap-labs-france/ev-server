@@ -7,7 +7,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
@@ -15,6 +15,7 @@ import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
 import Configuration from '../../../../utils/Configuration';
 import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import OCPIUtils from '../../OCPIUtils';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -100,7 +101,7 @@ export default class OCPIMapping {
     const evses: any = [];
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
-      if (chargingStation.issuer === true) {
+      if (chargingStation.issuer === true && !chargingStation.private) {
         if (!chargingStation.cannotChargeInParallel) {
           evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
         } else {
@@ -179,12 +180,12 @@ export default class OCPIMapping {
       const valid = user && !user.deleted;
       tokens.push({
         uid: tag.id,
-        type: 'RFID',
+        type: OCPITokenType.RFID,
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: tenant.name,
         valid: valid,
-        whitelist: 'ALLOWED_OFFLINE',
+        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
@@ -206,12 +207,12 @@ export default class OCPIMapping {
       const tag = user.tags.find((value) => value.id === tokenId);
       return {
         uid: tokenId,
-        type: 'RFID',
+        type: OCPITokenType.RFID,
         'auth_id': tag.userID,
         'visual_number': tag.userID,
         issuer: user.name,
-        valid: !tag.deleted,
-        whitelist: 'ALLOWED_OFFLINE',
+        valid: tag.active,
+        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
         language: OCPIMapping.convertLocaleToLanguage(user.locale),
         'last_updated': user.lastChangedOn
       };
@@ -248,15 +249,13 @@ export default class OCPIMapping {
    * @return Array of OCPI EVSES
    */
   static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
-    // Build evse ID
-    const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
-
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
-    const evses = connectors.map((connector: any) => {
+    const evses = connectors.map((connector) => {
+      const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation, connector);
       const evse: any = {
-        'uid': `${chargingStation.id}*${connector.connectorId}`,
-        'evse_id': OCPIMapping.convert2evseid(`${evseID}*${connector.connectorId}`),
+        'uid': OCPIUtils.buildEvseUID(chargingStation, connector),
+        'evse_id': evseID,
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
         'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)]
@@ -280,16 +279,14 @@ export default class OCPIMapping {
    * @return OCPI EVSE
    */
   static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): OCPIEvse[] {
-    // Build evse id
-    const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
-
+    const evseID = OCPIUtils.buildEvseID(options.countryID, options.partyID, chargingStation);
     // Get all connectors
     const connectors = chargingStation.connectors.map(
       (connector: any) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
 
     // Build evse
     const evse: any = {
-      'uid': `${chargingStation.id}`,
+      'uid': OCPIUtils.buildEvseUID(chargingStation),
       'evse_id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
       'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],

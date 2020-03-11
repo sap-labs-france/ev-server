@@ -30,6 +30,6 @@ export enum OCPILocationType {
 export interface OCPILocationReference {
   location_id: string;
   evse_uids: string[];
-  connector_ids: string[];
+  connector_ids?: string[];
 }
 

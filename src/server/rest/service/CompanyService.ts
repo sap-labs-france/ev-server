@@ -138,7 +138,7 @@ export default class CompanyService {
         withLogo: filteredRequest.WithLogo
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo']
+      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo', 'issuer']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);
@@ -169,6 +169,7 @@ export default class CompanyService {
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
+      issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;

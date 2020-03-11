@@ -8,7 +8,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 
-export default class AddInactivityStatusInTransactions extends MigrationTask {
+export default class AddInactivityStatusInTransactionsTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
