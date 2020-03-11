@@ -343,7 +343,7 @@ describe('Tenant Settings test', function() {
         subdomain: 'utnothing',
         components: {
           ocpi: { active: false, type: null },
-          organization: { active: false, type: null },
+          organization: { active: true, type: null },
           pricing: { active: false, type: null },
           refund: { active: false, type: null },
           billing: { active: false, type: null },

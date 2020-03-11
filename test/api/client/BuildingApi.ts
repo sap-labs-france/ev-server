@@ -16,7 +16,6 @@ export default class BuildingApi extends CrudApi {
 
   public create(data) {
     return super.create(data, '/client/api/BuildingCreate');
-    // TODO: Assign Site Areas into Building
   }
 
   public update(data) {
