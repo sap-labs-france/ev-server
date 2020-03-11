@@ -11,9 +11,4 @@ phases:
 artifacts:
   type: zip
   files:
-    - package.json
-    - package-lock.json
-    - appspec.yml
-    - 'src/aws/*.sh'
-    - 'dist/**/*'
-    - 'node_modules/**/*'
+    - '**/*'
