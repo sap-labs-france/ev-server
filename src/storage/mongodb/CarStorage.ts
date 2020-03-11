@@ -8,14 +8,18 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class CarStorage {
-  public static async getCar(id: string): Promise<Car> {
+  public static async getCar(id: string, fetchALlAbject?: boolean | false): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCar');
-    // Query single Site
-    const carsMDB = await CarStorage.getCars(
-      { carID: id },
-      Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
+    let carsMDB;
+    if (fetchALlAbject) {
+      carsMDB = await CarStorage.getCars({ carID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    } else {
+      // Query single Site
+      carsMDB = await CarStorage.getCars(
+        { carID: id },
+        Constants.DB_PARAMS_SINGLE_RECORD, ['id', 'VehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion', 'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'chargeStandardPower', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 'miscSegment', 'miscIsofixSeats']);
+    }
     Logging.traceEnd('CarStorage', 'getCar', uniqueTimerID, { id });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
@@ -30,13 +34,14 @@ export default class CarStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: string; $or?: any[] } | undefined) = {};
+    const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
     if (params.carID) {
-      filters._id = params.carID;
+      filters._id = +params.carID;
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'VehicleModelv': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
       ];
     }
     // Create Aggregation
@@ -198,15 +203,15 @@ export default class CarStorage {
       chargeOptionChargeTime: carToSave.chargeOptionChargeTime,
       chargeOptionChargeSpeed: carToSave.chargeOptionChargeSpeed,
       chargeOptionTables: carToSave.chargeOptionTables,
-      fastchargePlug: carToSave.fastchargePlug,
-      fastchargePlugEstimate: carToSave.fastchargePlugEstimate,
-      fastchargePlugLocation: carToSave.fastchargePlugLocation,
-      fastchargePowerMax: carToSave.fastchargePowerMax,
-      fastchargePowerAvg: carToSave.fastchargePowerAvg,
-      fastchargeChargeTime: carToSave.fastchargeChargeTime,
-      fastchargeChargeSpeed: carToSave.fastchargeChargeSpeed,
-      fastchargeOptional: carToSave.fastchargeOptional,
-      fastchargeEstimate: carToSave.fastchargeEstimate,
+      fastChargePlug: carToSave.fastChargePlug,
+      fastChargePlugEstimate: carToSave.fastChargePlugEstimate,
+      fastChargePlugLocation: carToSave.fastChargePlugLocation,
+      fastChargePowerMax: carToSave.fastChargePowerMax,
+      fastChargePowerAvg: carToSave.fastChargePowerAvg,
+      fastChargeTime: carToSave.fastChargeTime,
+      fastChargeSpeed: carToSave.fastChargeSpeed,
+      fastChargeOptional: carToSave.fastChargeOptional,
+      fastChargeEstimate: carToSave.fastChargeEstimate,
       batteryCapacityUseable: carToSave.batteryCapacityUseable,
       batteryCapacityFull: carToSave.batteryCapacityFull,
       batteryCapacityEstimate: carToSave.batteryCapacityEstimate,

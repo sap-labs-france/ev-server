@@ -37,14 +37,12 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
-<<<<<<< HEAD
     building?: {
       active: boolean;
-=======
+    };
     car?: {
       active: boolean;
       type: string;
->>>>>>> 970428abe5f7e109c61756595f466bde76b6e50d
     };
   };
 }

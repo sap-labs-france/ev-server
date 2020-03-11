@@ -7,9 +7,8 @@ import Logging from '../../utils/Logging';
 
 export default abstract class CarDatabase {
   public abstract async getCars(): Promise<Car[]>;
-
+ /* eslint-disable */
   public async synchronizeCars(): Promise<CarSynchronizeAction> {
-    /* eslint-disable */
     const actionsDone = {
       synchronized: 0,
       error: 0
@@ -79,6 +78,6 @@ export default abstract class CarDatabase {
         message: 'All the cars are up to date'
       });
     }
-  return actionsDone;
+    return actionsDone;
   }
 }

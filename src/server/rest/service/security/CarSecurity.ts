@@ -1,4 +1,4 @@
-import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarsRequest, HttpCarRequest } from '../../../../types/requests/HttpCarRequest';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
 import UserToken from '../../../../types/UserToken';
@@ -13,6 +13,13 @@ export default class CarSecurity {
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  public static filterCarRequest(request: any): HttpCarRequest {
+    const filteredRequest: HttpCarRequest = {
+      ID: sanitize(request.carID),
+    } as HttpCarRequest;
     return filteredRequest;
   }
 
