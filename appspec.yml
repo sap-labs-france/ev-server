@@ -3,16 +3,20 @@ os: linux
 files:
   - source: /
     destination: /opt/server
+permissions:
+  - object: /opt/server
+    owner: ubuntu
+    group: ubuntu
 hooks:
   AfterInstall:
-    - location: src/aws/configure_server.sh
+    - location: src/aws/afterinstall_server.sh
       timeout: 300
-      runas: root
+      runas: ubuntu
   ApplicationStart:
     - location: src/aws/start_server.sh
       timeout: 300
-      runas: root
+      runas: ubuntu
   # ApplicationStop:
   #   - location: src/aws/stop_server.sh
   #     timeout: 300
-  #     runas: root
+  #     runas: ubuntu
