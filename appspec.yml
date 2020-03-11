@@ -5,6 +5,7 @@ files:
     destination: /opt/server
 permissions:
   - object: /opt/server
+    pattern: '**'
     owner: ubuntu
     group: ubuntu
 hooks:
