@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import BuildingStorage from '../../../storage/mongodb/BuildingStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import Building from '../../../types/Building';
 import { HTTPAuthError } from '../../../types/HTTPError';
@@ -38,7 +39,8 @@ export default class BuildingService {
     const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
-    UtilsService.assertObjectExists(action, building, `Building with ID '${building}' does not exist`, 'BuildingService', 'handleDeleteBuilding', req.user);
+    UtilsService.assertObjectExists(action, building, `Building with ID '${building}' does not exist`,
+      'BuildingService', 'handleDeleteBuilding', req.user);
     // Delete
     await BuildingStorage.deleteBuilding(req.user.tenantID, building.id);
     // Log
@@ -76,7 +78,8 @@ export default class BuildingService {
     // Get it
     const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.ID,
       { withSiteArea: filteredRequest.WithSiteArea });
-    UtilsService.assertObjectExists(action, building, `Building with ID '${filteredRequest.ID}' does not exist`, 'BuildingService', 'handleGetBuilding', req.user);
+    UtilsService.assertObjectExists(action, building, `Building with ID '${filteredRequest.ID}' does not exist`,
+      'BuildingService', 'handleGetBuilding', req.user);
     // Return
     res.json(
       // Filter
@@ -108,7 +111,8 @@ export default class BuildingService {
     // Get it
     const buildingImage = await BuildingStorage.getBuildingImage(req.user.tenantID, buildingID);
     // Check
-    UtilsService.assertObjectExists(action, buildingImage, `Building with ID '${buildingID}' does not exist`, 'BuildingService', 'handleGetBuildingImage', req.user);
+    UtilsService.assertObjectExists(action, buildingImage, `Building with ID '${buildingID}' does not exist`,
+      'BuildingService', 'handleGetBuildingImage', req.user);
     // Return
     res.json({ id: buildingImage.id, image: buildingImage.image });
     next();
@@ -164,8 +168,14 @@ export default class BuildingService {
     }
     // Filter
     const filteredRequest = BuildingSecurity.filterBuildingCreateRequest(req.body);
-    // Check
+    // Check Building
     Utils.checkIfBuildingValid(filteredRequest, req);
+    // Check Site Area
+    if (filteredRequest.siteAreaID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
+        'BuildingService', 'handleCreateBuilding', req.user);
+    }
     // Create building
     const newBuilding: Building = {
       ...filteredRequest,
@@ -204,10 +214,17 @@ export default class BuildingService {
         value: filteredRequest.id
       });
     }
+    // Check Site Area
+    if (filteredRequest.siteAreaID) {
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      UtilsService.assertObjectExists(action, siteArea, `Site Area ID '${filteredRequest.siteAreaID}' does not exist`,
+        'BuildingService', 'handleUpdateBuilding', req.user);
+    }
     // Check email
     const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(action, building, `Site Area with ID '${filteredRequest.id}' does not exist`, 'BuildingService', 'handleUpdateBuilding', req.user);
+    UtilsService.assertObjectExists(action, building, `Site Area with ID '${filteredRequest.id}' does not exist`,
+      'BuildingService', 'handleUpdateBuilding', req.user);
     // Check Mandatory fields
     Utils.checkIfBuildingValid(filteredRequest, req);
     // Update

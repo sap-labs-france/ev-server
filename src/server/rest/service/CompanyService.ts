@@ -37,7 +37,8 @@ export default class CompanyService {
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
     // Found?
-    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
+      'CompanyService', 'handleDeleteCompany', req.user);
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -74,7 +75,8 @@ export default class CompanyService {
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
+      'CompanyService', 'handleGetCompany', req.user);
     // Return
     res.json(
       // Filter
@@ -106,7 +108,8 @@ export default class CompanyService {
     // Get it
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Check
-    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`,
+      'CompanyService', 'handleGetCompanyLogo', req.user);
     // Return
     res.json({ id: companyLogo.id, logo: companyLogo.logo });
     next();
@@ -208,7 +211,8 @@ export default class CompanyService {
     // Check email
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`,
+      'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
     // Update

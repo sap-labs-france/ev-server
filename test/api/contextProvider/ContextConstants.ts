@@ -306,7 +306,8 @@ export default class CONTEXTS {
     id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
     subdomain: 'utbuilding',
     componentSettings: {
-      building: {}
+      building: {},
+      organization: {}
     }
   }];
 
