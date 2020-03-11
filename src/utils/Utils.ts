@@ -15,14 +15,18 @@ import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
+import Building from '../types/Building';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation, { StaticLimitAmps } from '../types/ChargingStation';
+import Company from '../types/Company';
 import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
+import Site from '../types/Site';
+import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
@@ -918,8 +922,8 @@ export default class Utils {
     }
   }
 
-  public static checkIfSiteValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
+  public static checkIfSiteValid(site: Partial<Site>, req: Request): void {
+    if (req.method !== 'POST' && !site.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -929,7 +933,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.name) {
+    if (!site.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -939,7 +943,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.companyID) {
+    if (!site.companyID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -951,8 +955,8 @@ export default class Utils {
     }
   }
 
-  public static checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
+  public static checkIfSiteAreaValid(siteArea: Partial<SiteArea>, req: Request): void {
+    if (req.method !== 'POST' && !siteArea.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -962,7 +966,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.name) {
+    if (!siteArea.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -972,7 +976,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.siteID) {
+    if (!siteArea.siteID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -982,10 +986,23 @@ export default class Utils {
         user: req.user.id
       });
     }
+    // Smart Charging?
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
+      if (siteArea.smartCharging && siteArea.maximumPower <= 0) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
+          module: 'SiteAreaService',
+          method: '_checkIfSiteAreaValid',
+          user: req.user.id
+        });
+      }
+    }
   }
 
-  public static checkIfCompanyValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
+  public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
+    if (req.method !== 'POST' && !company.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -995,7 +1012,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.name) {
+    if (!company.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1012,8 +1029,8 @@ export default class Utils {
     return moment(date).isValid();
   }
 
-  public static checkIfBuildingValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
+  public static checkIfBuildingValid(building: Partial<Building>, req: Request): void {
+    if (req.method !== 'POST' && !building.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1023,7 +1040,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.name) {
+    if (!building.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1033,7 +1050,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!filteredRequest.siteAreaID) {
+    if (!building.siteAreaID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1067,7 +1084,7 @@ export default class Utils {
     }
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
+  public static checkIfUserValid(filteredRequest: Partial<User>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError({
