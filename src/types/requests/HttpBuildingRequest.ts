@@ -1,8 +1,11 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export type HttpBuildingRequest = HttpByIDRequest;
+export interface HttpBuildingRequest extends HttpByIDRequest {
+  WithSiteArea?: boolean;
+}
 
 export interface HttpBuildingsRequest extends HttpDatabaseRequest {
   Search?: string;
+  WithSiteArea?: boolean;
 }

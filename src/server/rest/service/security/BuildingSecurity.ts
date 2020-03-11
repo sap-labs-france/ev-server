@@ -14,13 +14,15 @@ export default class BuildingSecurity {
 
   public static filterBuildingRequest(request: any): HttpBuildingRequest {
     return {
-      ID: sanitize(request.ID)
-    };
+      ID: sanitize(request.ID),
+      WithSiteArea: UtilsSecurity.filterBoolean(request.WithSiteArea)
+    } as HttpBuildingRequest;
   }
 
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
     const filteredRequest: HttpBuildingsRequest = {
       Search: sanitize(request.Search),
+      WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -42,6 +44,7 @@ export default class BuildingSecurity {
   public static _filterBuildingRequest(request: any): Partial<Building> {
     return {
       name: sanitize(request.name),
+      siteAreaID: sanitize(request.siteAreaID),
       address: UtilsSecurity.filterAddressRequest(request.address),
       image: request.image
     };
@@ -64,6 +67,7 @@ export default class BuildingSecurity {
         filteredBuilding = {};
         filteredBuilding.id = building.id;
         filteredBuilding.name = building.name;
+        filteredBuilding.siteAreaID = building.siteAreaID;
         filteredBuilding.image = building.image;
         filteredBuilding.address = UtilsSecurity.filterAddressRequest(building.address);
       }
