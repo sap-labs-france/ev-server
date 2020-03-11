@@ -19,9 +19,9 @@ export default class BuildingService {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
       Action.DELETE, Entity.BUILDING, 'BuildingService', 'handleDeleteBuilding');
     // Filter
-    const buildingID = BuildingSecurity.filterBuildingRequestByID(req.query);
+    const filteredRequest = BuildingSecurity.filterBuildingRequest(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, buildingID, 'BuildingService', 'handleDeleteBuilding', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'BuildingService', 'handleDeleteBuilding', req.user);
     // Check auth
     if (!Authorizations.canDeleteBuilding(req.user)) {
       throw new AppAuthError({
@@ -31,11 +31,12 @@ export default class BuildingService {
         entity: Entity.BUILDING,
         module: 'BuildingService',
         method: 'handleDeleteBuilding',
-        value: buildingID
+        value: filteredRequest.ID
       });
     }
     // Get
-    const building = await BuildingStorage.getBuilding(req.user.tenantID, buildingID);
+    const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.ID,
+      { withSiteArea: filteredRequest.WithSiteArea });
     // Found?
     UtilsService.assertObjectExists(action, building, `Building with ID '${building}' does not exist`, 'BuildingService', 'handleDeleteBuilding', req.user);
     // Delete
@@ -73,7 +74,8 @@ export default class BuildingService {
       });
     }
     // Get it
-    const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.ID);
+    const building = await BuildingStorage.getBuilding(req.user.tenantID, filteredRequest.ID,
+      { withSiteArea: filteredRequest.WithSiteArea });
     UtilsService.assertObjectExists(action, building, `Building with ID '${filteredRequest.ID}' does not exist`, 'BuildingService', 'handleGetBuilding', req.user);
     // Return
     res.json(
@@ -133,9 +135,10 @@ export default class BuildingService {
     const buildings = await BuildingStorage.getBuildings(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        withSiteArea: filteredRequest.WithSiteArea,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country']
+      [ 'id', 'name', 'siteAreaID', 'address.coordinates', 'address.city', 'address.country', 'siteArea.id', 'siteArea.name']
     );
     // Filter
     BuildingSecurity.filterBuildingsResponse(buildings, req.user);
@@ -209,6 +212,7 @@ export default class BuildingService {
     Utils.checkIfBuildingValid(filteredRequest, req);
     // Update
     building.name = filteredRequest.name;
+    building.siteAreaID = filteredRequest.siteAreaID;
     building.address = filteredRequest.address;
     building.image = filteredRequest.image;
     building.lastChangedBy = { 'id': req.user.id };

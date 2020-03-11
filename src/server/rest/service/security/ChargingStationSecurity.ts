@@ -101,6 +101,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
     }
+    // Sort Connector
+    filteredChargingStation.connectors.sort(
+      (connector1, connector2) => connector1.connectorId - connector2.connectorId);
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
@@ -286,6 +289,10 @@ export default class ChargingStationSecurity {
       }
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
+      }
+      // TODO: To be removed when mobile will be version 1.3
+      if (Utils.objectHasProperty(request.args, 'connectorID')) {
+        filteredRequest.args.connectorId = sanitize(request.args.connectorID);
       }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);

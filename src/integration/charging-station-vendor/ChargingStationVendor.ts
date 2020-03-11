@@ -303,8 +303,10 @@ export default abstract class ChargingStationVendor {
     }
   }
 
-  public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation,
-    connectorID: number): Promise<ConnectorCurrentLimit> {
+  public async getCurrentConnectorLimit(tenantID: string,
+    chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    // Default
+    const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
     // Should fail safe!
     try {
       if (connectorID === 0) {
@@ -315,13 +317,19 @@ export default abstract class ChargingStationVendor {
           message: 'Cannot get the current connector limit on Connector ID 0',
         });
       }
-      // Can only get one result
-      const compositeSchedule = await this.getCompositeSchedule(tenantID, chargingStation, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
+      // Get the current Charging Plan
+      const compositeSchedule = await this.getCompositeSchedule(
+        tenantID, chargingStation, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
       // Get the current connector limitation from the charging plan
       // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
       if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 && compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
-        const connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
+          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+          compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+        let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
+        // Check
+        if (connectorLimitAmps > limitDefaultMaxAmps) {
+          connectorLimitAmps = limitDefaultMaxAmps;
+        }
         return {
           limitAmps: connectorLimitAmps,
           limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
@@ -332,7 +340,11 @@ export default abstract class ChargingStationVendor {
         tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
       if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
           ocppConfiguration.configurationKey[0].value) {
-        const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+        let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+        // Check
+        if (connectorLimitAmps > limitDefaultMaxAmps) {
+          connectorLimitAmps = limitDefaultMaxAmps;
+        }
         return {
           limitAmps: connectorLimitAmps,
           limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
@@ -350,8 +362,8 @@ export default abstract class ChargingStationVendor {
     }
     // Default on current connector
     return {
-      limitAmps: chargingStation.connectors[connectorID - 1].amperageLimit,
-      limitWatts: Utils.convertAmpToPowerWatts(chargingStation, chargingStation.connectors[connectorID - 1].amperageLimit)
+      limitAmps: limitDefaultMaxAmps,
+      limitWatts: Utils.convertAmpToPowerWatts(chargingStation, limitDefaultMaxAmps)
     };
   }
 

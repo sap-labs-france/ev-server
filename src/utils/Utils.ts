@@ -1033,6 +1033,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!filteredRequest.siteAreaID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Building Site Area is mandatory',
+        module: 'BuildingService',
+        method: 'checkIfBuildingValid',
+        user: req.user.id
+      });
+    }
   }
 
   public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request) {
