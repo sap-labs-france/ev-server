@@ -101,6 +101,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
     }
+    // Sort Connector
+    filteredChargingStation.connectors.sort(
+      (connector1, connector2) => connector1.connectorId - connector2.connectorId);
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);

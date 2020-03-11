@@ -1012,7 +1012,7 @@ export default class TransactionStorage {
     aggregation.push({
       $group: {
         _id: '$tagID',
-        dateStart: {
+        authDate: {
           $last: '$timestamp'
         },
         chargeBoxID: {
@@ -1026,8 +1026,11 @@ export default class TransactionStorage {
     // Add number of mins
     aggregation.push({
       $addFields: {
+        dateStart: {
+          $toDate: { $subtract: [{ $toLong: '$authDate' },  5 * 60 * 1000] }
+        },
         dateEnd: {
-          $toDate: { $add: [{ $toLong: '$dateStart' },  params.sessionShouldBeStartedAfterMins * 60 * 1000] }
+          $toDate: { $add: [{ $toLong: '$authDate' },  params.sessionShouldBeStartedAfterMins * 60 * 1000] }
         }
       }
     });
