@@ -165,7 +165,7 @@ export default class TransactionStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'assignTransactionsToUser');
     // Assign transactions
-    await global.database.getCollection<Transaction>(tenantID, 'transactions').updateMany({
+    await global.database.getCollection(tenantID, 'transactions').updateMany({
       $and: [
         { 'userID': null },
         { 'tagID': { $in: user.tags.map((tag) => tag.id) } }
