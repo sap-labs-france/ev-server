@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-if [ -e /etc/environment ]
+if [ -e /etc/environment_emobility.sh ]
 then
-  . /etc/environment
+  . /etc/environment_emobility.sh
 else
-  echo "/etc/environment file not found, exiting"
+  echo "/etc/environment_emobility.sh file not found, exiting"
   exit 1
 fi
 
