@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -e /etc/eenvironment_emobility.sh ]
+if [ -e /etc/environment_emobility.sh ]
 then
   . /etc/environment_emobility.sh
 else

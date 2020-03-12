@@ -5,7 +5,7 @@ then
   . /etc/environment_emobility.sh
 else
   echo "/etc/environment_emobility.sh file not found, fallback to hardcoded values"
- export emobility_install_dir=/opt/server
+  emobility_install_dir="/opt/server"
 fi
 
 [ -n $emobility_install_dir ] && { echo "emobility installation directory env variable not found, exiting"; exit 1; }
