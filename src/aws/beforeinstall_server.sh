@@ -8,7 +8,7 @@ else
   emobility_install_dir="/opt/server"
 fi
 
-[ -n $emobility_install_dir ] && { echo "emobility installation directory env variable not found, exiting"; exit 1; }
+[ -z $emobility_install_dir ] && { echo "emobility installation directory env variable not found, exiting"; exit 1; }
 
 if [ -d $emobility_install_dir ]; then
   rm -rf $emobility_install_dir

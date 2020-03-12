@@ -8,5 +8,7 @@ else
   exit 1
 fi
 
+[ -z $emobility_install_dir ] && { echo "emobility installation directory env variable not found, exiting"; exit 1; }
+
 cd $emobility_install_dir
 node -r source-map-support/register --stack-trace-limit=1024 dist/start.js
