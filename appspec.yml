@@ -9,6 +9,10 @@ permissions:
     owner: ubuntu
     group: ubuntu
 hooks:
+  BeforeInstall:
+    - location: src/aws/beforeinstall_server.sh
+      timeout: 300
+      runas: root
   AfterInstall:
     - location: src/aws/afterinstall_server.sh
       timeout: 300
