@@ -1,4 +1,5 @@
-import { NextFunction, Request, Response } from 'express';
+/* eslint-disable @typescript-eslint/member-ordering */
+import { NextFunction, Request, Response, request } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
@@ -31,8 +32,29 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
 import { ChargingProfile } from '../../../types/ChargingProfile';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
 export default class ChargingStationService {
+
+
+  public static async callOptimizer(action: Action, req: Request, res: Response, next: NextFunction) {
+    const sapSmartCharging = await SmartChargingFactory.getPricingImpl(req.user.tenantID);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, req.body.id);
+    const MDB = await ChargingStationStorage.getChargingStations(req.user.tenantID,
+      {
+        siteAreaID: req.body.id,
+      },
+      {
+        limit: 1000,
+        skip: 0,
+      }
+    );
+    siteArea.chargingStations = MDB.result;
+    const result = await sapSmartCharging.getChargingProfiles(siteArea);
+    res.json(result);
+    next();
+  }
+
 
   public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active

@@ -102,6 +102,8 @@ export enum Action {
   EMPTY_ACTION = '',
   DELETE_CREDENTIALS = 'DELETE credentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
+
+  CALL_OPTIMIZER = 'CallOptimizer',
 }
 
 export interface AuthorizationContext {
