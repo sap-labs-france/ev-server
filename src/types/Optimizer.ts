@@ -99,7 +99,7 @@ export interface FuseTreeNode extends JSONSerializable {
   id?: number;
 }
 
-export interface ChargingStation extends FuseTreeNode {
+export interface ChargingStationOptimizer extends FuseTreeNode {
   "@type": "ChargingStation";
   id: number;
   fusePhase1?: number;
