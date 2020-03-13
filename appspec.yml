@@ -5,6 +5,11 @@ files:
     destination: /opt/server
 permissions:
   - object: /opt/server
+    owner: ubuntu
+    group: ubuntu
+    type:
+      - directory
+  - object: /opt/server
     pattern: '**'
     owner: ubuntu
     group: ubuntu
