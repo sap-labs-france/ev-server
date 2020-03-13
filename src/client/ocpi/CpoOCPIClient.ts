@@ -21,6 +21,11 @@ import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import { OCPILocationReference } from '../../types/ocpi/OCPILocation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
+import { Action } from '../../types/Authorization';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import Transaction from '../../types/Transaction';
+import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
+import Tag from '../../types/Tag';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -57,7 +62,7 @@ export default class CpoOCPIClient extends OCPIClient {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
-        action: 'OcpiPullTokens',
+        action: Action.OCPI_PULL_TOKENS,
         message: `Pull Tokens at ${tokensUrl}`,
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -83,7 +88,7 @@ export default class CpoOCPIClient extends OCPIClient {
 
       Logging.logDebug({
         tenantID: this.tenant.id,
-        action: 'OcpiPullTokens',
+        action: Action.OCPI_PULL_TOKENS,
         message: `${response.data.data.length} Tokens retrieved from ${tokensUrl}`,
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -137,7 +142,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OcpiAuthorizeToken',
+      action: Action.OCPI_AUTHORIZE_TOKEN,
       message: `Post authorize at ${tokensUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -165,7 +170,7 @@ export default class CpoOCPIClient extends OCPIClient {
 
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OcpiPullTokens',
+      action: Action.OCPI_AUTHORIZE_TOKEN,
       message: `Authorization response retrieved from ${tokensUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -183,6 +188,67 @@ export default class CpoOCPIClient extends OCPIClient {
     }
 
     return authorizationInfo.authorization_id;
+  }
+
+  async startSession(token: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, tag: Tag): Promise<OCPISession> {
+    // Get tokens endpoint url
+    const tokensUrl = `${this.getEndpointUrl('sessions')}/${this.getLocalCountryCode()}/${this.getLocalPartyID()}/${transaction.id}`;
+
+    // Build payload
+    const payload: OCPISession =
+      {
+        id: transaction.id.toString(),
+        'start_datetime': transaction.timestamp,
+        kwh: 0,
+        'total_cost': transaction.price,
+        'auth_method': OCPIAuthMethod.AUTH_REQUEST,
+        'auth_id': tag.ocpiToken.auth_id,
+        location: null,
+        currency: transaction.priceUnit,
+        status: OCPISessionStatus.PENDING,
+        'last_updated': transaction.timestamp
+      };
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_AUTHORIZE_TOKEN,
+      message: `Post authorize at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'authorizeToken',
+      detailedMessages: payload
+    });
+
+    // Call IOP
+    // eslint-disable-next-line no-case-declarations
+    const response = await axios.put(tokensUrl, payload,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Put Session`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Put Session: ${JSON.stringify(response.data)}`);
+    }
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Authorization response retrieved from ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'authorizeToken',
+      detailedMessages: response.data.data
+    })
+
+    return response.data.data as OCPISession;
   }
 
   async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {
@@ -208,7 +274,7 @@ export default class CpoOCPIClient extends OCPIClient {
   /**
    * PATH EVSE Status
    */
-  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: any) {
+  async patchEVSEStatus(locationId: string, evseUID: string, newStatus: OCPIEvseStatus) {
     // Check for input parameter
     if (!locationId || !evseUID || !newStatus) {
       throw new Error('Invalid parameters');
@@ -230,7 +296,7 @@ export default class CpoOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OcpiPatchLocations',
+      action: Action.OCPI_PATCH_LOCATIONS,
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -346,7 +412,7 @@ export default class CpoOCPIClient extends OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -357,7 +423,7 @@ export default class CpoOCPIClient extends OCPIClient {
       // Log info
       Logging.logInfo({
         tenantID: this.tenant.id,
-        action: 'OcpiEndpointSendEVSEStatuses',
+        action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
