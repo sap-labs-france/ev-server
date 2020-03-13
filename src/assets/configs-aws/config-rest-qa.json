@@ -32,13 +32,13 @@
     "port": 443
   },
   "WSDLEndpoint": {
-    "baseUrl": "https://soap.e-mobility-group.com"
+    "baseUrl": "https://soap.qa.e-mobility-group.com"
   },
   "JsonEndpoint": {
-    "baseUrl": "wss://ws.e-mobility-group.com"
+    "baseUrl": "wss://ws.qa.e-mobility-group.com"
   },
   "OCPIEndpoint": {
-    "baseUrl": "https://ocpi.e-mobility-group.com"
+    "baseUrl": "https://ocpi.qa.e-mobility-group.com"
   },
   "Storage": {
     "implementation": "mongodb",

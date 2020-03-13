@@ -246,7 +246,7 @@ export default class CpoOCPIClient extends OCPIClient {
       module: 'OCPIClient',
       method: 'authorizeToken',
       detailedMessages: response.data.data
-    })
+    });
 
     return response.data.data as OCPISession;
   }
