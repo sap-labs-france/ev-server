@@ -21,7 +21,7 @@ import ChargingStationConfiguration from '../../../types/configuration/ChargingS
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegitrationStatus } from '../../../types/ocpp/OCPPServer';
+import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
@@ -205,7 +205,7 @@ export default class OCPPService {
       // Return the result
       return {
         'currentTime': bootNotification.timestamp.toISOString(),
-        'status': RegitrationStatus.ACCEPTED,
+        'status': RegistrationStatus.ACCEPTED,
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
@@ -214,7 +214,7 @@ export default class OCPPService {
       Logging.logActionExceptionMessage(headers.tenantID, 'BootNotification', error);
       // Reject
       return {
-        'status': RegitrationStatus.REJECTED,
+        'status': RegistrationStatus.REJECTED,
         'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
@@ -592,6 +592,7 @@ export default class OCPPService {
           attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
         }
       );
+
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
       // Billing
@@ -610,6 +611,13 @@ export default class OCPPService {
         foundConnector.activeTransactionID = transaction.id;
         foundConnector.activeTransactionDate = transaction.timestamp;
         foundConnector.activeTagID = transaction.tagID;
+      } else {
+        Logging.logWarning({
+          tenantID: headers.tenantID,
+          source: chargingStation.id, module: Action.OCPP_SERVICE, method: 'handleStartTransaction',
+          action: 'StartTransaction', user: user,
+          message: `Missing connector '${transaction.connectorId}' > Transaction ID '${transaction.id}'`
+        });
       }
       // Set the active transaction on the connector
       // Update Heartbeat
@@ -624,17 +632,54 @@ export default class OCPPService {
         Logging.logInfo({
           tenantID: headers.tenantID,
           source: chargingStation.id, module: Action.OCPP_SERVICE, method: 'handleStartTransaction',
-          action: 'StartTransaction', user: user,
+          action: Action.START_TRANSACTION, user: user,
           message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
+
+        if (!user.issuer) {
+          if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+            throw new BackendError({
+              user: user,
+              action: Action.START_TRANSACTION,
+              module: 'Authorizations',
+              method: 'handleStartTransaction',
+              message: `Unable to start transaction for user '${user.id}' not issued locally`
+            });
+          }
+          const tag = user.tags.find(((value) => value.id === transaction.tagID));
+          if (!tag.ocpiToken) {
+            throw new BackendError({
+              user: user,
+              action: Action.START_TRANSACTION,
+              module: 'Authorizations',
+              method: 'handleStartTransaction',
+              message: `User '${user.id}' with tag '${transaction.tagID}' cannot start transaction thought OCPI protocol due to missing ocpiToken`
+            });
+          }
+          const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+          if (!ocpiClient) {
+            throw new BackendError({
+              user: user,
+              action: Action.START_TRANSACTION,
+              module: 'Authorizations',
+              method: 'handleStartTransaction',
+              message: 'OCPI component requires at least one CPO endpoint to start transactions'
+            });
+          }
+          transaction.ocpiSession = await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, tag);
+        }
       } else {
         // Log
         Logging.logInfo({
-          tenantID: headers.tenantID, source: chargingStation.id,
-          module: Action.OCPP_SERVICE, method: 'handleStartTransaction', action: 'StartTransaction',
+          tenantID: headers.tenantID,
+          source: chargingStation.id,
+          module: Action.OCPP_SERVICE,
+          method: 'handleStartTransaction',
+          action: Action.START_TRANSACTION,
           message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
       }
+
       // Return
       return {
         'transactionId': transaction.id,
