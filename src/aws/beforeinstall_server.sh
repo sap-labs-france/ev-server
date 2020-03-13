@@ -16,6 +16,7 @@ if [ -d $emobility_install_dir ]; then
   rm -rf $emobility_install_dir
 fi
 mkdir -p $emobility_install_dir
+chown $emobility_user.$emobility_user $emobility_install_dir
 
 if [ -d /etc/authbind/byuid ]
 then
