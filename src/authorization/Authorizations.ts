@@ -150,7 +150,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
-      'tagIDs': user.tags ? user.tags.map((tag) => tag.id) : [],
+      'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
