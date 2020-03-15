@@ -673,7 +673,7 @@
 			"capabilities": [
 				{
 					"supportedFirmwareVersions": [
-						"V01.01.91/V01.01.90",
+						"V01.01.91/V01.01.90"
 					],
 					"supportedOcppVersions": [
 						"1.6"
@@ -778,7 +778,7 @@
 			"capabilities": [
 				{
 					"supportedFirmwareVersions": [
-						"5.00-6542",
+						"5.00-6542"
 					],
 					"supportedOcppVersions": [
 						"1.6"
@@ -838,7 +838,7 @@
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
 						"StopTransactionOnEVSideDisconnect": "1",
 						"UnlockConnectorOnEVSideDisconnect": "1",
-						"WebSocketPingInterval": "120",
+						"WebSocketPingInterval": "120"
 					}
 				}
 			],
@@ -860,7 +860,7 @@
 						"OCPPMode": "2",
 						"OperatorCurrentLimit": "32",
 						"RestartTransAfterPowerLoss": "1",
-						"RFIDEnable": "1",
+						"RFIDEnable": "1"
 					}
 				}
 			]
