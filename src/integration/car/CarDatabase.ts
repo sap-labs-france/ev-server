@@ -17,7 +17,7 @@ export default abstract class CarDatabase {
     const cars = await this.getCars();
     for (const car of cars) {
       try {
-        const carDB = await CarStorage.getCar(car.id);
+        const carDB = await CarStorage.getCar(car.id,true);
         if (!carDB) {
           // New Car: Create it
           car.hash = Cypher.hash(JSON.stringify(car));
