@@ -85,7 +85,7 @@
 					],
 					"parameters": {
 						"AllowOfflineTxForUnknownId": "true",
-						"AuthorizationCacheEnabled": "true",
+						"AuthorizationCacheEnabled": "false",
 						"HeartBeatInterval": "60"
 					}
 				}
@@ -222,7 +222,7 @@
 					],
 					"parameters": {
 						"AllowOfflineTxForUnknownId": "true",
-						"AuthorizationCacheEnabled": "true",
+						"AuthorizationCacheEnabled": "false",
 						"HeartBeatInterval": "60"
 					}
 				}
@@ -494,7 +494,7 @@
 						"ClockAlignedDataInterval": "0",
 						"HeartBeatInterval": "60",
 						"ConnectionTimeOut": "60",						
-						"WebSocketPingInterval": "10",
+						"WebSocketPingInterval": "120",
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
 						"StopTransactionOnEVSideDisconnect": "1",
 						"UnlockConnectorOnEVSideDisconnect": "1",
@@ -597,14 +597,14 @@
 					],
 					"parameters": {
 						"MeterValueSampleInterval": "60",
-						"WebSocketPingInterval": "30",
+						"WebSocketPingInterval": "120",
 						"HeartBeatInterval": "60",
 						"MeterValuesSampledData": "SoC,Energy.Active.Import.Register",
 						"LocalAuthorizeOffline": "true",
 						"StopTransactionOnEVSideDisconnect": "true",
 						"ClockAlignedDataInterval": "0",
 						"UnlockConnectorOnEVSideDisconnect": "true",
-						"AuthorizationCacheEnabled": "true"
+						"AuthorizationCacheEnabled": "false"
 					}
 				}
 			],
@@ -673,14 +673,14 @@
 			"capabilities": [
 				{
 					"supportedFirmwareVersions": [
-						"V01.01.88/V01.01.88"
+						"V01.01.91/V01.01.90"
 					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"capabilities": {
-						"supportStaticLimitationForChargingStation": false,
-						"supportStaticLimitationPerConnector": false,
+						"supportStaticLimitationForChargingStation": true,
+						"supportStaticLimitationPerConnector": true,
 						"supportChargingProfiles": false
 					}
 				}
@@ -688,15 +688,28 @@
 			"ocppAdvancedCommands": [
 				{
 					"supportedFirmwareVersions": [
-						"V01.01.88/V01.01.88"
+						"V01.01.91/V01.01.90"
 					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"commands": [
+						"CancelReservation",
+						"ChangeAvailability",
+						"ChangeConfiguration",
+						"ClearCache",
+						"GetConfiguration",
+						"GetDiagnostics",
+						"RemoteStartTransaction",
+						"RemoteStopTransaction",
+						"ReserveNow",
+						"Reset",
+						"SendLocalList",
+						"SetChargingProfile",
+						"TriggerMessage",
+						"UnlockConnector",
 						"UpdateFirmware",
 						"FirmwareStatusNotification",
-						"GetDiagnostics",
 						"DiagnosticsStatusNotification"
 					]
 				}
@@ -704,27 +717,28 @@
 			"ocppStandardParameters": [
 				{
 					"supportedFirmwareVersions": [
-						"V01.01.88/V01.01.88"
+						"V01.01.91/V01.01.90"
 					],
 					"supportedOcppVersions": [
 						"1.6"
 					],
 					"parameters": {
+						"AuthorizationCacheEnabled": "false",
 						"ClockAlignedDataInterval": "0",
-						"UnlockConnectorOnEVSideDisconnect": "true",
+						"ConnectionTimeOut": "60",
 						"HeartBeatInterval": "60",
+						"MeterValuesSampledData": "Current.Import,Power.Active.Import,Energy.Active.Import.Interval,Energy.Active.Import.Register",
+						"LocalAuthorizeOffline": "false",
 						"MeterValueSampleInterval": "60",
-						"AllowOffLineTxForUnknownId":"true",
-						"LocalAuthorizeOffline": "true",
-						"ConnectionTimeOut": "60",						
-						"StopTransactionOnEVSideDisconnect": "true"			
+						"AllowOffLineTxForUnknownId":"false",
+						"UnlockConnectorOnEVSideDisconnect": "true"					
 					}
 				}
 			],
 			"ocppVendorParameters": [
 				{
 					"supportedFirmwareVersions": [
-						"V01.01.88/V01.01.88"
+						"V01.01.91/V01.01.90"
 					],
 					"supportedOcppVersions": [
 						"1.6"
@@ -732,7 +746,121 @@
 					"parameters": {
 						"StatusNotificationAfterBootNotification": "true",
 						"MeterValuesSampleClock": "false",
-						"ResetRetries": "2"
+						"ResetRetries": "2",
+						"CurrentManagementRight": "32",
+						"CurrentManagementLeft": "32"
+					}
+				}
+			]
+		}
+	},
+		{
+		"id": "Webasto~AC~Live",
+		"chargePointVendor": "Webasto",
+		"extraFilters": {
+			"chargePointModel": "Webasto_AC_Live"
+		},
+		"template": {
+			"cannotChargeInParallel": true,
+			"currentType": "AC",
+			"maximumPower": 22170,
+			"connectors": [
+				{
+					"connectorId": 1,
+					"power": 22170,
+					"type": "T2",
+					"currentType": "AC",
+					"numberOfConnectedPhase": 3,
+					"voltage": 400,
+					"amperage": 32
+				}
+			],
+			"capabilities": [
+				{
+					"supportedFirmwareVersions": [
+						"5.00-6542"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"capabilities": {
+						"supportStaticLimitationForChargingStation": true,
+						"supportStaticLimitationPerConnector": true,
+						"supportChargingProfiles": false
+					}
+				}
+			],
+			"ocppAdvancedCommands": [
+				{
+					"supportedFirmwareVersions": [
+						"5.00-6542"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"commands": [
+						"CancelReservation",
+						"ChangeAvailability",
+						"ChangeConfiguration",
+						"ClearCache",
+						"GetConfiguration",
+						"GetDiagnostics",
+						"RemoteStartTransaction",
+						"RemoteStopTransaction",
+						"ReserveNow",
+						"Reset",
+						"SendLocalList",
+						"SetChargingProfile",
+						"TriggerMessage",
+						"UnlockConnector",
+						"UpdateFirmware",
+						"FirmwareStatusNotification",
+						"DiagnosticsStatusNotification"
+					]
+				}
+			],
+			"ocppStandardParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"5.00-6542"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"AuthorizationCacheEnabled": "1",
+						"AuthorizeRemoteTxRequests": "1",
+						"ClockAlignedDataInterval": "0",
+						"ConnectionTimeOut": "60",	
+						"HeartBeatInterval": "60",
+						"LocalAuthorizeOffline": "1",
+						"MeterValueSampleInterval": "60",
+						"MeterValuesSampledData": "Energy.Active.Import.Register",
+						"StopTransactionOnEVSideDisconnect": "1",
+						"UnlockConnectorOnEVSideDisconnect": "1",
+						"WebSocketPingInterval": "120"
+					}
+				}
+			],
+			"ocppVendorParameters": [
+				{
+					"supportedFirmwareVersions": [
+						"5.00-6542"
+					],
+					"supportedOcppVersions": [
+						"1.6"
+					],
+					"parameters": {
+						"BackendConnectionTimeout": "60",
+						"ErrorStatusNotifications": "1",
+						"idTagLetterCase": "1",
+						"InfoStatusNotifications": "0",
+						"FreeCharging": "0",
+						"FreeChargingMode": "4",
+						"OCPPMode": "2",
+						"OperatorCurrentLimit": "32",
+						"RestartTransAfterPowerLoss": "1",
+						"RFIDEnable": "1"
 					}
 				}
 			]

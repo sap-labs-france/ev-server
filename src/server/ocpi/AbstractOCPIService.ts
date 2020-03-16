@@ -242,7 +242,7 @@ export default abstract class AbstractOCPIService {
             source: Constants.OCPI_SERVER,
             module: MODULE_NAME,
             method: action,
-            message: `<< OCPI Endpoint ${req.originalUrl} not implemented`,
+            message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: action
           });
           res.sendStatus(501);
@@ -260,6 +260,15 @@ export default abstract class AbstractOCPIService {
         });
       }
     } catch (error) {
+      Logging.logDebug({
+        tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: action,
+        message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
+        action: action,
+        detailedMessages: error
+      });
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
       let errorCode: any = {};
       if (error instanceof AppError || error instanceof AppAuthError) {

@@ -22,7 +22,8 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
-  ConnectorStatus?: ChargePointStatus;
+  ConnectorStatus?: string;
+  ConnectorType?: string;
   SiteID?: string;
   WithSite?: boolean;
   SiteAreaID?: string;
