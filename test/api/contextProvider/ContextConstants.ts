@@ -570,4 +570,11 @@ export default class CONTEXTS {
     }
   ];
 
+  // List of buildings created in a tenant where organization component is active
+  static readonly TENANT_BUILDING_LIST: any = [
+    {
+      id: '5e68ae9e2fa3df719875edef',
+      siteAreaID: '5ce249a2372f0b1c8caf9294'
+    }
+  ];
 }
