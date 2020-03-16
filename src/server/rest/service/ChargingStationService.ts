@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, request } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../authorization/Authorizations';
@@ -33,7 +33,6 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
 
 export default class ChargingStationService {
-
 
   public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
