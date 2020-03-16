@@ -53,6 +53,16 @@ export default class TenantValidator extends SchemaValidator {
           module: this.moduleName, method: 'validateTenantUpdate'
         });
       }
+      // Building active: Organization must be active
+      if (tenant.components.building && tenant.components.organization &&
+        tenant.components.building.active && !tenant.components.organization.active) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: 'Organization must be active to use the Building component',
+          module: this.moduleName, method: 'validateTenantUpdate'
+        });
+      }
       // Billing active: Pricing must be active
       if (tenant.components.billing && tenant.components.pricing &&
           tenant.components.billing.active && !tenant.components.pricing.active) {
