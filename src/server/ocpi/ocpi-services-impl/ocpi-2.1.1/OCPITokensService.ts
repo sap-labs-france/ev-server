@@ -28,19 +28,19 @@ export default class OCPITokensService {
     const email = OCPIUtils.buildUserEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId);
     let user = await UserStorage.getUserByEmail(tenantId, email);
     if (user) {
+      if (user.issuer) {
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'updateToken',
+          errorCode: HttpStatusCodes.CONFLICT,
+          message: `The token ${token.uid} is already assigned to internal user`,
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      }
       const tag = user.tags.find((value) => value.id === token.uid);
       if (tag) {
-        if (tag.issuer) {
-          throw new AppError({
-            source: Constants.OCPI_SERVER,
-            module: MODULE_NAME,
-            method: 'updateToken',
-            errorCode: HttpStatusCodes.CONFLICT,
-            message: `The token ${token.uid} is already assigned to internal user`,
-            detailedMessages: token,
-            ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-          });
-        }
         tag.issuer = false;
         tag.lastChangedOn = token.last_updated;
         tag.description = token.visual_number;
