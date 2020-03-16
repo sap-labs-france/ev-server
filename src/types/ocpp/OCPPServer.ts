@@ -25,7 +25,7 @@ export interface OCPPBootNotificationRequestExtended extends OCPPBootNotificatio
 }
 
 export interface OCPPBootNotificationResponse {
-  status: RegitrationStatus;
+  status: RegistrationStatus;
   currentTime: string;
   heartbeatInterval: number;
 }
@@ -42,7 +42,7 @@ export enum OCPPVersion {
   VERSION_20 = '2.0',
 }
 
-export enum RegitrationStatus {
+export enum RegistrationStatus {
   ACCEPTED = 'Accepted',
   PENDING = 'Pending',
   REJECTED = 'Rejected'

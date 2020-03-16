@@ -78,8 +78,15 @@ export enum Action {
   GET_CAR_OBJECT = 'GetCarObject',
 
 
+  OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+  OCPI_PUSH_TOKENS = 'OCPIPushTokens',
+  OCPI_PUSH_SESSIONS = 'OCPIPushSessions',
+  OCPI_PULL_CDRS = 'OCPIPullCdrs',
+  OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
+  OCPI_PULL_SESSIONS = 'OCPIPullSessions',
+  OCPI_PULL_TOKENS = 'OCPIPullTokens',
 
   OCPP_SERVICE = 'OCPPService',
 
