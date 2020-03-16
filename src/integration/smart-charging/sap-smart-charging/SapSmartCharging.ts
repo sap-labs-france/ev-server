@@ -8,8 +8,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     super(tenantID, setting);
   }
 
+
   public async getChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
     // Optimizer implementation
     return null;
   }
+
+
 }

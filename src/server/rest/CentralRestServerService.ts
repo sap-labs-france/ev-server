@@ -155,6 +155,7 @@ class RequestMapper {
           ChargingStationTransactionsStatistics: StatisticService.handleGetChargingStationTransactionsStatistics.bind(this),
           ChargingStationPricingStatistics: StatisticService.handleGetChargingStationPricingStatistics.bind(this),
           CurrentMetrics: StatisticService.handleGetCurrentMetrics.bind(this),
+          CallOptimizer: ChargingStationService.callOptimizer.bind(this),
           StatisticsExport: StatisticService.handleGetStatisticsExport.bind(this),
           UserConsumptionStatistics: StatisticService.handleGetUserConsumptionStatistics.bind(this),
           UserUsageStatistics: StatisticService.handleGetUserUsageStatistics.bind(this),
