@@ -302,7 +302,7 @@ export default class ContextBuilder {
           dummyBuilding.createdOn = moment().toISOString();
           dummyBuilding.issuer = true;
           dummyBuilding.siteAreaID = buildingDef.siteAreaID;
-          console.log(dummyBuilding.name);
+          console.log(`Building '${dummyBuilding.name}' created`);
           await BuildingStorage.saveBuilding(buildTenant.id, dummyBuilding);
           newTenantContext.getContext().buildings.push(dummyBuilding);
         }
