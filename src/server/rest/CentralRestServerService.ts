@@ -167,7 +167,6 @@ class RequestMapper {
           ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
-          CallOptimizer: ChargingStationService.callOptimizer.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
