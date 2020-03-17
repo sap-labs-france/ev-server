@@ -156,7 +156,7 @@ export default abstract class Billing<T extends BillingSetting> {
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_BILLING,
           module: 'Billing', method: 'synchronizeUsers',
-          message: `${actionsDone.error} user(s) failed to synchronize`
+          message: `Synchronization failed with ${actionsDone.error} errors. Check your Billing system's logs.`
         });
       }
     } else {
