@@ -1,26 +1,26 @@
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import ChargingStation, { Connector } from '../../types/ChargingStation';
+import ChargingStation from '../../types/ChargingStation';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
-import Utils from '../../utils/Utils';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate() {
     // Update Template
     await this.updateChargingStationTemplate();
-    // Update Charging Stations
-    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
-    for (const tenant of tenants.result) {
-      // Update current Charging Station with Template
-      await this.updateChargingStationsWithTemplate(tenant);
-      // Remove unused props
-      await this.removeChargingStationUnusedProps(tenant);
-    }
+    // Avoid migrating the current charging stations due to Schneider charge@home Wallboxes
+    // // Update Charging Stations
+    // const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
+    // for (const tenant of tenants.result) {
+    //   // Update current Charging Station with Template
+    //   await this.updateChargingStationsWithTemplate(tenant);
+    //   // Remove unused props
+    //   await this.removeChargingStationUnusedProps(tenant);
+    // }
   }
 
   private async updateChargingStationsWithTemplate(tenant: Tenant) {
@@ -100,7 +100,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.1';
+    return '1.2';
   }
 
   getName() {
