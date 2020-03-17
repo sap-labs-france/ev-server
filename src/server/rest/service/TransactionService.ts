@@ -291,20 +291,6 @@ export default class TransactionService {
       UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
         'TransactionService', 'handleTransactionSoftStop', req.user);
     }
-    if (!chargingStation.inactive) {
-      for (const connector of chargingStation.connectors) {
-        if (connector && connector.activeTransactionID === transaction.id) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: `The active transaction ${transaction.id} on the active charging station ${chargingStation.id} must be stopped remotely`,
-            module: 'TransactionService',
-            method: 'handleTransactionSoftStop',
-            user: req.user
-          });
-        }
-      }
-    }
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
       {
