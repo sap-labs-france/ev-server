@@ -723,7 +723,17 @@ export default class UserStorage {
     };
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean; userID?: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTag(tenantID: string, id: string): Promise<Tag> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getTag');
+    // Get tag
+    const tag = await UserStorage.getTags(tenantID, { tagID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getTag', uniqueTimerID, { id });
+    return tag.count > 0 ? tag.result[0] : null;
+  }
+
+  public static async getTags(tenantID: string, params: { issuer?: boolean; tagID?: string; userID?: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -736,6 +746,9 @@ export default class UserStorage {
     const aggregation = [];
     if (params) {
       const filters = [];
+      if (params.tagID) {
+        filters.push({ _id: params.tagID });
+      }
       if (params.userID) {
         filters.push({ userID: Utils.convertToObjectID(params.userID) });
       }

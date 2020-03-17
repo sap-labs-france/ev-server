@@ -1488,7 +1488,7 @@ export default class ChargingStationService {
       }
       // Throw error
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1498,7 +1498,7 @@ export default class ChargingStationService {
       });
     } catch (error) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,

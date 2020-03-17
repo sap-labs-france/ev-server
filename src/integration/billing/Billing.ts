@@ -1,14 +1,14 @@
-import BackendError from '../../exception/BackendError';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { Action } from '../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
-import { UserInErrorType } from '../../types/InError';
-import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
+import { Action } from '../../types/Authorization';
+import BackendError from '../../exception/BackendError';
+import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import { UserInErrorType } from '../../types/InError';
+import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
   protected readonly tenantID: string; // Assuming GUID or other string format ID
@@ -141,13 +141,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
     // Log
     if (actionsDone.synchronized || actionsDone.error) {
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
-        module: 'Billing', method: 'synchronizeUsers',
-        message: `${actionsDone.synchronized} user(s) were successfully synchronized, ${actionsDone.error} got errors`
-      });
+      if (actionsDone.synchronized > 0) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.synchronized} user(s) were successfully synchronized`
+        });
+      }
+      if (actionsDone.error > 0) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.error} user(s) failed to synchronize`
+        });
+      }
     } else {
       Logging.logInfo({
         tenantID: tenantID,
