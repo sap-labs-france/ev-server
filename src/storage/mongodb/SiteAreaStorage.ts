@@ -117,11 +117,9 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
     }
-
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
-
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -132,11 +130,10 @@ export default class SiteAreaStorage {
     }
     // Sites
     if (params.withSite) {
-      DatabaseUtils.pushSiteLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-          asField: 'site', oneToOneCardinality: true
-        });
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
