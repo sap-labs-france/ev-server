@@ -1,39 +1,35 @@
-/* tslint:disable */
-/* eslint-disable */
-// Generated using typescript-generator version 2.18.565 on 2020-03-02 15:20:30.
-
-export interface OptimizeChargingProfilesRequest {
-  state: StateStore;
-  event: EventStore;
+export interface OptimizerChargingProfilesRequest {
+  state: OptimizerState;
+  event: OptimizerEvent;
   verbosity?: number;
 }
 
-export interface OptimizeChargingProfilesResponse {
-  cars?: Car[];
+export interface OptimizerChargingProfilesResponse {
+  cars?: OptimizerCar[];
 }
 
-export interface StateStore {
+export interface OptimizerState {
   currentTimeSeconds: number;
-  fuseTree?: FuseTree;
-  chargingStations?: ChargingStationStore[];
+  optimizerFuseTree?: OptimizerFuseTree;
+  chargingStations?: OptimizerChargingStation[];
   maximumSiteLimitKW?: number;
-  cars: Car[];
-  energyPriceHistory?: EnergyPriceHistory;
-  carAssignments: CarAssignmentStore[];
+  cars: OptimizerCar[];
+  energyPriceHistory?: OptimizerEnergyPriceHistory;
+  carAssignments: OptimizerCarAssignment[];
 }
 
-export interface EventStore {
+export interface OptimizerEvent {
   carID?: number;
   chargingStationID?: number;
-  energyPriceHistory?: EnergyPriceHistory;
-  eventType: EventType;
+  energyPriceHistory?: OptimizerEnergyPriceHistory;
+  eventType: OptimizerEventType;
 }
 
-export interface Car extends JSONSerializable, Loggable {
+export interface OptimizerCar {
   id: number;
   name?: string;
   modelName?: string;
-  carType: CarType;
+  carType: OptimizerCarType;
   startCapacity?: number;
   timestampArrival: number;
   timestampDeparture?: number;
@@ -54,70 +50,52 @@ export interface Car extends JSONSerializable, Loggable {
   chargedCapacity?: number;
 }
 
-export interface FuseTree extends JSONSerializable {
-  rootFuse: Fuse;
+export interface OptimizerFuseTree {
+  rootFuse: OptimizerFuse;
   numberChargingStationsBottomLevel?: number;
 }
 
-export interface ChargingStationStore {
-  id: number;
-  fusePhase1: number;
-  fusePhase2: number;
-  fusePhase3: number;
-  phaseToGrid?: { [P in Phase]?: Phase };
-  phaseToChargingStation?: { [P in Phase]?: Phase };
-}
-
-export interface EnergyPriceHistory extends JSONSerializable {
+export interface OptimizerEnergyPriceHistory {
   energyPrices?: number[];
   date?: string;
 }
 
-export interface CarAssignmentStore {
+export interface OptimizerCarAssignment {
   carID: number;
   chargingStationID: number;
 }
 
-export interface JSONSerializable {
-}
-
-export interface Loggable {
-}
-
-export interface Fuse extends FuseTreeNode {
-  "@type": "Fuse";
+export interface OptimizerFuse extends OptimizerFuseTreeNode {
   id: number;
   fusePhase1: number;
   fusePhase2: number;
   fusePhase3: number;
-  children: FuseTreeNodeUnion[];
+  children: OptimizerFuseTreeNodeUnion[];
 }
 
-export interface FuseTreeNode extends JSONSerializable {
-  "@type": "Fuse" | "ChargingStation";
-  children?: FuseTreeNodeUnion[];
+export interface OptimizerFuseTreeNode {
+  children?: OptimizerFuseTreeNodeUnion[];
   id?: number;
 }
 
-export interface ChargingStation extends FuseTreeNode {
-  "@type": "ChargingStation";
+export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
   id: number;
   fusePhase1?: number;
   fusePhase2?: number;
   fusePhase3?: number;
-  phaseToGrid?: { [P in Phase]?: Phase };
-  phaseToChargingStation?: { [P in Phase]?: Phase };
+  phaseToGrid?: { [P in OptimizerPhase]?: OptimizerPhase };
+  phaseToChargingStation?: { [P in OptimizerPhase]?: OptimizerPhase };
   isBEVAllowed?: boolean;
   isPHEVAllowed?: boolean;
-  status?: StationStatus;
+  status?: OptimizerStationStatus;
 }
 
-export type EventType = "CarArrival" | "CarDeparture" | "CarFinished" | "EnergyPriceChange" | "Reoptimize";
+export type OptimizerEventType = 'CarArrival' | 'CarDeparture' | 'CarFinished' | 'EnergyPriceChange' | 'Reoptimize';
 
-export type CarType = "BEV" | "PHEV" | "PETROL" | "DIESEL";
+export type OptimizerCarType = 'BEV' | 'PHEV' | 'PETROL' | 'DIESEL';
 
-export type Phase = "PHASE_1" | "PHASE_2" | "PHASE_3";
+export type OptimizerPhase = 'PHASE_1' | 'PHASE_2' | 'PHASE_3';
 
-export type StationStatus = "Free" | "Charging" | "Reserved" | "Blocked" | "Maintenance" | "Disconnected";
+export type OptimizerStationStatus = 'Free' | 'Charging' | 'Reserved' | 'Blocked' | 'Maintenance' | 'Disconnected';
 
-export type FuseTreeNodeUnion = Fuse | ChargingStation;
+export type OptimizerFuseTreeNodeUnion = OptimizerFuse | OptimizerChargingStation;
