@@ -19,24 +19,34 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
 
 
   public async computeAndApplyChargingProfiles(siteArea: SiteArea) {
+    // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.getChargingProfiles(siteArea);
-    const results = [];
-
-    console.log(chargingProfiles);
-
+    if (!chargingProfiles) {
+      throw new AppError({
+        source: siteArea.id,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
+        message: `No Charging Profiles for Site Area "${siteArea.id}"`,
+      });
+    }
+    // Apply the charging plans
     for (const chargingProfile of chargingProfiles) {
-
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingProfile.id);
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingProfile.chargingStationID);
       // Get Vendor Instance
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-      // Set Charging Profile
-      results.push(await chargingStationVendor.setChargingProfile(this.tenantID, chargingStation, chargingProfile));
+      // Setting Profiles Success?
+      let success = true;
+      try {
+        // Set Charging Profile
+        await chargingStationVendor.setChargingProfile(this.tenantID, chargingStation, chargingProfile);
+      } catch (error) {
+        success = false;
+      }
+      if (!success) {
+        await chargingStationVendor.clearAllChargingProfiles(this.tenantID, chargingStation, chargingProfiles);
+      }
     }
-
-    // Get the factory
-    // Call the charging plans
-    // Apply the charging plans
-    return results;
   }
 
   protected getSettings(): T {

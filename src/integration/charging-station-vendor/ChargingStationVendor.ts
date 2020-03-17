@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
@@ -8,6 +9,8 @@ import ChargingStation, { ConnectorCurrentLimit, StaticLimitAmps } from '../../t
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import AppError from '../../exception/AppError';
+import { HTTPError } from '../../types/HTTPError';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
@@ -126,10 +129,11 @@ export default abstract class ChargingStationVendor {
       }
     }
     try {
+      let result;
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Set the Profile
-        const result = await chargingStationClient.setChargingProfile({
+        result = await chargingStationClient.setChargingProfile({
           connectorId: schneiderChargingProfile.connectorID,
           csChargingProfiles: schneiderChargingProfile.profile
         });
@@ -143,24 +147,55 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          let results = [] as OCPPSetChargingProfileCommandResult[];
+          result = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
-            const result = await chargingStationClient.setChargingProfile({
+            result.push(await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
               csChargingProfiles: schneiderChargingProfile.profile
-            });
-            results.push(result);
+            }));
           }
-          return results;
         }
-        return result;
         // Connector ID > 0
       } else {
-        return chargingStationClient.setChargingProfile({
+        result = chargingStationClient.setChargingProfile({
           connectorId: schneiderChargingProfile.connectorID,
           csChargingProfiles: schneiderChargingProfile.profile
         });
       }
+
+      // Check for Array
+      let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
+      if (Array.isArray(result)) {
+        for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+          if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
+            resultStatus = oneResult.status;
+            break;
+          }
+        }
+      } else {
+        resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+      }
+      if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: Action.CHARGING_PROFILE_UPDATE,
+          errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
+          module: 'ChargingStationVendor', method: 'setChargingProfile',
+          message: `Cannot set the Charging Profile!`,
+          detailedMessages: { result, chargingProfile },
+        });
+      }
+      // Save
+      await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        message: 'Charging Profile has been successfully pushed and saved',
+        detailedMessages: { chargingProfile }
+      });
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -184,10 +219,11 @@ export default abstract class ChargingStationVendor {
       });
     }
     try {
+      let result;
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Clear the Profile
-        const result = await chargingStationClient.clearChargingProfile({
+        result = await chargingStationClient.clearChargingProfile({
           connectorId: chargingProfile.connectorID
         });
         // Call each connector?
@@ -200,29 +236,26 @@ export default abstract class ChargingStationVendor {
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
-          let results = [] as OCPPClearChargingProfileCommandResult[];
+          result = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
-            const result = await chargingStationClient.clearChargingProfile({
+            result.push(await chargingStationClient.clearChargingProfile({
               connectorId: connector.connectorId
-            });
-            results.push(result);
+            }));
           }
           // Reapply the current limitation
-          await this.setPowerLimitation(tenantID, chargingStation, 0,
+          result = await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
-          return results;
         }
         // Reapply the current limitation
         if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
           await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
-        return result;
         // Connector ID > 0
       } else {
         // Clear the Profile
-        const result = await chargingStationClient.clearChargingProfile({
+        result = await chargingStationClient.clearChargingProfile({
           connectorId: chargingProfile.connectorID
         });
         if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
@@ -230,8 +263,18 @@ export default abstract class ChargingStationVendor {
           await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
-        return result;
       }
+
+      // Delete
+      await ChargingStationStorage.deleteChargingProfile(tenantID, chargingProfile.id);
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_DELETE,
+        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        message: 'Charging Profile has been deleted successfully',
+      });
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -239,6 +282,15 @@ export default abstract class ChargingStationVendor {
       return {
         status: error.status
       };
+    }
+  }
+
+  public async clearAllChargingProfiles(tenantID: string, chargingStation: ChargingStation,
+    chargingProfiles: ChargingProfile[]) {
+    if (chargingProfiles) {
+      for (const chargingProfile of chargingProfiles) {
+        await this.clearChargingProfile(tenantID, chargingStation, chargingProfile);
+      }
     }
   }
 
@@ -306,7 +358,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCurrentConnectorLimit(tenantID: string,
-      chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     // Default
     const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
     // Should fail safe!
@@ -325,8 +377,8 @@ export default abstract class ChargingStationVendor {
       // Get the current connector limitation from the charging plan
       // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
       if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+        compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+        compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
         let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
         // Check
         if (connectorLimitAmps > limitDefaultMaxAmps) {
@@ -341,7 +393,7 @@ export default abstract class ChargingStationVendor {
       const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
         tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
       if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
-          ocppConfiguration.configurationKey[0].value) {
+        ocppConfiguration.configurationKey[0].value) {
         let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
         // Check
         if (connectorLimitAmps > limitDefaultMaxAmps) {

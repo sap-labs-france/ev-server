@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/member-ordering */
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import sanitize from 'mongo-sanitize';
@@ -445,41 +446,6 @@ export default class ChargingStationService {
     }
     // Set Charging Profile
     const result = await chargingStationVendor.setChargingProfile(user.tenantID, chargingStation, chargingProfile);
-    // Check for Array
-    let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
-    if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
-        if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
-          resultStatus = oneResult.status;
-          break;
-        }
-      }
-    } else {
-      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
-    }
-    if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
-      throw new AppError({
-        source: chargingStation.id,
-        action: action,
-        user: user,
-        errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
-        module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
-        message: `Cannot set the Charging Profile!`,
-        detailedMessages: { result, chargingProfile },
-      });
-    }
-    // Save
-    await ChargingStationStorage.saveChargingProfile(user.tenantID, chargingProfile);
-    // Log
-    Logging.logInfo({
-      tenantID: user.tenantID,
-      source: chargingStation.id,
-      action: action,
-      user: user,
-      module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
-      message: 'Charging Profile has been successfully pushed and saved',
-      detailedMessages: { chargingProfile }
-    });
   }
 
   public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -540,17 +506,7 @@ export default class ChargingStationService {
     // 2\ Charging Profile does not exist : Status = UNKNOWN
     // As there are only 2 statuses, testing them is not necessary
     await chargingStationVendor.clearChargingProfile(req.user.tenantID, chargingStation, chargingProfile);
-    // Delete
-    await ChargingStationStorage.deleteChargingProfile(req.user.tenantID, chargingProfile.id);
-    // Log
-    Logging.logInfo({
-      tenantID: req.user.tenantID,
-      source: chargingStation.id,
-      action: action,
-      user: req.user,
-      module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
-      message: 'Charging Profile has been deleted successfully',
-    });
+
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
