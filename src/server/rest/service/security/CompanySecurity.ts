@@ -2,7 +2,8 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCompaniesRequest } from '../../../../types/requests/HttpCompanyRequest';
 import UserToken from '../../../../types/UserToken';
 import SiteSecurity from './SiteSecurity';
 import UtilsSecurity from './UtilsSecurity';
@@ -13,7 +14,7 @@ export default class CompanySecurity {
     return sanitize(request.ID);
   }
 
-  public static filterCompanyRequest(request: any): HttpCompanyRequest {
+  public static filterCompanyRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)
     };
