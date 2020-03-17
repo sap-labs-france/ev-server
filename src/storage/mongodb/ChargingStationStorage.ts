@@ -5,12 +5,12 @@ import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationTemplate, Connector } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate, Connector, ConnectorType, PowerLimitUnits } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
-import { ChargePointStatus, OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -884,12 +884,19 @@ export default class ChargingStationStorage {
               { 'maximumPower': { $exists: false } }, { 'maximumPower': { $lte: 0 } }, { 'maximumPower': null },
               { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
               { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
-              { 'numberOfConnectedPhase': { $exists: false } }, { 'numberOfConnectedPhase': null }, { 'numberOfConnectedPhase': { $nin: [0, 1, 3] } },
-              { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null }, { 'powerLimitUnit': { $nin: ['A', 'W'] } },
+              { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null },
+              { 'powerLimitUnit': { $nin: [PowerLimitUnits.AMPERE, PowerLimitUnits.WATT] } },
               { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
               { 'cannotChargeInParallel': { $exists: false } }, { 'cannotChargeInParallel': null },
+              { 'currentType': { $exists: false } }, { 'currentType': null },
+              { 'currentType': { $nin: [ChargingStationCurrentType.AC, ChargingStationCurrentType.DC, ChargingStationCurrentType.AC_DC] } },
+              { 'connectors.numberOfConnectedPhase': { $exists: false } }, { 'connectors.numberOfConnectedPhase': null }, { 'connectors.numberOfConnectedPhase': { $nin: [0, 1, 3] } },
               { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
-              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } }
+              { 'connectors.type': { $nin: [ConnectorType.CHADEMO, ConnectorType.COMBO_CCS, ConnectorType.DOMESTIC, ConnectorType.TYPE_1, ConnectorType.TYPE_1_CCS, ConnectorType.TYPE_2, ConnectorType.TYPE_3C] } },
+              { 'connectors.currentType': { $exists: false } }, { 'connectors.currentType': null }, { 'connectors.currentType': { $eq: '' } },
+              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } },
+              { 'connectors.voltage': { $exists: false } }, { 'connectors.voltage': null }, { 'connectors.voltage': { $lte: 0 } },
+              { 'connectors.amperage': { $exists: false } }, { 'connectors.amperage': null }, { 'connectors.amperage': { $lte: 0 } },
             ]
           }
         },
