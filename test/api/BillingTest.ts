@@ -214,6 +214,10 @@ describe('Billing Service', function() {
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
 
+      // it('Should create an invoice', async () => {
+      //   const billingUser = await billingImpl.getUserByEmail(testData.userContext.)
+      // });
+
       after(async () => {
         await TestData.setBillingSystemValidCredentials(testData);
         for (const user of testData.createdUsers) {

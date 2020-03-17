@@ -1,4 +1,4 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 import { Action } from '../../types/Authorization';
 import BackendError from '../../exception/BackendError';
@@ -257,4 +257,6 @@ export default abstract class Billing<T extends BillingSetting> {
   async abstract getTaxes(): Promise<BillingTax[]>;
 
   async abstract getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]>;
+
+  async abstract createInvoice(user: User, invoiceItems: BillingInvoiceItem[]): Promise<void>;
 }

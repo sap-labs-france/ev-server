@@ -61,12 +61,7 @@ export enum Action {
   REGISTER = 'Register',
   REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
-  CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
-  SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
   SYNCHRONIZE_CARS = 'SynchronizeCars',
-  BILLING_TRANSACTION = 'BillingTransaction',
-  READ_BILLING_TAXES = 'ReadBillingTaxes',
-  READ_BILLING_INVOICES = 'ReadBillingInvoices',
   POWER_LIMITATION = 'PowerLimitation',
   SET_CHARGING_PROFILE = 'SetChargingProfile',
   EXPORT_PARAMS = 'ExportParams',
@@ -99,6 +94,12 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
+  SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
+  CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
+  BILLING_TRANSACTION = 'BillingTransaction',
+  READ_BILLING_TAXES = 'ReadBillingTaxes',
+  READ_BILLING_INVOICES = 'ReadBillingInvoices',
+  CREATE_BILLING_INVOICE = 'CreateBillingInvoice',
 
   MONGO_DB = 'MongoDB',
 

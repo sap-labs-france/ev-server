@@ -56,4 +56,11 @@ export interface BillingInvoice {
   customerID: string;
   createdOn: Date;
   downloadUrl: string;
+  payUrl: string;
+}
+
+export interface BillingInvoiceItem {
+  description: string;
+  amount: number;
+  taxes?: string[];
 }

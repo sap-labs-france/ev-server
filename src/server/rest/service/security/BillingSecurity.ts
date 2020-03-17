@@ -1,5 +1,5 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import {HttpDownloadInvoiceRequest, HttpGetUserInvoicesRequest, HttpSynchronizeUserRequest} from '../../../../types/requests/HttpUserRequest';
+import { HttpGetUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import Authorizations from '../../../../authorization/Authorizations';
 import UserToken from '../../../../types/UserToken';
 import sanitize from 'mongo-sanitize';
@@ -65,6 +65,7 @@ export default class BillingSecurity {
       filteredInvoice.amountDue = invoice.amountDue;
       filteredInvoice.createdOn = invoice.createdOn;
       filteredInvoice.downloadUrl = invoice.downloadUrl;
+      filteredInvoice.payUrl = invoice.payUrl;
     }
     return filteredInvoice;
   }
@@ -90,14 +91,6 @@ export default class BillingSecurity {
     }
     if (request.EndDateTime) {
       filteredRequest.endDateTime = sanitize(request.EndDateTime);
-    }
-    return filteredRequest;
-  }
-
-  static filterDownloadInvoiceRequest(request: any): HttpDownloadInvoiceRequest {
-    const filteredRequest = {} as HttpDownloadInvoiceRequest;
-    if (request.Invoice) {
-      filteredRequest.invoice = sanitize(request.Invoice);
     }
     return filteredRequest;
   }

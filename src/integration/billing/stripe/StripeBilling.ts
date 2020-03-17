@@ -1,25 +1,25 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import i18n from 'i18n-js';
-import moment from 'moment';
-import Stripe from 'stripe';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { Action } from '../../../types/Authorization';
 import BackendError from '../../../exception/BackendError';
-import { Action, Entity } from '../../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import Billing from '../Billing';
+import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
+import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
+import Stripe from 'stripe';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
-import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import Billing from '../Billing';
+import i18n from 'i18n-js';
+import moment from 'moment';
+import AppError from '../../../exception/AppError';
+import { HTTPError } from '../../../types/HTTPError';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
-import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
-import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
-import AppAuthError from '../../../exception/AppAuthError';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -183,7 +183,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: invoice.currency,
             customerID: invoice.customer,
             createdOn: new Date(invoice.created * 1000),
-            downloadUrl: invoice.invoice_pdf
+            downloadUrl: invoice.invoice_pdf,
+            payUrl: invoice.hosted_invoice_url
           });
         }
         if (request.has_more) {
@@ -253,6 +254,38 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       });
     }
     return collectedCustomerIDs;
+  }
+
+  public async createInvoice(user: User, invoiceItems: BillingInvoiceItem[]): Promise<void> {
+    this.checkIfStripeIsInitialized();
+    await this.checkConnection();
+
+    if (!await this.userExists(user)) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE_BILLING_INVOICE,
+        module: 'StripeBilling', method: 'createInvoice',
+        message: 'Impossible to create invoice for unknown Billing user',
+      });
+    }
+    if (invoiceItems.length === 0) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE_BILLING_INVOICE,
+        module: 'StripeBilling', method: 'createInvoice',
+        message: 'Cannot create invoice with no items',
+      });
+    }
+
+    for (const invoiceItem of invoiceItems) {
+      await this.stripe.invoiceItems.create({
+        customer: user.billingData.customerID,
+        currency: this.settings.currency.toLocaleLowerCase(),
+        amount: invoiceItem.amount * 100,
+        description: invoiceItem.description,
+        tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
+      });
+    }
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
