@@ -172,7 +172,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
     }
     do {
-      request = await this.stripe.invoiceitems.list(requestParams);
+      request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
         invoices.push({
           id: invoice.id,
@@ -254,7 +254,48 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return collectedCustomerIDs;
   }
 
-  public async createInvoiceItem(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<void> {
+  public async createInvoice(user: BillingPartialUser): Promise<BillingInvoice> {
+    this.checkIfStripeIsInitialized();
+    await this.checkConnection();
+
+    const invoiceItems = await this.stripe.invoiceItems.list({
+      customer: user.billingData.customerID
+    });
+    if (!invoiceItems || !invoiceItems.data) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE_BILLING_INVOICE,
+        module: 'StripeBilling', method: 'createInvoice',
+        message: 'Cannot create invoice with no items',
+      });
+    }
+    let collectionMethod = 'send_invoice';
+    let daysUntilDue = 30;
+    if (user.billingData.cardID) {
+      collectionMethod = 'charge_automatically';
+      daysUntilDue = 0;
+    }
+    let invoice;
+    if (collectionMethod === 'send_invoice') {
+      invoice = await this.stripe.invoices.create({
+        customer: user.billingData.customerID,
+        collection_method: 'send_invoice',
+        days_until_due: daysUntilDue,
+        auto_advance: true
+      });
+      invoice = await this.stripe.invoices.sendInvoice(invoice.id);
+    } else {
+      invoice = await this.stripe.invoices.create({
+        customer: user.billingData.customerID,
+        collection_method: 'charge_automatically',
+        auto_advance: true
+      });
+      invoice = await this.stripe.invoices.finalizeInvoice(invoice.id);
+    }
+    return invoice;
+  }
+
+  public async createInvoiceItem(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem> {
     this.checkIfStripeIsInitialized();
     await this.checkConnection();
 
@@ -266,14 +307,13 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Cannot create invoice with no items',
       });
     }
-    const item = await this.stripe.invoiceItems.create({
+    return await this.stripe.invoiceItems.create({
       customer: user.billingData.customerID,
       currency: this.settings.currency.toLocaleLowerCase(),
       amount: invoiceItem.amount * 100,
       description: invoiceItem.description,
       tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
     });
-    return item;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {

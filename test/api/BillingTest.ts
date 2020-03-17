@@ -1,22 +1,22 @@
-import chai, { assert, expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import { ObjectID } from 'mongodb';
-import Billing from '../../src/integration/billing/Billing';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { HTTPAuthError } from '../../src/types/HTTPError';
-import { UserInErrorType } from '../../src/types/InError';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
-import User from '../../src/types/User';
-import Constants from '../../src/utils/Constants';
-import Cypher from '../../src/utils/Cypher';
-import config from '../config';
-import Factory from '../factories/Factory';
+import chai, { assert, expect } from 'chai';
+import Billing from '../../src/integration/billing/Billing';
+import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import CONTEXTS from './contextProvider/ContextConstants';
+import Constants from '../../src/utils/Constants';
 import ContextProvider from './contextProvider/ContextProvider';
+import Cypher from '../../src/utils/Cypher';
+import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { ObjectID } from 'mongodb';
 import SiteContext from './contextProvider/SiteContext';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
 import TenantContext from './contextProvider/TenantContext';
+import User from '../../src/types/User';
+import { UserInErrorType } from '../../src/types/InError';
+import chaiSubset from 'chai-subset';
+import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -26,7 +26,7 @@ class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
-  public userContext: any;
+  public userContext: User;
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public createdUsers: User[] = [];
@@ -217,10 +217,18 @@ describe('Billing Service', function() {
       it('Should create an invoice', async () => {
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
         const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
-        const invoice = await billingImpl.createInvoiceItem(billingUser, { description: 'Test invoice', amount: 50 });
+        const invoiceItem = await billingImpl.createInvoiceItem(billingUser, { description: 'Test invoice', amount: 50 });
+        expect(invoiceItem).to.not.be.undefined;
+        const invoice = await billingImpl.createInvoice(billingUser);
         expect(invoice).to.not.be.undefined;
         const invoices = await billingImpl.getUserInvoices(billingUser);
-        expect(invoices).to.containSubset(invoice);
+        let invoiceFound = false;
+        for (const billingInvoice of invoices) {
+          if (billingInvoice.id === invoice.id) {
+            invoiceFound = true;
+          }
+        }
+        expect(invoiceFound).to.be.true;
       });
 
       after(async () => {
