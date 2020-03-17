@@ -1,4 +1,3 @@
-import { ChargePointStatus } from '../ocpp/OCPPServer';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {

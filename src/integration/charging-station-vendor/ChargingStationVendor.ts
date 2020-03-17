@@ -19,10 +19,20 @@ export default abstract class ChargingStationVendor {
   public abstract getOCPPParamNameForChargingLimitation(): string;
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    // Check if feature is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
+        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        message: 'Charging Station does not support static power limitation'
+      });
+    }
     if (connectorID > 0) {
       throw new BackendError({
         source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
         module: 'ChargingStationVendor', method: 'setPowerLimitation',
         message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
       });
@@ -30,6 +40,7 @@ export default abstract class ChargingStationVendor {
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
       throw new BackendError({
         source: chargingStation.id,
+        action: Action.POWER_LIMITATION,
         module: 'ChargingStationVendor', method: 'setPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
@@ -105,7 +116,16 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    // Check if feature is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        message: 'Charging Station does not support charging profiles'
+      });
+    }
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -172,7 +192,16 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    // Check if feature is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_DELETE,
+        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        message: 'Charging Station does not support charging profiles'
+      });
+    }
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -244,6 +273,15 @@ export default abstract class ChargingStationVendor {
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
     connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+    // Check if feature is supported
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: Action.GET_COMPOSITE_SCHEDULE,
+        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        message: 'Charging Station does not support charging profiles'
+      });
+    }
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -309,6 +347,7 @@ export default abstract class ChargingStationVendor {
       chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     // Default
     const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
+    const limitDefaultMaxPower = chargingStation.connectors[connectorID - 1].power;
     // Should fail safe!
     try {
       if (connectorID === 0) {
@@ -319,38 +358,44 @@ export default abstract class ChargingStationVendor {
           message: 'Cannot get the current connector limit on Connector ID 0',
         });
       }
-      // Get the current Charging Plan
-      const compositeSchedule = await this.getCompositeSchedule(
-        tenantID, chargingStation, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
-      // Get the current connector limitation from the charging plan
-      // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
-      if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
-        let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
-        // Check
-        if (connectorLimitAmps > limitDefaultMaxAmps) {
-          connectorLimitAmps = limitDefaultMaxAmps
+      // Check First the Charging Profile
+      if (chargingStation.capabilities && chargingStation.capabilities.supportChargingProfiles) {
+        // Get the current Charging Plan
+        const compositeSchedule = await this.getCompositeSchedule(
+          tenantID, chargingStation, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
+        // Get the current connector limitation from the charging plan
+        // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
+        if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
+            compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+            compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+          let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
+          // Check
+          if (connectorLimitAmps > limitDefaultMaxAmps) {
+            connectorLimitAmps = limitDefaultMaxAmps
+          }
+          return {
+            limitAmps: connectorLimitAmps,
+            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
+          };
         }
-        return {
-          limitAmps: connectorLimitAmps,
-          limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
-        };
       }
-      // Get the current connector limitation from OCPP parameter
-      const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
-        tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
-      if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
-          ocppConfiguration.configurationKey[0].value) {
-        let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
-        // Check
-        if (connectorLimitAmps > limitDefaultMaxAmps) {
-          connectorLimitAmps = limitDefaultMaxAmps
+      // Check next the static power limitation
+      if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+        // Read the OCPP Parameter
+        const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
+          tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
+        if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
+            ocppConfiguration.configurationKey[0].value) {
+          let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+          // Check
+          if (connectorLimitAmps > limitDefaultMaxAmps) {
+            connectorLimitAmps = limitDefaultMaxAmps
+          }
+          return {
+            limitAmps: connectorLimitAmps,
+            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
+          };
         }
-        return {
-          limitAmps: connectorLimitAmps,
-          limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorLimitAmps)
-        };
       }
     } catch (error) {
       Logging.logError({
@@ -365,7 +410,7 @@ export default abstract class ChargingStationVendor {
     // Default on current connector
     return {
       limitAmps: limitDefaultMaxAmps,
-      limitWatts: Utils.convertAmpToPowerWatts(chargingStation, limitDefaultMaxAmps)
+      limitWatts: limitDefaultMaxPower
     };
   }
 }
