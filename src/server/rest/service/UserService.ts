@@ -482,14 +482,14 @@ export default class UserService {
             // Push new valid tags
             for (const currentTag of filteredRequest.tags) {
               const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
-              if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+              if (currentTag.issuer && (!foundTag || !foundTag.issuer || foundTag.active !== currentTag.active)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
                   type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
-                  valid: true,
+                  valid: currentTag.active,
                   whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });

@@ -1222,17 +1222,6 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User I-Number ${filteredRequest.iNumber} is not valid`,
-        module: 'UserService',
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
     if (filteredRequest.tags) {
       if (!Utils._areTagsValid(filteredRequest.tags)) {
         throw new AppError({
@@ -1395,9 +1384,6 @@ export default class Utils {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
-  private static _isINumberValid(iNumber): boolean {
-    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
-  }
 
   private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);
