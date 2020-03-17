@@ -35,7 +35,16 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingProfile.chargingStationID);
       // Get Vendor Instance
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-      // Setting Profiles Success?
+      if (!chargingStationVendor) {
+        throw new AppError({
+          source: chargingStation.id,
+          action: Action.CHARGING_PROFILE_UPDATE,
+          errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
+          module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
+          message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
+        });
+      }
+      // Setting Profiles Success variable
       let success = true;
       try {
         // Set Charging Profile
