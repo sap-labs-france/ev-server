@@ -285,7 +285,8 @@ export default class BillingService {
     }
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
     const user = await UserStorage.getUser(tenant.id, req.user.id);
-    let invoices = await billingImpl.getUserInvoices(user, filteredRequest);
+    const billingUser = await billingImpl.getUserByEmail(user.email);
+    let invoices = await billingImpl.getUserInvoices(billingUser, filteredRequest);
     invoices = BillingSecurity.filterInvoicesResponse(invoices, req.user);
     // Return
     const result = {

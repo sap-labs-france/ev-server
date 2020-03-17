@@ -214,9 +214,14 @@ describe('Billing Service', function() {
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
 
-      // it('Should create an invoice', async () => {
-      //   const billingUser = await billingImpl.getUserByEmail(testData.userContext.)
-      // });
+      it('Should create an invoice', async () => {
+        await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
+        const invoice = await billingImpl.createInvoiceItem(billingUser, { description: 'Test invoice', amount: 50 });
+        expect(invoice).to.not.be.undefined;
+        const invoices = await billingImpl.getUserInvoices(billingUser);
+        expect(invoices).to.containSubset(invoice);
+      });
 
       after(async () => {
         await TestData.setBillingSystemValidCredentials(testData);

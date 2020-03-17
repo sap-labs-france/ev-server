@@ -151,47 +151,45 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: User, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]> {
+  public async getUserInvoices(user: BillingPartialUser, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]> {
     this.checkIfStripeIsInitialized();
     const invoices = [] as BillingInvoice[];
-    if (await this.userExists(user)) {
-      let request;
-      const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
-      if (params) {
-        if (params.status) {
-          Object.assign(requestParams, { status: params.status });
-        }
-        if (params.startDateTime) {
-          Object.assign(requestParams, { created: { gte: new Date(params.startDateTime).getTime() / 1000 } });
-        }
-        if (params.endDateTime) {
-          if (requestParams.created) {
-            Object.assign(requestParams.created, { lte: new Date(params.endDateTime).getTime() / 1000 });
-          } else {
-            Object.assign(requestParams, { created: { lte: new Date(params.endDateTime).getTime() / 1000 } });
-          }
+    let request;
+    const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    if (params) {
+      if (params.status) {
+        Object.assign(requestParams, { status: params.status });
+      }
+      if (params.startDateTime) {
+        Object.assign(requestParams, { created: { gte: new Date(params.startDateTime).getTime() / 1000 } });
+      }
+      if (params.endDateTime) {
+        if (requestParams.created) {
+          Object.assign(requestParams.created, { lte: new Date(params.endDateTime).getTime() / 1000 });
+        } else {
+          Object.assign(requestParams, { created: { lte: new Date(params.endDateTime).getTime() / 1000 } });
         }
       }
-      do {
-        request = await this.stripe.invoices.list(requestParams);
-        for (const invoice of request.data) {
-          invoices.push({
-            id: invoice.id,
-            number: invoice.number,
-            status: invoice.status,
-            amountDue: invoice.amount_due,
-            currency: invoice.currency,
-            customerID: invoice.customer,
-            createdOn: new Date(invoice.created * 1000),
-            downloadUrl: invoice.invoice_pdf,
-            payUrl: invoice.hosted_invoice_url
-          });
-        }
-        if (request.has_more) {
-          requestParams['starting_after'] = invoices[invoices.length - 1].id;
-        }
-      } while (request.has_more);
     }
+    do {
+      request = await this.stripe.invoiceitems.list(requestParams);
+      for (const invoice of request.data) {
+        invoices.push({
+          id: invoice.id,
+          number: invoice.number,
+          status: invoice.status,
+          amountDue: invoice.amount_due,
+          currency: invoice.currency,
+          customerID: invoice.customer,
+          createdOn: new Date(invoice.created * 1000),
+          downloadUrl: invoice.invoice_pdf,
+          payUrl: invoice.hosted_invoice_url
+        });
+      }
+      if (request.has_more) {
+        requestParams['starting_after'] = invoices[invoices.length - 1].id;
+      }
+    } while (request.has_more);
     return invoices;
   }
 
@@ -256,19 +254,11 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return collectedCustomerIDs;
   }
 
-  public async createInvoice(user: User, invoiceItems: BillingInvoiceItem[]): Promise<void> {
+  public async createInvoiceItem(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<void> {
     this.checkIfStripeIsInitialized();
     await this.checkConnection();
 
-    if (!await this.userExists(user)) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE_BILLING_INVOICE,
-        module: 'StripeBilling', method: 'createInvoice',
-        message: 'Impossible to create invoice for unknown Billing user',
-      });
-    }
-    if (invoiceItems.length === 0) {
+    if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: Action.CREATE_BILLING_INVOICE,
@@ -276,16 +266,14 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Cannot create invoice with no items',
       });
     }
-
-    for (const invoiceItem of invoiceItems) {
-      await this.stripe.invoiceItems.create({
-        customer: user.billingData.customerID,
-        currency: this.settings.currency.toLocaleLowerCase(),
-        amount: invoiceItem.amount * 100,
-        description: invoiceItem.description,
-        tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
-      });
-    }
+    const item = await this.stripe.invoiceItems.create({
+      customer: user.billingData.customerID,
+      currency: this.settings.currency.toLocaleLowerCase(),
+      amount: invoiceItem.amount * 100,
+      description: invoiceItem.description,
+      tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
+    });
+    return item;
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
