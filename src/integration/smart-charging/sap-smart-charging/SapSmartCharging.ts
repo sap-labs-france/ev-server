@@ -1,7 +1,7 @@
 import Axios from 'axios';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../types/ChargingProfile';
+import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
 import { Connector } from '../../../types/ChargingStation';
 import { ChargePointStatus } from '../../../types/ocpp/OCPPServer';
 import { OptimizerCar, OptimizerCarAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStation, OptimizerEvent, OptimizerFuse, OptimizerFuseTree, OptimizerState } from '../../../types/Optimizer';
@@ -78,7 +78,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     }
     // Create root fuse
     const rootFuse: OptimizerFuse = {
-      "@type": "OptimizerFuse",
       id: 0,
       fusePhase1: siteArea.maximumPower / (230 * 3),
       fusePhase2: siteArea.maximumPower / (230 * 3),
@@ -236,28 +235,35 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       chargingSchedule.chargingSchedulePeriod = [];
       chargingSchedule.startSchedule = startSchedule;
       for (let i = Math.floor(currentTimeMinutes / 15); i < Math.floor(currentTimeMinutes / 15) + 3; i++) {
-        const chargingSchedulePeriod = { startPeriod: currentTimeSlot * 15 * 60, limit: car.currentPlan[i] } as ChargingSchedulePeriod;
-        chargingSchedule.chargingSchedulePeriod.push(chargingSchedulePeriod);
+        chargingSchedule.chargingSchedulePeriod.push({
+          startPeriod: currentTimeSlot * 15 * 60,
+          limit: car.currentPlan[i]
+        });
         currentTimeSlot++;
       }
       // Provide third schedule with minimum supported amp of the save car --> duration 60000
-      chargingSchedule.chargingSchedulePeriod.push({ startPeriod: currentTimeSlot * 15 * 60, limit: 18 });
+      chargingSchedule.chargingSchedulePeriod.push({
+        startPeriod: currentTimeSlot * 15 * 60,
+        limit: 18
+      });
       // Set duration
       chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
       // Build profile of charging profile
-      const profile = {} as Profile;
-      profile.chargingProfileId = this.idAssignments.find((x) => x.generatedId === car.id).connectorId;
-      profile.chargingProfileKind = ChargingProfileKindType.ABSOLUTE;
-      profile.chargingProfilePurpose = ChargingProfilePurposeType.TX_PROFILE;
-      profile.stackLevel = 2;
-      profile.chargingSchedule = chargingSchedule;
+      const profile: Profile = {
+        chargingProfileId: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
+        chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
+        chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
+        stackLevel: 2,
+        chargingSchedule: chargingSchedule
+      };
       // Build charging profile with charging station id and connector id
-      const chargingProfile = {} as ChargingProfile;
+      const chargingProfile: ChargingProfile = {
+        id: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
+        chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
+        connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
+        profile: profile
+      };
       // Resolve id for charging station and connector from helper array
-      chargingProfile.chargingStationID = this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId;
-      chargingProfile.connectorID = this.idAssignments.find((x) => x.generatedId === car.id).connectorId;
-      chargingProfile.id = this.idAssignments.find((x) => x.generatedId === car.id).connectorId;
-      chargingProfile.profile = profile;
       chargingProfiles.push(chargingProfile);
     }
     return chargingProfiles;
