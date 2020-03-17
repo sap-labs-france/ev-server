@@ -32,27 +32,8 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
 export default class ChargingStationService {
-
-  public static async callOptimizer(action: Action, req: Request, res: Response, next: NextFunction) {
-    const sapSmartCharging = await SmartChargingFactory.getPricingImpl(req.user.tenantID);
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, req.body.id);
-    const MDB = await ChargingStationStorage.getChargingStations(req.user.tenantID,
-      {
-        siteAreaID: req.body.id,
-      },
-      {
-        limit: 1000,
-        skip: 0,
-      }
-    );
-    siteArea.chargingStations = MDB.result;
-    const result = await sapSmartCharging.computeAndApplyChargingProfiles(siteArea);
-    res.json(result);
-    next();
-  }
 
   public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -445,7 +426,7 @@ export default class ChargingStationService {
       });
     }
     // Set Charging Profile
-    const result = await chargingStationVendor.setChargingProfile(user.tenantID, chargingStation, chargingProfile);
+    await chargingStationVendor.setChargingProfile(user.tenantID, chargingStation, chargingProfile);
   }
 
   public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {

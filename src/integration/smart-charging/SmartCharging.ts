@@ -27,7 +27,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-        message: `No Charging Profiles for Site Area "${siteArea.id}"`,
+        message: `No Charging Profiles available for Site Area: ${siteArea.name}`,
       });
     }
     // Apply the charging plans
@@ -36,6 +36,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       // Get Vendor Instance
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
       if (!chargingStationVendor) {
+        await chargingStationVendor.clearAllChargingProfiles(this.tenantID, chargingStation, chargingProfiles);
         throw new AppError({
           source: chargingStation.id,
           action: Action.CHARGING_PROFILE_UPDATE,
@@ -44,16 +45,13 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
           message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
         });
       }
-      // Setting Profiles Success variable
-      let success = true;
       try {
         // Set Charging Profile
         await chargingStationVendor.setChargingProfile(this.tenantID, chargingStation, chargingProfile);
       } catch (error) {
-        success = false;
-      }
-      if (!success) {
+        // If one fails clear every profile
         await chargingStationVendor.clearAllChargingProfiles(this.tenantID, chargingStation, chargingProfiles);
+        throw error;
       }
     }
   }

@@ -1,16 +1,16 @@
-/* eslint-disable @typescript-eslint/member-ordering */
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import BackendError from '../../exception/BackendError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { Action } from '../../types/Authorization';
-import { ChargingProfile } from '../../types/ChargingProfile';
+
 import ChargingStation, { ConnectorCurrentLimit, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { Action } from '../../types/Authorization';
 import AppError from '../../exception/AppError';
+import BackendError from '../../exception/BackendError';
+import { ChargingProfile } from '../../types/ChargingProfile';
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { HTTPError } from '../../types/HTTPError';
+import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import Utils from '../../utils/Utils';
 
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
@@ -108,7 +108,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPClearChargingProfileCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -128,8 +128,8 @@ export default abstract class ChargingStationVendor {
         schedulePeriod.limit /= chargingStation.connectors.length;
       }
     }
+    let result;
     try {
-      let result;
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Set the Profile
@@ -196,6 +196,7 @@ export default abstract class ChargingStationVendor {
         message: 'Charging Profile has been successfully pushed and saved',
         detailedMessages: { chargingProfile }
       });
+      return result;
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -207,7 +208,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult> {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -218,8 +219,8 @@ export default abstract class ChargingStationVendor {
         message: 'Charging Station is not connected to the backend',
       });
     }
+    let result;
     try {
-      let result;
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Clear the Profile
@@ -243,12 +244,21 @@ export default abstract class ChargingStationVendor {
               connectorId: connector.connectorId
             }));
           }
-          // Reapply the current limitation
-          result = await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpsOfChargingStation(chargingStation));
+        }
+        // Check for Array
+        let resultStatus = OCPPClearChargingProfileStatus.ACCEPTED;
+        if (Array.isArray(result)) {
+          for (const oneResult of result as OCPPClearChargingProfileCommandResult[]) {
+            if (oneResult.status !== OCPPClearChargingProfileStatus.ACCEPTED) {
+              resultStatus = oneResult.status;
+              break;
+            }
+          }
+        } else {
+          resultStatus = (result as OCPPClearChargingProfileCommandResult).status;
         }
         // Reapply the current limitation
-        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
+        if (resultStatus === OCPPClearChargingProfileStatus.ACCEPTED) {
           await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
@@ -275,6 +285,7 @@ export default abstract class ChargingStationVendor {
         module: 'ChargingStationVendor', method: 'clearChargingProfile',
         message: 'Charging Profile has been deleted successfully',
       });
+      return result;
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -289,7 +300,17 @@ export default abstract class ChargingStationVendor {
     chargingProfiles: ChargingProfile[]) {
     if (chargingProfiles) {
       for (const chargingProfile of chargingProfiles) {
-        await this.clearChargingProfile(tenantID, chargingStation, chargingProfile);
+        try {
+          await this.clearChargingProfile(tenantID, chargingStation, chargingProfile);
+        } catch (error) {
+          Logging.logError({
+            tenantID: tenantID,
+            module: 'ChargingStationVendor', method: 'clearAllChargingProfiles',
+            action: Action.CHARGING_PROFILE_DELETE,
+            message: `Error while clearing charging profile for chargingStations ${chargingStation.id}`,
+            detailedMessages: error
+          });
+        }
       }
     }
   }
