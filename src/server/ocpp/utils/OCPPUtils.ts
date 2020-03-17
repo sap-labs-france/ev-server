@@ -294,7 +294,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string,
-      chargingStation: ChargingStation, newChargingStation = false): Promise<OCPPChangeConfigurationCommandResult> {
+    chargingStation: ChargingStation, newChargingStation = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
