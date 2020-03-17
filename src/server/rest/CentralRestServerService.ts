@@ -114,7 +114,6 @@ class RequestMapper {
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
           Cars: CarService.handleGetCars.bind(this),
           Car: CarService.handleGetCar.bind(this),
-          CarObject: CarService.handleGetCarObject.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),

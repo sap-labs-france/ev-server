@@ -18,8 +18,6 @@ const GRANTS = {
       { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Cars', action: 'List', attributes: ['*'] },
       { resource: 'Car', action: 'Read', attributes: ['*'] },
-      { resource: 'Car', action: 'GetCarObject', attributes: ['*'] }
-
     ]
   },
   admin: {

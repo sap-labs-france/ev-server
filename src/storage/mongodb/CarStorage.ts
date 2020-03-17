@@ -8,18 +8,14 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class CarStorage {
-  public static async getCar(id: string, fetchALlAbject?: boolean | false): Promise<Car> {
+  public static async getCar(id: string, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCar');
-    let carsMDB;
-    if (fetchALlAbject) {
-      carsMDB = await CarStorage.getCars({ carID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
-    } else {
-      // Query single Site
-      carsMDB = await CarStorage.getCars(
-        { carID: id },
-        Constants.DB_PARAMS_SINGLE_RECORD, ['id', 'VehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion', 'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'chargeStandardPower', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 'miscSegment', 'miscIsofixSeats']);
-    }
+    // Query single Site
+    const carsMDB = await CarStorage.getCars(
+      { carID: id },
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+
     Logging.traceEnd('CarStorage', 'getCar', uniqueTimerID, { id });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
@@ -40,7 +36,7 @@ export default class CarStorage {
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'VehicleModelv': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleModele': { $regex: searchRegex, $options: 'i' } },
         { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
       ];
     }
@@ -130,7 +126,7 @@ export default class CarStorage {
     const carMDB: any = {
       _id: carToSave.id,
       vehicleMake: carToSave.vehicleMake,
-      VehicleModel: carToSave.VehicleModel,
+      vehicleModel: carToSave.vehicleModel,
       vehicleModelVersion: carToSave.vehicleModelVersion,
       availabilityStatus: carToSave.availabilityStatus,
       availabilityDateFrom: carToSave.availabilityDateFrom,

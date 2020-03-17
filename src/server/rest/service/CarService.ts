@@ -7,12 +7,15 @@ import AppAuthError from '../../../exception/AppAuthError';
 import { HTTPAuthError } from '../../../types/HTTPError';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../storage/mongodb/CarStorage';
+import Constants from '../../../utils/Constants';
+import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    // UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-    // Action.LIST, Entity.CARS, 'CarService', 'handleGetCars');
+    if (req.user.tenantID !== Constants.DEFAULT_TENANT) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS, 'CarService', 'handleGetCars');
+    }
     // Check auth
     if (!Authorizations.canListCars(req.user)) {
       throw new AppAuthError({
@@ -32,7 +35,7 @@ export default class CarService {
         search: filteredRequest.Search
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'VehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images','chargeStandardChargeSpeed']
+      ['id', 'vehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed']
     );
     // Filter
     CarSecurity.filterCarsResponse(cars, req.user);
@@ -42,6 +45,11 @@ export default class CarService {
   }
 
   public static async handleGetCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, 'CarService', 'handleGetCars');
+    }
+    // Check auth
     if (!Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -54,34 +62,17 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    // Get the cars
-    const car = await CarStorage.getCar(filteredRequest.ID);
-    // Filter
-    CarSecurity.filterCarResponse(car, req.user);
-    // Return
-    res.json(car);
-    next();
-  }
-
-  public static async handleGetCarObject(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!Authorizations.canReadCarObject(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST,
-        entity: Entity.CARS,
-        module: 'CarService',
-        method: 'handleGetCars'
-      });
+    let car;
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion', 'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'chargeStandardPower', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 'miscSegment', 'miscIsofixSeats', 'chargeStandardTables'];
+      // Get the car
+      car = await CarStorage.getCar(filteredRequest.ID, projectFields);
+    } else {
+      // Get the car
+      car = await CarStorage.getCar(filteredRequest.ID);
     }
-    // Filter
-    const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    // Get the cars
-    const car = await CarStorage.getCar(filteredRequest.ID,true);
-    // Filter
-    CarSecurity.filterCarResponse(car, req.user);
     // Return
-    res.json(car);
+    res.json(CarSecurity.filterCarResponse(car, req.user));
     next();
   }
 }

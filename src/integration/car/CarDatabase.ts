@@ -7,8 +7,8 @@ import Logging from '../../utils/Logging';
 
 export default abstract class CarDatabase {
   public abstract async getCars(): Promise<Car[]>;
- /* eslint-disable */
   public async synchronizeCars(): Promise<CarSynchronizeAction> {
+    /* eslint-disable */
     const actionsDone = {
       synchronized: 0,
       error: 0
@@ -17,7 +17,7 @@ export default abstract class CarDatabase {
     const cars = await this.getCars();
     for (const car of cars) {
       try {
-        const carDB = await CarStorage.getCar(car.id,true);
+        const carDB = await CarStorage.getCar(car.id);
         if (!carDB) {
           // New Car: Create it
           car.hash = Cypher.hash(JSON.stringify(car));
@@ -30,7 +30,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been created successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been created successfully`,
           });
         } else if (Cypher.hash(JSON.stringify(car)) !== carDB.hash) {
           // Car has changed: Update it
@@ -44,7 +44,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been updated successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been updated successfully`,
           });
         }
       } catch (error) {
@@ -55,7 +55,7 @@ export default abstract class CarDatabase {
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_CARS,
           module: 'CarDatabase', method: 'synchronizeCars',
-          message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} got synchronization error`,
+          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} got synchronization error`,
           detailedMessages: error
         });
       }
