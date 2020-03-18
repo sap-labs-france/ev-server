@@ -61,7 +61,9 @@ export default class SiteSecurity {
 
   public static filterSitesRequest(request: any): HttpSitesRequest {
     const filteredRequest: HttpSitesRequest = {} as HttpSitesRequest;
-    filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
