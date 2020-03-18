@@ -26,13 +26,16 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreasRequest(request: any): HttpSiteAreasRequest {
     const filteredRequest: HttpSiteAreasRequest = {
-      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
       WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
       SiteID: sanitize(request.SiteID)
     } as HttpSiteAreasRequest;
+
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
