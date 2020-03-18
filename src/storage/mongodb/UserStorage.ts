@@ -537,6 +537,9 @@ export default class UserStorage {
         ]
       });
     }
+    if (params.issuer === true || params.issuer === false) {
+      filters.$and.push({ 'issuer': params.issuer });
+    }
     // Email
     if (params.email) {
       filters.$and.push({
