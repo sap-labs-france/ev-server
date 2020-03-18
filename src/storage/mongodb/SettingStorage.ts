@@ -176,8 +176,8 @@ export default class SettingStorage {
     } as SmartChargingSettings;
     // Get the Smart Charging settings
     const settings = await SettingStorage.getSettings(tenantID,
-        { identifier: TenantComponents.SMART_CHARGING },
-        Constants.DB_PARAMS_MAX_LIMIT);
+      { identifier: TenantComponents.SMART_CHARGING },
+      Constants.DB_PARAMS_MAX_LIMIT);
     // Get the currency
     if (settings && settings.count > 0 && settings.result[0].content) {
       const config = settings.result[0].content;

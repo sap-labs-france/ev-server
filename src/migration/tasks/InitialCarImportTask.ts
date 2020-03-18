@@ -25,6 +25,10 @@ export default class InitialCarImportTask extends MigrationTask {
     return '1.0';
   }
 
+  isAsynchronous() {
+    return true;
+  }
+
   getName() {
     return 'InitialCarImportTask';
   }

@@ -6,6 +6,7 @@ import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
+  templateHash?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -63,7 +64,7 @@ export enum PowerLimitUnits {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 2,
+  MIN_LIMIT = 0,
 }
 
 export interface Connector {
@@ -104,6 +105,7 @@ export enum ConnectorCurrentType {
 
 export interface ChargingStationTemplate {
   id?: string;
+  hash?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;

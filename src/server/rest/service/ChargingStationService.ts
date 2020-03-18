@@ -429,14 +429,14 @@ export default class ChargingStationService {
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+      for (const oneResult of result) {
         if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
           resultStatus = oneResult.status;
           break;
         }
       }
     } else {
-      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+      resultStatus = (result).status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
@@ -445,7 +445,7 @@ export default class ChargingStationService {
         user: user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
-        message: `Cannot set the Charging Profile!`,
+        message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
       });
     }

@@ -30,6 +30,8 @@ export default class ChargingStationStorage {
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
+        // Set the hash
+        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
@@ -158,9 +160,9 @@ export default class ChargingStationStorage {
       });
       // Filter connectors array
       aggregation.push({
-        "$addFields": {
-          "connectors": {
-            "$filter": {
+        '$addFields': {
+          'connectors': {
+            '$filter': {
               input: '$connectors',
               as: 'connector',
               cond: {
@@ -182,9 +184,9 @@ export default class ChargingStationStorage {
       });
       // Filter connectors array
       aggregation.push({
-        "$addFields": {
-          "connectors": {
-            "$filter": {
+        '$addFields': {
+          'connectors': {
+            '$filter': {
               input: '$connectors',
               as: 'connector',
               cond: {
@@ -316,6 +318,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
+    match.$and.push({ issuer: true });
     if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
       match.$and.push({
         'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) }
@@ -462,6 +465,7 @@ export default class ChargingStationStorage {
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
+      templateHash: chargingStationToSave.templateHash,
       issuer: chargingStationToSave.issuer,
       private: chargingStationToSave.private,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
@@ -540,7 +544,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-      params: { lastHeartBeat: Date, currentIPAddress: string;}): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string}): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
@@ -903,7 +907,7 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        const inactiveDate = new Date(new Date().getTime() - DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }
