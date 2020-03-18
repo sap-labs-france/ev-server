@@ -66,7 +66,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
             message: `Charging Station OCPP Parameters failed to be updated with Template ('${result.status}') in Tenant '${tenant.name}'`
           });
         }
-      } catch (error) { 
+      } catch (error) {
         error++;
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
