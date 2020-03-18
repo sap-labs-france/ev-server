@@ -691,6 +691,7 @@ export default class TransactionStorage {
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
+    match.issuer = true;
     // User / Site Admin
     if (params.userIDs) {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
