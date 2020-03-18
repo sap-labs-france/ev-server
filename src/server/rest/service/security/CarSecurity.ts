@@ -5,6 +5,7 @@ import UserToken from '../../../../types/UserToken';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
 export default class CarSecurity {
   public static filterCarsRequest(request: any): HttpCarsRequest {
@@ -16,10 +17,10 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarRequest(request: any): HttpCarRequest {
-    const filteredRequest: HttpCarRequest = {
-      ID: sanitize(request.carID),
-    } as HttpCarRequest;
+  public static filterCarRequest(request: any): HttpByIDRequest {
+    const filteredRequest: HttpByIDRequest = {
+      ID: sanitize(request.CarID),
+    } as HttpByIDRequest;
     return filteredRequest;
   }
 
@@ -31,7 +32,37 @@ export default class CarSecurity {
     }
     // Check auth
     if (Authorizations.canReadCar(loggedUser)) {
-      filteredCar = car;
+      filteredCar = {
+        id: car.id,
+        vehicleModel: car.vehicleModel,
+        vehicleMake: car.vehicleMake,
+        batteryCapacityFull: car.batteryCapacityFull,
+        fastChargeSpeed: car.fastChargeSpeed,
+        performanceTopspeed: car.fastChargeSpeed,
+        performanceAcceleration: car.performanceAcceleration,
+        rangeReal: car.rangeReal,
+        efficiencyReal: car.efficiencyReal,
+        images: car.images,
+        chargeStandardChargeSpeed: car.chargeStandardChargeSpeed,
+        drivetrainPropulsion: car.drivetrainPropulsion,
+        drivetrainTorque: car.drivetrainTorque,
+        batteryCapacityUseable: car.batteryCapacityUseable,
+        chargePlug: car.chargePlug,
+        fastChargePlug: car.fastChargePlug,
+        chargePlugLocation: car.chargePlugLocation,
+        chargeStandardPower: car.chargeStandardPower,
+        chargeStandardChargeTime: car.chargeStandardChargeTime,
+        miscSeats: car.miscSeats,
+        miscBody: car.miscBody,
+        miscIsofix: car.miscIsofix,
+        miscTurningCircle: car.miscTurningCircle,
+        miscSegment: car.miscSegment,
+        miscIsofixSeats: car.miscIsofixSeats,
+        chargeStandardTables: car.chargeStandardTables
+      };
+      if (Authorizations.isSuperAdmin(loggedUser)) {
+        filteredCar.carObject = car;
+      }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredCar, car, loggedUser);
@@ -50,9 +81,20 @@ export default class CarSecurity {
     }
     for (const car of cars.result) {
       // Add
-      const filteredCar = CarSecurity.filterCarResponse(car, loggedUser);
-      if (filteredCar) {
-        filteredCars.push(filteredCar);
+      if (car) {
+        filteredCars.push({
+          id: car.id,
+          vehicleModel: car.vehicleModel,
+          vehicleMake: car.vehicleMake,
+          batteryCapacityFull: car.batteryCapacityFull,
+          fastChargeSpeed: car.fastChargeSpeed,
+          performanceTopspeed: car.fastChargeSpeed,
+          performanceAcceleration: car.performanceAcceleration,
+          rangeReal: car.rangeReal,
+          efficiencyReal: car.efficiencyReal,
+          images: car.images,
+          chargeStandardChargeSpeed: car.chargeStandardChargeSpeed
+        });
       }
     }
     cars.result = filteredCars;

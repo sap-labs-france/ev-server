@@ -34,30 +34,30 @@ export default class EVDabaseCar extends CarDatabase {
       const chargeOptionTables: { [id: string]: ChargeOptionTable } = {};
       for (const ChargeStandard of Object.keys(data.Charge_Standard_Table)) {
         const chargeStandardTable: ChargeStandardTable = {
-          EVSEPhaseVolt: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseVolt,
-          EVSEPhaseAmp: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseAmp,
-          EVSEPhase: data.Charge_Standard_Table[ChargeStandard].EVSE_Phase,
-          ChargePhaseVolt: data.Charge_Standard_Table[ChargeStandard].Charge_PhaseVolt,
-          ChargePhaseAmp: data.Charge_Standard_Table[ChargeStandard].Charge_PhaseAmp,
-          ChargePhase: data.Charge_Standard_Table[ChargeStandard].Charge_Phase,
-          ChargePower: data.Charge_Standard_Table[ChargeStandard].Charge_Power,
-          ChargeTime: data.Charge_Standard_Table[ChargeStandard].Charge_Time,
-          ChargeSpeed: data.Charge_Standard_Table[ChargeStandard].Charge_Speed,
+          evsePhaseVolt: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseVolt,
+          evsePhaseAmp: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseAmp,
+          evsePhase: data.Charge_Standard_Table[ChargeStandard].EVSE_Phase,
+          chargePhaseVolt: data.Charge_Standard_Table[ChargeStandard].Charge_PhaseVolt,
+          chargePhaseAmp: data.Charge_Standard_Table[ChargeStandard].Charge_PhaseAmp,
+          chargePhase: data.Charge_Standard_Table[ChargeStandard].Charge_Phase,
+          chargePower: data.Charge_Standard_Table[ChargeStandard].Charge_Power,
+          chargeTime: data.Charge_Standard_Table[ChargeStandard].Charge_Time,
+          chargeSpeed: data.Charge_Standard_Table[ChargeStandard].Charge_Speed,
         };
         chargeStandardTables[ChargeStandard] = chargeStandardTable;
       }
       if (data.Charge_Alternative_Table) {
         for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
           const chargeAlternativeTable: ChargeAlternativeTable = {
-            EVSEPhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
-            EVSEPhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
-            EVSEPhase: data.Charge_Standard_Table[chargeAlternative].EVSE_Phase,
-            ChargePhaseVolt: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseVolt,
-            ChargePhaseAmp: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseAmp,
-            ChargePhase: data.Charge_Standard_Table[chargeAlternative].Charge_Phase,
-            ChargePower: data.Charge_Standard_Table[chargeAlternative].Charge_Power,
-            ChargeTime: data.Charge_Standard_Table[chargeAlternative].Charge_Time,
-            ChargeSpeed: data.Charge_Standard_Table[chargeAlternative].Charge_Speed,
+            evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
+            evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
+            evsePhase: data.Charge_Standard_Table[chargeAlternative].EVSE_Phase,
+            chargePhaseVolt: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseVolt,
+            chargePhaseAmp: data.Charge_Standard_Table[chargeAlternative].Charge_PhaseAmp,
+            chargePhase: data.Charge_Standard_Table[chargeAlternative].Charge_Phase,
+            chargePower: data.Charge_Standard_Table[chargeAlternative].Charge_Power,
+            chargeTime: data.Charge_Standard_Table[chargeAlternative].Charge_Time,
+            chargeSpeed: data.Charge_Standard_Table[chargeAlternative].Charge_Speed,
           };
           chargeAlternativeTables[chargeAlternative] = chargeAlternativeTable;
         }
@@ -65,15 +65,15 @@ export default class EVDabaseCar extends CarDatabase {
       if (data.Charge_Option_Table) {
         for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
           const chargeAlternativeTable: ChargeOptionTable = {
-            EVSEPhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
-            EVSEPhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
-            EVSEPhase: data.Charge_Standard_Table[chargeOption].EVSE_Phase,
-            ChargePhaseVolt: data.Charge_Standard_Table[chargeOption].Charge_PhaseVolt,
-            ChargePhaseAmp: data.Charge_Standard_Table[chargeOption].Charge_PhaseAmp,
-            ChargePhase: data.Charge_Standard_Table[chargeOption].Charge_Phase,
-            ChargePower: data.Charge_Standard_Table[chargeOption].Charge_Power,
-            ChargeTime: data.Charge_Standard_Table[chargeOption].Charge_Time,
-            ChargeSpeed: data.Charge_Standard_Table[chargeOption].Charge_Speed,
+            evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
+            evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
+            evsePhase: data.Charge_Standard_Table[chargeOption].EVSE_Phase,
+            chargePhaseVolt: data.Charge_Standard_Table[chargeOption].Charge_PhaseVolt,
+            chargePhaseAmp: data.Charge_Standard_Table[chargeOption].Charge_PhaseAmp,
+            chargePhase: data.Charge_Standard_Table[chargeOption].Charge_Phase,
+            chargePower: data.Charge_Standard_Table[chargeOption].Charge_Power,
+            chargeTime: data.Charge_Standard_Table[chargeOption].Charge_Time,
+            chargeSpeed: data.Charge_Standard_Table[chargeOption].Charge_Speed,
           };
           chargeOptionTables[chargeOption] = chargeAlternativeTable;
         }
@@ -81,7 +81,7 @@ export default class EVDabaseCar extends CarDatabase {
       const car: Car = {
         id: data.Vehicle_ID,
         vehicleMake: data.Vehicle_Make,
-        VehicleModel: data.Vehicle_Model,
+        vehicleModel: data.Vehicle_Model,
         vehicleModelVersion: data.Vehicle_Model_Version,
         availabilityStatus: data.Availability_Status,
         availabilityDateFrom: data.Availability_Date_From,

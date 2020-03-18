@@ -75,7 +75,6 @@ export enum Action {
   CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
-  GET_CAR_OBJECT = 'GetCarObject',
 
 
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
