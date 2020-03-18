@@ -75,7 +75,7 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: this.tenant.id,
-        action: 'OcpiPushTokens',
+        action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -86,7 +86,7 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log info
       Logging.logInfo({
         tenantID: this.tenant.id,
-        action: 'OcpiPushTokens',
+        action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -165,7 +165,7 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
-        action: 'OcpiGetLocations',
+        action: Action.OCPI_PULL_LOCATIONS,
         message: `Retrieve locations at ${locationsUrl}`,
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -233,7 +233,7 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
-        action: 'OcpiGetSessions',
+        action: Action.OCPI_PULL_SESSIONS,
         message: `Retrieve sessions at ${sessionsUrl}`,
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -302,7 +302,7 @@ export default class EmspOCPIClient extends OCPIClient {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
-        action: 'OcpiGetCdrs',
+        action: Action.OCPI_PULL_CDRS,
         message: `Retrieve cdrs at ${cdrsUrl}`,
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -333,7 +333,7 @@ export default class EmspOCPIClient extends OCPIClient {
           if (!transaction) {
             Logging.logError({
               tenantID: this.tenant.id,
-              action: 'OcpiGetCdrs',
+              action: Action.OCPI_PULL_CDRS,
               message: `No transaction found for cdr with id ${cdr.id}`,
               source: 'OCPI Client',
               module: 'OCPIClient',
@@ -372,7 +372,7 @@ export default class EmspOCPIClient extends OCPIClient {
   async processLocation(location: OCPILocation, company: Company, sites: Site[]) {
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OcpiGetLocations',
+      action: Action.OCPI_PULL_LOCATIONS,
       message: `Processing location ${location.name} with id ${location.id}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -445,7 +445,7 @@ export default class EmspOCPIClient extends OCPIClient {
         if (!evse.uid) {
           Logging.logDebug({
             tenantID: this.tenant.id,
-            action: 'OcpiGetLocations',
+            action: Action.OCPI_PULL_LOCATIONS,
             message: `Missing evse uid of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
@@ -455,7 +455,7 @@ export default class EmspOCPIClient extends OCPIClient {
         } else if (evse.status === OCPIEvseStatus.REMOVED) {
           Logging.logDebug({
             tenantID: this.tenant.id,
-            action: 'OcpiGetLocations',
+            action: Action.OCPI_PULL_LOCATIONS,
             message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
@@ -466,7 +466,7 @@ export default class EmspOCPIClient extends OCPIClient {
         } else {
           Logging.logDebug({
             tenantID: this.tenant.id,
-            action: 'OcpiGetLocations',
+            action: Action.OCPI_PULL_LOCATIONS,
             message: `Update evse ${chargingStationId} of location ${location.name}`,
             source: 'OCPI Client',
             module: 'OCPIClient',
@@ -495,7 +495,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: 'OcpiPushTokens',
+      action: Action.OCPI_PUSH_TOKENS,
       message: `Put token at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',

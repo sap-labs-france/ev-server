@@ -6,8 +6,8 @@ import { PricedConsumption } from '../../../types/Pricing';
 import Utils from '../../../utils/Utils';
 
 export default class SimplePricing extends Pricing<SimplePricingSetting> {
-  constructor(tenantId: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
-    super(tenantId, settings, transaction);
+  constructor(tenantID: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
+    super(tenantID, settings, transaction);
   }
 
   async startSession(consumptionData: Consumption): Promise<PricedConsumption> {

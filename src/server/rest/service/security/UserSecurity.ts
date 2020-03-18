@@ -24,6 +24,9 @@ export default class UserSecurity {
   }
 
   public static filterUsersRequest(request: any): HttpUsersRequest {
+    if (request.Issuer) {
+      request.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     if (request.Search) {
       request.Search = sanitize(request.Search);
     }
@@ -251,7 +254,7 @@ export default class UserSecurity {
         id: sanitize(tag.id),
         issuer: UtilsSecurity.filterBoolean(tag.issuer),
         description: sanitize(tag.description),
-        deleted: false
+        active: UtilsSecurity.filterBoolean(tag.active)
       };
     }
     return filteredTag;

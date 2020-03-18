@@ -28,7 +28,7 @@ export default class CONTEXTS {
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
     TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
-    TENANT_BUILDING: 'ut-building', // Only refund component is active
+    TENANT_BUILDING: 'ut-building', // Only building component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -306,7 +306,8 @@ export default class CONTEXTS {
     id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
     subdomain: 'utbuilding',
     componentSettings: {
-      building: {}
+      building: {},
+      organization: {}
     }
   }];
 
@@ -327,7 +328,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Admin not assigned
@@ -345,7 +346,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user
@@ -363,7 +364,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Demo user
@@ -381,7 +382,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user unassigned
@@ -399,7 +400,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user pending
@@ -417,7 +418,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user Locked
@@ -435,7 +436,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     },
     { // Basic user No Tags
@@ -453,7 +454,7 @@ export default class CONTEXTS {
       tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
         issuer: false,
-        deleted: false
+        active: true
       }] : null)
     }
   ];
@@ -569,4 +570,11 @@ export default class CONTEXTS {
     }
   ];
 
+  // List of buildings created in a tenant where organization component is active
+  static readonly TENANT_BUILDING_LIST: any = [
+    {
+      id: '5e68ae9e2fa3df719875edef',
+      siteAreaID: '5ce249a2372f0b1c8caf9294'
+    }
+  ];
 }

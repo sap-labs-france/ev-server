@@ -1,4 +1,3 @@
-import { ChargePointStatus } from '../ocpp/OCPPServer';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
@@ -10,6 +9,7 @@ export interface HttpChargingStationLimitPowerRequest {
   chargeBoxID: string;
   connectorId: number;
   ampLimitValue: number;
+  forceUpdateChargingPlan: boolean;
 }
 
 export interface HttpChargingProfilesRequest extends HttpDatabaseRequest {
@@ -21,7 +21,8 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   Issuer?: boolean;
   Search?: string;
   WithNoSiteArea?: boolean;
-  ConnectorStatus?: ChargePointStatus;
+  ConnectorStatus?: string;
+  ConnectorType?: string;
   SiteID?: string;
   WithSite?: boolean;
   SiteAreaID?: string;

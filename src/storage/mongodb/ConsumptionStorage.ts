@@ -38,6 +38,8 @@ export default class ConsumptionStorage {
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
+      limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
+      limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       userID: consumptionToSave.userID
     };
     // Modify
@@ -101,7 +103,9 @@ export default class ConsumptionStorage {
         amount: { $last: '$amount' },
         cumulatedAmount: { $last: '$cumulatedAmount' },
         roundedAmount: { $last: '$roundedAmount' },
-        currencyCode: { $last: '$currencyCode' }
+        currencyCode: { $last: '$currencyCode' },
+        limitWatts: { $last: '$limitWatts' },
+        limitAmps: { $last: '$limitAmps' },
       }
     });
     // Convert Object ID to string

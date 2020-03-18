@@ -1,12 +1,14 @@
-import CreatedUpdatedProps from './CreatedUpdatedProps';
-import SiteArea from './SiteArea';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { KeyValue } from './GlobalType';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
+  templateHash?: string;
   issuer: boolean;
+  private: boolean;
   siteAreaID?: string;
   chargePointSerialNumber: string;
   chargePointModel: string;
@@ -16,6 +18,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   imsi: string;
   meterType: string;
   firmwareVersion: string;
+  firmwareUpdateStatus?: OCPPFirmwareStatus;
   meterSerialNumber: string;
   endpoint: string;
   ocppVersion: OCPPVersion;
@@ -61,7 +64,7 @@ export enum PowerLimitUnits {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 8,
+  MIN_LIMIT = 2,
 }
 
 export interface Connector {
@@ -102,11 +105,13 @@ export enum ConnectorCurrentType {
 
 export interface ChargingStationTemplate {
   id?: string;
+  hash?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
   };
   template: {
+    private: boolean;
     cannotChargeInParallel: boolean;
     currentType: ChargingStationCurrentType;
     maximumPower: number;

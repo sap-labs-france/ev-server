@@ -6,6 +6,7 @@ import User from '../../../src/types/User';
 import config from '../../config';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';
+import BuildingApi from './BuildingApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import LogsApi from './LogsApi';
@@ -30,6 +31,7 @@ export default class CentralServerService {
 
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
+  public buildingApi: BuildingApi;
   public companyApi: CompanyApi;
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
@@ -94,6 +96,7 @@ export default class CentralServerService {
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
+    this.buildingApi = new BuildingApi(this.authenticatedApi);
   }
 
   public static get DefaultInstance(): CentralServerService {

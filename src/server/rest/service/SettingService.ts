@@ -1,16 +1,16 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import _ from 'lodash';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import SettingSecurity from './security/SettingSecurity';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import UtilsService from './UtilsService';
 
 export default class SettingService {
@@ -32,7 +32,8 @@ export default class SettingService {
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`,
+      'SettingService', 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
@@ -65,7 +66,8 @@ export default class SettingService {
     }
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`,
+      'SettingService', 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);

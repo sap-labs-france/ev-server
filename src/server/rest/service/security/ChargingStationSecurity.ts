@@ -29,6 +29,7 @@ export default class ChargingStationSecurity {
       chargeBoxID: sanitize(request.chargeBoxID),
       connectorId: sanitize(request.connectorId),
       ampLimitValue: sanitize(request.ampLimitValue),
+      forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
     };
   }
 
@@ -100,6 +101,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
     }
+    // Sort Connector
+    filteredChargingStation.connectors.sort(
+      (connector1, connector2) => connector1.connectorId - connector2.connectorId);
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
@@ -184,6 +188,7 @@ export default class ChargingStationSecurity {
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
+    filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -209,6 +214,9 @@ export default class ChargingStationSecurity {
     }
     if (Utils.objectHasProperty(request, 'cannotChargeInParallel')) {
       filteredRequest.cannotChargeInParallel = UtilsSecurity.filterBoolean(request.cannotChargeInParallel);
+    }
+    if (Utils.objectHasProperty(request, 'private')) {
+      filteredRequest.private = UtilsSecurity.filterBoolean(request.private);
     }
     if (Utils.objectHasProperty(request, 'siteArea')) {
       filteredRequest.siteArea = sanitize(request.siteArea);
@@ -282,6 +290,10 @@ export default class ChargingStationSecurity {
       }
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
+      }
+      // TODO: To be removed when mobile will be version 1.3
+      if (Utils.objectHasProperty(request.args, 'connectorID')) {
+        filteredRequest.args.connectorId = sanitize(request.args.connectorID);
       }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);

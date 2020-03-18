@@ -121,7 +121,10 @@ export interface SmartChargingSettings extends Setting {
   sapSmartCharging?: SapSmartChargingSetting;
 }
 
-export interface SapSmartChargingSetting {
+export interface SmartChargingSetting {
+}
+
+export interface SapSmartChargingSetting extends SmartChargingSetting {
   optimizerUrl: string;
   user: string;
   password: string;

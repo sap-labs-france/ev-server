@@ -117,7 +117,7 @@
     "mocha": "^6.2.0",
     "mocha-parallel-tests": "^2.2.1",
     "mochawesome": "^4.1.0",
-    "npm-check": "^5.9.0",
+    "npm-check": "^5.9.2",
     "nyc": "^14.1.1",
     "querystring": "^0.2.0",
     "rosie": "^2.0.1",
@@ -176,6 +176,8 @@
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "test:billing": "cross-env TS_NODE_FILES=true mocha test/**/BillingTest.ts --exit",
+    "test:building": "cross-env TS_NODE_FILES=true mocha test/**/BuildingTest.ts --exit",
+    "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },

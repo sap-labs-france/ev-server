@@ -1,7 +1,8 @@
-import { ObjectID } from 'mongodb';
-import DbLookup from '../../types/database/DbLookup';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import DbLookup from '../../types/database/DbLookup';
+import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
@@ -55,6 +56,12 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushTransactionsLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('transactions', {
+      ...lookupParams
+    });
+  }
+
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
@@ -85,8 +92,8 @@ export default class DatabaseUtils {
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('tags', {
-      pipelineMatch: { deleted: false },
-      projectedFields: ['id', 'description', 'issuer', 'deleted', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
+      objectIDFields: ['lastChangedBy'],
+      projectedFields: ['id', 'description', 'issuer', 'active', 'ocpiToken', 'lastChangedBy', 'lastChangedOn'],
       ...lookupParams
     });
   }
@@ -100,6 +107,14 @@ export default class DatabaseUtils {
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
+    if (lookupParams.countField) {
+      pipeline.push({
+        '$group': {
+          '_id': `$${lookupParams.countField}`,
+          'count': { '$sum': 1 }
+        }
+      });
+    }
     // Replace ID field
     DatabaseUtils.renameDatabaseID(pipeline);
     // Convert ObjectID fields to String
@@ -130,25 +145,38 @@ export default class DatabaseUtils {
     }
   }
 
-  static addChargingStationInactiveFlag(aggregation: any[]) {
+  static getChargingStationHeartbeatMaxIntervalSecs(): number {
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 2;
+  }
+
+  static addChargingStationInactiveFlag(aggregation: any[]) {
     // Add inactive field
     aggregation.push({
       $addFields: {
         inactive: {
-          $gte: [
+          $or: [
             {
-              $divide: [
-                {
-                  $subtract: [
-                    new Date(), '$lastHeartBeat'
-                  ]
-                },
-                60 * 1000
+              $eq: [
+                '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING
               ]
             },
-            config.heartbeatIntervalSecs * 5
+            {
+              $gte: [
+                {
+                  $divide: [
+                    {
+                      $subtract: [
+                        new Date(), '$lastHeartBeat'
+                      ]
+                    },
+                    60 * 1000
+                  ]
+                },
+                DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs()
+              ]
+            }
           ]
         }
       }

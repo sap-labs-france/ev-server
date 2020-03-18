@@ -142,13 +142,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
     // Log
     if (actionsDone.synchronized || actionsDone.error) {
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
-        module: 'Billing', method: 'synchronizeUsers',
-        message: `${actionsDone.synchronized} user(s) were successfully synchronized, ${actionsDone.error} got errors`
-      });
+      if (actionsDone.synchronized > 0) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.synchronized} user(s) were successfully synchronized`
+        });
+      }
+      if (actionsDone.error > 0) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.error} user(s) failed to synchronize`
+        });
+      }
     } else {
       Logging.logInfo({
         tenantID: tenantID,
@@ -175,13 +186,35 @@ export default abstract class Billing<T extends BillingSetting> {
       } else {
         newBillingData = await this.updateUser(user);
       }
-      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+      } catch (e) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'synchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: e
+        });
+      }
     } catch (error) {
       if (!user.billingData) {
         user.billingData = {};
       }
       user.billingData.hasSynchroError = true;
-      await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      } catch (e) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'synchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: e
+        });
+      }
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'Billing', method: 'synchronizeUser',
@@ -203,15 +236,26 @@ export default abstract class Billing<T extends BillingSetting> {
       // Recreate the Billing user
       delete user.billingData;
       const newBillingData = await this.createUser(user);
-      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
-        actionOnUser: user,
-        module: 'Billing', method: 'forceSynchronizeUser',
-        message: `Successfully forced the synchronization of the user '${user.email}'`,
-      });
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          module: 'Billing', method: 'forceSynchronizeUser',
+          message: `Successfully forced the synchronization of the user '${user.email}'`,
+        });
+      } catch (e) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'forceSynchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: e
+        });
+      }
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
