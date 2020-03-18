@@ -904,7 +904,7 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        const inactiveDate = new Date(new Date().getTime() - DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }

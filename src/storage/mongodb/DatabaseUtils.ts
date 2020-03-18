@@ -145,9 +145,13 @@ export default class DatabaseUtils {
     }
   }
 
-  static addChargingStationInactiveFlag(aggregation: any[]) {
+  static getChargingStationHeartbeatMaxIntervalSecs(): number {
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 5;
+  }
+
+  static addChargingStationInactiveFlag(aggregation: any[]) {
     // Add inactive field
     aggregation.push({
       $addFields: {
@@ -170,7 +174,7 @@ export default class DatabaseUtils {
                     60 * 1000
                   ]
                 },
-                config.heartbeatIntervalSecs * 5
+                DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs()
               ]
             }
           ]
