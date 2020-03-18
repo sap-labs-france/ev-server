@@ -140,7 +140,7 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalSecs": 60,
+    "heartbeatIntervalSecs": 300,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,

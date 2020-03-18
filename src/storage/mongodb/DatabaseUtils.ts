@@ -148,7 +148,7 @@ export default class DatabaseUtils {
   static getChargingStationHeartbeatMaxIntervalSecs(): number {
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
-    return config.heartbeatIntervalSecs * 5;
+    return config.heartbeatIntervalSecs * 2;
   }
 
   static addChargingStationInactiveFlag(aggregation: any[]) {

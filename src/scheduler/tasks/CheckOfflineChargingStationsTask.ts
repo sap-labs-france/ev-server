@@ -7,13 +7,15 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 
 export default class CheckOfflineChargingStationsTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     try {
       // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate();
+      const someMinutesAgo = moment().subtract(
+        DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
       const params = {
         issuer: true,
         offlineSince: someMinutesAgo
