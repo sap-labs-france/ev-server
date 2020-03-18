@@ -105,7 +105,6 @@ export enum Action {
   CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
-  READ_BILLING_INVOICES = 'ReadBillingInvoices',
   CREATE_BILLING_INVOICE = 'CreateBillingInvoice',
 
   MONGO_DB = 'MongoDB',
