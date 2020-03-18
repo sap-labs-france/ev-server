@@ -537,6 +537,9 @@ export default class UserStorage {
         ]
       });
     }
+    if (params.issuer === true || params.issuer === false) {
+      filters.$and.push({ 'issuer': params.issuer });
+    }
     // Email
     if (params.email) {
       filters.$and.push({
@@ -849,6 +852,7 @@ export default class UserStorage {
     const aggregation = [];
     // Mongodb filter block ($match)
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
+    match.$and.push({ issuer: true });
     if (params.roles) {
       match.$and.push({ role: { '$in': params.roles } });
     }

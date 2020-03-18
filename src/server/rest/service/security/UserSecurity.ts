@@ -24,6 +24,9 @@ export default class UserSecurity {
   }
 
   public static filterUsersRequest(request: any): HttpUsersRequest {
+    if (request.Issuer) {
+      request.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     if (request.Search) {
       request.Search = sanitize(request.Search);
     }
