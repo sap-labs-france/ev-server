@@ -66,6 +66,8 @@ export default class BillingSecurity {
       filteredInvoice.createdOn = invoice.createdOn;
       filteredInvoice.downloadUrl = invoice.downloadUrl;
       filteredInvoice.payUrl = invoice.payUrl;
+      filteredInvoice.currency = invoice.currency;
+      filteredInvoice.customerID = invoice.customerID;
     }
     return filteredInvoice;
   }

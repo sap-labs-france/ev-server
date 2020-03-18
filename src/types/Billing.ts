@@ -64,3 +64,8 @@ export interface BillingInvoiceItem {
   amount: number;
   taxes?: string[];
 }
+
+export enum BillingInvoiceStatus {
+  PAID = 'paid',
+  UNPAID = 'open'
+}
