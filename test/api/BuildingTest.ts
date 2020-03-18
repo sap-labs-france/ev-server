@@ -32,7 +32,7 @@ describe('Building Test', function() {
   before(async () => {
     chai.config.includeStack = true;
     await ContextProvider.DefaultInstance.prepareContexts();
-  })
+  });
 
   afterEach(() => {
     // Can be called after each UT to clean up created data
@@ -134,7 +134,7 @@ describe('Building Test', function() {
         );
         testData.createdSiteAreas.push(testData.newSiteArea);
         expect(testData.newSiteArea).to.not.be.null;
-      })
+      });
 
       it('Should be able to create a new Building', async () => {
         // Create
@@ -163,7 +163,7 @@ describe('Building Test', function() {
 
       it('Should be able to update the building', async () => {
         // Change entity
-        testData.newBuilding.name = "New Name";
+        testData.newBuilding.name = 'New Name';
         // Update
         await testData.userService.updateEntity(
           testData.userService.buildingApi,
@@ -195,7 +195,7 @@ describe('Building Test', function() {
           testData.newBuilding
         );
       });
-    })
-  })
+    });
+  });
 });
 

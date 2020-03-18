@@ -2,7 +2,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 10
+      nodejs: 12
     commands:
       - npm install
   build:
@@ -13,4 +13,7 @@ artifacts:
   files:
     - package.json
     - package-lock.json
+    - appspec.yml
+    - 'src/aws/*.sh'
     - 'dist/**/*'
+    - 'node_modules/**/*'

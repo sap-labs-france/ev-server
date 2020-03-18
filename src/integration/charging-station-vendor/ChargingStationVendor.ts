@@ -16,8 +16,6 @@ export default abstract class ChargingStationVendor {
     this.chargingStation = chargingStation;
   }
 
-  public abstract getOCPPParamNameForChargingLimitation(): string;
-
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
       connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     // Check if feature is supported
@@ -163,7 +161,7 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
           });
-          let results = [] as OCPPSetChargingProfileCommandResult[];
+          const results = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             const result = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
@@ -174,13 +172,13 @@ export default abstract class ChargingStationVendor {
           return results;
         }
         return result;
-        // Connector ID > 0
-      } else {
-        return chargingStationClient.setChargingProfile({
-          connectorId: schneiderChargingProfile.connectorID,
-          csChargingProfiles: schneiderChargingProfile.profile
-        });
       }
+      // Connector ID > 0
+      return chargingStationClient.setChargingProfile({
+        connectorId: schneiderChargingProfile.connectorID,
+        csChargingProfiles: schneiderChargingProfile.profile
+      });
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -229,7 +227,7 @@ export default abstract class ChargingStationVendor {
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
-          let results = [] as OCPPClearChargingProfileCommandResult[];
+          const results = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
             const result = await chargingStationClient.clearChargingProfile({
@@ -248,19 +246,19 @@ export default abstract class ChargingStationVendor {
             Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
         return result;
-        // Connector ID > 0
-      } else {
-        // Clear the Profile
-        const result = await chargingStationClient.clearChargingProfile({
-          connectorId: chargingProfile.connectorID
-        });
-        if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-          // Reapply the current limitation
-          await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpsOfChargingStation(chargingStation));
-        }
-        return result;
       }
+      // Connector ID > 0
+      // Clear the Profile
+      const result = await chargingStationClient.clearChargingProfile({
+        connectorId: chargingProfile.connectorID
+      });
+      if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
+        // Reapply the current limitation
+        await this.setPowerLimitation(tenantID, chargingStation, 0,
+          Utils.getTotalAmpsOfChargingStation(chargingStation));
+      }
+      return result;
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -311,7 +309,7 @@ export default abstract class ChargingStationVendor {
             module: 'ChargingStationVendor', method: 'getCompositeSchedule',
             detailedMessages: { result }
           });
-          let results = [] as OCPPGetCompositeScheduleCommandResult[];
+          const results = [] as OCPPGetCompositeScheduleCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Get the Composite Schedule
             const result = await chargingStationClient.getCompositeSchedule({
@@ -324,15 +322,15 @@ export default abstract class ChargingStationVendor {
           return results;
         }
         return result;
-        // Connector ID > 0
-      } else {
-        // Get the Composite Schedule
-        return chargingStationClient.getCompositeSchedule({
-          connectorId: connectorID,
-          duration: durationSecs,
-          chargingRateUnit: chargingStation.powerLimitUnit
-        });
       }
+      // Connector ID > 0
+      // Get the Composite Schedule
+      return chargingStationClient.getCompositeSchedule({
+        connectorId: connectorID,
+        duration: durationSecs,
+        chargingRateUnit: chargingStation.powerLimitUnit
+      });
+
     } catch (error) {
       if (!error.status) {
         throw error;
@@ -344,7 +342,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCurrentConnectorLimit(tenantID: string,
-      chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     // Default
     const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
     const limitDefaultMaxPower = chargingStation.connectors[connectorID - 1].power;
@@ -413,4 +411,6 @@ export default abstract class ChargingStationVendor {
       limitWatts: limitDefaultMaxPower
     };
   }
+
+  public abstract getOCPPParamNameForChargingLimitation(): string;
 }

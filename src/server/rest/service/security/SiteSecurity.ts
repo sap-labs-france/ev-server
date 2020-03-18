@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSitesRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 import Site from '../../../../types/Site';
 import UserToken from '../../../../types/UserToken';
 import CompanySecurity from './CompanySecurity';

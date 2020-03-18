@@ -409,7 +409,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, 'OCPIEndpointService', 'handleSendTokensOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, 
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       'OCPIEndpointService', 'handleSendTokensOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client

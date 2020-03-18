@@ -3,7 +3,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetConfigurationCommandResult, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
@@ -294,7 +294,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppConfiguration(tenantID: string,
-      chargingStation: ChargingStation, newChargingStation = false): Promise<OCPPChangeConfigurationCommandResult> {
+    chargingStation: ChargingStation, newChargingStation = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -433,7 +433,7 @@ export default class OCPPUtils {
   }
 
   public static async requestChangeChargingStationConfiguration(
-      tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
+    tenantID: string, chargingStation: ChargingStation, params: OCPPChangeConfigurationCommandParam) {
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {

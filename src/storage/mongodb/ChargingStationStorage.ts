@@ -158,9 +158,9 @@ export default class ChargingStationStorage {
       });
       // Filter connectors array
       aggregation.push({
-        "$addFields": {
-          "connectors": {
-            "$filter": {
+        '$addFields': {
+          'connectors': {
+            '$filter': {
               input: '$connectors',
               as: 'connector',
               cond: {
@@ -182,9 +182,9 @@ export default class ChargingStationStorage {
       });
       // Filter connectors array
       aggregation.push({
-        "$addFields": {
-          "connectors": {
-            "$filter": {
+        '$addFields': {
+          'connectors': {
+            '$filter': {
               input: '$connectors',
               as: 'connector',
               cond: {
@@ -541,7 +541,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-      params: { lastHeartBeat: Date, currentIPAddress: string;}): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string}): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
