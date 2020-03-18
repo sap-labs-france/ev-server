@@ -12,7 +12,7 @@ import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (req.user.tenantID !== Constants.DEFAULT_TENANT) {
+    if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS, 'CarService', 'handleGetCars');
     }
