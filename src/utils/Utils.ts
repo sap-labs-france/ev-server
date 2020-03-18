@@ -17,7 +17,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
 import Building from '../types/Building';
 import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { StaticLimitAmps, ChargingStationCurrentType, ConnectorCurrentType } from '../types/ChargingStation';
 import Company from '../types/Company';
 import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
@@ -470,9 +470,13 @@ export default class Utils {
     return userID;
   }
 
-  public static convertAmpToPowerWatts(chargingStation: ChargingStation, ampValue: number): number {
-    if (chargingStation && chargingStation.connectors && chargingStation.connectors.length > 0 && chargingStation.connectors[0].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[0].numberOfConnectedPhase, ampValue);
+  public static convertAmpToPowerWatts(chargingStation: ChargingStation, connectorID: number, ampValue: number): number {
+    // AC Chargers?
+    if (chargingStation &&
+        chargingStation.connectors && chargingStation.connectors.length > 0 &&
+        chargingStation.connectors[connectorID].currentType === ConnectorCurrentType.AC,
+        chargingStation.connectors[connectorID].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[connectorID].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }

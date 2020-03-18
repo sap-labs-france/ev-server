@@ -316,6 +316,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.addChargingStationInactiveFlag(aggregation);
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
+    match.$and.push({ issuer: true });
     if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
       match.$and.push({
         'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) }
@@ -903,7 +904,7 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        const inactiveDate = new Date(new Date().getTime() - DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }

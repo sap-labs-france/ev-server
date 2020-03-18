@@ -9,7 +9,7 @@
 			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "Patch Status",
+			"title": "Roaming Send Statuses",
 			"body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
 		},
 		"smtpAuthError": {

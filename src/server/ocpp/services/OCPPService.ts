@@ -1141,11 +1141,16 @@ export default class OCPPService {
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         if (consumption) {
           // Get the curent limit of the connector
-          const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-          if (chargingStationClient) {
-            const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+          const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+          if (chargingStationVendor) {
+            // Get current limitation
+            const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
             consumption.limitAmps = connectorLimit.limitAmps;
             consumption.limitWatts = connectorLimit.limitWatts;
+          } else {
+            // Default
+            consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
+            consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
           }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
