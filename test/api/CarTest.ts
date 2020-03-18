@@ -8,11 +8,14 @@ import TestData from './client/utils/TestData';
 chai.use(chaiSubset);
 const testData: TestData = new TestData();
 describe('Car Service', function() {
+  this.timeout(500000);
+
   before(async function() {
     // Init values
+    console.log(config.get('superadmin.username'));
     testData.superCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
 
-    testData.centralService = new CentralServerService('utnothing', {
+    testData.centralService = new CentralServerService('utcar', {
       email: config.get('admin.username'),
       password: config.get('admin.password')
     });
@@ -33,25 +36,14 @@ describe('Car Service', function() {
         expect(response.status).to.equal(200);
       });
 
-      it('Should not be able to get the car Object', async () => {
-        const response = await testData.centralService.carApi.getCarObject('');
-        expect(response.status).to.equal(560);
-
-      });
-
       describe('Where Super admin user', () => {
         it('Should be able to get car by ID', async () => {
-          const response = await testData.centralService.carApi.readById('');
+          const response = await testData.centralService.carApiSuperTenant.readById('');
           expect(response.status).to.equal(200);
         });
 
         it('Should be able to get cars', async () => {
-          const response = await testData.centralService.carApi.readAll({});
-          expect(response.status).to.equal(200);
-        });
-
-        it('Should be able to get car Object', async () => {
-          const response = await testData.superCentralService.carApiSuperTenant.getCarObject('');
+          const response = await testData.centralService.carApiSuperTenant.readAll({});
           expect(response.status).to.equal(200);
         });
       });

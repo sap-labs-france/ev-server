@@ -12,15 +12,4 @@ export default class CarApi extends CrudApi {
   public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Cars');
   }
-
-  public async getCarObject(id) {
-    return await this._authenticatedApi.send({
-      method: 'GET',
-      url: '/client/api/CarObject',
-      data: {
-        carID: id,
-      }
-    });
-  }
-
 }
