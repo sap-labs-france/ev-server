@@ -20,10 +20,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     for (const tenant of tenants.result) {
       // Update Charging Station OCPP Params
       await this.updateChargingStationsOCPPParametersInTemplate(tenant);
-      // // Update current Charging Station with Template
-      // await this.updateChargingStationsParametersWithTemplate(tenant);
-      // // Remove unused props
-      // await this.removeChargingStationUnusedPropsInDB(tenant);
+      // Update current Charging Station with Template
+      await this.updateChargingStationsParametersWithTemplate(tenant);
+      // Remove unused props
+      await this.removeChargingStationUnusedPropsInDB(tenant);
     }
   }
 
@@ -99,22 +99,12 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   private async updateChargingStationsParametersWithTemplate(tenant: Tenant) {
     let updated = 0;
     // Get Charging Stations
-    const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(tenant.id, 'chargingstations').find(
-      {
-        $or: [
-          { 'currentType': { $exists: false } },
-          { 'connectors.numberOfConnectedPhase': { $exists: false } },
-          { 'connectors.amperageLimit': { $exists: false } }
-        ]
-      }).toArray();
+    const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
+      tenant.id, 'chargingstations').find({}).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
       let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStationMDB);
-      for (const connector of chargingStationMDB.connectors) {
-        const chargingStationConnectorUpdated = await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant.id, chargingStationMDB, connector.connectorId);
-        chargingStationUpdated = chargingStationUpdated || chargingStationConnectorUpdated;
-      }
       // Check Connectors
       for (const connector of chargingStationMDB.connectors) {
         if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
