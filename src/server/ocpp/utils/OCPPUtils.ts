@@ -175,34 +175,34 @@ export default class OCPPUtils {
           detailedMessages: chargingStationTemplate
         });
         return true;
-      } else {
-        // Log
-        Logging.logInfo({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
-          action: 'ChargingStationTemplate',
-          message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
-          detailedMessages: chargingStationTemplate
-        });
-        return false;
       }
-    } else {
       // Log
-      Logging.logWarning({
+      Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
         action: 'ChargingStationTemplate',
-        message: `No Template has been found for '${chargingStation.chargePointVendor}'`
+        message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
+        detailedMessages: chargingStationTemplate
       });
       return false;
+
     }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: `No Template has been found for '${chargingStation.chargePointVendor}'`
+    });
+    return false;
+
   }
 
   public static async enrichChargingStationConnectorWithTemplate(
-      tenantID: string, chargingStation: ChargingStation, connectorID: number,
-      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+    tenantID: string, chargingStation: ChargingStation, connectorID: number,
+    chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Copy from template
     if (chargingStationTemplate) {
       // Handle connector
