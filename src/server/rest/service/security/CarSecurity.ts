@@ -1,11 +1,11 @@
-import { HttpCarsRequest, HttpCarRequest } from '../../../../types/requests/HttpCarRequest';
-import UtilsSecurity from './UtilsSecurity';
-import sanitize = require('mongo-sanitize');
-import UserToken from '../../../../types/UserToken';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
   public static filterCarsRequest(request: any): HttpCarsRequest {
@@ -53,6 +53,7 @@ export default class CarSecurity {
         batteryCapacityUseable: car.batteryCapacityUseable,
         chargePlug: car.chargePlug,
         fastChargePlug: car.fastChargePlug,
+        fastChargePowerMax: car.fastChargePowerMax,
         chargePlugLocation: car.chargePlugLocation,
         drivetrainPowerHP: car.drivetrainPowerHP,
         chargeStandardChargeTime: car.chargeStandardChargeTime,
@@ -95,6 +96,8 @@ export default class CarSecurity {
           performanceTopspeed: car.performanceTopspeed,
           chargeStandardPower: car.chargeStandardPower,
           chargePlug: car.chargePlug,
+          fastChargePlug: car.fastChargePlug,
+          fastChargePowerMax: car.fastChargePowerMax,
           drivetrainPowerHP: car.drivetrainPowerHP,
           chargeStandardPhase: car.chargeStandardPhase,
           vehicleModelVersion: car.vehicleModelVersion,
