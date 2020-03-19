@@ -17,7 +17,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new BackendError({
@@ -114,7 +114,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -190,7 +190,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -369,7 +369,7 @@ export default abstract class ChargingStationVendor {
           let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
           // Check
           if (connectorLimitAmps > limitDefaultMaxAmps) {
-            connectorLimitAmps = limitDefaultMaxAmps
+            connectorLimitAmps = limitDefaultMaxAmps;
           }
           return {
             limitAmps: connectorLimitAmps,
@@ -387,7 +387,7 @@ export default abstract class ChargingStationVendor {
           let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
           // Check
           if (connectorLimitAmps > limitDefaultMaxAmps) {
-            connectorLimitAmps = limitDefaultMaxAmps
+            connectorLimitAmps = limitDefaultMaxAmps;
           }
           return {
             limitAmps: connectorLimitAmps,

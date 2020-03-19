@@ -68,7 +68,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
             message: `Charging Station OCPP Parameters failed to be updated with Template ('${result.status}') in Tenant '${tenant.name}'`
           });
         }
-      } catch (error) { 
+      } catch (error) {
         error++;
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
@@ -103,8 +103,8 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
       tenant.id, 'chargingstations').find({
-        issuer: true
-      }).toArray();
+      issuer: true
+    }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
@@ -167,7 +167,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.3';
+    return '1.4';
   }
 
   isAsynchronous() {
