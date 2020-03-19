@@ -103,8 +103,8 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
       tenant.id, 'chargingstations').find({
-        issuer: true
-      }).toArray();
+      issuer: true
+    }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
