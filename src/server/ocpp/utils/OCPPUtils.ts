@@ -194,7 +194,8 @@ export default class OCPPUtils {
       source: chargingStation.id,
       module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
       action: 'ChargingStationTemplate',
-      message: `No Template has been found for '${chargingStation.chargePointVendor}'`
+      message: 'No Template has been found!',
+      detailedMessages: chargingStation
     });
     return false;
 

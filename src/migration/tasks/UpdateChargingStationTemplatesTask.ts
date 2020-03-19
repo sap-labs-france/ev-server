@@ -29,7 +29,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
 
   private async updateChargingStationsOCPPParametersInTemplate(tenant: Tenant) {
     // Get the charging station
-    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+      issuer: true
+    }, Constants.DB_PARAMS_MAX_LIMIT);
     let updated = 0;
     let error = 0;
     for (const chargingStation of chargingStations.result) {
@@ -100,7 +102,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     let updated = 0;
     // Get Charging Stations
     const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
-      tenant.id, 'chargingstations').find({}).toArray();
+      tenant.id, 'chargingstations').find({
+      issuer: true
+    }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich

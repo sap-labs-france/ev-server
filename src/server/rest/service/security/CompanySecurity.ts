@@ -22,11 +22,13 @@ export default class CompanySecurity {
 
   public static filterCompaniesRequest(request: any): HttpCompaniesRequest {
     const filteredRequest: HttpCompaniesRequest = {
-      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites),
       WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)
     } as HttpCompaniesRequest;
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
