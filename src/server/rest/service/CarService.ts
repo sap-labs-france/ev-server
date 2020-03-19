@@ -35,7 +35,9 @@ export default class CarService {
         search: filteredRequest.Search
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'vehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed']
+      ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
+       'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed',
+       'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarsResponse(cars, req.user);
@@ -64,9 +66,13 @@ export default class CarService {
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     let car;
     if (!Authorizations.isSuperAdmin(req.user)) {
-      const projectFields = ['id', 'vehicleModel', 'vehicleMake', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed', 'performanceAcceleration', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion', 'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'chargeStandardPower', 'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 'miscSegment', 'miscIsofixSeats', 'chargeStandardTables'];
       // Get the car
-      car = await CarStorage.getCar(filteredRequest.ID, projectFields);
+      car = await CarStorage.getCar(filteredRequest.ID,
+        ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
+         'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion',
+         'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'drivetrainPowerHP',
+         'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 
+         'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase']);
     } else {
       // Get the car
       car = await CarStorage.getCar(filteredRequest.ID);
