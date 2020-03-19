@@ -12,4 +12,4 @@ fi
 [ -z $emobility_log_file ] && { echo "emobility log file env variable not found, exiting"; exit 1; }
 
 cd $emobility_install_dir
-authbind --deep node -r source-map-support/register --stack-trace-limit=1024 dist/start.js > $emobility_log_file &
+authbind --deep node -r source-map-support/register --stack-trace-limit=1024 dist/start.js > $emobility_log_file 2>&1 &
