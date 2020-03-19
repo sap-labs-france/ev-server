@@ -36,8 +36,8 @@ export default class CarService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-       'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed',
-       'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'drivetrainPowerHP']
+        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed',
+        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarsResponse(cars, req.user);
@@ -69,10 +69,10 @@ export default class CarService {
       // Get the car
       car = await CarStorage.getCar(filteredRequest.ID,
         ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
-         'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion',
-         'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'drivetrainPowerHP',
-         'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle', 
-         'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase']);
+          'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion',
+          'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'chargePlugLocation', 'drivetrainPowerHP',
+          'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase']);
     } else {
       // Get the car
       car = await CarStorage.getCar(filteredRequest.ID);
