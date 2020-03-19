@@ -243,9 +243,9 @@ export default class CarStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars').findOneAndUpdate(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars').findOneAndReplace(
+      { _id: carToSave.id },
       carMDB,
-      { $set: carMDB },
       { upsert: true }
     );
     // Debug

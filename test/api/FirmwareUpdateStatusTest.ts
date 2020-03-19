@@ -45,7 +45,7 @@ describe('Firmware Update Status Tests', function() {
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
       testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
-      await testData.chargingStationContext.sendHeartbeat()
+      await testData.chargingStationContext.sendHeartbeat();
     });
 
     after(async () => {

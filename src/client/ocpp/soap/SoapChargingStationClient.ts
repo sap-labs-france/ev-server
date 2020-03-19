@@ -165,7 +165,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       Logging.logError({
         tenantID: this.tenantID,
         action: OCPPChargingStationCommand.UNLOCK_CONNECTOR as unknown as Action,
-        source: this.chargingStation.id, module: 'SoapChargingStationClient', method:  'unlockConnector',
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },

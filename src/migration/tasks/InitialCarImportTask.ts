@@ -22,7 +22,11 @@ export default class InitialCarImportTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
+  }
+
+  isAsynchronous() {
+    return true;
   }
 
   getName() {

@@ -205,17 +205,9 @@ export default class OCPIMapping {
 
     if (user) {
       const tag = user.tags.find((value) => value.id === tokenId);
-      return {
-        uid: tokenId,
-        type: OCPITokenType.RFID,
-        'auth_id': tag.userID,
-        'visual_number': tag.userID,
-        issuer: user.name,
-        valid: tag.active,
-        whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        language: OCPIMapping.convertLocaleToLanguage(user.locale),
-        'last_updated': user.lastChangedOn
-      };
+      if (!user.issuer && user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
+        return tag.ocpiToken;
+      }
     }
   }
 
