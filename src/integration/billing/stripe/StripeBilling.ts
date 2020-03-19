@@ -153,6 +153,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
 
   public async getUserInvoices(user: BillingPartialUser, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]> {
     this.checkIfStripeIsInitialized();
+    await this.checkConnection();
     const invoices = [] as BillingInvoice[];
     let request;
     const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
@@ -305,7 +306,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         action: Action.CREATE_BILLING_INVOICE,
-        module: 'StripeBilling', method: 'createInvoice',
+        module: 'StripeBilling', method: 'createInvoiceItem',
         message: 'Cannot create invoice with no items',
       });
     }

@@ -256,7 +256,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.USER, action: Action.READ_BILLING_TAXES,
-        module: 'BillingService', method: 'handleGetBillingTaxes',
+        module: 'BillingService', method: 'handleGetUserInvoices',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
