@@ -691,6 +691,7 @@ export default class TransactionStorage {
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
+    match.issuer = true;
     // User / Site Admin
     if (params.userIDs) {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
@@ -1034,10 +1035,10 @@ export default class TransactionStorage {
     aggregation.push({
       $addFields: {
         dateStart: {
-          $toDate: { $subtract: [{ $toLong: '$authDate' },  5 * 60 * 1000] }
+          $toDate: { $subtract: [{ $toLong: '$authDate' }, 5 * 60 * 1000] }
         },
         dateEnd: {
-          $toDate: { $add: [{ $toLong: '$authDate' },  params.sessionShouldBeStartedAfterMins * 60 * 1000] }
+          $toDate: { $add: [{ $toLong: '$authDate' }, params.sessionShouldBeStartedAfterMins * 60 * 1000] }
         }
       }
     });
@@ -1049,9 +1050,9 @@ export default class TransactionStorage {
         pipeline: [{
           $match: {
             $and: [
-              { $expr: { $eq: ['$tagID', '$$tagID'] }},
-              { $expr: { $gt: ['$timestamp', '$$dateStart'] }},
-              { $expr: { $lt: ['$timestamp', '$$dateEnd'] }}
+              { $expr: { $eq: ['$tagID', '$$tagID'] } },
+              { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+              { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
             ]
           }
         }],

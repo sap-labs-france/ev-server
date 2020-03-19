@@ -1,8 +1,15 @@
 applications:
 - name: e-mobility-server
-  memory: 512M
-  disk_quota: 1024M
+  memory: 1G
+  disk_quota: 1G
   instances: 1
+  # For server type using express:
+  # health-check-type: http
+  # health-check-http-endpoint: /health-check
+  # For server type using WS:
+  # health-check-type: http
+  # For server type not listing on a socket:
+  # health-check-type: process
   buildpacks:
   - https://github.com/cloudfoundry/nodejs-buildpack
   random-route: true

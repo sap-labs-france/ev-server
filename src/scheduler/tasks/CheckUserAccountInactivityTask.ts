@@ -14,7 +14,11 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
     try {
       // Compute the date some months ago
       const someMonthsAgo = moment().subtract(config.userAccountInactivityMonths, 'months').toDate();
-      const params = { 'statuses': ['A'], 'noLoginSince': someMonthsAgo };
+      const params = {
+        issuer: true,
+        statuses: ['A'],
+        noLoginSince: someMonthsAgo
+      };
       // Get Users
       const users = await UserStorage.getUsers(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       for (const user of users.result) {

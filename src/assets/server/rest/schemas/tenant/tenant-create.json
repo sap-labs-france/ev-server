@@ -87,7 +87,13 @@
                     "properties": {
                         "active": { "type": "boolean", "sanitize": "mongo" }
                     }
-                }
+                },
+                "car": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean", "sanitize": "mongo" }
+                  }
+              }
             }
         }
     },
