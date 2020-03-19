@@ -174,17 +174,19 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     do {
       request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
-        invoices.push({
-          id: invoice.id,
-          number: invoice.number,
-          status: invoice.status,
-          amountDue: invoice.amount_due,
-          currency: invoice.currency,
-          customerID: invoice.customer,
-          createdOn: new Date(invoice.created * 1000),
-          downloadUrl: invoice.invoice_pdf,
-          payUrl: invoice.hosted_invoice_url
-        });
+        if (!params || !params.search || params.search === '' || invoice.number.toUpperCase().startsWith(params.search.toUpperCase().trim())) {
+          invoices.push({
+            id: invoice.id,
+            number: invoice.number,
+            status: invoice.status,
+            amountDue: invoice.amount_due,
+            currency: invoice.currency,
+            customerID: invoice.customer,
+            createdOn: new Date(invoice.created * 1000),
+            downloadUrl: invoice.invoice_pdf,
+            payUrl: invoice.hosted_invoice_url
+          });
+        }
       }
       if (request.has_more) {
         requestParams['starting_after'] = invoices[invoices.length - 1].id;

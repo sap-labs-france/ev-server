@@ -12,8 +12,9 @@ export interface HttpSynchronizeUserRequest {
 
 export interface HttpGetUserInvoicesRequest {
   status?: string;
-  startDateTime: Date;
-  endDateTime: Date;
+  startDateTime?: Date;
+  endDateTime?: Date;
+  search?: string;
 }
 
 export interface HttpUserMobileTokenRequest {

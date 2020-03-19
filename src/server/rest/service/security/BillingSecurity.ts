@@ -94,6 +94,9 @@ export default class BillingSecurity {
     if (request.EndDateTime) {
       filteredRequest.endDateTime = sanitize(request.EndDateTime);
     }
+    if (request.Search) {
+      filteredRequest.search = sanitize(request.Search);
+    }
     return filteredRequest;
   }
 }
