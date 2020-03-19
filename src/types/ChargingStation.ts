@@ -64,7 +64,7 @@ export enum PowerLimitUnits {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 0,
+  MIN_LIMIT = 2,
 }
 
 export interface Connector {

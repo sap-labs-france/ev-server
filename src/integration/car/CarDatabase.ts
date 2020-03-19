@@ -7,7 +7,6 @@ import Logging from '../../utils/Logging';
 
 export default abstract class CarDatabase {
   public abstract async getCars(): Promise<Car[]>;
-
   public async synchronizeCars(): Promise<CarSynchronizeAction> {
     /* eslint-disable */
     const actionsDone = {
@@ -31,7 +30,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been created successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been created successfully`,
           });
         } else if (Cypher.hash(JSON.stringify(car)) !== carDB.hash) {
           // Car has changed: Update it
@@ -45,7 +44,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
             module: 'CarDatabase', method: 'synchronizeCars',
-            message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} has been updated successfully`,
+            message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been updated successfully`,
           });
         }
       } catch (error) {
@@ -56,7 +55,7 @@ export default abstract class CarDatabase {
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_CARS,
           module: 'CarDatabase', method: 'synchronizeCars',
-          message: `${car.id} - ${car.vehicleMake} - ${car.VehicleModel} got synchronization error`,
+          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} got synchronization error`,
           detailedMessages: error
         });
       }
@@ -79,6 +78,6 @@ export default abstract class CarDatabase {
         message: 'All the cars are up to date'
       });
     }
-  return actionsDone;
+    return actionsDone;
   }
 }

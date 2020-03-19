@@ -8,18 +8,19 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 export default class AddIssuerFieldTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
+    await this.migrateTenant(Constants.DEFAULT_TENANT, Constants.DEFAULT_TENANT, 'users');
     for (const tenant of tenants.result) {
-      await this.migrateTenant(tenant, 'chargingstations');
-      await this.migrateTenant(tenant, 'companies');
-      await this.migrateTenant(tenant, 'sites');
-      await this.migrateTenant(tenant, 'siteareas');
-      await this.migrateTenant(tenant, 'users');
+      await this.migrateTenant(tenant.id, tenant.name, 'chargingstations');
+      await this.migrateTenant(tenant.id, tenant.name, 'companies');
+      await this.migrateTenant(tenant.id, tenant.name, 'sites');
+      await this.migrateTenant(tenant.id, tenant.name, 'siteareas');
+      await this.migrateTenant(tenant.id, tenant.name, 'users');
     }
   }
 
-  async migrateTenant(tenant: Tenant, collectionName: string) {
+  async migrateTenant(tenantId: string, tenantName: string,  collectionName: string) {
     // Add the status property to the refunded transactions
-    const result = await global.database.getCollection<any>(tenant.id, collectionName).updateMany(
+    const result = await global.database.getCollection<any>(tenantId, collectionName).updateMany(
       {
         'issuer': { $exists: false }
       },
@@ -32,13 +33,13 @@ export default class AddIssuerFieldTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         module: 'AddIssuerFieldTask', method: 'migrateTenant',
         action: 'AddIssuerField',
-        message: `${result.modifiedCount} Object(s) has been updated in the collection '${collectionName}' of Tenant '${tenant.name}'`
+        message: `${result.modifiedCount} Object(s) has been updated in the collection '${collectionName}' of Tenant '${tenantName}'`
       });
     }
   }
 
   getVersion() {
-    return '1.1';
+    return '1.2';
   }
 
   getName() {

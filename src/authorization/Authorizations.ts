@@ -452,6 +452,14 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
+  public static canListCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
+  }
+
+  public static canReadCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
+  }
+
   public static canListBuildings(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.BUILDINGS, Action.LIST);
   }
