@@ -211,8 +211,8 @@
       },
       {
         "name": "SynchronizeCarsTask",
-        "active": true,
-        "periodicity": "0 0 1 * *",
+        "active": false,
+        "periodicity": "* * * * *",
         "config": {}
       }
     ]

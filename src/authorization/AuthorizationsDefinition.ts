@@ -15,7 +15,9 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
-      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] }
+      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Cars', action: 'List', attributes: ['*'] },
+      { resource: 'Car', action: 'Read', attributes: ['*'] },
     ]
   },
   admin: {
@@ -70,7 +72,10 @@ const GRANTS = {
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
-      { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] }
+      { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
+      { resource: 'Cars', action: 'List', attributes: ['*'] },
+      { resource: 'Car', action: 'Read', attributes: ['*'] }
+
     ]
   },
   basic: {

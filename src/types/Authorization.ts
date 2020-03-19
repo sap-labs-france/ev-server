@@ -30,7 +30,9 @@ export enum Entity {
   CONNECTIONS = 'Connections',
   BUILDING = 'Building',
   BUILDINGS = 'Buildings',
-  INVOICES = 'Invoices'
+  CAR = 'Car',
+  CARS = 'Cars',
+  INVOICES = 'Invoices',
 }
 
 export enum Action {
@@ -71,6 +73,7 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
   DOWNLOAD = 'Download',
+
 
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',

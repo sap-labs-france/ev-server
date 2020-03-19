@@ -4,7 +4,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 export interface Car extends CreatedUpdatedProps{
   id: string;
   vehicleMake: string;
-  VehicleModel: string;
+  vehicleModel: string;
   vehicleModelVersion?: string;
   availabilityStatus: AvailabilityStatus;
   availabilityDateFrom: string;
@@ -77,15 +77,15 @@ export interface Car extends CreatedUpdatedProps{
   chargeOptionChargeTime?: number;
   chargeOptionChargeSpeed?: number;
   chargeOptionTables: { [id: string]: ChargeOptionTable; };
-  fastchargePlug?: string;
-  fastchargePlugEstimate?: boolean;
-  fastchargePlugLocation?: string;
-  fastchargePowerMax?: number;
-  fastchargePowerAvg?: number;
-  fastchargeChargeTime?: number;
-  fastchargeChargeSpeed?: number;
-  fastchargeOptional?: boolean;
-  fastchargeEstimate?: boolean;
+  fastChargePlug?: string;
+  fastChargePlugEstimate?: boolean;
+  fastChargePlugLocation?: string;
+  fastChargePowerMax?: number;
+  fastChargePowerAvg?: number;
+  fastChargeTime?: number;
+  fastChargeSpeed?: number;
+  fastChargeOptional?: boolean;
+  fastChargeEstimate?: boolean;
   batteryCapacityUseable: number;
   batteryCapacityFull: number;
   batteryCapacityEstimate: BatteryCapacityEstimate;
@@ -119,37 +119,37 @@ export interface Car extends CreatedUpdatedProps{
   hash?: string;
 }
 export interface ChargeOptionTable {
-  EVSEPhaseVolt?: number;
-  EVSEPhaseAmp?: number;
-  EVSEPhase?: number;
-  ChargePhaseVolt?: number;
-  ChargePhaseAmp?: number;
-  ChargePhase?: number;
-  ChargePower?: number;
-  ChargeTime?: number;
-  ChargeSpeed?: number;
+  evsePhaseVolt?: number;
+  evsePhaseAmp?: number;
+  evsePhase?: number;
+  chargePhaseVolt?: number;
+  chargePhaseAmp?: number;
+  chargePhase?: number;
+  chargePower?: number;
+  chargeTime?: number;
+  chargeSpeed?: number;
 }
 export interface ChargeAlternativeTable {
-  EVSEPhaseVolt: number;
-  EVSEPhaseAmp: number;
-  EVSEPhase: number;
-  ChargePhaseVolt: number;
-  ChargePhaseAmp: number;
-  ChargePhase: number;
-  ChargePower: number;
-  ChargeTime: number;
-  ChargeSpeed: number;
+  evsePhaseVolt: number;
+  evsePhaseAmp: number;
+  evsePhase: number;
+  chargePhaseVolt: number;
+  chargePhaseAmp: number;
+  chargePhase: number;
+  chargePower: number;
+  chargeTime: number;
+  chargeSpeed: number;
 }
 export interface ChargeStandardTable {
-  EVSEPhaseVolt: number;
-  EVSEPhaseAmp: number;
-  EVSEPhase: number;
-  ChargePhaseVolt: number;
-  ChargePhaseAmp: number;
-  ChargePhase: number;
-  ChargePower: number;
-  ChargeTime: number;
-  ChargeSpeed: number;
+  evsePhaseVolt: number;
+  evsePhaseAmp: number;
+  evsePhase: number;
+  chargePhaseVolt: number;
+  chargePhaseAmp: number;
+  chargePhase: number;
+  chargePower: number;
+  chargeTime: number;
+  chargeSpeed: number;
 }
 
 export enum AvailabilityStatus {
