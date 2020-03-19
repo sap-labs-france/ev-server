@@ -30,6 +30,8 @@ export default class ChargingStationStorage {
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
+        // Set the hash
+        chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
@@ -463,6 +465,7 @@ export default class ChargingStationStorage {
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
+      templateHash: chargingStationToSave.templateHash,
       issuer: chargingStationToSave.issuer,
       private: chargingStationToSave.private,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),

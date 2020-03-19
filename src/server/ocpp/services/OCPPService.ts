@@ -55,7 +55,6 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
-    let newChargingStation = false;
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -132,9 +131,6 @@ export default class OCPPService {
             }
           }
         }
-        // Enrich Charging Station
-        await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
-        newChargingStation = true;
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -176,6 +172,8 @@ export default class OCPPService {
       if (Configuration.isCloudFoundry()) {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
+      // Enrich Charging Station
+      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(Action.OCPP_SERVICE, headers.tenantID, chargingStation);
       // Save Boot Notification
@@ -200,7 +198,8 @@ export default class OCPPService {
       // Handle the get of configuration later on
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(headers.tenantID, chargingStation, newChargingStation);
+        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+          headers.tenantID, chargingStation, chargingStationTemplateUpdated);
       }, 3000);
       // Return the result
       return {
@@ -848,7 +847,11 @@ export default class OCPPService {
       };
       chargingStation.connectors.push(foundConnector);
       // Enrich Charging Station's Connector
-      await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenantID, chargingStation, statusNotification.connectorId);
+      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+      if (chargingStationTemplate) {
+        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
+          tenantID, chargingStation, statusNotification.connectorId, chargingStationTemplate);
+      }
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
