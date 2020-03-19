@@ -167,7 +167,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.3';
+    return '1.4';
   }
 
   isAsynchronous() {
