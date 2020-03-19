@@ -1,4 +1,4 @@
-import { HttpCarRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
 import UserToken from '../../../../types/UserToken';
