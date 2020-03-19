@@ -9,7 +9,7 @@
 			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a été démarrée avec succès dans l'organisation '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "Mise à jour Statuts",
+			"title": "Itinérance Envoie des Statuts",
 			"body": "La mise à jour des statuts vers le site d'itinérance des bornes a échoué sur le site '{{location}}' dans l'organisation '{{tenantName}}', vérifier les logs"
 		},
 		"smtpAuthError": {

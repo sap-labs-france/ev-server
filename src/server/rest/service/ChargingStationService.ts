@@ -429,14 +429,14 @@ export default class ChargingStationService {
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+      for (const oneResult of result) {
         if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
           resultStatus = oneResult.status;
           break;
         }
       }
     } else {
-      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+      resultStatus = (result).status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
@@ -445,7 +445,7 @@ export default class ChargingStationService {
         user: user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
-        message: `Cannot set the Charging Profile!`,
+        message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
       });
     }
@@ -829,7 +829,7 @@ export default class ChargingStationService {
       {
         search: filteredRequest.Search,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType: _errorType
       },
       {
@@ -1295,10 +1295,11 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
-        connectorStatus: filteredRequest.ConnectorStatus,
+        connectorStatuses: (filteredRequest.ConnectorStatus ? filteredRequest.ConnectorStatus.split('|') : null),
+        connectorTypes: (filteredRequest.ConnectorType ? filteredRequest.ConnectorType.split('|') : null),
         issuer: filteredRequest.Issuer,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         includeDeleted: filteredRequest.IncludeDeleted
       },
       {
@@ -1487,7 +1488,7 @@ export default class ChargingStationService {
       }
       // Throw error
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1497,7 +1498,7 @@ export default class ChargingStationService {
       });
     } catch (error) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,

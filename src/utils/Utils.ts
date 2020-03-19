@@ -17,7 +17,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
 import Building from '../types/Building';
 import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { StaticLimitAmps, ChargingStationCurrentType, ConnectorCurrentType } from '../types/ChargingStation';
 import Company from '../types/Company';
 import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
@@ -470,9 +470,13 @@ export default class Utils {
     return userID;
   }
 
-  public static convertAmpToPowerWatts(chargingStation: ChargingStation, ampValue: number): number {
-    if (chargingStation && chargingStation.connectors && chargingStation.connectors.length > 0 && chargingStation.connectors[0].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[0].numberOfConnectedPhase, ampValue);
+  public static convertAmpToPowerWatts(chargingStation: ChargingStation, connectorID: number, ampValue: number): number {
+    // AC Chargers?
+    if (chargingStation &&
+        chargingStation.connectors && chargingStation.connectors.length > 0 &&
+        chargingStation.connectors[connectorID].currentType === ConnectorCurrentType.AC,
+        chargingStation.connectors[connectorID].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[connectorID].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
@@ -883,7 +887,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+    // pragma if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
     //     action: Action.CHARGING_PROFILE_UPDATE,
@@ -1222,17 +1226,6 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `User I-Number ${filteredRequest.iNumber} is not valid`,
-        module: 'UserService',
-        method: 'checkIfUserValid',
-        user: req.user.id,
-        actionOnUser: filteredRequest.id
-      });
-    }
     if (filteredRequest.tags) {
       if (!Utils._areTagsValid(filteredRequest.tags)) {
         throw new AppError({
@@ -1395,9 +1388,6 @@ export default class Utils {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
-  private static _isINumberValid(iNumber): boolean {
-    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
-  }
 
   private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);
