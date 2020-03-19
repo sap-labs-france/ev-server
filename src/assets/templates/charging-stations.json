@@ -548,7 +548,7 @@
 					"currentType": "DC",
 					"numberOfConnectedPhase": 0,
 					"voltage": 500,
-					"amperage": 120
+					"amperage": 125
 				},
 				{
 					"connectorId": 2,
@@ -786,7 +786,7 @@
 					"capabilities": {
 						"supportStaticLimitationForChargingStation": true,
 						"supportStaticLimitationPerConnector": true,
-						"supportChargingProfiles": false
+						"supportChargingProfiles": true
 					}
 				}
 			],
