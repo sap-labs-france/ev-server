@@ -10,7 +10,7 @@ export interface OptimizerChargingProfilesResponse {
 
 export interface OptimizerState {
   currentTimeSeconds: number;
-  optimizerFuseTree?: OptimizerFuseTree;
+  fuseTree?: OptimizerFuseTree;
   chargingStations?: OptimizerChargingStation[];
   maximumSiteLimitKW?: number;
   cars: OptimizerCar[];
@@ -66,6 +66,7 @@ export interface OptimizerCarAssignment {
 }
 
 export interface OptimizerFuse extends OptimizerFuseTreeNode {
+  "@type": "Fuse";
   id: number;
   fusePhase1: number;
   fusePhase2: number;
@@ -74,11 +75,13 @@ export interface OptimizerFuse extends OptimizerFuseTreeNode {
 }
 
 export interface OptimizerFuseTreeNode {
+  "@type": "Fuse" | "ChargingStation";
   children?: OptimizerFuseTreeNodeUnion[];
   id?: number;
 }
 
 export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
+  "@type": "ChargingStation";
   id: number;
   fusePhase1?: number;
   fusePhase2?: number;

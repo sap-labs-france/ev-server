@@ -16,7 +16,7 @@ import moment = require('moment');
 export default class SapSmartCharging extends SmartCharging<SapSmartChargingSetting> {
 
   // Helper to resolve generated IDs, Charging Station IDs and Connector IDs --> Oliver is asked to implement String ID Property
-  private idAssignments = [];
+  // private idAssignments = [];
 
   public constructor(tenantID: string, setting: SapSmartChargingSetting) {
     super(tenantID, setting);
@@ -30,12 +30,20 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Difference in seconds
     const currentTimeSeconds = moment().diff(mmtMidnight, 'seconds');
     try {
+      console.log(JSON.stringify(this.buildRequest(siteArea, currentTimeSeconds)));
       // Call Optimizer
       const response = await Axios.post(this.buildUrl(), this.buildRequest(siteArea, currentTimeSeconds), {
         headers: {
           Accept: 'application/json',
         }
       });
+      if (response.status !== 200 && response.status !== 202) {
+        throw new BackendError({
+          message: `Optimizer service responded with status ${response.status}`,
+          module: 'SapSmartCharging',
+          method: 'getChargingProfiles'
+        });
+      }
       // Build charging profiles from result
       return this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
 
@@ -46,7 +54,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         action: Action.CALL_OPTIMIZER,
         module: 'SapSmartCharging',
         method: 'getChargingProfiles',
-        message: 'Unable to call Optimizer'
+        message: 'Unable to call Optimizer',
+        detailedMessages: error,
       });
     }
   }
@@ -78,6 +87,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     }
     // Create root fuse
     const rootFuse: OptimizerFuse = {
+      "@type": "Fuse",
       id: 0,
       fusePhase1: siteArea.maximumPower / (230 * 3),
       fusePhase2: siteArea.maximumPower / (230 * 3),
@@ -102,28 +112,26 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       // Loop through connectors to generate Cars, charging stations and car assignments for request
       for (const connector of chargingStation.connectors) {
         // Check if connector is charging
-        if (connector.status === ChargePointStatus.CHARGING ||
-            connector.status === ChargePointStatus.SUSPENDED_EV ||
-            connector.status === ChargePointStatus.SUSPENDED_EVSE) {
+        if (connector.status === ChargePointStatus.CHARGING) {
           // Build Car
-          cars.push(this.buildCar(connectorIndex));
+          cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId));
           // Build Charging Station
-          const chargingStation = this.buildChargingStation(connectorIndex, connector);
-          chargingStations.push(chargingStation);
-          chargingStationChildren.push(chargingStation);
+          const chargingStationOptimizer = this.buildChargingStation(connectorIndex, connector);
+          chargingStations.push(chargingStationOptimizer);
+          chargingStationChildren.push(chargingStationOptimizer);
           // Assign Car to Charging Station
           carAssignments.push(this.buildCarAssignment(connectorIndex));
           // Calculate
-          sumConnectorAmperagePhase1 += chargingStation.fusePhase1;
-          sumConnectorAmperagePhase2 += chargingStation.fusePhase2;
-          sumConnectorAmperagePhase3 += chargingStation.fusePhase3;
+          sumConnectorAmperagePhase1 += chargingStationOptimizer.fusePhase1;
+          sumConnectorAmperagePhase2 += chargingStationOptimizer.fusePhase2;
+          sumConnectorAmperagePhase3 += chargingStationOptimizer.fusePhase3;
           // Build helper to know, which charging station has which generated id
-          const idAssignment = {
-            generatedId: connectorIndex,
-            chargingStationId: chargingStation.id,
-            connectorId: connector.connectorId
-          };
-          this.idAssignments.push(idAssignment);
+          // const idAssignment = {
+          //   generatedId: connectorIndex,
+          //   chargingStationId: chargingStation.id,
+          //   connectorId: connector.connectorId
+          // };
+          // this.idAssignments.push(idAssignment);
           connectorIndex++;
         }
       }
@@ -146,7 +154,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     };
     // Build State
     const optimizerStateStore: OptimizerState = {
-      optimizerFuseTree: optimizerFuseTree,
+      fuseTree: optimizerFuseTree,
       cars: cars,
       currentTimeSeconds: currentTimeSeconds,
       chargingStations: chargingStations,
@@ -161,7 +169,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return request;
   }
 
-  private buildCar(connectorIndex: number): OptimizerCar {
+  private buildCar(connectorIndex: number, chargingStationId: string, connectorId: number): OptimizerCar {
     // Build "Safe" car
     const car: OptimizerCar = {
       canLoadPhase1: 1,
@@ -180,6 +188,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       suspendable: true,
       immediateStart: false,
       canUseVariablePower: true,
+      // Build string with chargingStation and ConnectorID
+      name: chargingStationId + ': Connector-' + connectorId,
     };
     return car;
   }
@@ -187,10 +197,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   private buildChargingStation(connectorIndex: number, connector: Connector): OptimizerChargingStation {
     // Build charging station from connector
     const chargingStation: OptimizerChargingStation = {
+      "@type": "ChargingStation",
       id: connectorIndex,
-      fusePhase1: connector.amperage,
-      fusePhase2: (connector.numberOfConnectedPhase > 1) ? connector.amperage : 0,
-      fusePhase3: (connector.numberOfConnectedPhase > 2) ? connector.amperage : 0,
+      fusePhase1: Math.round(connector.amperage / 3),
+      fusePhase2: Math.round(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
+      fusePhase3: Math.round(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
     };
     return chargingStation;
   }
@@ -205,12 +216,13 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   }
 
   private buildChargingStationFuse(fuseID: number, sumConnectorAmperagePhase1: number,
-      sumConnectorAmperagePhase2: number, sumConnectorAmperagePhase3: number,
-      chargingStationChildren: OptimizerChargingStation[]): OptimizerFuse {
+    sumConnectorAmperagePhase2: number, sumConnectorAmperagePhase3: number,
+    chargingStationChildren: OptimizerChargingStation[]): OptimizerFuse {
     // Each charging station can have multiple connectors (= charge points)
     // A charging station in the optimizer is modelled as a "fuse"
     // A charging station's connectors are modelled as its "children"
     const chargingStationFuse: OptimizerFuse = {
+      "@type": "Fuse",
       id: fuseID,
       fusePhase1: sumConnectorAmperagePhase1,
       fusePhase2: sumConnectorAmperagePhase2,
@@ -248,19 +260,27 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       });
       // Set duration
       chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
+
+      // Get ChargingStation ID and Connector ID from name property
+      const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
+      const connectorId = car.name.substring(car.name.lastIndexOf('-') + 1);
+
       // Build profile of charging profile
       const profile: Profile = {
-        chargingProfileId: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
+        chargingProfileId: connectorId,
         chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
         chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
         stackLevel: 2,
         chargingSchedule: chargingSchedule
       };
+
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
-        id: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
-        chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
-        connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
+        id: car.name,
+        chargingStationID: chargingStationId,
+        connectorID: connectorId,
+        // chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
+        // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
       };
       // Resolve id for charging station and connector from helper array
