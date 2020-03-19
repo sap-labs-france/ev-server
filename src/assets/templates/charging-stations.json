@@ -548,7 +548,7 @@
 					"currentType": "DC",
 					"numberOfConnectedPhase": 0,
 					"voltage": 500,
-					"amperage": 125
+					"amperage": 120
 				},
 				{
 					"connectorId": 2,
