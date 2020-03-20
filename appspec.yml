@@ -16,8 +16,8 @@ hooks:
     - location: src/aws/afterinstall_server.sh
       runas: ubuntu
   ApplicationStart:
-    - location: src/aws/start_server.sh
+    - location: src/aws/service_start.sh
       runas: ubuntu
   ApplicationStop:
-    - location: src/aws/stop_server.sh
+    - location: src/aws/service_stop.sh
       runas: ubuntu

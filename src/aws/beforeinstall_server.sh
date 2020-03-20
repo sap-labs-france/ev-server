@@ -25,3 +25,7 @@ else
   echo "authbind is not installed, exiting"
   exit 1
 fi
+
+ cp $emobility_install_dir/dist/assets/configs-aws/ev-server.service /etc/systemd/system/
+ systemctl daemon-reload
+ systemctl enable ev-server.service
