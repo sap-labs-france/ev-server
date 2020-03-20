@@ -32,10 +32,10 @@
     "port": 443
   },
   "WSDLEndpoint": {
-    "baseUrl": "https://soap.qa.e-mobility-group.com"
+    "baseUrl": "https://occp-soap.qa.e-mobility-group.com"
   },
   "JsonEndpoint": {
-    "baseUrl": "wss://ws.qa.e-mobility-group.com"
+    "baseUrl": "wss://occp-ws.qa.e-mobility-group.com"
   },
   "OCPIEndpoint": {
     "baseUrl": "https://ocpi.qa.e-mobility-group.com"
