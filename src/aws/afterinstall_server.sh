@@ -15,5 +15,8 @@ fi
 [ -z $emobility_user ] && { echo "emobility user env variable not found, exiting"; exit 1; }
 [ -z $emobility_group ] && { echo "emobility group env variable not found, exiting"; exit 1; }
 
+sudo cp $emobility_install_dir/dist/assets/configs-aws/ev-server.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable ev-server.service
 cp $emobility_install_dir/dist/assets/configs-aws/$emobility_server_type-$emobility_service_type-$emobility_landscape.json $emobility_install_dir/dist/assets/config.json
 sudo chown $emobility_user.$emobility_group $emobility_install_dir
