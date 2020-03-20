@@ -261,7 +261,7 @@ export default class Utils {
   //     source: transaction.chargeBoxID,
   //     module: 'Utils', method: 'pushTransactionToRevenueCloud',
   //     message: `Transaction ID '${transaction.id}' has been refunded successfully`,
-  //     detailedMessages: result.data
+  //     detailedMessages: { data: result.data }
   //   });
   // }
 

@@ -100,7 +100,7 @@ export default class MigrationHandler {
         source: 'Migration', action: 'Migration',
         module: 'MigrationHandler', method: 'migrate',
         message: error.toString(),
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

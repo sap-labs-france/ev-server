@@ -63,7 +63,7 @@ export default class TenantService {
       module: 'TenantService', method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
       action: action,
-      detailedMessages: tenant
+      detailedMessages: { tenant }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -212,7 +212,7 @@ export default class TenantService {
       module: 'TenantService', method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
       action: action,
-      detailedMessages: filteredRequest
+      detailedMessages: { params: filteredRequest }
     });
     // Ok
     res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -251,7 +251,7 @@ export default class TenantService {
       module: 'TenantService', method: 'handleUpdateTenant',
       message: `Tenant '${tenantUpdate.name}' has been updated successfully`,
       action: action,
-      detailedMessages: tenantUpdate
+      detailedMessages: { tenant: tenantUpdate }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

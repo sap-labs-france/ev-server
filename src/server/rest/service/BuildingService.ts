@@ -48,7 +48,8 @@ export default class BuildingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'BuildingService', method: 'handleDeleteBuilding',
       message: `Building '${building.name}' has been deleted successfully`,
-      action: action, detailedMessages: building
+      action: action,
+      detailedMessages: { building }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -189,7 +190,8 @@ export default class BuildingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'BuildingService', method: 'handleCreateBuilding',
       message: `Building '${newBuilding.id}' has been created successfully`,
-      action: action, detailedMessages: newBuilding
+      action: action,
+      detailedMessages: { building: newBuilding }
     });
     // Ok
     res.json(Object.assign({ id: newBuilding.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -241,7 +243,8 @@ export default class BuildingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'BuildingService', method: 'handleUpdateBuilding',
       message: `Building '${building.name}' has been updated successfully`,
-      action: action, detailedMessages: building
+      action: action,
+      detailedMessages: { building }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

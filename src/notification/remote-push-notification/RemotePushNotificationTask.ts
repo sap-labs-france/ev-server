@@ -34,7 +34,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           module: 'RemotePushNotificationTask', method: 'constructor',
           message: `Error initializing Firebase: '${error.message}'`,
           action: 'RemotePushNotification',
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -335,7 +335,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
         action: 'RemotePushNotification',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     });
   }

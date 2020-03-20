@@ -162,7 +162,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             method: 'onMessage',
             action: 'WSRestClientMessage',
             message: `Received message '${message.data}'`,
-            detailedMessages: messageJson
+            detailedMessages: { messageJson }
           });
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
@@ -176,7 +176,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 method: 'onMessage',
                 action: 'WSRestClientErrorResponse',
                 message: `${messageJson[3]}`,
-                detailedMessages: messageJson
+                detailedMessages: { messageJson }
               });
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
@@ -227,7 +227,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           method: 'SendMessage',
           action: 'WSRestClientSendMessage',
           message: `Send message '${request[2]}'`,
-          detailedMessages: request
+          detailedMessages: { request }
         });
         // Send
         await this.wsConnection.send(JSON.stringify(request));
