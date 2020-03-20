@@ -30,19 +30,21 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Difference in seconds
     const currentTimeSeconds = moment().diff(mmtMidnight, 'seconds');
     try {
-      console.log(JSON.stringify(this.buildRequest(siteArea, currentTimeSeconds)));
+      const request = this.buildRequest(siteArea, currentTimeSeconds);
       // Call Optimizer
-      const response = await Axios.post(this.buildUrl(), this.buildRequest(siteArea, currentTimeSeconds), {
+      const response = await Axios.post(this.buildUrl(), request, {
         headers: {
           Accept: 'application/json',
         }
       });
       if (response.status !== 200 && response.status !== 202) {
         throw new BackendError({
-          message: `Optimizer service responded with status ${response.status}`,
-          module: 'SapSmartCharging',
-          method: 'getChargingProfiles'
-        });
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SAP_SMART_CHARGING,
+          message: `SAP Smart Charging service responded with status '${response.status}'`,
+          module: 'SapSmartCharging', method: 'getChargingProfiles',
+          detailedMessages: response
+      });
       }
       // Build charging profiles from result
       return this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
@@ -51,10 +53,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       Logging.logError({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.CALL_OPTIMIZER,
-        module: 'SapSmartCharging',
-        method: 'getChargingProfiles',
-        message: 'Unable to call Optimizer',
+        action: Action.SAP_SMART_CHARGING,
+        module: 'SapSmartCharging', method: 'getChargingProfiles',
+        message: 'Unable to call the SAP Smart Charging service',
         detailedMessages: error,
       });
     }
@@ -80,14 +81,15 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     let connectorIndex = 0; // Connector Index to give IDs of format: number
     if (!siteArea.maximumPower) {
       throw new BackendError({
-        action: Action.CALL_OPTIMIZER,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'buildRequest',
-        message: 'Maximum Power property is not set for Site Area'
+        message: `Maximum Power property is not set for Site Area '${siteArea.name}'`
       });
     }
     // Create root fuse
     const rootFuse: OptimizerFuse = {
-      "@type": "Fuse",
+      '@type': 'Fuse',
       id: 0,
       fusePhase1: siteArea.maximumPower / (230 * 3),
       fusePhase2: siteArea.maximumPower / (230 * 3),
@@ -97,7 +99,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Charging Stations
     if (!siteArea.chargingStations) {
       throw new BackendError({
-        action: Action.CALL_OPTIMIZER,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'buildRequest',
         message: `No Charging Stations in Site Area '${siteArea.name}'`
       });
@@ -125,13 +128,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           sumConnectorAmperagePhase1 += chargingStationOptimizer.fusePhase1;
           sumConnectorAmperagePhase2 += chargingStationOptimizer.fusePhase2;
           sumConnectorAmperagePhase3 += chargingStationOptimizer.fusePhase3;
-          // Build helper to know, which charging station has which generated id
-          // const idAssignment = {
-          //   generatedId: connectorIndex,
-          //   chargingStationId: chargingStation.id,
-          //   connectorId: connector.connectorId
-          // };
-          // this.idAssignments.push(idAssignment);
           connectorIndex++;
         }
       }
@@ -149,11 +145,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       rootFuse: rootFuse,
     } as OptimizerFuseTree;
     // Build Event
-    const optimizerEventStore: OptimizerEvent = {
-      eventType: "Reoptimize",
+    const optimizerEvent: OptimizerEvent = {
+      eventType: 'Reoptimize',
     };
     // Build State
-    const optimizerStateStore: OptimizerState = {
+    const optimizerState: OptimizerState = {
       fuseTree: optimizerFuseTree,
       cars: cars,
       currentTimeSeconds: currentTimeSeconds,
@@ -163,21 +159,21 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     };
     // Build request
     const request: OptimizerChargingProfilesRequest = {
-      event: optimizerEventStore,
-      state: optimizerStateStore,
+      event: optimizerEvent,
+      state: optimizerState,
     };
     return request;
   }
 
   private buildCar(connectorIndex: number, chargingStationId: string, connectorId: number): OptimizerCar {
-    // Build "Safe" car
+    // Build 'Safe' car
     const car: OptimizerCar = {
       canLoadPhase1: 1,
       canLoadPhase2: 1,
       canLoadPhase3: 1,
       id: connectorIndex,
       timestampArrival: 0,
-      carType: "BEV",
+      carType: 'BEV',
       maxCapacity: 75 * 1000 / 230, // Not usable on DC chargers?
       minLoadingState: 75 * 1000 / 230 * 0.5,
       startCapacity: 0,
@@ -197,11 +193,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   private buildChargingStation(connectorIndex: number, connector: Connector): OptimizerChargingStation {
     // Build charging station from connector
     const chargingStation: OptimizerChargingStation = {
-      "@type": "ChargingStation",
+      '@type': 'ChargingStation',
       id: connectorIndex,
-      fusePhase1: Math.round(connector.amperage / 3),
-      fusePhase2: Math.round(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
-      fusePhase3: Math.round(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
+      fusePhase1: Math.floor(connector.amperage / 3),
+      fusePhase2: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
+      fusePhase3: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
     };
     return chargingStation;
   }
@@ -219,10 +215,10 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     sumConnectorAmperagePhase2: number, sumConnectorAmperagePhase3: number,
     chargingStationChildren: OptimizerChargingStation[]): OptimizerFuse {
     // Each charging station can have multiple connectors (= charge points)
-    // A charging station in the optimizer is modelled as a "fuse"
-    // A charging station's connectors are modelled as its "children"
+    // A charging station in the optimizer is modelled as a 'fuse'
+    // A charging station's connectors are modelled as its 'children'
     const chargingStationFuse: OptimizerFuse = {
-      "@type": "Fuse",
+      '@type': 'Fuse',
       id: fuseID,
       fusePhase1: sumConnectorAmperagePhase1,
       fusePhase2: sumConnectorAmperagePhase2,
@@ -235,7 +231,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   private buildChargingProfiles(optimizerResult, currentTimeMinutes: number): ChargingProfile[] {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
-    const startSchedule = new Date;
+    const startSchedule = new Date();
     startSchedule.setUTCMilliseconds(0);
     startSchedule.setSeconds(0);
     startSchedule.setMinutes((Math.floor(startSchedule.getMinutes() / 15)) * 15);

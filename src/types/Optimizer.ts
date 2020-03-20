@@ -66,7 +66,7 @@ export interface OptimizerCarAssignment {
 }
 
 export interface OptimizerFuse extends OptimizerFuseTreeNode {
-  "@type": "Fuse";
+  '@type': 'Fuse';
   id: number;
   fusePhase1: number;
   fusePhase2: number;
@@ -75,13 +75,13 @@ export interface OptimizerFuse extends OptimizerFuseTreeNode {
 }
 
 export interface OptimizerFuseTreeNode {
-  "@type": "Fuse" | "ChargingStation";
+  '@type': 'Fuse' | 'ChargingStation';
   children?: OptimizerFuseTreeNodeUnion[];
   id?: number;
 }
 
 export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
-  "@type": "ChargingStation";
+  '@type': 'ChargingStation';
   id: number;
   fusePhase1?: number;
   fusePhase2?: number;
