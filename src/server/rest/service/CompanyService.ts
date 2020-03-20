@@ -46,7 +46,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
-      action: action, detailedMessages: company
+      action: action,
+      detailedMessages: { company }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -184,7 +185,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
-      action: action, detailedMessages: newCompany
+      action: action,
+      detailedMessages: { company: newCompany }
     });
     // Ok
     res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -229,7 +231,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
-      action: action, detailedMessages: company
+      action: action,
+      detailedMessages: { company }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

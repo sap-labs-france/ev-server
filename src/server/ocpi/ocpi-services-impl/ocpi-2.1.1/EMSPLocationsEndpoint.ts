@@ -212,7 +212,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'patchConnector',
-        detailedMessages: location
+        detailedMessages: { location }
       });
     }
   }
@@ -255,7 +255,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
         method: 'updateLocation',
-        detailedMessages: location
+        detailedMessages: { location }
       });
     } else {
       let found = false;

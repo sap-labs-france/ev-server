@@ -59,7 +59,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'deleteCredentials',
-      detailedMessages: token
+      detailedMessages: { token }
     });
 
     // Get ocpiEndpoints based on the given token
@@ -101,7 +101,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'postCredentials',
-      detailedMessages: credential
+      detailedMessages: { credential }
     });
 
     // Check if valid
@@ -131,7 +131,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'postCredentials',
-      detailedMessages: token
+      detailedMessages: { token }
     });
 
     // Get ocpiEndpoints based on the given token
@@ -165,7 +165,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'postCredentials',
-      detailedMessages: ocpiEndpoint
+      detailedMessages: { ocpiEndpoint }
     });
 
     // Try to access remote ocpi service versions
@@ -187,7 +187,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: 'OCPI Server',
         module: MODULE_NAME,
         method: 'postCredentials',
-        detailedMessages: ocpiVersions.data
+        detailedMessages: { versions: ocpiVersions.data }
       });
 
       // Check response
@@ -237,7 +237,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: 'OCPI Server',
         module: MODULE_NAME,
         method: 'postCredentials',
-        detailedMessages: endpoints.data
+        detailedMessages: { endpoints: endpoints.data }
       });
       // Check response
       if (!endpoints.data || !endpoints.data.data) {
@@ -255,7 +255,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
-        detailedMessages: error.stack
+        detailedMessages: { error }
       });
     }
 
@@ -280,7 +280,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'postCredentials',
-      detailedMessages: respCredential
+      detailedMessages: { respCredential }
     });
 
     // Respond with credentials
