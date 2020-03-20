@@ -68,6 +68,7 @@ export enum Action {
   POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   EXPORT_PARAMS = 'ExportParams',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
