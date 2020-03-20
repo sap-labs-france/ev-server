@@ -222,7 +222,7 @@ export default abstract class AbstractOCPIService {
           method: action,
           message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: action,
-          detailedMessages: req.body
+          detailedMessages: { params: req.body }
         });
         const response = await endpoint.process(req, res, next, tenant, ocpiEndpoint);
         if (response) {
@@ -233,7 +233,7 @@ export default abstract class AbstractOCPIService {
             method: action,
             message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: action,
-            detailedMessages: response
+            detailedMessages: { response }
           });
           res.json(response);
         } else {
@@ -267,7 +267,7 @@ export default abstract class AbstractOCPIService {
         method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: action,
-        detailedMessages: error
+        detailedMessages: { error }
       });
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
       let errorCode: any = {};

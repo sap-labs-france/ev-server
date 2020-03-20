@@ -28,7 +28,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           module: 'LoggingDatabaseTableCleanupTask',
           method: 'run', action: 'LogsCleanup',
           message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
-          detailedMessages: result
+          detailedMessages: { result }
         });
       }
       // Delete date
@@ -51,7 +51,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
           module: 'LoggingDatabaseTableCleanupTask',
           method: 'run', action: 'LogsCleanup',
           message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
-          detailedMessages: result
+          detailedMessages: { result }
         });
       }
     } catch (error) {

@@ -84,7 +84,7 @@ export default class PricingService {
         module: 'PricingService',
         method: 'handleUpdatePricing',
         message: `Pricing has been updated to '${req.body.priceKWH} ${req.body.priceUnit}'`,
-        detailedMessages: req.body
+        detailedMessages: { params: req.body }
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);

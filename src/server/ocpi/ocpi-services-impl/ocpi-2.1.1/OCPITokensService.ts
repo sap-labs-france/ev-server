@@ -21,7 +21,7 @@ export default class OCPITokensService {
         method: 'updateToken',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
-        detailedMessages: token,
+        detailedMessages: { token },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -35,7 +35,7 @@ export default class OCPITokensService {
           method: 'updateToken',
           errorCode: HttpStatusCodes.CONFLICT,
           message: `The token ${token.uid} is already assigned to internal user`,
-          detailedMessages: token,
+          detailedMessages: { token },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }

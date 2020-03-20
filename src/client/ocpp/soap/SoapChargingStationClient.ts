@@ -69,7 +69,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             source: scsc.chargingStation.id,
             module: 'SoapChargingStationClient', method: 'constructor',
             message: `Error when creating SOAP client: ${error.toString()}`,
-            detailedMessages: error.stack
+            detailedMessages: { error }
           });
           reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.id}: ${error.message}`);
         } else {

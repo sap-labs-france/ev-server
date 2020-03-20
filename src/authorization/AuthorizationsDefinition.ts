@@ -292,7 +292,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'getScopes',
         message: 'Unable to load authorization grants',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -320,7 +320,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     return scopes;
@@ -336,7 +336,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
