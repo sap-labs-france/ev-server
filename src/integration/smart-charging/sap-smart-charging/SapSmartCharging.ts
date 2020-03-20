@@ -4,7 +4,7 @@ import { Action } from '../../../types/Authorization';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
 import { Connector } from '../../../types/ChargingStation';
 import { ChargePointStatus } from '../../../types/ocpp/OCPPServer';
-import { OptimizerCar, OptimizerCarAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStation, OptimizerEvent, OptimizerFuse, OptimizerFuseTree, OptimizerState } from '../../../types/Optimizer';
+import { OptimizerCar, OptimizerCarAssignment, OptimizerChargingProfilesRequest, OptimizerResult, OptimizerChargingStation, OptimizerEvent, OptimizerFuse, OptimizerFuseTree, OptimizerState } from '../../../types/Optimizer';
 import { SapSmartChargingSetting } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
 import Constants from '../../../utils/Constants';
@@ -228,7 +228,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return chargingStationFuse;
   }
 
-  private buildChargingProfiles(optimizerResult, currentTimeMinutes: number): ChargingProfile[] {
+  private buildChargingProfiles(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
     const startSchedule = new Date();
@@ -263,7 +263,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
 
       // Build profile of charging profile
       const profile: Profile = {
-        chargingProfileId: connectorId,
+        chargingProfileId: connectorId as unknown as number,
         chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
         chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
         stackLevel: 2,
@@ -274,7 +274,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       const chargingProfile: ChargingProfile = {
         id: car.name,
         chargingStationID: chargingStationId,
-        connectorID: connectorId,
+        connectorID: connectorId as unknown as number,
         // chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
         // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile

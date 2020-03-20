@@ -93,6 +93,10 @@ export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
   status?: OptimizerStationStatus;
 }
 
+export interface OptimizerResult {
+  cars: OptimizerCar[];
+}
+
 export type OptimizerEventType = 'CarArrival' | 'CarDeparture' | 'CarFinished' | 'EnergyPriceChange' | 'Reoptimize';
 
 export type OptimizerCarType = 'BEV' | 'PHEV' | 'PETROL' | 'DIESEL';
