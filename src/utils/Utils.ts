@@ -48,16 +48,16 @@ export default class Utils {
     }
     const connector = chargingStation.connectors[connectorId - 1];
     if (connector.power <= 3680) {
-      // Notifify every 120 mins
+      // Notify every 120 mins
       intervalMins = 120;
     } else if (connector.power <= 7360) {
-      // Notifify every 60 mins
+      // Notify every 60 mins
       intervalMins = 60;
     } else if (connector.power < 50000) {
-      // Notifify every 30 mins
+      // Notify every 30 mins
       intervalMins = 30;
     } else if (connector.power >= 50000) {
-      // Notifify every 15 mins
+      // Notify every 15 mins
       intervalMins = 15;
     }
     return intervalMins;
@@ -505,12 +505,12 @@ export default class Utils {
     return true;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
+  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false) {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
     }
-    if (inversedName) {
+    if (invertedName) {
       if (user.firstName) {
         fullName = `${user.name}, ${user.firstName}`;
       } else {
