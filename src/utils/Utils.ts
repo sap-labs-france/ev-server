@@ -82,17 +82,6 @@ export default class Utils {
     return Object.prototype.hasOwnProperty.call(object, key);
   }
 
-  public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
-    switch (inactivityStatus) {
-      case InactivityStatus.INFO:
-        return 'info';
-      case InactivityStatus.WARNING:
-        return 'warning';
-      case InactivityStatus.ERROR:
-        return 'danger';
-    }
-  }
-
   public static generateGUID() {
     return uuidV4();
   }
