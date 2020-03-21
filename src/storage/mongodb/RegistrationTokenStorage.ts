@@ -106,7 +106,7 @@ export default class RegistrationTokenStorage {
     aggregation.pop();
 
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       // Sort

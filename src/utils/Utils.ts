@@ -82,17 +82,6 @@ export default class Utils {
     return Object.prototype.hasOwnProperty.call(object, key);
   }
 
-  public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
-    switch (inactivityStatus) {
-      case InactivityStatus.INFO:
-        return 'info';
-      case InactivityStatus.WARNING:
-        return 'warning';
-      case InactivityStatus.ERROR:
-        return 'danger';
-    }
-  }
-
   public static generateGUID() {
     return uuidV4();
   }
@@ -190,6 +179,12 @@ export default class Utils {
       }
     }
     return connectorStats;
+  }
+
+  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 2;
   }
 
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
