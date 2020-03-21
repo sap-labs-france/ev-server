@@ -11,17 +11,13 @@ permissions:
 hooks:
   BeforeInstall:
     - location: src/aws/beforeinstall_server.sh
-      timeout: 300
       runas: root
   AfterInstall:
     - location: src/aws/afterinstall_server.sh
-      timeout: 300
       runas: ubuntu
   ApplicationStart:
-    - location: src/aws/start_server.sh
-      timeout: 300
+    - location: src/aws/service_start.sh
       runas: ubuntu
   ApplicationStop:
-    - location: src/aws/stop_server.sh
-      timeout: 300
+    - location: src/aws/service_stop.sh
       runas: ubuntu

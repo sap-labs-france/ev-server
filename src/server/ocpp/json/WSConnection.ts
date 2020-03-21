@@ -211,7 +211,7 @@ export default class WSConnection {
             method: 'onMessage',
             code: commandName,
             message: commandPayload,
-            detailedMessages: errorDetails
+            detailedMessages: { errorDetails }
           }));
           break;
         // Error

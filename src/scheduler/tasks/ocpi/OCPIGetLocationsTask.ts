@@ -72,7 +72,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       module: 'OCPIGetLocationsTask',
       method: 'processOCPIEndpoint', action: 'OCPIGetLocations',
       message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
-      detailedMessages: result
+      detailedMessages: { result }
     });
   }
 }

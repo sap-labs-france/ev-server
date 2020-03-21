@@ -46,7 +46,8 @@ export default class SiteAreaService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
-      action: action, detailedMessages: siteArea
+      action: action,
+      detailedMessages: { siteArea }
     }
     );
     // Ok
@@ -194,7 +195,8 @@ export default class SiteAreaService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
-      action: action, detailedMessages: newSiteArea
+      action: action,
+      detailedMessages: { siteArea: newSiteArea }
     });
     // Ok
     res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -246,7 +248,8 @@ export default class SiteAreaService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
-      action: action, detailedMessages: siteArea
+      action: action,
+      detailedMessages: { siteArea }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

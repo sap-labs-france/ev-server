@@ -18,7 +18,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
     }
   }
 
-  async migrateTenant(tenantId: string, tenantName: string,  collectionName: string) {
+  async migrateTenant(tenantId: string, tenantName: string, collectionName: string) {
     // Add the status property to the refunded transactions
     const result = await global.database.getCollection<any>(tenantId, collectionName).updateMany(
       {
