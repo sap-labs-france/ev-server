@@ -192,6 +192,12 @@ export default class Utils {
     return connectorStats;
   }
 
+  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 2;
+  }
+
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
     // Cannot charge in //
     if (chargingStation.cannotChargeInParallel) {
