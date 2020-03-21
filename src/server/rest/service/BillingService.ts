@@ -1,19 +1,19 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import { BillingInvoice } from '../../../types/Billing';
-import BillingSecurity from './security/BillingSecurity';
-import Constants from '../../../utils/Constants';
-import { DataResult } from '../../../types/DataResult';
-import Logging from '../../../utils/Logging';
-import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { BillingInvoice } from '../../../types/Billing';
+import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
 
 
@@ -30,7 +30,7 @@ export default class BillingService {
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-      !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
+        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -192,8 +192,8 @@ export default class BillingService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        module: 'BillingService', method: 'handleForceSynchronizeUser',
         message: 'Billing service is not configured',
+        module: 'BillingService', method: 'handleForceSynchronizeUser',
         action: action,
         user: req.user
       });

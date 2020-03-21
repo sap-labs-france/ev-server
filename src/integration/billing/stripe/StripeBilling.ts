@@ -1,22 +1,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
-import { Action } from '../../../types/Authorization';
-import BackendError from '../../../exception/BackendError';
-import Billing from '../Billing';
-import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
-import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
+import i18n from 'i18n-js';
+import moment from 'moment';
 import Stripe from 'stripe';
+import BackendError from '../../../exception/BackendError';
+import { Action } from '../../../types/Authorization';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { HttpGetUserInvoicesRequest } from '../../../types/requests/HttpUserRequest';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import i18n from 'i18n-js';
-import moment from 'moment';
-import AppError from '../../../exception/AppError';
-import { HTTPError } from '../../../types/HTTPError';
+import Billing from '../Billing';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
@@ -260,7 +258,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async createInvoice(user: BillingPartialUser): Promise<BillingInvoice> {
     this.checkIfStripeIsInitialized();
     await this.checkConnection();
-
+    // Check for items
     const invoiceItems = await this.stripe.invoiceItems.list({
       customer: user.billingData.customerID
     });
@@ -301,7 +299,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async createInvoiceItem(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem> {
     this.checkIfStripeIsInitialized();
     await this.checkConnection();
-
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
