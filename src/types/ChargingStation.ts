@@ -87,7 +87,6 @@ export interface Connector {
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
