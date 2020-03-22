@@ -23,6 +23,15 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   }
 
   public async getChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
+    Logging.logDebug({
+      tenantID: this.tenantID,
+      source: siteArea.id,
+      action: Action.SAP_SMART_CHARGING,
+      message: 'Get Charging Profiles is being called',
+      module: 'SapSmartCharging', method: 'getChargingProfiles',
+      detailedMessages: { siteArea }
+    });
+
     // Optimizer implementation:
     // Get seconds since midnight
     // Moment at midnight
@@ -44,8 +53,16 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           message: `SAP Smart Charging service responded with status '${response.status}'`,
           module: 'SapSmartCharging', method: 'getChargingProfiles',
           detailedMessages: response
-      });
+        });
       }
+      Logging.logDebug({
+        tenantID: this.tenantID,
+        source: siteArea.id,
+        action: Action.SAP_SMART_CHARGING,
+        message: 'Get Charging Profiles has been called',
+        module: 'SapSmartCharging', method: 'getChargingProfiles',
+        detailedMessages: { response }
+      });
       // Build charging profiles from result
       return this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
 
