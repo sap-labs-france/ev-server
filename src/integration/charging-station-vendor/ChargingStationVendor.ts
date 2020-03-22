@@ -17,7 +17,15 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.POWER_LIMITATION,
+      message: 'Set Power limitation is being called',
+      module: 'ChargingStationVendor', method: 'setPowerLimitation',
+      detailedMessages: { connectorID, maxAmps }
+    });
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new BackendError({
@@ -90,11 +98,27 @@ export default abstract class ChargingStationVendor {
       // Save it
       await ChargingStationStorage.saveChargingStation(Action.POWER_LIMITATION, tenantID, chargingStation);
     }
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.POWER_LIMITATION,
+      message: 'Set Power limitation has been called',
+      module: 'ChargingStationVendor', method: 'setPowerLimitation',
+      detailedMessages: { result }
+    });
     return result;
   }
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-    ocppParamName: string, ocppParamValue: string) {
+      ocppParamName: string, ocppParamValue: string) {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.OCPP_PARAM_UPDATE,
+      message: 'Check update of OCPP Params is being called',
+      module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams',
+      detailedMessages: { ocppParamName, ocppParamValue }
+    });
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
       // Update the charger
       for (const connector of chargingStation.connectors) {
@@ -105,16 +129,31 @@ export default abstract class ChargingStationVendor {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: Action.OCPP_PARAM_UPDATE,
         message: 'Charging Station power limit has been updated following an OCPP parameter update',
         module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams',
         detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
       });
     }
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.OCPP_PARAM_UPDATE,
+      message: 'Check update of OCPP Params has been called',
+      module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams'
+    });
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.CHARGING_PROFILE_UPDATE,
+      message: 'Set Charging Profile is being called',
+      module: 'ChargingStationVendor', method: 'setChargingProfile',
+      detailedMessages: { chargingProfile }
+    });
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -156,7 +195,7 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHARGING_PROFILE_DELETE,
+            action: Action.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: 'ChargingStationVendor', method: 'clearChargingProfile',
             detailedMessages: { result }
@@ -169,17 +208,49 @@ export default abstract class ChargingStationVendor {
             });
             results.push(result);
           }
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: Action.CHARGING_PROFILE_UPDATE,
+            message: 'Set Charging Profile has been called',
+            module: 'ChargingStationVendor', method: 'setChargingProfile',
+            detailedMessages: { results }
+          });
           return results;
         }
+        Logging.logDebug({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          action: Action.CHARGING_PROFILE_UPDATE,
+          message: 'Set Charging Profile has been called',
+          module: 'ChargingStationVendor', method: 'setChargingProfile',
+          detailedMessages: { result }
+        });
         return result;
       }
       // Connector ID > 0
-      return chargingStationClient.setChargingProfile({
+      const result = await chargingStationClient.setChargingProfile({
         connectorId: schneiderChargingProfile.connectorID,
         csChargingProfiles: schneiderChargingProfile.profile
       });
-
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        message: 'Set Charging Profile has been called',
+        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        detailedMessages: { result }
+      });
+      return result;
     } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        message: 'Error occurred while setting the Charging Profile',
+        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        detailedMessages: { error }
+      });
       if (!error.status) {
         throw error;
       }
@@ -190,7 +261,15 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.CHARGING_PROFILE_DELETE,
+      message: 'Clear Charging Profile is being called',
+      module: 'ChargingStationVendor', method: 'clearChargingProfile',
+      detailedMessages: { chargingProfile }
+    });
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -238,6 +317,14 @@ export default abstract class ChargingStationVendor {
           // Reapply the current limitation
           await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: Action.CHARGING_PROFILE_DELETE,
+            message: 'Clear Charging Profile has been called',
+            module: 'ChargingStationVendor', method: 'clearChargingProfile',
+            detailedMessages: { results }
+          });
           return results;
         }
         // Reapply the current limitation
@@ -245,6 +332,14 @@ export default abstract class ChargingStationVendor {
           await this.setPowerLimitation(tenantID, chargingStation, 0,
             Utils.getTotalAmpsOfChargingStation(chargingStation));
         }
+        Logging.logDebug({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          action: Action.CHARGING_PROFILE_DELETE,
+          message: 'Clear Charging Profile has been called',
+          module: 'ChargingStationVendor', method: 'clearChargingProfile',
+          detailedMessages: { result }
+        });
         return result;
       }
       // Connector ID > 0
@@ -257,9 +352,24 @@ export default abstract class ChargingStationVendor {
         await this.setPowerLimitation(tenantID, chargingStation, 0,
           Utils.getTotalAmpsOfChargingStation(chargingStation));
       }
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_DELETE,
+        message: 'Clear Charging Profile has been called',
+        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        detailedMessages: { result }
+      });
       return result;
-
     } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_DELETE,
+        message: 'Error occurred while clearing the Charging Profile',
+        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        detailedMessages: { error }
+      });
       if (!error.status) {
         throw error;
       }
@@ -270,7 +380,15 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
-    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.GET_COMPOSITE_SCHEDULE,
+      message: 'Get Composite Schedule is being called',
+      module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+      detailedMessages: { connectorID, durationSecs }
+    });
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
@@ -319,19 +437,51 @@ export default abstract class ChargingStationVendor {
             });
             results.push(result);
           }
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: Action.GET_COMPOSITE_SCHEDULE,
+            message: 'Get Composite Schedule has been called',
+            module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+            detailedMessages: { results }
+          });
           return results;
         }
+        Logging.logDebug({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          action: Action.GET_COMPOSITE_SCHEDULE,
+          message: 'Get Composite Schedule has been called',
+          module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+          detailedMessages: { result }
+        });
         return result;
       }
       // Connector ID > 0
       // Get the Composite Schedule
-      return chargingStationClient.getCompositeSchedule({
+      const result = await chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
         duration: durationSecs,
         chargingRateUnit: chargingStation.powerLimitUnit
       });
-
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.GET_COMPOSITE_SCHEDULE,
+        message: 'Get Composite Schedule has been called',
+        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        detailedMessages: { result }
+      });
+      return result;
     } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.GET_COMPOSITE_SCHEDULE,
+        message: 'Error occurred while getting the Composite Schedule',
+        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        detailedMessages: { error }
+      });
       if (!error.status) {
         throw error;
       }
@@ -343,6 +493,14 @@ export default abstract class ChargingStationVendor {
 
   public async getCurrentConnectorLimit(tenantID: string,
     chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+      message: 'Get Current Connector Limit is being called',
+      module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+      detailedMessages: { connectorID }
+    });
     // Default
     const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
     const limitDefaultMaxPower = chargingStation.connectors[connectorID - 1].power;
@@ -371,10 +529,19 @@ export default abstract class ChargingStationVendor {
           if (connectorLimitAmps > limitDefaultMaxAmps) {
             connectorLimitAmps = limitDefaultMaxAmps;
           }
-          return {
+          const result = {
             limitAmps: connectorLimitAmps,
             limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
           };
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+            message: 'Get Current Connector Limit has been called',
+            module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+            detailedMessages: { result }
+          });
+          return result;
         }
       }
       // Check next the static power limitation
@@ -389,10 +556,19 @@ export default abstract class ChargingStationVendor {
           if (connectorLimitAmps > limitDefaultMaxAmps) {
             connectorLimitAmps = limitDefaultMaxAmps;
           }
-          return {
+          const result = {
             limitAmps: connectorLimitAmps,
             limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
           };
+          Logging.logDebug({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+            message: 'Get Current Connector Limit has been called',
+            module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+            detailedMessages: { result }
+          });
+          return result;
         }
       }
     } catch (error) {
@@ -402,14 +578,23 @@ export default abstract class ChargingStationVendor {
         action: Action.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
         module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
-        detailedMessages: { error }
+        detailedMessages: error
       });
     }
     // Default on current connector
-    return {
+    const result = {
       limitAmps: limitDefaultMaxAmps,
       limitWatts: limitDefaultMaxPower
     };
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+      message: 'Get Current Connector Limit has been called',
+      module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+      detailedMessages: { result }
+    });
+    return result;
   }
 
   public abstract getOCPPParamNameForChargingLimitation(): string;
