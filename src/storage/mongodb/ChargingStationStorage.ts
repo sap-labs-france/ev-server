@@ -173,10 +173,6 @@ export default class ChargingStationStorage {
         }
       });
     }
-    // Date before provided
-    if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
-      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
-    }
     // Connector Type
     if (params.connectorTypes) {
       filters.$and.push({
@@ -213,6 +209,12 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteAreaLookupInAggregation({
         tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
         asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+      });
+    }
+    // Date before provided
+    if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
+      aggregation.push({
+        $match: { 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } }
       });
     }
     // Check Site ID
