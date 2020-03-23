@@ -287,18 +287,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
 
   public async createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
     await this.checkConnection();
-    // Check for items
-    const invoiceItems = await this.stripe.invoiceItems.list({
-      customer: user.billingData.customerID
-    });
-    if (!invoiceItems || !invoiceItems.data) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE_BILLING_INVOICE,
-        module: 'StripeBilling', method: 'createInvoice',
-        message: 'Cannot create invoice with no items',
-      });
-    }
     const daysUntilDue = 30;
     let invoice: BillingInvoice;
     try {
@@ -336,7 +324,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.CREATE_BILLING_INVOICE_ITEM,
         module: 'StripeBilling', method: 'createInvoiceItem',
-        message: 'Cannot create invoice with no items',
+        message: 'Invoice item not provided',
       });
     }
     return await this.stripe.invoiceItems.create({
