@@ -8,7 +8,6 @@ import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResu
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
@@ -172,38 +171,38 @@ export default class OCPPUtils {
           module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
           action: 'ChargingStationTemplate',
           message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
-          detailedMessages: chargingStationTemplate
+          detailedMessages: { chargingStationTemplate }
         });
         return true;
-      } else {
-        // Log
-        Logging.logInfo({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
-          action: 'ChargingStationTemplate',
-          message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
-          detailedMessages: chargingStationTemplate
-        });
-        return false;
       }
-    } else {
       // Log
-      Logging.logWarning({
+      Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
         action: 'ChargingStationTemplate',
-        message: `No Template has been found!`,
-        detailedMessages: chargingStation
+        message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
+        detailedMessages: { chargingStationTemplate }
       });
       return false;
+
     }
+    // Log
+    Logging.logWarning({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      module: 'OCPPUtils', method: 'enrichChargingStationWithTemplate',
+      action: 'ChargingStationTemplate',
+      message: 'No Template has been found!',
+      detailedMessages: { chargingStation }
+    });
+    return false;
+
   }
 
   public static async enrichChargingStationConnectorWithTemplate(
-      tenantID: string, chargingStation: ChargingStation, connectorID: number,
-      chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
+    tenantID: string, chargingStation: ChargingStation, connectorID: number,
+    chargingStationTemplate: ChargingStationTemplate): Promise<boolean> {
     // Copy from template
     if (chargingStationTemplate) {
       // Handle connector
@@ -244,7 +243,7 @@ export default class OCPPUtils {
         module: 'OCPPUtils', method: 'enrichChargingStationConnectorWithTemplate',
         action: 'ChargingStationTemplate',
         message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
-        detailedMessages: chargingStationTemplate
+        detailedMessages: { chargingStationTemplate }
       });
       return true;
     }
@@ -338,7 +337,8 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
         method: 'requestAndSaveChargingStationOcppConfiguration', action: 'RequestConfiguration',
-        message: 'Command sent with success', detailedMessages: ocppConfiguration
+        message: 'Command sent with success',
+        detailedMessages: { ocppConfiguration }
       });
       // Create Conf
       const chargingStationConfiguration: ChargingStationConfiguration = {
@@ -352,7 +352,7 @@ export default class OCPPUtils {
         const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
         if (!existingConfiguration) {
           // No config at all: Set default OCPP configuration
-          chargingStationConfiguration.configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
+          chargingStationConfiguration.configuration = OCPPConstants.DEFAULT_OCPP_16_CONFIGURATION;
         }
       }
       // Save config
@@ -447,7 +447,7 @@ export default class OCPPUtils {
           tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
           method: 'checkAndUpdateChargingStationOcppParameters', action: 'ChangeConfiguration',
           message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }

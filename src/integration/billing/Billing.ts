@@ -187,14 +187,14 @@ export default abstract class Billing<T extends BillingSetting> {
       }
       try {
         await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
-      } catch (e) {
+      } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'synchronizeUser',
           action: Action.SYNCHRONIZE_BILLING,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: e
+          detailedMessages: { error }
         });
       }
     } catch (error) {
@@ -204,14 +204,14 @@ export default abstract class Billing<T extends BillingSetting> {
       user.billingData.hasSynchroError = true;
       try {
         await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
-      } catch (e) {
+      } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'synchronizeUser',
           action: Action.SYNCHRONIZE_BILLING,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: e
+          detailedMessages: { error }
         });
       }
       throw new BackendError({
@@ -220,7 +220,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         message: `Cannot synchronize user '${user.email}' with billing system`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -245,14 +245,14 @@ export default abstract class Billing<T extends BillingSetting> {
           module: 'Billing', method: 'forceSynchronizeUser',
           message: `Successfully forced the synchronization of the user '${user.email}'`,
         });
-      } catch (e) {
+      } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'forceSynchronizeUser',
           action: Action.SYNCHRONIZE_BILLING,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: e
+          detailedMessages: { error }
         });
       }
     } catch (error) {
@@ -262,7 +262,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         message: `Cannot force synchronize user '${user.email}' with billing system`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

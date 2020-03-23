@@ -80,7 +80,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         module: 'StripeBilling', method: 'checkConnection',
         action: Action.CHECK_CONNECTION_BILLING,
         message: `Error occured when connecting to Stripe: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     if (!isKeyValid) {
@@ -267,7 +267,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         module: 'StripeBilling', method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     return collectedCustomerIDs;
@@ -412,7 +412,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'startTransaction',
         message: `Billing error in Start Transaction: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     return {
@@ -439,7 +439,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Update Transaction: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     return {
@@ -599,7 +599,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: 'StripeBilling', method: 'updateTransaction',
         message: `Billing error in Stop Transaction: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
       return {
         status: Constants.BILLING_STATUS_UNBILLED,
@@ -910,7 +910,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -944,7 +944,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -963,7 +963,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     //       action: Action.USER_CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
-    //       detailedMessages: error
+    //       detailedMessages: { error }
     //     });
     //   }
     // }
@@ -1010,7 +1010,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             action: Action.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
@@ -1028,7 +1028,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             action: Action.CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
@@ -1072,7 +1072,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }

@@ -1,11 +1,11 @@
-import { HttpCarsRequest, HttpCarRequest } from '../../../../types/requests/HttpCarRequest';
-import UtilsSecurity from './UtilsSecurity';
-import sanitize = require('mongo-sanitize');
-import UserToken from '../../../../types/UserToken';
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
   public static filterCarsRequest(request: any): HttpCarsRequest {
@@ -39,8 +39,12 @@ export default class CarSecurity {
         batteryCapacityFull: car.batteryCapacityFull,
         fastChargeSpeed: car.fastChargeSpeed,
         performanceTopspeed: car.performanceTopspeed,
+        chargeStandardPower: car.chargeStandardPower,
+        chargeStandardPhase: car.chargeStandardPhase,
+        vehicleModelVersion: car.vehicleModelVersion,
         performanceAcceleration: car.performanceAcceleration,
         rangeReal: car.rangeReal,
+        rangeWLTP: car.rangeWLTP,
         efficiencyReal: car.efficiencyReal,
         images: car.images,
         chargeStandardChargeSpeed: car.chargeStandardChargeSpeed,
@@ -49,8 +53,9 @@ export default class CarSecurity {
         batteryCapacityUseable: car.batteryCapacityUseable,
         chargePlug: car.chargePlug,
         fastChargePlug: car.fastChargePlug,
+        fastChargePowerMax: car.fastChargePowerMax,
         chargePlugLocation: car.chargePlugLocation,
-        chargeStandardPower: car.chargeStandardPower,
+        drivetrainPowerHP: car.drivetrainPowerHP,
         chargeStandardChargeTime: car.chargeStandardChargeTime,
         miscSeats: car.miscSeats,
         miscBody: car.miscBody,
@@ -89,8 +94,16 @@ export default class CarSecurity {
           batteryCapacityFull: car.batteryCapacityFull,
           fastChargeSpeed: car.fastChargeSpeed,
           performanceTopspeed: car.performanceTopspeed,
+          chargeStandardPower: car.chargeStandardPower,
+          chargePlug: car.chargePlug,
+          fastChargePlug: car.fastChargePlug,
+          fastChargePowerMax: car.fastChargePowerMax,
+          drivetrainPowerHP: car.drivetrainPowerHP,
+          chargeStandardPhase: car.chargeStandardPhase,
+          vehicleModelVersion: car.vehicleModelVersion,
           performanceAcceleration: car.performanceAcceleration,
           rangeReal: car.rangeReal,
+          rangeWLTP: car.rangeWLTP,
           efficiencyReal: car.efficiencyReal,
           images: car.images,
           chargeStandardChargeSpeed: car.chargeStandardChargeSpeed

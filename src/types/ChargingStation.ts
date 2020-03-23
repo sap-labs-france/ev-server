@@ -64,7 +64,7 @@ export enum PowerLimitUnits {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 0,
+  MIN_LIMIT = 2,
 }
 
 export interface Connector {
@@ -87,7 +87,6 @@ export interface Connector {
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
@@ -179,5 +178,6 @@ export type OCPPParams = {
 export enum ChargerVendor {
   EBEE = 'Bender GmbH Co. KG',
   SCHNEIDER = 'Schneider Electric',
+  WEBASTO = 'Webasto',
   ABB = 'ABB',
 }
