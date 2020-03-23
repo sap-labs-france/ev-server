@@ -29,11 +29,12 @@ export default class EVDabaseCar extends CarDatabase {
     }
     // Build result
     for (const data of response.data) {
-      const chargeStandardTables: { [id: string]: ChargeStandardTable } = {};
-      const chargeAlternativeTables: { [id: string]: ChargeAlternativeTable } = {};
-      const chargeOptionTables: { [id: string]: ChargeOptionTable } = {};
+      const chargeStandardTables: ChargeStandardTable[] = [];
+      const chargeAlternativeTables: ChargeAlternativeTable[] = [];
+      const chargeOptionTables: ChargeOptionTable[] = [];
       for (const ChargeStandard of Object.keys(data.Charge_Standard_Table)) {
         const chargeStandardTable: ChargeStandardTable = {
+          type: ChargeStandard,
           evsePhaseVolt: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[ChargeStandard].EVSE_PhaseAmp,
           evsePhase: data.Charge_Standard_Table[ChargeStandard].EVSE_Phase,
@@ -44,11 +45,12 @@ export default class EVDabaseCar extends CarDatabase {
           chargeTime: data.Charge_Standard_Table[ChargeStandard].Charge_Time,
           chargeSpeed: data.Charge_Standard_Table[ChargeStandard].Charge_Speed,
         };
-        chargeStandardTables[ChargeStandard] = chargeStandardTable;
+        chargeStandardTables.push(chargeStandardTable);
       }
       if (data.Charge_Alternative_Table) {
         for (const chargeAlternative of Object.keys(data.Charge_Alternative_Table)) {
           const chargeAlternativeTable: ChargeAlternativeTable = {
+            type: chargeAlternative,
             evsePhaseVolt: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeAlternative].EVSE_PhaseAmp,
             evsePhase: data.Charge_Standard_Table[chargeAlternative].EVSE_Phase,
@@ -59,12 +61,13 @@ export default class EVDabaseCar extends CarDatabase {
             chargeTime: data.Charge_Standard_Table[chargeAlternative].Charge_Time,
             chargeSpeed: data.Charge_Standard_Table[chargeAlternative].Charge_Speed,
           };
-          chargeAlternativeTables[chargeAlternative] = chargeAlternativeTable;
+          chargeAlternativeTables.push(chargeAlternativeTable);
         }
       }
       if (data.Charge_Option_Table) {
         for (const chargeOption of Object.keys(data.Charge_Option_Table)) {
           const chargeAlternativeTable: ChargeOptionTable = {
+            type: chargeOption,
             evsePhaseVolt: data.Charge_Standard_Table[chargeOption].EVSE_PhaseVolt,
             evsePhaseAmp: data.Charge_Standard_Table[chargeOption].EVSE_PhaseAmp,
             evsePhase: data.Charge_Standard_Table[chargeOption].EVSE_Phase,
@@ -75,7 +78,7 @@ export default class EVDabaseCar extends CarDatabase {
             chargeTime: data.Charge_Standard_Table[chargeOption].Charge_Time,
             chargeSpeed: data.Charge_Standard_Table[chargeOption].Charge_Speed,
           };
-          chargeOptionTables[chargeOption] = chargeAlternativeTable;
+          chargeOptionTables.push(chargeAlternativeTable);
         }
       }
       const car: Car = {
