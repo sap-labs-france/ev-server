@@ -109,10 +109,6 @@ export default class SiteSecurity {
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredSite = site;
-        if (filteredSite.connectorStats) {
-          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-          filteredSite = { ...filteredSite, ...site.connectorStats };
-        }
       } else {
         // Set only necessary info
         filteredSite = {};
@@ -134,8 +130,6 @@ export default class SiteSecurity {
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
-        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-        filteredSite = { ...filteredSite, ...site.connectorStats };
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

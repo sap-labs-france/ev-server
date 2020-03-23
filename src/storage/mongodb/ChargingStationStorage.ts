@@ -56,7 +56,7 @@ export default class ChargingStationStorage {
       });
     }
     // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Query Templates
     const chargingStationTemplatesMDB =
       await global.database.getCollection(Constants.DEFAULT_TENANT, 'chargingstationtemplates')
@@ -141,7 +141,7 @@ export default class ChargingStationStorage {
       filters.$and.push({ 'issuer': params.issuer });
     }
     // Add Charging Station inactive flag
-    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Add in aggregation
     aggregation.push({
       $match: filters
@@ -172,10 +172,6 @@ export default class ChargingStationStorage {
           }
         }
       });
-    }
-    // Date before provided
-    if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
-      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } });
     }
     // Connector Type
     if (params.connectorTypes) {
@@ -215,6 +211,12 @@ export default class ChargingStationStorage {
         asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
       });
     }
+    // Date before provided
+    if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
+      aggregation.push({
+        $match: { 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore } }
+      });
+    }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs)) {
       // If sites but no site area, no results can be found - return early.
@@ -239,7 +241,7 @@ export default class ChargingStationStorage {
         });
     }
     // Convert siteID back to string after having queried the site
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteArea.siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteArea.siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -262,7 +264,7 @@ export default class ChargingStationStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -284,7 +286,7 @@ export default class ChargingStationStorage {
       $limit: dbParams.limit
     });
     // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -315,7 +317,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Add Charging Station inactive flag
-    DatabaseUtils.addChargingStationInactiveFlag(aggregation);
+    DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     match.$and.push({ issuer: true });
@@ -419,7 +421,7 @@ export default class ChargingStationStorage {
       $limit: dbParams.limit
     });
     // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
@@ -727,7 +729,7 @@ export default class ChargingStationStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Rename ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -907,7 +909,7 @@ export default class ChargingStationStorage {
         { $addFields: { 'errorCode': ChargingStationInErrorType.MISSING_SETTINGS } }
         ];
       case ChargingStationInErrorType.CONNECTION_BROKEN: {
-        const inactiveDate = new Date(new Date().getTime() - DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
+        const inactiveDate = new Date(new Date().getTime() - Utils.getChargingStationHeartbeatMaxIntervalSecs() * 1000);
         return [
           { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
           { $addFields: { 'errorCode': ChargingStationInErrorType.CONNECTION_BROKEN } }

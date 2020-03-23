@@ -102,7 +102,7 @@ export default class ODataRestAdapter {
         method: 'query',
         action: 'query',
         message: error.message,
-        detailedMessages: error.stack
+        detailedMessages: { error }
       });
       cb(error);
     }

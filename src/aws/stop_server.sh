@@ -9,4 +9,4 @@ else
 fi
 
 proc_name="node"
-killall -q $proc_name || true
+killall $proc_name

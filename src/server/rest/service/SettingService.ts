@@ -41,7 +41,8 @@ export default class SettingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SettingService', method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
-      action: action, detailedMessages: setting
+      action: action,
+      detailedMessages: { setting }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -136,7 +137,8 @@ export default class SettingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SettingService', method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
-      action: action, detailedMessages: filteredRequest
+      action: action,
+      detailedMessages: { params: filteredRequest }
     });
     // Ok
     res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -211,7 +213,8 @@ export default class SettingService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
       message: `Setting '${settingUpdate.id}' has been updated successfully`,
-      action: action, detailedMessages: settingUpdate
+      action: action,
+      detailedMessages: { settingUpdate }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

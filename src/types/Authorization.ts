@@ -68,6 +68,7 @@ export enum Action {
   POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   EXPORT_PARAMS = 'ExportParams',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
@@ -110,8 +111,10 @@ export enum Action {
   MONGO_DB = 'MongoDB',
 
   EMPTY_ACTION = '',
-  DELETE_CREDENTIALS = 'DELETE credentials',
+  DELETE_CREDENTIALS = 'DeleteCredentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
+
+  SAP_SMART_CHARGING = 'SAPSmartCharging',
 }
 
 export interface AuthorizationContext {
