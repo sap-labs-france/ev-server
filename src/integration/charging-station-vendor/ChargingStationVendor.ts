@@ -17,7 +17,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -110,7 +110,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-      ocppParamName: string, ocppParamValue: string) {
+    ocppParamName: string, ocppParamValue: string) {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -145,7 +145,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -261,7 +261,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -380,7 +380,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
