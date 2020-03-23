@@ -42,7 +42,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         module: 'Billing', method: 'synchronizeUsers',
         message: `${newUsersToSyncInBilling.count} new e-Mobility user(s) are going to be synchronized in the billing system`
       });
@@ -54,7 +54,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
@@ -65,7 +65,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Failed to synchronize in the billing system'
           });
@@ -79,7 +79,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         module: 'Billing', method: 'synchronizeUsers',
         message: `${userBillingIDsChangedInBilling.length} billing user(s) are going to be synchronized with e-Mobility users`
       });
@@ -91,7 +91,7 @@ export default abstract class Billing<T extends BillingSetting> {
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             module: 'Billing', method: 'synchronizeUsers',
             message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in e-Mobility`
           });
@@ -107,7 +107,7 @@ export default abstract class Billing<T extends BillingSetting> {
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             actionOnUser: user,
             module: 'Billing', method: 'synchronizeUsers',
             message: `Billing user with ID '${userBillingIDChangedInBilling}' does not exist in billing system`
@@ -121,7 +121,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
@@ -132,7 +132,7 @@ export default abstract class Billing<T extends BillingSetting> {
             tenantID: tenantID,
             actionOnUser: user,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_BILLING,
+            action: Action.BILLING_SYNCHRONIZE,
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Failed to synchronize in the billing system'
           });
@@ -145,7 +145,7 @@ export default abstract class Billing<T extends BillingSetting> {
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           module: 'Billing', method: 'synchronizeUsers',
           message: `${actionsDone.synchronized} user(s) were successfully synchronized`
         });
@@ -154,7 +154,7 @@ export default abstract class Billing<T extends BillingSetting> {
         Logging.logError({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           module: 'Billing', method: 'synchronizeUsers',
           message: `${actionsDone.error} user(s) failed to synchronize`
         });
@@ -163,7 +163,7 @@ export default abstract class Billing<T extends BillingSetting> {
       Logging.logInfo({
         tenantID: tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         module: 'Billing', method: 'synchronizeUsers',
         message: 'All the users are up to date'
       });
@@ -191,7 +191,7 @@ export default abstract class Billing<T extends BillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'synchronizeUser',
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
           detailedMessages: { error }
@@ -208,7 +208,7 @@ export default abstract class Billing<T extends BillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'synchronizeUser',
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
           detailedMessages: { error }
@@ -217,7 +217,7 @@ export default abstract class Billing<T extends BillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'Billing', method: 'synchronizeUser',
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         actionOnUser: user,
         message: `Cannot synchronize user '${user.email}' with billing system`,
         detailedMessages: { error }
@@ -240,7 +240,7 @@ export default abstract class Billing<T extends BillingSetting> {
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           module: 'Billing', method: 'forceSynchronizeUser',
           message: `Successfully forced the synchronization of the user '${user.email}'`,
@@ -249,7 +249,7 @@ export default abstract class Billing<T extends BillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: 'Billing', method: 'forceSynchronizeUser',
-          action: Action.SYNCHRONIZE_BILLING,
+          action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
           detailedMessages: { error }
@@ -259,7 +259,7 @@ export default abstract class Billing<T extends BillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'Billing', method: 'forceSynchronizeUser',
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         actionOnUser: user,
         message: `Cannot force synchronize user '${user.email}' with billing system`,
         detailedMessages: { error }

@@ -106,12 +106,14 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
-  SYNCHRONIZE_BILLING = 'BillingSynchronizeUsers',
-  FORCE_SYNCHRONIZE_BILLING = 'BillingForceSynchronizeUser',
-  CHECK_CONNECTION_BILLING = 'BillingCheckConnection',
+  BILLING_SYNCHRONIZE = 'BillingSynchronizeUsers',
+  BILLING_FORCE_SYNCHRONIZE = 'BillingForceSynchronizeUser',
+  BILLING_CHECK_CONNECTION = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
   BILLING_SEND_INVOICE = 'BillingSendInvoice',
-  GET_OPENED_INVOICE = 'BillingGetOpenedInvoice',
+  BILLING_GET_OPENED_INVOICE = 'BillingGetOpenedInvoice',
+  BILLING_CREATE_INVOICE = 'BillingCreateInvoice',
+  BILLING_CREATE_INVOICE_ITEM = 'BillingCreateInvoiceItem',
 
   MONGO_DB = 'MongoDB',
 

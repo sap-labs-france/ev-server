@@ -58,7 +58,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Action.CHECK_CONNECTION_BILLING,
+        action: Action.BILLING_CHECK_CONNECTION,
         message: 'No secret key provided for connection to Stripe'
       });
     }
@@ -78,7 +78,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Action.CHECK_CONNECTION_BILLING,
+        action: Action.BILLING_CHECK_CONNECTION,
         message: `Error occured when connecting to Stripe: ${error.message}`,
         detailedMessages: { error }
       });
@@ -87,7 +87,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkConnection',
-        action: Action.CHECK_CONNECTION_BILLING,
+        action: Action.BILLING_CHECK_CONNECTION,
         message: 'Error occured when connecting to Stripe: Invalid key'
       });
     }
@@ -263,7 +263,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
+        action: Action.BILLING_SYNCHRONIZE,
         module: 'StripeBilling', method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: { error }
@@ -286,7 +286,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.GET_OPENED_INVOICE,
+        action: Action.BILLING_GET_OPENED_INVOICE,
         module: 'StripeBilling', method: 'getOpenedInvoice',
         message: 'Failed to retrieve opened invoices',
         detailedMessages: { error }
@@ -298,7 +298,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!user) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE,
+        action: Action.BILLING_CREATE_INVOICE,
         module: 'StripeBilling', method: 'createInvoice',
         message: 'Billing User not provided',
       });
@@ -306,7 +306,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE,
+        action: Action.BILLING_CREATE_INVOICE,
         module: 'StripeBilling', method: 'createInvoice',
         message: 'Invoice item not provided',
       });
@@ -342,7 +342,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          action: Action.CREATE,
+          action: Action.BILLING_CREATE_INVOICE,
           module: 'StripeBilling', method: 'createInvoice',
           message: 'Failed to create invoice',
           detailedMessages: { error }
@@ -357,7 +357,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE,
+        action: Action.BILLING_CREATE_INVOICE_ITEM,
         module: 'StripeBilling', method: 'createInvoiceItem',
         message: 'Invoice item not provided',
       });
@@ -374,7 +374,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE,
+        action: Action.BILLING_CREATE_INVOICE_ITEM,
         module: 'StripeBilling', method: 'createInvoiceItem',
         message: 'Failed to create invoice item',
         detailedMessages: { error }
@@ -1134,7 +1134,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'StripeBilling', method: 'checkIfStripeIsInitialized',
-        action: Action.CHECK_CONNECTION_BILLING,
+        action: Action.BILLING_CHECK_CONNECTION,
         message: 'No connection to Stripe available'
       });
     }

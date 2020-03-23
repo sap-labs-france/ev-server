@@ -24,16 +24,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.BILLING, action: Action.CHECK_CONNECTION_BILLING,
+        entity: Entity.BILLING, action: Action.BILLING_CHECK_CONNECTION,
         module: 'BillingService', method: 'handleGetBillingConnection',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION_BILLING, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
+      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.CHECK_CONNECTION_BILLING, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
+      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -80,15 +80,15 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USERS, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USERS, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleSynchronizeUsers',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -114,15 +114,15 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleSynchronizeUser',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -152,15 +152,15 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleForceSynchronizeUser',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.FORCE_SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
+      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
-      Action.FORCE_SYNCHRONIZE_BILLING, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
+      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
