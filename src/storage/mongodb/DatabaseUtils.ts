@@ -163,7 +163,7 @@ export default class DatabaseUtils {
             {
               $gte: [
                 {
-                  $divide: [ { $subtract: [ new Date(), '$lastHeartBeat' ] }, 60 * 1000 ]
+                  $divide: [ { $subtract: [ new Date(), '$lastHeartBeat' ] }, 1000 ]
                 },
                 Utils.getChargingStationHeartbeatMaxIntervalSecs()
               ]
