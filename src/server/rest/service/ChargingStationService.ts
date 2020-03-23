@@ -297,7 +297,7 @@ export default class ChargingStationService {
             errorCode: HTTPError.GENERAL_ERROR,
             message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
             module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
-            detailedMessages: chargingProfiles.result[index]
+            detailedMessages: { result: chargingProfiles.result[index] }
           });
         }
         // Log
@@ -325,7 +325,7 @@ export default class ChargingStationService {
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
-        detailedMessages: result,
+        detailedMessages: { result },
         user: req.user
       });
     }
@@ -336,7 +336,7 @@ export default class ChargingStationService {
       user: req.user,
       module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
-      detailedMessages: result
+      detailedMessages: { result }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -600,7 +600,8 @@ export default class ChargingStationService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
-      action: action, detailedMessages: chargingStation
+      action: action,
+      detailedMessages: { chargingStation }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -848,7 +849,7 @@ export default class ChargingStationService {
         action: 'FirmwareDownload',
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: 'ChargingStationService', method: 'handleGetFirmware',
-        detailedMessages: error,
+        detailedMessages: { error },
       });
       res.sendStatus(404);
     });
@@ -1332,7 +1333,7 @@ export default class ChargingStationService {
                 source: chargingStation.id, user: user, action: command,
                 module: 'ChargingStationService', method: 'handleChargingStationCommand',
                 message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
-                detailedMessages: result
+                detailedMessages: { result }
               });
             }
             // Refresh Configuration

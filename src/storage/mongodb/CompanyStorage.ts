@@ -155,12 +155,12 @@ export default class CompanyStorage {
         }
       );
       // Rename
-      DatabaseUtils.renameField(aggregation, 'companylogos.logo', 'logo');
+      DatabaseUtils.pushRenameField(aggregation, 'companylogos.logo', 'logo');
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({

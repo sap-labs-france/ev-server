@@ -50,7 +50,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
                   method: 'retryDelay',
                   message: `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
                   action: Action.REFUND,
-                  detailedMessages: error.response
+                  detailedMessages: { response: error.response }
                 });
               } else {
                 const payload = {
@@ -63,7 +63,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
                   method: 'retryDelay',
                   message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
                   action: Action.REFUND,
-                  detailedMessages: payload
+                  detailedMessages: { payload }
                 });
               }
             } else {
@@ -73,7 +73,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
                 method: 'retryDelay',
                 message: `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
                 action: Action.REFUND,
-                detailedMessages: error.response.data
+                detailedMessages: { response: error.response.data }
               });
             }
           } catch (err) {
@@ -167,7 +167,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         updatedAt: now,
         validUntil: ConcurRefundConnector.computeValidUntilAt(result)
       });
-    } catch (e) {
+    } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -176,7 +176,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         method: 'GetAccessToken',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: e
+        detailedMessages: { error }
       });
     }
   }
@@ -355,7 +355,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         method: 'createQuickExpense',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -403,7 +403,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -437,7 +437,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -469,7 +469,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         module: MODULE_NAME,
         method: 'getExpenseReport',
         action: Action.REFUND,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -491,7 +491,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         module: MODULE_NAME,
         method: 'getExpenseReports',
         action: Action.REFUND,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -531,7 +531,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         method: 'refreshToken',
         action: Action.REFUND,
         user: userId,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

@@ -72,7 +72,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       module: 'OCPIGetSessionsTask',
       method: 'patch', action: 'OcpiGetSessions',
       message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed)`,
-      detailedMessages: result
+      detailedMessages: { result }
     });
   }
 }

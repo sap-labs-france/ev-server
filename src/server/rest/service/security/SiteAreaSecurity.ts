@@ -76,10 +76,6 @@ export default class SiteAreaSecurity {
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredSiteArea = siteArea;
-        if (filteredSiteArea.connectorStats) {
-          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-          filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
-        }
       } else {
         // Set only necessary info
         filteredSiteArea = {};
@@ -93,8 +89,6 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
-        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-        filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
       }
       if (Utils.objectHasProperty(siteArea, 'accessControl')) {
         filteredSiteArea.accessControl = siteArea.accessControl;

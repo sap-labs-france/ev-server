@@ -50,7 +50,6 @@ export default interface Transaction {
     extraInactivityComputed: boolean;
     totalConsumption: number;
     totalDurationSecs: number;
-    inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
     inactivityStatus?: InactivityStatus;
     timestamp: Date;
     transactionData?: any;
@@ -80,7 +79,6 @@ export default interface Transaction {
   timezone: string;
   lastUpdate?: Date;
   currentTotalInactivitySecs: number;
-  currentInactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
   numberOfMeterValues: number;

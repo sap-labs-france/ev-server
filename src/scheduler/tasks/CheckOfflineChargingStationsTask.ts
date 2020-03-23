@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 
 export default class CheckOfflineChargingStationsTask extends SchedulerTask {
 
@@ -15,7 +14,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
     try {
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(
-        DatabaseUtils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
+        Utils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
       const params = {
         issuer: true,
         offlineSince: someMinutesAgo
