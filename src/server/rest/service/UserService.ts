@@ -28,6 +28,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
+import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
 
 export default class UserService {
 
@@ -173,7 +174,7 @@ export default class UserService {
       });
     }
     // Check Billing
-    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
         if (!billingImpl) {
@@ -207,7 +208,7 @@ export default class UserService {
           message: 'Error occured in billing system',
           module: 'UserService', method: 'handleDeleteUser',
           user: req.user, actionOnUser: user,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -227,7 +228,12 @@ export default class UserService {
       user.address = {} as Address;
       await UserStorage.saveUser(req.user.tenantID, user);
       await UserStorage.saveUserPassword(req.user.tenantID, user.id,
-        { password: '', passwordWrongNbrTrials: 0, passwordResetHash: '', passwordBlockedUntil: null });
+        {
+          password: '',
+          passwordWrongNbrTrials: 0,
+          passwordResetHash: '',
+          passwordBlockedUntil: null
+        });
       await UserStorage.saveUserAdminData(req.user.tenantID, user.id,
         { plateID: '', notificationsActive: false, notifications: null });
       await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
@@ -237,24 +243,35 @@ export default class UserService {
       await UserStorage.saveUserStatus(req.user.tenantID, user.id, UserStatus.INACTIVE);
       await UserStorage.saveUserAccountVerification(req.user.tenantID, user.id,
         { verificationToken: null, verifiedAt: null });
+
+      for (const tag of user.tags) {
+        if (tag.sessionCount > 0) {
+          tag.active = false;
+          tag.lastChangedOn = new Date();
+          tag.lastChangedBy = { id: req.user.id };
+          await UserStorage.saveUserTag(req.user.tenantID, user.id, tag);
+        } else {
+          await UserStorage.deleteUserTag(req.user.tenantID, user.id, tag);
+        }
+      }
     } else {
       // Physically
       await UserStorage.deleteUser(req.user.tenantID, user.id);
     }
 
     // Delete billing user
-    if (req.user.activeComponents.includes(TenantComponents.BILLING)) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
-          module: 'UserService',method: 'handleDeleteUser',
+          module: 'UserService', method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
-          detailedMessages: e.message
+          detailedMessages: { error }
         });
       }
     }
@@ -269,25 +286,25 @@ export default class UserService {
             if (tag.issuer) {
               await ocpiClient.pushToken({
                 uid: tag.id,
-                type: 'RFID',
+                type: OCPITokenType.RFID,
                 'auth_id': user.id,
                 'visual_number': user.id,
                 issuer: tenant.name,
                 valid: false,
-                whitelist: 'ALLOWED_OFFLINE',
+                whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                 'last_updated': new Date()
               });
             }
           }
         }
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService', method: 'handleUpdateUser',
           action: action,
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-          detailedMessages: e.message
+          detailedMessages: { error }
         });
       }
     }
@@ -370,8 +387,9 @@ export default class UserService {
       statusHasChanged = true;
     }
     // Update timestamp
-    filteredRequest.lastChangedBy = { id: req.user.id };
-    filteredRequest.lastChangedOn = new Date();
+    const lastChangedBy = { id: req.user.id };
+    const lastChangedOn = new Date();
+    const previousTags = user.tags;
     // Clean up request
     delete filteredRequest.passwords;
 
@@ -379,27 +397,28 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagsAreValid(user, filteredRequest.tags, req);
-    const previousTags = user.tags;
-    // For integration with Billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
     user = { ...user, ...filteredRequest, tags: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
-    if (billingImpl) {
-      try {
-        const billingData = await billingImpl.updateUser(user);
-        await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
-      } catch (error) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          module: 'UserService',
-          method: 'handleUpdateUser',
-          action: action,
-          user: req.user, actionOnUser: user,
-          message: 'User cannot be updated in billing system',
-          detailedMessages: error
-        });
+    // Check Billing
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.BILLING)) {
+      const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+      if (billingImpl) {
+        try {
+          const billingData = await billingImpl.updateUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            module: 'UserService',
+            method: 'handleUpdateUser',
+            action: action,
+            user: req.user, actionOnUser: user,
+            message: 'User cannot be updated in billing system',
+            detailedMessages: { error }
+          });
+        }
       }
     }
     // Save User password
@@ -415,14 +434,29 @@ export default class UserService {
         });
     }
     // Save Admin info
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user)) {
       // Save Tags
-      filteredRequest.tags.forEach((tag) => {
-        tag.lastChangedOn = filteredRequest.lastChangedOn;
-        tag.lastChangedBy = filteredRequest.lastChangedBy;
-      });
-      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
-
+      for (const previousTag of previousTags) {
+        const foundTag = filteredRequest.tags.find((tag) => tag.id === previousTag.id);
+        if (!foundTag) {
+          // Tag not found in the current tag list, will be deleted or deactivated.
+          if (previousTag.sessionCount > 0) {
+            if (previousTag.active) {
+              previousTag.active = false;
+              previousTag.lastChangedOn = lastChangedOn;
+              previousTag.lastChangedBy = lastChangedBy;
+              await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, previousTag);
+            }
+          } else {
+            await UserStorage.deleteUserTag(req.user.tenantID, filteredRequest.id, previousTag);
+          }
+        }
+      }
+      for (const tag of filteredRequest.tags) {
+        tag.lastChangedOn = lastChangedOn;
+        tag.lastChangedBy = lastChangedBy;
+        await UserStorage.saveUserTag(req.user.tenantID, filteredRequest.id, tag);
+      }
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -435,12 +469,12 @@ export default class UserService {
               if (previousTag.issuer && (!foundTag || !foundTag.issuer)) {
                 await ocpiClient.pushToken({
                   uid: previousTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
                   valid: false,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
@@ -448,32 +482,33 @@ export default class UserService {
             // Push new valid tags
             for (const currentTag of filteredRequest.tags) {
               const foundTag = previousTags.find((tag) => tag.id === currentTag.id);
-              if (currentTag.issuer && (!foundTag || !foundTag.issuer)) {
+              if (currentTag.issuer && (!foundTag || !foundTag.issuer || foundTag.active !== currentTag.active)) {
                 await ocpiClient.pushToken({
                   uid: currentTag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': filteredRequest.id,
                   'visual_number': filteredRequest.id,
                   issuer: tenant.name,
-                  valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  valid: currentTag.active,
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
             }
           }
-        } catch (e) {
+        } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleUpdateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-            detailedMessages: e.message
+            detailedMessages: { error }
           });
         }
       }
-
+    }
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -568,8 +603,11 @@ export default class UserService {
       });
     }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id,
-      { mobileToken: filteredRequest.mobileToken, mobileOs: filteredRequest.mobileOS, mobileLastChangedOn: new Date() });
+    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, {
+      mobileToken: filteredRequest.mobileToken,
+      mobileOs: filteredRequest.mobileOS,
+      mobileLastChangedOn: new Date()
+    });
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -779,6 +817,7 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
@@ -873,8 +912,8 @@ export default class UserService {
     delete filteredRequest.passwords;
     filteredRequest.issuer = true;
     // Set timestamp
-    filteredRequest.createdBy = { id: req.user.id };
-    filteredRequest.createdOn = new Date();
+    const createdBy = { id: req.user.id };
+    const createdOn = new Date();
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
     // Save password
@@ -889,13 +928,13 @@ export default class UserService {
         });
     }
     // Save Admin Data
-    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
+    if (Authorizations.isAdmin(req.user)) {
       // Save the Tag IDs
-      filteredRequest.tags.forEach((tag) => {
-        tag.lastChangedOn = filteredRequest.createdOn;
-        tag.lastChangedBy = filteredRequest.createdBy;
-      });
-      await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
+      for (const tag of filteredRequest.tags) {
+        tag.lastChangedOn = createdOn;
+        tag.lastChangedBy = createdBy;
+        await UserStorage.saveUserTag(req.user.tenantID, newUserID, tag);
+      }
       // Synchronize badges with IOP
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.OCPI)) {
         const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -906,25 +945,25 @@ export default class UserService {
               if (tag.issuer) {
                 await ocpiClient.pushToken({
                   uid: tag.id,
-                  type: 'RFID',
+                  type: OCPITokenType.RFID,
                   'auth_id': newUserID,
                   'visual_number': newUserID,
                   issuer: tenant.name,
                   valid: true,
-                  whitelist: 'ALLOWED_OFFLINE',
+                  whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
                   'last_updated': new Date()
                 });
               }
             }
           }
-        } catch (e) {
+        } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleCreateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-            detailedMessages: e.message
+            detailedMessages: { error }
           });
         }
       }
@@ -949,10 +988,13 @@ export default class UserService {
             action: action,
             user: newUserID,
             message: 'User cannot be created in billing system',
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
+    }
+
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
@@ -1127,7 +1169,7 @@ export default class UserService {
           });
         });
       });
-    } catch (e) {
+    } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
@@ -1136,7 +1178,7 @@ export default class UserService {
         method: 'handleGetUserInvoice',
         user: req.user,
         action: action,
-        detailedMessages: e
+        detailedMessages: { error }
       });
     }
   }

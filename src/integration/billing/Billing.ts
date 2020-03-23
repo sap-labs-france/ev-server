@@ -1,14 +1,14 @@
-import BackendError from '../../exception/BackendError';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { Action } from '../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
-import { UserInErrorType } from '../../types/InError';
-import { BillingSetting } from '../../types/Setting';
-import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
+import { Action } from '../../types/Authorization';
+import BackendError from '../../exception/BackendError';
+import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Transaction from '../../types/Transaction';
+import { UserInErrorType } from '../../types/InError';
+import UserStorage from '../../storage/mongodb/UserStorage';
 
 export default abstract class Billing<T extends BillingSetting> {
   protected readonly tenantID: string; // Assuming GUID or other string format ID
@@ -141,13 +141,24 @@ export default abstract class Billing<T extends BillingSetting> {
     }
     // Log
     if (actionsDone.synchronized || actionsDone.error) {
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
-        module: 'Billing', method: 'synchronizeUsers',
-        message: `${actionsDone.synchronized} user(s) were successfully synchronized, ${actionsDone.error} got errors`
-      });
+      if (actionsDone.synchronized > 0) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.synchronized} user(s) were successfully synchronized`
+        });
+      }
+      if (actionsDone.error > 0) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          module: 'Billing', method: 'synchronizeUsers',
+          message: `${actionsDone.error} user(s) failed to synchronize`
+        });
+      }
     } else {
       Logging.logInfo({
         tenantID: tenantID,
@@ -174,20 +185,42 @@ export default abstract class Billing<T extends BillingSetting> {
       } else {
         newBillingData = await this.updateUser(user);
       }
-      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'synchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: { error }
+        });
+      }
     } catch (error) {
       if (!user.billingData) {
         user.billingData = {};
       }
       user.billingData.hasSynchroError = true;
-      await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'synchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: { error }
+        });
+      }
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'Billing', method: 'synchronizeUser',
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         message: `Cannot synchronize user '${user.email}' with billing system`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -202,15 +235,26 @@ export default abstract class Billing<T extends BillingSetting> {
       // Recreate the Billing user
       delete user.billingData;
       const newBillingData = await this.createUser(user);
-      await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_BILLING,
-        actionOnUser: user,
-        module: 'Billing', method: 'forceSynchronizeUser',
-        message: `Successfully forced the synchronization of the user '${user.email}'`,
-      });
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          module: 'Billing', method: 'forceSynchronizeUser',
+          message: `Successfully forced the synchronization of the user '${user.email}'`,
+        });
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Billing', method: 'forceSynchronizeUser',
+          action: Action.SYNCHRONIZE_BILLING,
+          actionOnUser: user,
+          message: 'Unable to save user Billing Data in e-Mobility',
+          detailedMessages: { error }
+        });
+      }
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -218,7 +262,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.SYNCHRONIZE_BILLING,
         actionOnUser: user,
         message: `Cannot force synchronize user '${user.email}' with billing system`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

@@ -1,5 +1,5 @@
-import Constants from "./utils/Constants";
-import CrudApi from "./utils/CrudApi";
+import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class BuildingApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -16,7 +16,6 @@ export default class BuildingApi extends CrudApi {
 
   public create(data) {
     return super.create(data, '/client/api/BuildingCreate');
-    // TODO: Assign Site Areas into Building
   }
 
   public update(data) {

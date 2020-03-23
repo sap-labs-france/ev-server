@@ -55,7 +55,7 @@ export default class ERPService extends AbstractSoapClient {
           message: result.data.message,
           action: Action.BILLING,
           user: user,
-          detailedMessages: result.data
+          detailedMessages: { result: result.data }
         });
       } else if (result.data.ReturnedMessage) {
         if (result.data.ReturnedMessage.detail && result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
@@ -68,7 +68,7 @@ export default class ERPService extends AbstractSoapClient {
           message: 'Unable to create invoice',
           action: Action.BILLING,
           user: user,
-          detailedMessages: result.data
+          detailedMessages: { result: result.data }
         });
       }
       throw new BackendError({
@@ -78,7 +78,7 @@ export default class ERPService extends AbstractSoapClient {
         message: 'Unable to create invoice',
         action: Action.BILLING,
         user: user,
-        detailedMessages: result.data
+        detailedMessages: { result: result.data }
       });
     }
     return result.data.InvoiceDocumentNumber;

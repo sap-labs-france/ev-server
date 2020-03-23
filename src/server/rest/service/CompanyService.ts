@@ -37,7 +37,8 @@ export default class CompanyService {
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
     // Found?
-    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
+      'CompanyService', 'handleDeleteCompany', req.user);
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
@@ -45,7 +46,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
-      action: action, detailedMessages: company
+      action: action,
+      detailedMessages: { company }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -74,7 +76,8 @@ export default class CompanyService {
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
+      'CompanyService', 'handleGetCompany', req.user);
     // Return
     res.json(
       // Filter
@@ -106,7 +109,8 @@ export default class CompanyService {
     // Get it
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Check
-    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`,
+      'CompanyService', 'handleGetCompanyLogo', req.user);
     // Return
     res.json({ id: companyLogo.id, logo: companyLogo.logo });
     next();
@@ -133,12 +137,13 @@ export default class CompanyService {
     const companies = await CompanyStorage.getCompanies(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
         companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
         withLogo: filteredRequest.WithLogo
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo']
+      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo', 'issuer']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);
@@ -169,6 +174,7 @@ export default class CompanyService {
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
+      issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Company;
@@ -179,7 +185,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
-      action: action, detailedMessages: newCompany
+      action: action,
+      detailedMessages: { company: newCompany }
     });
     // Ok
     res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -207,7 +214,8 @@ export default class CompanyService {
     // Check email
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+    UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`,
+      'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
     // Update
@@ -223,7 +231,8 @@ export default class CompanyService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
-      action: action, detailedMessages: company
+      action: action,
+      detailedMessages: { company }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

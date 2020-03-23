@@ -252,11 +252,11 @@ export default class AuthService {
 
     const tag: Tag = {
       id: newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt(),
-      deleted: false,
+      active: true,
       issuer: true,
       lastChangedOn: new Date()
     };
-    await UserStorage.saveUserTags(tenantID, newUser.id, [tag]);
+    await UserStorage.saveUserTag(req.user.tenantID, newUser.id, tag);
 
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
@@ -293,7 +293,7 @@ export default class AuthService {
       module: 'AuthService',
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email}' has been created successfully`,
-      detailedMessages: req.body
+      detailedMessages: { params: req.body }
     });
 
     if (tenantID !== Constants.DEFAULT_TENANT) {
@@ -442,7 +442,7 @@ export default class AuthService {
       module: 'AuthService',
       method: 'handleUserPasswordReset',
       message: 'User\'s password has been reset successfully',
-      detailedMessages: req.body
+      detailedMessages: { params: req.body }
     });
 
     // Ok
@@ -664,7 +664,7 @@ export default class AuthService {
           action: action,
           user: user,
           message: 'User cannot be created in the billing system',
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -677,7 +677,7 @@ export default class AuthService {
       user: user, action: action,
       module: 'AuthService', method: 'handleVerifyEmail',
       message: 'User account has been successfully verified and activated',
-      detailedMessages: req.query
+      detailedMessages: { params: req.query }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -814,7 +814,7 @@ export default class AuthService {
       module: 'AuthService',
       method: 'handleResendVerificationEmail',
       message: `User with Email '${filteredRequest.email}' has been created successfully`,
-      detailedMessages: req.body
+      detailedMessages: { params: req.body }
     });
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +

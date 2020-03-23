@@ -42,7 +42,7 @@ export default class MongoDBStorageNotification {
       method: 'handleInvalidChange',
       action: 'Watch',
       message: `Invalid change received on collection ${tenantID}.${collection}`,
-      detailedMessages: change
+      detailedMessages: { change }
     });
   }
 
@@ -52,7 +52,7 @@ export default class MongoDBStorageNotification {
       module: 'MongoDBStorageNotification',
       method: 'watchCollection', action: 'Watch',
       message: `Error occurred in watching database: ${error}`,
-      detailedMessages: error
+      detailedMessages: { error }
     });
   }
 

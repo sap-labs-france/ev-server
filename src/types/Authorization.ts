@@ -29,7 +29,9 @@ export enum Entity {
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
   BUILDING = 'Building',
-  BUILDINGS = 'Buildings'
+  BUILDINGS = 'Buildings',
+  CAR = 'Car',
+  CARS = 'Cars'
 }
 
 export enum Action {
@@ -52,10 +54,7 @@ export enum Action {
   REFUND_TRANSACTION = 'RefundTransaction',
   UNLOCK_CONNECTOR = 'UnlockConnector',
   GET_CONFIGURATION = 'GetConfiguration',
-  GET_CHARGING_PROFILE = 'GetChargingProfile',
-  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
-  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
   REGISTER = 'Register',
@@ -66,8 +65,11 @@ export enum Action {
   SYNCHRONIZE_CARS = 'SynchronizeCars',
   BILLING_TRANSACTION = 'BillingTransaction',
   READ_BILLING_TAXES = 'ReadBillingTaxes',
-  POWER_LIMITATION = 'PowerLimitation',
-  SET_CHARGING_PROFILE = 'SetChargingProfile',
+  POWER_LIMITATION = 'ChargingStationLimitPower',
+  CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
+  CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
+  OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   EXPORT_PARAMS = 'ExportParams',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
@@ -75,8 +77,16 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
+
+  OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+  OCPI_PUSH_TOKENS = 'OCPIPushTokens',
+  OCPI_PUSH_SESSIONS = 'OCPIPushSessions',
+  OCPI_PULL_CDRS = 'OCPIPullCdrs',
+  OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
+  OCPI_PULL_SESSIONS = 'OCPIPullSessions',
+  OCPI_PULL_TOKENS = 'OCPIPullTokens',
 
   OCPP_SERVICE = 'OCPPService',
 
@@ -101,8 +111,10 @@ export enum Action {
   MONGO_DB = 'MongoDB',
 
   EMPTY_ACTION = '',
-  DELETE_CREDENTIALS = 'DELETE credentials',
+  DELETE_CREDENTIALS = 'DeleteCredentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
+
+  SAP_SMART_CHARGING = 'SAPSmartCharging',
 }
 
 export interface AuthorizationContext {

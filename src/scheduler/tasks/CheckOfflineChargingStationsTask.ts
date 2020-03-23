@@ -13,8 +13,12 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: CheckOfflineChargingStationsTaskConfig): Promise<void> {
     try {
       // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate();
-      const params = { 'offlineSince': someMinutesAgo };
+      const someMinutesAgo = moment().subtract(
+        Utils.getChargingStationHeartbeatMaxIntervalSecs(), 'seconds').toDate();
+      const params = {
+        issuer: true,
+        offlineSince: someMinutesAgo
+      };
       const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
       if (chargingStations.count > 0) {
         const chargingStationIDs: string = chargingStations.result.map((chargingStation) => chargingStation.id).join(', ');

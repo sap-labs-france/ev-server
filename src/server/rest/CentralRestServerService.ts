@@ -21,6 +21,7 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
+import CarService from './service/CarService';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -36,14 +37,6 @@ class RequestMapper {
           async (action: Action, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)
             action = action.slice(15) as Action;
-            // TODO: To Remove
-            // Hack for mobile app not sending the RemoteStopTransaction yet
-            if (action === Action.START_TRANSACTION) {
-              action = Action.REMOTE_START_TRANSACTION;
-            }
-            if (action === Action.STOP_TRANSACTION) {
-              action = Action.REMOTE_STOP_TRANSACTION;
-            }
             // Type it
             const chargingStationCommand: OCPPChargingStationCommand = action as unknown as OCPPChargingStationCommand;
             // Delegate
@@ -111,6 +104,8 @@ class RequestMapper {
           Logging: LoggingService.handleGetLogging.bind(this),
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
+          Cars: CarService.handleGetCars.bind(this),
+          Car: CarService.handleGetCar.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),

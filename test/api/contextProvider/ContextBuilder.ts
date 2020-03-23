@@ -1,12 +1,18 @@
 import { expect } from 'chai';
 import moment from 'moment';
+import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
+import BuildingStorage from '../../../src/storage/mongodb/BuildingStorage';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import global from '../../../src/types/GlobalType';
+import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
 import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
 import Site from '../../../src/types/Site';
 import TenantComponents from '../../../src/types/TenantComponents';
@@ -22,12 +28,6 @@ import CONTEXTS, { TenantDefinition } from './ContextConstants';
 import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
-import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
-import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
-import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
-import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
-import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
-import Company from '../../../src/types/Company';
 
 export default class ContextBuilder {
 
@@ -135,7 +135,9 @@ export default class ContextBuilder {
     await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
     await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
     if (CONTEXTS.TENANT_USER_LIST[0].tags) {
-      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tags);
+      for (const tag of CONTEXTS.TENANT_USER_LIST[0].tags) {
+        await UserStorage.saveUserTag(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, tag);
+      }
     }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
     // Create Central Server Service
@@ -219,7 +221,9 @@ export default class ContextBuilder {
       await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tags) {
-        await UserStorage.saveUserTags(buildTenant.id, user.id, userDef.tags);
+        for (const tag of userDef.tags) {
+          await UserStorage.saveUserTag(buildTenant.id, user.id, tag);
+        }
       }
       const userModel = await UserStorage.getUser(buildTenant.id, user.id);
       if (userDef.assignedToSite) {
@@ -286,6 +290,22 @@ export default class ContextBuilder {
           }
         }
         newTenantContext.addSiteContext(siteContext);
+      }
+      // Check if the building tenant exists and is activated
+      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.BUILDING) &&
+      buildTenant.components[TenantComponents.BUILDING].active) {
+        // Create Building list
+        for (const buildingDef of CONTEXTS.TENANT_BUILDING_LIST) {
+          const dummyBuilding = Factory.building.build();
+          dummyBuilding.id = buildingDef.id;
+          dummyBuilding.createdBy = { id: adminUser.id };
+          dummyBuilding.createdOn = moment().toISOString();
+          dummyBuilding.issuer = true;
+          dummyBuilding.siteAreaID = buildingDef.siteAreaID;
+          console.log(`Building '${dummyBuilding.name}' created`);
+          await BuildingStorage.saveBuilding(buildTenant.id, dummyBuilding);
+          newTenantContext.getContext().buildings.push(dummyBuilding);
+        }
       }
     }
     // Create unassigned Charging station

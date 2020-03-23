@@ -135,7 +135,6 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-        filteredTransaction.currentInactivityStatusLevel = Utils.getUIInactivityStatusLevel(transaction.currentInactivityStatus);
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp)
@@ -171,7 +170,6 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        filteredTransaction.stop.inactivityStatusLevel = Utils.getUIInactivityStatusLevel(transaction.stop.inactivityStatus);
         filteredTransaction.stop.inactivityStatus = transaction.stop.inactivityStatus;
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
@@ -320,7 +318,8 @@ export default class TransactionSecurity {
           ...consumption,
           date: consumption.endedAt,
           value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
+          cumulated: consumption.cumulatedConsumption,
+          limitWatts: consumption.limitWatts
         };
         if (consumption.stateOfCharge === null) {
           delete newConsumption.stateOfCharge;
@@ -340,7 +339,8 @@ export default class TransactionSecurity {
           stateOfCharge: consumption.stateOfCharge,
           date: consumption.endedAt,
           value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
+          cumulated: consumption.cumulatedConsumption,
+          limitWatts: consumption.limitWatts
         };
         if (consumption.stateOfCharge) {
           newConsumption.stateOfCharge = consumption.stateOfCharge;
@@ -369,6 +369,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
+    initialValue.limitWatts = 0;
     if (Authorizations.isAdmin(loggedUser)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;

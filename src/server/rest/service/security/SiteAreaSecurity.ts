@@ -26,13 +26,16 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreasRequest(request: any): HttpSiteAreasRequest {
     const filteredRequest: HttpSiteAreasRequest = {
-      Issuer: UtilsSecurity.filterBoolean(request.Issuer),
       Search: sanitize(request.Search),
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
       WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
       SiteID: sanitize(request.SiteID)
     } as HttpSiteAreasRequest;
+
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -55,6 +58,7 @@ export default class SiteAreaSecurity {
       address: UtilsSecurity.filterAddressRequest(request.address),
       image: sanitize(request.image),
       maximumPower: sanitize(request.maximumPower),
+      smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
       accessControl: UtilsSecurity.filterBoolean(request.accessControl),
       siteID: sanitize(request.siteID)
     };
@@ -72,10 +76,6 @@ export default class SiteAreaSecurity {
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredSiteArea = siteArea;
-        if (filteredSiteArea.connectorStats) {
-          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-          filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
-        }
       } else {
         // Set only necessary info
         filteredSiteArea = {};
@@ -89,8 +89,6 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.connectorStats) {
         filteredSiteArea.connectorStats = siteArea.connectorStats;
-        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-        filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
       }
       if (Utils.objectHasProperty(siteArea, 'accessControl')) {
         filteredSiteArea.accessControl = siteArea.accessControl;

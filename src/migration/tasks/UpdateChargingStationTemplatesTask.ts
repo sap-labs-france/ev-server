@@ -1,47 +1,114 @@
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import ChargingStation, { Connector } from '../../types/ChargingStation';
+import ChargingStation from '../../types/ChargingStation';
+import { OCPPConfigurationStatus } from '../../types/ocpp/OCPPClient';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
-import Utils from '../../utils/Utils';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate() {
     // Update Template
     await this.updateChargingStationTemplate();
+    // Avoid migrating the current charging stations due to Schneider charge@home Wallboxes
     // Update Charging Stations
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
+      // Update Charging Station OCPP Params
+      await this.updateChargingStationsOCPPParametersInTemplate(tenant);
       // Update current Charging Station with Template
-      await this.updateChargingStationsWithTemplate(tenant);
+      await this.updateChargingStationsParametersWithTemplate(tenant);
       // Remove unused props
-      await this.removeChargingStationUnusedProps(tenant);
+      await this.removeChargingStationUnusedPropsInDB(tenant);
     }
   }
 
-  private async updateChargingStationsWithTemplate(tenant: Tenant) {
+  private async updateChargingStationsOCPPParametersInTemplate(tenant: Tenant) {
+    // Get the charging station
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
+      issuer: true
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    let updated = 0;
+    let error = 0;
+    for (const chargingStation of chargingStations.result) {
+      if (chargingStation.inactive) {
+        error++;
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          source: chargingStation.id,
+          action: 'UpdateChargingStationTemplates',
+          module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+          message: `Charging Station is inactive and its OCPP Parameters cannot be updated in Tenant '${tenant.name}'`
+        });
+        continue;
+      }
+      try {
+        // Get the config and Force update of OCPP params with template
+        const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenant.id, chargingStation, true);
+        if (result.status === OCPPConfigurationStatus.ACCEPTED) {
+          updated++;
+          Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: chargingStation.id,
+            action: 'UpdateChargingStationTemplates',
+            module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+            message: `Charging Station OCPP Parameters have been updated with Template in Tenant '${tenant.name}'`
+          });
+        } else {
+          error++;
+          Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: chargingStation.id,
+            action: 'UpdateChargingStationTemplates',
+            module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+            message: `Charging Station OCPP Parameters failed to be updated with Template ('${result.status}') in Tenant '${tenant.name}'`
+          });
+        }
+      } catch (error) {
+        error++;
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          source: chargingStation.id,
+          action: 'UpdateChargingStationTemplates',
+          module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+          message: `Charging Station OCPP Parameters failed to be updated with Template in Tenant '${tenant.name}'`,
+          detailedMessages: { error }
+        });
+      }
+    }
+    if (updated > 0) {
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'UpdateChargingStationTemplates',
+        module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+        message: `${updated} Charging Station(s) have been updated with Template in Tenant '${tenant.name}'`
+      });
+    }
+    if (error > 0) {
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'UpdateChargingStationTemplates',
+        module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsOCPPParametersInTemplate',
+        message: `${error} Charging Station(s) have failed to be updated with Template in Tenant '${tenant.name}'`
+      });
+    }
+  }
+
+  private async updateChargingStationsParametersWithTemplate(tenant: Tenant) {
     let updated = 0;
     // Get Charging Stations
-    const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(tenant.id, 'chargingstations').find(
-      {
-        $or: [
-          { 'currentType': { $exists: false } },
-          { 'connectors.numberOfConnectedPhase': { $exists: false } },
-          { 'connectors.amperageLimit': { $exists: false } }
-        ]
-      }).toArray();
+    const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
+      tenant.id, 'chargingstations').find({
+      issuer: true
+    }).toArray();
     // Update
     for (const chargingStationMDB of chargingStationsMDB) {
       // Enrich
       let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStationMDB);
-      for (const connector of chargingStationMDB.connectors) {
-        const chargingStationConnectorUpdated = await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenant.id, chargingStationMDB, connector.connectorId);
-        chargingStationUpdated = chargingStationUpdated || chargingStationConnectorUpdated;
-      }
       // Check Connectors
       for (const connector of chargingStationMDB.connectors) {
         if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
@@ -62,14 +129,14 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'UpdateChargingStationTemplatesTask',
+        action: 'UpdateChargingStationTemplates',
         module: 'UpdateChargingStationTemplatesTask', method: 'updateChargingStationsWithTemplate',
-        message: `${updated} Charging Stations' have been updated with Template in Tenant '${tenant.name}'`
+        message: `${updated} Charging Stations have been updated with Template in Tenant '${tenant.name}'`
       });
     }
   }
 
-  private async removeChargingStationUnusedProps(tenant: Tenant) {
+  private async removeChargingStationUnusedPropsInDB(tenant: Tenant) {
     const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
       { 'inactive': { $exists: true } },
       {
@@ -83,9 +150,9 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'UpdateChargingStationTemplatesTask',
-        module: 'UpdateChargingStationTemplatesTask', method: 'removeChargingStationUnusedProps',
-        message: `${result.modifiedCount} Charging Stations' unused properties have been removed in Tenant '${tenant.name}'`
+        action: 'UpdateChargingStationTemplates',
+        module: 'UpdateChargingStationTemplatesTask', method: 'removeChargingStationUnusedPropsInDB',
+        message: `${result.modifiedCount} Charging Stations unused properties have been removed in Tenant '${tenant.name}'`
       });
     }
   }
@@ -100,7 +167,11 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.1';
+    return '1.4';
+  }
+
+  isAsynchronous() {
+    return true;
   }
 
   getName() {

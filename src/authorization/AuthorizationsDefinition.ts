@@ -15,7 +15,9 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
-      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] }
+      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Cars', action: 'List', attributes: ['*'] },
+      { resource: 'Car', action: 'Read', attributes: ['*'] },
     ]
   },
   admin: {
@@ -69,7 +71,10 @@ const GRANTS = {
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
-      { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] }
+      { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
+      { resource: 'Cars', action: 'List', attributes: ['*'] },
+      { resource: 'Car', action: 'Read', attributes: ['*'] }
+
     ]
   },
   basic: {
@@ -287,7 +292,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'getScopes',
         message: 'Unable to load authorization grants',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
@@ -315,7 +320,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     return scopes;
@@ -331,7 +336,7 @@ export default class AuthorizationsDefinition {
         module: 'AuthorizationsDefinition',
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

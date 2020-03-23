@@ -95,7 +95,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
-        detailedMessages: cdr,
+        detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -125,7 +125,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${cdr.id}`,
-        detailedMessages: cdr,
+        detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -136,7 +136,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `A cdr already exists for the session ${cdr.id}`,
-        detailedMessages: cdr,
+        detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }

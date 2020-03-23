@@ -430,7 +430,8 @@ export default class SiteService {
     }
     // Get
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
+      'SiteService', 'handleDeleteSite', req.user);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -438,7 +439,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -466,7 +468,8 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
+      'SiteService', 'handleGetSite', req.user);
     // Return
     res.json(
       // Filter
@@ -497,6 +500,7 @@ export default class SiteService {
       {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID,
+        issuer: filteredRequest.Issuer,
         companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withCompany: filteredRequest.WithCompany,
@@ -510,7 +514,7 @@ export default class SiteService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       ['id', 'name', 'address.coordinates', 'address.city', 'address.country', 'companyID', 'company.name',
-        'autoUserSiteAssignment']
+        'autoUserSiteAssignment', 'issuer']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {
@@ -543,7 +547,8 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
+      'SiteService', 'handleGetSiteImage', req.user);
     // Get the image
     const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, siteID);
     // Return
@@ -572,10 +577,12 @@ export default class SiteService {
     Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
-    UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
+    UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
+      'SiteService', 'handleCreateSite', req.user);
     // Create site
     const site: Site = {
       ...filteredRequest,
+      issuer: true,
       createdBy: { id: req.user.id },
       createdOn: new Date()
     } as Site;
@@ -586,7 +593,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -613,9 +621,14 @@ export default class SiteService {
         value: filteredRequest.id
       });
     }
+    // Check Company
+    const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
+    UtilsService.assertObjectExists(action, company, `Company ID '${filteredRequest.companyID}' does not exist`,
+      'SiteService', 'handleUpdateSite', req.user);
     // Get Site
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
+    UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.id}' does not exist`,
+      'SiteService', 'handleUpdateSite', req.user);
     // Update
     site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
@@ -626,7 +639,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

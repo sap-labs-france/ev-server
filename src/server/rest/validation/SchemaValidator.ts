@@ -40,7 +40,7 @@ export default class SchemaValidator {
         message: concatenatedError.message,
         module: this.moduleName,
         method: 'validate',
-        detailedMessages: concatenatedError
+        detailedMessages: { concatenatedError }
       });
     }
   }

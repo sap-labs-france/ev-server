@@ -19,14 +19,12 @@ import TenantValidator from '../validation/TenantValidation';
 import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
 
-const MODULE_NAME = 'TenantService';
-
 export default class TenantService {
 
   public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
+    UtilsService.assertIdIsProvided(action, id, 'TenantService', 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -34,7 +32,7 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TENANT,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleDeleteTenant',
         value: id
       });
@@ -42,14 +40,14 @@ export default class TenantService {
     // Get
     const tenant = await TenantStorage.getTenant(id);
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
-      MODULE_NAME, 'handleDeleteTenant', req.user);
+      'TenantService', 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleDeleteTenant',
         user: req.user,
         action: action
@@ -62,10 +60,10 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: MODULE_NAME, method: 'handleDeleteTenant',
+      module: 'TenantService', method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
       action: action,
-      detailedMessages: tenant
+      detailedMessages: { tenant }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -75,7 +73,7 @@ export default class TenantService {
   public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertIdIsProvided(action, tenantID, 'TenantService', 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
@@ -83,14 +81,15 @@ export default class TenantService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TENANT,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleGetTenant',
         value: tenantID
       });
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
+      'TenantService', 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -108,7 +107,7 @@ export default class TenantService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TENANTS,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleGetTenants'
       });
     }
@@ -135,7 +134,7 @@ export default class TenantService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.TENANT,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleCreateTenant'
       });
     }
@@ -146,7 +145,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleCreateTenant',
         user: req.user,
         action: action
@@ -159,7 +158,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleCreateTenant',
         user: req.user,
         action: action
@@ -210,10 +209,10 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: MODULE_NAME, method: 'handleCreateTenant',
+      module: 'TenantService', method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
       action: action,
-      detailedMessages: filteredRequest
+      detailedMessages: { params: filteredRequest }
     });
     // Ok
     res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -230,14 +229,15 @@ export default class TenantService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TENANT,
-        module: MODULE_NAME,
+        module: 'TenantService',
         method: 'handleUpdateTenant',
         value: tenantUpdate.id
       });
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
+    UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
+      'TenantService', 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();
@@ -248,10 +248,10 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: MODULE_NAME, method: 'handleUpdateTenant',
+      module: 'TenantService', method: 'handleUpdateTenant',
       message: `Tenant '${tenantUpdate.name}' has been updated successfully`,
       action: action,
-      detailedMessages: tenantUpdate
+      detailedMessages: { tenant: tenantUpdate }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

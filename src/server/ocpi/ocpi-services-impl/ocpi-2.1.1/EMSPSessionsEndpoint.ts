@@ -197,7 +197,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
-        detailedMessages: sessionPatched,
+        detailedMessages: { sessionPatched },
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }

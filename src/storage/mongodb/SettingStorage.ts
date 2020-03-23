@@ -3,7 +3,7 @@ import BackendError from '../../exception/BackendError';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
-import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB } from '../../types/Setting';
+import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
 import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -170,6 +170,33 @@ export default class SettingStorage {
     return pricingSettings;
   }
 
+  public static async getSmartChargingSettings(tenantID: string): Promise<SmartChargingSettings> {
+    const smartChargingSettings = {
+      identifier: TenantComponents.SMART_CHARGING,
+    } as SmartChargingSettings;
+    // Get the Smart Charging settings
+    const settings = await SettingStorage.getSettings(tenantID,
+      { identifier: TenantComponents.SMART_CHARGING },
+      Constants.DB_PARAMS_MAX_LIMIT);
+    // Get the currency
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      // ID
+      smartChargingSettings.id = settings.result[0].id;
+      smartChargingSettings.sensitiveData = settings.result[0].sensitiveData;
+      // SAP Smart Charging
+      if (config.sapSmartCharging) {
+        smartChargingSettings.type = SmartChargingSettingsType.SAP_SMART_CHARGING;
+        smartChargingSettings.sapSmartCharging = {
+          optimizerUrl: config.sapSmartCharging.optimizerUrl,
+          user: config.sapSmartCharging.user,
+          password: config.sapSmartCharging.password,
+        };
+      }
+    }
+    return smartChargingSettings;
+  }
+
   public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
     // Build internal structure
     const settingsToSave = {
@@ -265,7 +292,7 @@ export default class SettingStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Rename ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({

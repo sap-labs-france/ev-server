@@ -14,6 +14,12 @@ class TestData {
   public centralUserService: CentralServerService;
   public userContext: any;
   public userService: CentralServerService;
+  public newCompany: any;
+  public createdCompanies: any[] = [];
+  public newSite: any;
+  public createdSites: any[] = [];
+  public newSiteArea: any;
+  public createdSiteAreas: any[] = [];
   public newBuilding: any;
   public createdBuildings: any[] = [];
 }
@@ -26,7 +32,7 @@ describe('Building Test', function() {
   before(async () => {
     chai.config.includeStack = true;
     await ContextProvider.DefaultInstance.prepareContexts();
-  })
+  });
 
   afterEach(() => {
     // Can be called after each UT to clean up created data
@@ -50,6 +56,33 @@ describe('Building Test', function() {
     });
 
     after(async () => {
+      // Delete any created company
+      testData.createdCompanies.forEach(async (company) => {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.companyApi,
+          company,
+          false
+        );
+      });
+      testData.createdCompanies = [];
+      // Delete any created site
+      testData.createdSites.forEach(async (site) => {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteApi,
+          site,
+          false
+        );
+      });
+      testData.createdSites = [];
+      // Delete any created site area
+      testData.createdSiteAreas.forEach(async (siteArea) => {
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.siteAreaApi,
+          siteArea,
+          false
+        );
+      });
+      testData.createdSiteAreas = [];
       // Delete any created building
       testData.createdBuildings.forEach(async (building) => {
         await testData.centralUserService.deleteEntity(
@@ -74,13 +107,40 @@ describe('Building Test', function() {
             testData.userContext
           );
         }
-      })
+        // Create a new Company
+        testData.newCompany = await testData.userService.createEntity(
+          testData.userService.companyApi,
+          Factory.company.build()
+        );
+        testData.createdCompanies.push(testData.newCompany);
+        // Check
+        expect(testData.newCompany).to.not.be.null;
+        // Create a new Site
+        testData.newSite = await testData.userService.createEntity(
+          testData.userService.siteApi,
+          Factory.site.build({
+            companyID: testData.newCompany.id
+          })
+        );
+        testData.createdSites.push(testData.newSite);
+        // Check
+        expect(testData.newSite).to.not.be.null;
+        // Create a new Site Area
+        testData.newSiteArea = await testData.userService.createEntity(
+          testData.userService.siteAreaApi,
+          Factory.siteArea.build({
+            siteID: testData.newSite.id
+          })
+        );
+        testData.createdSiteAreas.push(testData.newSiteArea);
+        expect(testData.newSiteArea).to.not.be.null;
+      });
 
       it('Should be able to create a new Building', async () => {
         // Create
         testData.newBuilding = await testData.userService.createEntity(
           testData.userService.buildingApi,
-          Factory.building.build()
+          Factory.building.build({ siteAreaID: testData.createdSiteAreas[0].id })
         );
         testData.createdBuildings.push(testData.newBuilding);
       });
@@ -103,7 +163,7 @@ describe('Building Test', function() {
 
       it('Should be able to update the building', async () => {
         // Change entity
-        testData.newBuilding.name = "New Name";
+        testData.newBuilding.name = 'New Name';
         // Update
         await testData.userService.updateEntity(
           testData.userService.buildingApi,
@@ -135,7 +195,7 @@ describe('Building Test', function() {
           testData.newBuilding
         );
       });
-    })
-  })
+    });
+  });
 });
 

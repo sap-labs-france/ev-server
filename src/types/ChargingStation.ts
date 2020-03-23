@@ -1,11 +1,12 @@
-import CreatedUpdatedProps from './CreatedUpdatedProps';
-import SiteArea from './SiteArea';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { KeyValue } from './GlobalType';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
+  templateHash?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -17,6 +18,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   imsi: string;
   meterType: string;
   firmwareVersion: string;
+  firmwareUpdateStatus?: OCPPFirmwareStatus;
   meterSerialNumber: string;
   endpoint: string;
   ocppVersion: OCPPVersion;
@@ -62,7 +64,7 @@ export enum PowerLimitUnits {
 }
 
 export enum StaticLimitAmps {
-  MIN_LIMIT = 1,
+  MIN_LIMIT = 2,
 }
 
 export interface Connector {
@@ -85,7 +87,6 @@ export interface Connector {
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
@@ -103,6 +104,7 @@ export enum ConnectorCurrentType {
 
 export interface ChargingStationTemplate {
   id?: string;
+  hash?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
@@ -176,5 +178,6 @@ export type OCPPParams = {
 export enum ChargerVendor {
   EBEE = 'Bender GmbH Co. KG',
   SCHNEIDER = 'Schneider Electric',
+  WEBASTO = 'Webasto',
   ABB = 'ABB',
 }

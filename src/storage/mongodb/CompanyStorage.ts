@@ -74,7 +74,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: { search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
+    params: { search?: string; issuer?: boolean; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -105,6 +105,14 @@ export default class CompanyStorage {
       aggregation.push({
         $match: {
           _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
+        }
+      });
+    }
+
+    if (params.issuer === true || params.issuer === false) {
+      aggregation.push({
+        $match: {
+          'issuer': params.issuer
         }
       });
     }
@@ -147,12 +155,12 @@ export default class CompanyStorage {
         }
       );
       // Rename
-      DatabaseUtils.renameField(aggregation, 'companylogos.logo', 'logo');
+      DatabaseUtils.pushRenameField(aggregation, 'companylogos.logo', 'logo');
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({

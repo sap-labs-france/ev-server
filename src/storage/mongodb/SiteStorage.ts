@@ -116,11 +116,10 @@ export default class SiteStorage {
       });
     }
     // Get users
-    DatabaseUtils.pushUserLookupInAggregation(
-      {
-        tenantID, aggregation, localField: 'userID', foreignField: '_id',
-        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
-      });
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID, aggregation, localField: 'userID', foreignField: '_id',
+      asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+    });
     // Filter deleted users
     aggregation.push({
       $match: {
@@ -140,8 +139,8 @@ export default class SiteStorage {
       });
     }
     // Convert IDs to String
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -391,11 +390,11 @@ export default class SiteStorage {
         });
     }
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'companyID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'companyID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({

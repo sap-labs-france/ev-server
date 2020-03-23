@@ -29,6 +29,7 @@ export default class ChargingStationSecurity {
       chargeBoxID: sanitize(request.chargeBoxID),
       connectorId: sanitize(request.connectorId),
       ampLimitValue: sanitize(request.ampLimitValue),
+      forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
     };
   }
 
@@ -55,8 +56,6 @@ export default class ChargingStationSecurity {
           connector.totalInactivitySecs = 0;
           connector.inactivityStatus = InactivityStatus.INFO;
           connector.currentStateOfCharge = 0;
-        } else {
-          connector.inactivityStatusLevel = Utils.getUIInactivityStatusLevel(connector.inactivityStatus);
         }
       }
     } else {
@@ -76,7 +75,6 @@ export default class ChargingStationSecurity {
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          'inactivityStatusLevel': Utils.getUIInactivityStatusLevel(connector.inactivityStatus),
           'inactivityStatus': connector.inactivityStatus,
           'activeTransactionID': connector.activeTransactionID,
           'activeTransactionDate': connector.activeTransactionDate,
@@ -100,6 +98,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
     }
+    // Sort Connector
+    filteredChargingStation.connectors.sort(
+      (connector1, connector2) => connector1.connectorId - connector2.connectorId);
     // Created By / Last Changed By
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
@@ -184,6 +185,7 @@ export default class ChargingStationSecurity {
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ConnectorStatus = sanitize(request.ConnectorStatus);
+    filteredRequest.ConnectorType = sanitize(request.ConnectorType);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);

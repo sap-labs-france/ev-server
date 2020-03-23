@@ -69,7 +69,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
             source: scsc.chargingStation.id,
             module: 'SoapChargingStationClient', method: 'constructor',
             message: `Error when creating SOAP client: ${error.toString()}`,
-            detailedMessages: error.stack
+            detailedMessages: { error }
           });
           reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.id}: ${error.message}`);
         } else {
@@ -165,7 +165,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       Logging.logError({
         tenantID: this.tenantID,
         action: OCPPChargingStationCommand.UNLOCK_CONNECTOR as unknown as Action,
-        source: this.chargingStation.id, module: 'SoapChargingStationClient', method:  'unlockConnector',
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${params.connectorId}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },

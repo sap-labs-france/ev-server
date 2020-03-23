@@ -250,7 +250,7 @@ export default class EMailNotificationTask implements NotificationTask {
         action: 'SendEmail',
         message: 'Error in preparing email for user',
         actionOnUser: user,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }

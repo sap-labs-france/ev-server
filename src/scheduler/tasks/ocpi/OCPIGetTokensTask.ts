@@ -72,7 +72,7 @@ export default class OCPIGetTokensTask extends SchedulerTask {
       module: 'OCPIGetTokensTask',
       method: 'patch', action: 'OcpiGetTokens',
       message: `The get tokens process for endpoint ${ocpiEndpoint.name} is completed)`,
-      detailedMessages: result
+      detailedMessages: { result }
     });
   }
 }

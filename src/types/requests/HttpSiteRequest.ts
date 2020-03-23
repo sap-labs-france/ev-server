@@ -1,7 +1,4 @@
-import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
-
-export type HttpSiteRequest = HttpByIDRequest;
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
   Issuer: boolean;

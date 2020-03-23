@@ -37,12 +37,12 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    building?: {
+      active: boolean;
+    };
     car?: {
       active: boolean;
       type: string;
-    };
-    building?: {
-      active: boolean;
     };
   };
 }
