@@ -279,7 +279,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'User has no Billing data',
       });
     }
-    const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.OPEN });
+    const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT });
     if (userOpenedInvoices.length > 0) {
       return userOpenedInvoices[0];
     }

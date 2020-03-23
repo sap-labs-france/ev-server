@@ -243,7 +243,9 @@ describe('Billing Service', function() {
         expect(invoice.invoice).to.not.be.undefined;
         expect(invoice.invoiceItem).to.not.be.undefined;
         expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-        await billingImpl.createInvoiceItem(billingUser, invoice.invoice, { description: 'Test invoice multiple items', amount: 1000 });
+        const openedInvoice = await billingImpl.getOpenedInvoice(billingUser);
+        expect(openedInvoice).to.not.be.undefined;
+        await billingImpl.createInvoiceItem(billingUser, openedInvoice, { description: 'Test invoice multiple items', amount: 1000 });
         const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.id);
         expect(billingInvoice).to.not.be.undefined;
         expect(billingInvoice.items.length).to.be.eq(2);
