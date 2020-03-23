@@ -32,7 +32,9 @@ export enum Entity {
   BUILDINGS = 'Buildings',
   CAR = 'Car',
   CARS = 'Cars',
+  INVOICE = 'Invoice',
   INVOICES = 'Invoices',
+  TAXES = 'Taxes'
 }
 
 export enum Action {
@@ -72,7 +74,6 @@ export enum Action {
   CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
-  DOWNLOAD = 'Download',
 
 
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
@@ -104,11 +105,12 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
-  SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
-  CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
+  SYNCHRONIZE_BILLING = 'BillingSynchronizeUsers',
+  FORCE_SYNCHRONIZE_BILLING = 'BillingForceSynchronizeUser',
+  CHECK_CONNECTION_BILLING = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
-  READ_BILLING_TAXES = 'ReadBillingTaxes',
-  CREATE_BILLING_INVOICE = 'CreateBillingInvoice',
+  CREATE_BILLING_INVOICE = 'BillingCreateInvoice',
+  CREATE_BILLING_INVOICE_ITEM = 'BillingCreateInvoiceItem',
 
   MONGO_DB = 'MongoDB',
 

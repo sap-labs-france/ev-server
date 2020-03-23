@@ -150,6 +150,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
+      'email': user.email,
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
@@ -539,19 +540,15 @@ export default class Authorizations {
   }
 
   public static canForceUserSynchronizationBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.FORCE_SYNCHRONIZE_BILLING);
   }
 
   public static canReadBillingTaxes(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_TAXES);
+    return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
   }
 
   public static canReadBillingInvoices(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
-  }
-
-  public static canDownloadBillingInvoice(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.DOWNLOAD);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {

@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingInvoice, BillingTax } from '../../../../types/Billing';
-import { HttpGetUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import {BillingInvoice, BillingInvoiceFilter, BillingTax} from '../../../../types/Billing';
+import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 
 export default class BillingSecurity {
@@ -83,8 +83,8 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(request: any): HttpGetUserInvoicesRequest {
-    const filteredRequest = {} as HttpGetUserInvoicesRequest;
+  static filterGetUserInvoicesRequest(request: any): BillingInvoiceFilter {
+    const filteredRequest = {} as BillingInvoiceFilter;
     if (request.Status) {
       filteredRequest.status = sanitize(request.Status);
     }

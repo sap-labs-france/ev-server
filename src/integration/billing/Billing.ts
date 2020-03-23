@@ -1,10 +1,9 @@
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import User, { UserStatus } from '../../types/User';
 import { Action } from '../../types/Authorization';
 import BackendError from '../../exception/BackendError';
 import { BillingSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
-import { HttpGetUserInvoicesRequest } from '../../types/requests/HttpUserRequest';
 import Logging from '../../utils/Logging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Transaction from '../../types/Transaction';
@@ -300,9 +299,13 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: BillingPartialUser, params?: HttpGetUserInvoicesRequest): Promise<BillingInvoice[]>;
+  async abstract getUserInvoices(user: BillingPartialUser, params?: BillingInvoiceFilter): Promise<BillingInvoice[]>;
 
-  async abstract createInvoiceItem(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem>;
+  async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
 
-  async abstract createInvoice(user: BillingPartialUser): Promise<BillingInvoice>;
+  async abstract createInvoiceItem(user: BillingPartialUser, invoice: BillingInvoice, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem>;
+
+  async abstract createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
+
+  async abstract sendInvoice(invoiceId: string): Promise<BillingInvoice>;
 }
