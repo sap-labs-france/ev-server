@@ -7,5 +7,6 @@ export interface HttpBuildingRequest extends HttpByIDRequest {
 
 export interface HttpBuildingsRequest extends HttpDatabaseRequest {
   Search?: string;
+  SiteAreaID?: string;
   WithSiteArea?: boolean;
 }

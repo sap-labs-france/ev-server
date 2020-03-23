@@ -140,6 +140,7 @@ export default class BuildingService {
     const buildings = await BuildingStorage.getBuildings(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },

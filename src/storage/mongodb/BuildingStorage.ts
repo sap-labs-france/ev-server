@@ -86,7 +86,7 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSiteArea?: boolean } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -97,7 +97,7 @@ export default class BuildingStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
+    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[]; } | undefined) = {};
     // Build filter
     if (params.buildingID) {
       filters._id = Utils.convertToObjectID(params.buildingID);
@@ -108,6 +108,11 @@ export default class BuildingStorage {
         { 'address.city': { $regex: searchRegex, $options: 'i' } },
         { 'address.country': { $regex: searchRegex, $options: 'i' } }
       ];
+    }
+    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+      filters.$and = [
+        { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
+      ]
     }
     // Create Aggregation
     const aggregation = [];

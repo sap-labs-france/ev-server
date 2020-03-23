@@ -22,6 +22,7 @@ export default class BuildingSecurity {
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
     const filteredRequest: HttpBuildingsRequest = {
       Search: sanitize(request.Search),
+      SiteAreaID: sanitize(request.SiteAreaID),
       WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
