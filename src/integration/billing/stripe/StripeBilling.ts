@@ -315,20 +315,30 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       });
     } catch (e) {
       // No pending invoice item found
-      invoiceItem = await this.stripe.invoiceItems.create({
-        customer: user.billingData.customerID,
-        currency: this.settings.currency.toLocaleLowerCase(),
-        amount: invoiceItem.amount,
-        description: invoiceItem.description,
-        tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
-      });
+      try {
+        invoiceItem = await this.stripe.invoiceItems.create({
+          customer: user.billingData.customerID,
+          currency: this.settings.currency.toLocaleLowerCase(),
+          amount: invoiceItem.amount,
+          description: invoiceItem.description,
+          tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
+        });
 
-      invoice = await this.stripe.invoices.create({
-        customer: user.billingData.customerID,
-        collection_method: 'send_invoice',
-        days_until_due: daysUntilDue,
-        auto_advance: true
-      });
+        invoice = await this.stripe.invoices.create({
+          customer: user.billingData.customerID,
+          collection_method: 'send_invoice',
+          days_until_due: daysUntilDue,
+          auto_advance: true
+        });
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          action: Action.CREATE,
+          module: 'StripeBilling', method: 'createInvoice',
+          message: 'Failed to create invoice',
+          detailedMessages: { error }
+        });
+      }
     }
     return { invoice: invoice, invoiceItem: invoiceItem };
   }
