@@ -110,8 +110,6 @@ export enum Action {
   FORCE_SYNCHRONIZE_BILLING = 'BillingForceSynchronizeUser',
   CHECK_CONNECTION_BILLING = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
-  CREATE_BILLING_INVOICE = 'BillingCreateInvoice',
-  CREATE_BILLING_INVOICE_ITEM = 'BillingCreateInvoiceItem',
 
   MONGO_DB = 'MongoDB',
 

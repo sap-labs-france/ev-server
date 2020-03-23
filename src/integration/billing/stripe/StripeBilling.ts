@@ -286,6 +286,22 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   }
 
   public async createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
+    if (!user) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE,
+        module: 'StripeBilling', method: 'createInvoice',
+        message: 'Billing User not provided',
+      });
+    }
+    if (!invoiceItem) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE,
+        module: 'StripeBilling', method: 'createInvoice',
+        message: 'Invoice item not provided',
+      });
+    }
     await this.checkConnection();
     const daysUntilDue = 30;
     let invoice: BillingInvoice;
@@ -322,7 +338,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CREATE_BILLING_INVOICE_ITEM,
+        action: Action.CREATE,
         module: 'StripeBilling', method: 'createInvoiceItem',
         message: 'Invoice item not provided',
       });

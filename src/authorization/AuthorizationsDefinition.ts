@@ -56,7 +56,7 @@ const GRANTS = {
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
       {
         resource: 'Billing',
-        action: ['BillingCheckConnection', 'BillingSynchronizeUsers', 'BillingForceSynchronizeUser', 'BillingReadTaxes']
+        action: ['BillingCheckConnection', 'BillingSynchronizeUsers', 'BillingForceSynchronizeUser']
       },
       { resource: 'Taxes', action: ['List'], attributes: ['*'] },
       { resource: 'Invoices', action: ['List'], attributes: ['*'] },
