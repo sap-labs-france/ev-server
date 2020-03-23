@@ -173,9 +173,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     let request;
     const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
     if (filters) {
-      if (filters.status) {
-        Object.assign(requestParams, { status: filters.status });
-      }
       if (filters.startDateTime) {
         Object.assign(requestParams, { created: { gte: new Date(filters.startDateTime).getTime() / 1000 } });
       }
@@ -190,7 +187,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     do {
       request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
-        if (!filters || !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim())) {
+        const matchStatus = !filters.status || filters.status.split('|').includes(invoice.status);
+        const matchSearch = !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim());
+        if (!filters || (matchStatus && matchSearch)) {
           invoices.push({
             id: invoice.id,
             number: invoice.number,
