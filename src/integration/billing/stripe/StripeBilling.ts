@@ -187,9 +187,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     do {
       request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
-        const matchStatus = !filters.status || filters.status.split('|').includes(invoice.status);
-        const matchSearch = !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim());
-        if (!filters || (matchStatus && matchSearch)) {
+        const matchStatus = !filters || !filters.status || filters.status.split('|').includes(invoice.status);
+        const matchSearch = !filters || !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim());
+        if (matchStatus && matchSearch) {
           invoices.push({
             id: invoice.id,
             number: invoice.number,
