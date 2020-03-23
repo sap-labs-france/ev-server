@@ -208,7 +208,7 @@ export default class UserService {
           message: 'Error occured in billing system',
           module: 'UserService', method: 'handleDeleteUser',
           user: req.user, actionOnUser: user,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }
@@ -264,14 +264,14 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       try {
         await billingImpl.deleteUser(user);
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           action: action,
           module: 'UserService', method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
-          detailedMessages: e.message
+          detailedMessages: { error }
         });
       }
     }
@@ -297,14 +297,14 @@ export default class UserService {
             }
           }
         }
-      } catch (e) {
+      } catch (error) {
         Logging.logError({
           tenantID: req.user.tenantID,
           module: 'UserService', method: 'handleUpdateUser',
           action: action,
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-          detailedMessages: e.message
+          detailedMessages: { error }
         });
       }
     }
@@ -416,7 +416,7 @@ export default class UserService {
             action: action,
             user: req.user, actionOnUser: user,
             message: 'User cannot be updated in billing system',
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
@@ -496,14 +496,14 @@ export default class UserService {
               }
             }
           }
-        } catch (e) {
+        } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleUpdateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-            detailedMessages: e.message
+            detailedMessages: { error }
           });
         }
       }
@@ -817,6 +817,7 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        issuer: filteredRequest.Issuer,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
@@ -955,14 +956,14 @@ export default class UserService {
               }
             }
           }
-        } catch (e) {
+        } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
             module: 'UserService',
             method: 'handleCreateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-            detailedMessages: e.message
+            detailedMessages: { error }
           });
         }
       }
@@ -987,7 +988,7 @@ export default class UserService {
             action: action,
             user: newUserID,
             message: 'User cannot be created in billing system',
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
@@ -1168,7 +1169,7 @@ export default class UserService {
           });
         });
       });
-    } catch (e) {
+    } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
@@ -1177,7 +1178,7 @@ export default class UserService {
         method: 'handleGetUserInvoice',
         user: req.user,
         action: action,
-        detailedMessages: e
+        detailedMessages: { error }
       });
     }
   }

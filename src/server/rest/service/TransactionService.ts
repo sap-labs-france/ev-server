@@ -83,7 +83,8 @@ export default class TransactionService {
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: 'TransactionService', method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' does not exist`,
-          action: action, detailedMessages: transaction
+          action: action,
+          detailedMessages: { transaction }
         });
         continue;
       }
@@ -93,7 +94,8 @@ export default class TransactionService {
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
           module: 'TransactionService', method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' is already refunded`,
-          action: action, detailedMessages: transaction
+          action: action,
+          detailedMessages: { transaction }
         });
         continue;
       }
@@ -291,20 +293,6 @@ export default class TransactionService {
       UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
         'TransactionService', 'handleTransactionSoftStop', req.user);
     }
-    if (!chargingStation.inactive) {
-      for (const connector of chargingStation.connectors) {
-        if (connector && connector.activeTransactionID === transaction.id) {
-          throw new AppError({
-            source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.GENERAL_ERROR,
-            message: `The active transaction ${transaction.id} on the active charging station ${chargingStation.id} must be stopped remotely`,
-            module: 'TransactionService',
-            method: 'handleTransactionSoftStop',
-            user: req.user
-          });
-        }
-      }
-    }
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
       {
@@ -326,7 +314,8 @@ export default class TransactionService {
       user: req.user, actionOnUser: user,
       module: 'TransactionService', method: 'handleTransactionSoftStop',
       message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
-      action: action, detailedMessages: result
+      action: action,
+      detailedMessages: { result }
     });
     // Ok
     res.json(result);
@@ -990,7 +979,7 @@ export default class TransactionService {
         module: 'TransactionService', method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
         action: action,
-        detailedMessages: errorDetails
+        detailedMessages: { errorDetails }
       });
     } else {
       Logging.logInfo({

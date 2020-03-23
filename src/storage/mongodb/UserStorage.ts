@@ -537,6 +537,9 @@ export default class UserStorage {
         ]
       });
     }
+    if (params.issuer === true || params.issuer === false) {
+      filters.$and.push({ 'issuer': params.issuer });
+    }
     // Email
     if (params.email) {
       filters.$and.push({
@@ -645,7 +648,7 @@ export default class UserStorage {
       }
     }
     // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -849,6 +852,7 @@ export default class UserStorage {
     const aggregation = [];
     // Mongodb filter block ($match)
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
+    match.$and.push({ issuer: true });
     if (params.roles) {
       match.$and.push({ role: { '$in': params.roles } });
     }
@@ -895,7 +899,7 @@ export default class UserStorage {
     aggregation.push({ $unwind: '$usersInError' });
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
     // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
@@ -1024,8 +1028,8 @@ export default class UserStorage {
       });
     }
     // Convert IDs to String
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

@@ -55,7 +55,6 @@ export default class OCPPService {
   }
 
   public async handleBootNotification(headers: OCPPHeader, bootNotification: OCPPBootNotificationRequestExtended): Promise<OCPPBootNotificationResponse> {
-    let newChargingStation = false;
     try {
       // Check props
       OCPPValidation.getInstance().validateBootNotification(bootNotification);
@@ -132,9 +131,6 @@ export default class OCPPService {
             }
           }
         }
-        // Enrich Charging Station
-        await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
-        newChargingStation = true;
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -176,6 +172,8 @@ export default class OCPPService {
       if (Configuration.isCloudFoundry()) {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
+      // Enrich Charging Station
+      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(Action.OCPP_SERVICE, headers.tenantID, chargingStation);
       // Save Boot Notification
@@ -200,7 +198,8 @@ export default class OCPPService {
       // Handle the get of configuration later on
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(headers.tenantID, chargingStation, newChargingStation);
+        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+          headers.tenantID, chargingStation, chargingStationTemplateUpdated);
       }, 3000);
       // Return the result
       return {
@@ -339,7 +338,7 @@ export default class OCPPService {
           tenantID: headers.tenantID,
           source: chargingStation.id, module: Action.OCPP_SERVICE, method: 'handleMeterValues',
           action: 'MeterValues', message: 'No relevant Meter Values to save',
-          detailedMessages: meterValues
+          detailedMessages: { meterValues }
         });
         // Process values
       } else {
@@ -363,7 +362,7 @@ export default class OCPPService {
             module: Action.OCPP_SERVICE, method: 'handleMeterValues', action: 'MeterValues',
             user: transaction.userID,
             message: `Connector '${meterValues.connectorId}' > Transaction ID '${meterValues.transactionId}' > MeterValue have been saved`,
-            detailedMessages: meterValues
+            detailedMessages: { meterValues }
           });
         } else {
           // Log
@@ -371,7 +370,7 @@ export default class OCPPService {
             tenantID: headers.tenantID, source: chargingStation.id,
             module: Action.OCPP_SERVICE, method: 'handleMeterValues', action: 'MeterValues',
             message: `Connector '${meterValues.connectorId}' > Meter Values are ignored as it is not linked to a transaction`,
-            detailedMessages: meterValues
+            detailedMessages: { meterValues }
           });
         }
       }
@@ -848,7 +847,11 @@ export default class OCPPService {
       };
       chargingStation.connectors.push(foundConnector);
       // Enrich Charging Station's Connector
-      await OCPPUtils.enrichChargingStationConnectorWithTemplate(tenantID, chargingStation, statusNotification.connectorId);
+      const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
+      if (chargingStationTemplate) {
+        await OCPPUtils.enrichChargingStationConnectorWithTemplate(
+          tenantID, chargingStation, statusNotification.connectorId, chargingStationTemplate);
+      }
     }
     // Check if status has changed
     if (foundConnector.status === statusNotification.status &&
@@ -861,7 +864,7 @@ export default class OCPPService {
         method: 'handleStatusNotification',
         action: 'StatusNotification',
         message: `Connector '${statusNotification.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Status has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`,
-        detailedMessages: foundConnector
+        detailedMessages: { connector: foundConnector }
       });
       return;
     }
@@ -988,13 +991,13 @@ export default class OCPPService {
         if (ocpiClient) {
           await ocpiClient.patchChargingStationStatus(chargingStation, connector);
         }
-      } catch (exception) {
+      } catch (error) {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id, module: Action.OCPP_SERVICE, method: 'updateOCPIStatus',
           action: 'updateOCPIStatus',
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
-          detailedMessages: exception
+          detailedMessages: { error }
         });
       }
     }
@@ -1141,11 +1144,16 @@ export default class OCPPService {
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         if (consumption) {
           // Get the curent limit of the connector
-          const chargingStationClient = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-          if (chargingStationClient) {
-            const connectorLimit = await chargingStationClient.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+          const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+          if (chargingStationVendor) {
+            // Get current limitation
+            const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
             consumption.limitAmps = connectorLimit.limitAmps;
             consumption.limitWatts = connectorLimit.limitWatts;
+          } else {
+            // Default
+            consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
+            consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
           }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
@@ -1323,7 +1331,7 @@ export default class OCPPService {
         source: chargingStation.id, module: Action.OCPP_SERVICE,
         user: transaction.userID,
         method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW.h, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
+        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
@@ -1451,7 +1459,7 @@ export default class OCPPService {
             method: 'filterMeterValuesOnCharger',
             action: 'MeterValues',
             message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
-            detailedMessages: meterValue
+            detailedMessages: { meterValue }
           });
           return false;
         }

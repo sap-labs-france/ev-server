@@ -6,6 +6,7 @@ import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
+  templateHash?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -86,7 +87,6 @@ export interface Connector {
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatusLevel?: InactivityStatusLevel; // TODO: Use in the mobile app, to be removed in V1.3
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
@@ -104,6 +104,7 @@ export enum ConnectorCurrentType {
 
 export interface ChargingStationTemplate {
   id?: string;
+  hash?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
@@ -177,5 +178,6 @@ export type OCPPParams = {
 export enum ChargerVendor {
   EBEE = 'Bender GmbH Co. KG',
   SCHNEIDER = 'Schneider Electric',
+  WEBASTO = 'Webasto',
   ABB = 'ABB',
 }

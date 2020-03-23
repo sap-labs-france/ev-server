@@ -147,7 +147,7 @@ export default class CpoOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'authorizeToken',
-      detailedMessages: payload
+      detailedMessages: { payload }
     });
 
     // Call IOP
@@ -175,8 +175,8 @@ export default class CpoOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'authorizeToken',
-      detailedMessages: response.data.data
-    })
+      detailedMessages: { response: response.data.data }
+    });
 
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
 
@@ -217,7 +217,7 @@ export default class CpoOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'authorizeToken',
-      detailedMessages: payload
+      detailedMessages: { payload }
     });
 
     // Call IOP
@@ -245,8 +245,8 @@ export default class CpoOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'authorizeToken',
-      detailedMessages: response.data.data
-    })
+      detailedMessages: { response: response.data.data }
+    });
 
     return response.data.data as OCPISession;
   }
@@ -301,7 +301,7 @@ export default class CpoOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'patchEVSEStatus',
-      detailedMessages: payload
+      detailedMessages: { payload }
     });
 
     // Call IOP
@@ -414,7 +414,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
-        detailedMessages: sendResult.logs,
+        detailedMessages: { logs: sendResult.logs },
         source: 'OCPI Client',
         module: 'OCPIClient',
         method: 'sendEVSEStatuses'
@@ -425,7 +425,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
-        detailedMessages: sendResult.logs,
+        detailedMessages: { logs: sendResult.logs },
         source: 'OCPI Client',
         module: 'OCPIClient',
         method: 'sendEVSEStatuses'

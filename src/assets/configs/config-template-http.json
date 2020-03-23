@@ -133,7 +133,7 @@
     "debug": false
   },
   "ChargingStation": {
-    "heartbeatIntervalSecs": 60,
+    "heartbeatIntervalSecs": 300,
     "notifBeforeEndOfChargeEnabled": true,
     "notifBeforeEndOfChargePercent": 85,
     "notifEndOfChargeEnabled": true,
@@ -211,8 +211,8 @@
       },
       {
         "name": "SynchronizeCarsTask",
-        "active": true,
-        "periodicity": "0 0 1 * *",
+        "active": false,
+        "periodicity": "* * * * *",
         "config": {}
       }
     ]

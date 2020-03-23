@@ -150,7 +150,7 @@ export default class Logging {
       module: module, method: action,
       message: '>> OCPP Request Received',
       action: action,
-      detailedMessages: payload
+      detailedMessages: { payload }
     });
   }
 
@@ -162,7 +162,7 @@ export default class Logging {
       module: module, method: action,
       message: '>> OCPP Request Sent',
       action: action,
-      detailedMessages: args
+      detailedMessages: { args }
     });
   }
 
@@ -175,7 +175,7 @@ export default class Logging {
         module: module, method: action,
         message: '<< OCPP Request Returned',
         action: action,
-        detailedMessages: detailedMessages
+        detailedMessages
       });
     } else {
       Logging.logDebug({
@@ -184,7 +184,7 @@ export default class Logging {
         module: module, method: action,
         message: '<< OCPP Request Returned',
         action: action,
-        detailedMessages: detailedMessages
+        detailedMessages
       });
     }
   }

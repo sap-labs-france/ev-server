@@ -109,9 +109,9 @@ export default class ConsumptionStorage {
       }
     });
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Sort
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB

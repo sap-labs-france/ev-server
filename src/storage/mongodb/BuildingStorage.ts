@@ -30,10 +30,10 @@ export default class BuildingStorage {
     }
     // Debug
     Logging.traceEnd('BuildingStorage', 'getBuilding', uniqueTimerID,
-    {
-      id,
-      withSiteArea: params.withSiteArea
-    });
+      {
+        id,
+        withSiteArea: params.withSiteArea
+      });
     return building;
   }
 
@@ -86,7 +86,7 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSiteArea?: boolean; } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[]; withSiteArea?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -127,7 +127,7 @@ export default class BuildingStorage {
       });
     }
     // Site Area
-    if(params.withSiteArea) {
+    if (params.withSiteArea) {
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         {
           tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
@@ -156,7 +156,7 @@ export default class BuildingStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({

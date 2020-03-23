@@ -42,7 +42,7 @@ export default abstract class SchedulerTask {
           module: 'SchedulerTask', method: 'run',
           action: 'Scheduler',
           message: `Error while running the task '${name}': ${error.message}`,
-          detailedMessages: error
+          detailedMessages: { error }
         });
       }
     }

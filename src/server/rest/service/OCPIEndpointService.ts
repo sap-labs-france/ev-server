@@ -43,7 +43,8 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'OCPIEndpointService', method: 'handleDeleteOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been deleted successfully`,
-      action: action, detailedMessages: ocpiEndpoint
+      action: action,
+      detailedMessages: { ocpiEndpoint }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -133,7 +134,8 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'OCPIEndpointService', method: 'handleCreateOcpiEndpoint',
       message: `Ocpi Endpoint '${filteredRequest.name}' has been created successfully`,
-      action: action, detailedMessages: filteredRequest
+      action: action,
+      detailedMessages: { endpoint: filteredRequest }
     });
     // Ok
     res.json(Object.assign({ id: endpointID }, Constants.REST_RESPONSE_SUCCESS));
@@ -171,7 +173,8 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'OCPIEndpointService', method: 'handleUpdateOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been updated successfully`,
-      action: action, detailedMessages: ocpiEndpoint
+      action: action,
+      detailedMessages: { endpoint: ocpiEndpoint }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -206,7 +209,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
-        action: action, detailedMessages: pingResult
+        action: action,
+        detailedMessages: { pingResult }
       });
       res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
     } else {
@@ -215,7 +219,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' cannot be reached`,
-        action: action, detailedMessages: pingResult
+        action: action,
+        detailedMessages: { pingResult }
       });
       res.json(pingResult);
     }
@@ -409,7 +414,7 @@ export default class OCPIEndpointService {
     UtilsService.assertIdIsProvided(action, filteredRequest.id, 'OCPIEndpointService', 'handleSendTokensOcpiEndpoint', req.user);
     // Get ocpiEndpoint
     const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`, 
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
       'OCPIEndpointService', 'handleSendTokensOcpiEndpoint', req.user);
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
@@ -452,7 +457,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
-        action: action, detailedMessages: result
+        action: action,
+        detailedMessages: { result }
       });
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
@@ -461,7 +467,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
-        action: action, detailedMessages: result
+        action: action,
+        detailedMessages: { result }
       });
       res.json(result);
     }
@@ -499,7 +506,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
-        action: action, detailedMessages: result
+        action: action,
+        detailedMessages: { result }
       });
       res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
     } else {
@@ -508,7 +516,8 @@ export default class OCPIEndpointService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
-        action: action, detailedMessages: result
+        action: action,
+        detailedMessages: { result }
       });
       res.json(result);
     }
@@ -536,7 +545,8 @@ export default class OCPIEndpointService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'OCPIEndpointService', method: 'handleGenerateLocalTokenOcpiEndpoint',
       message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generatd successfully`,
-      action: action, detailedMessages: filteredRequest
+      action: action,
+      detailedMessages: { token: filteredRequest }
     });
     // Ok
     res.json(Object.assign({

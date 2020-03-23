@@ -14,12 +14,11 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
     try {
-      // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate();
       // Get Charging Stations
       const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
-          'statusChangedBefore': someMinutesAgo, 'connectorStatuses': [ChargePointStatus.PREPARING]
-        }, Constants.DB_PARAMS_MAX_LIMIT);
+        'statusChangedBefore': moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate(),
+        'connectorStatuses': [ChargePointStatus.PREPARING]
+      }, Constants.DB_PARAMS_MAX_LIMIT);
       for (const chargingStation of chargingStations.result) {
         // Get site owner and then send notification
         if (chargingStation.siteArea && chargingStation.siteArea.siteID) {

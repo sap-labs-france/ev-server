@@ -264,7 +264,7 @@ export default abstract class OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'postCredentials',
-      detailedMessages: credentials
+      detailedMessages: { credentials }
     });
 
     // Call eMSP with CPO credentials

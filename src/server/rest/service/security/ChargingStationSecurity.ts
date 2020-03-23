@@ -56,8 +56,6 @@ export default class ChargingStationSecurity {
           connector.totalInactivitySecs = 0;
           connector.inactivityStatus = InactivityStatus.INFO;
           connector.currentStateOfCharge = 0;
-        } else {
-          connector.inactivityStatusLevel = Utils.getUIInactivityStatusLevel(connector.inactivityStatus);
         }
       }
     } else {
@@ -77,7 +75,6 @@ export default class ChargingStationSecurity {
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          'inactivityStatusLevel': Utils.getUIInactivityStatusLevel(connector.inactivityStatus),
           'inactivityStatus': connector.inactivityStatus,
           'activeTransactionID': connector.activeTransactionID,
           'activeTransactionDate': connector.activeTransactionDate,
@@ -290,10 +287,6 @@ export default class ChargingStationSecurity {
       }
       if (Utils.objectHasProperty(request.args, 'connectorId')) {
         filteredRequest.args.connectorId = sanitize(request.args.connectorId);
-      }
-      // TODO: To be removed when mobile will be version 1.3
-      if (Utils.objectHasProperty(request.args, 'connectorID')) {
-        filteredRequest.args.connectorId = sanitize(request.args.connectorID);
       }
       if (Utils.objectHasProperty(request.args, 'duration')) {
         filteredRequest.args.duration = sanitize(request.args.duration);

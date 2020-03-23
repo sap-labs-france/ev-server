@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSitesRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 import Site from '../../../../types/Site';
 import UserToken from '../../../../types/UserToken';
 import CompanySecurity from './CompanySecurity';
@@ -61,7 +61,9 @@ export default class SiteSecurity {
 
   public static filterSitesRequest(request: any): HttpSitesRequest {
     const filteredRequest: HttpSitesRequest = {} as HttpSitesRequest;
-    filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
@@ -107,10 +109,6 @@ export default class SiteSecurity {
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredSite = site;
-        if (filteredSite.connectorStats) {
-          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-          filteredSite = { ...filteredSite, ...site.connectorStats };
-        }
       } else {
         // Set only necessary info
         filteredSite = {};
@@ -132,8 +130,6 @@ export default class SiteSecurity {
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
-        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
-        filteredSite = { ...filteredSite, ...site.connectorStats };
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

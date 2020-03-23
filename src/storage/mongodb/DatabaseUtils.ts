@@ -87,7 +87,7 @@ export default class DatabaseUtils {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
       objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
-    });
+    }, [ DatabaseUtils.buildChargingStationInactiveFlagQuery() ]);
   }
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup) {
@@ -98,7 +98,7 @@ export default class DatabaseUtils {
     });
   }
 
-  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup) {
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, externalPipeline?: Object[]) {
     // Build Lookup's pipeline
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
@@ -107,6 +107,9 @@ export default class DatabaseUtils {
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
+    if (externalPipeline) {
+      pipeline.push(...externalPipeline);
+    }
     if (lookupParams.countField) {
       pipeline.push({
         '$group': {
@@ -116,11 +119,11 @@ export default class DatabaseUtils {
       });
     }
     // Replace ID field
-    DatabaseUtils.renameDatabaseID(pipeline);
+    DatabaseUtils.pushRenameDatabaseID(pipeline);
     // Convert ObjectID fields to String
     if (lookupParams.objectIDFields) {
       for (const foreignField of lookupParams.objectIDFields) {
-        DatabaseUtils.convertObjectIDToString(pipeline, foreignField);
+        DatabaseUtils.pushConvertObjectIDToString(pipeline, foreignField);
       }
     }
     // Add Projected fields
@@ -145,41 +148,33 @@ export default class DatabaseUtils {
     }
   }
 
-  static addChargingStationInactiveFlag(aggregation: any[]) {
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
+  public static pushChargingStationInactiveFlag(aggregation: any[]) {
     // Add inactive field
-    aggregation.push({
+    aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
+  }
+
+  private static buildChargingStationInactiveFlagQuery(): Object {
+    // Add inactive field
+    return {
       $addFields: {
         inactive: {
           $or: [
-            {
-              $eq: [
-                '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING
-              ]
-            },
+            { $eq: [ '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING ] },
             {
               $gte: [
                 {
-                  $divide: [
-                    {
-                      $subtract: [
-                        new Date(), '$lastHeartBeat'
-                      ]
-                    },
-                    60 * 1000
-                  ]
+                  $divide: [ { $subtract: [ new Date(), '$lastHeartBeat' ] }, 1000 ]
                 },
-                config.heartbeatIntervalSecs * 5
+                Utils.getChargingStationHeartbeatMaxIntervalSecs()
               ]
             }
           ]
         }
       }
-    });
+    };
   }
 
-  static projectFields(aggregation: any[], projectedFields: string[]) {
+  public static projectFields(aggregation: any[], projectedFields: string[]) {
     if (projectedFields) {
       const project = {
         $project: {}
@@ -191,7 +186,7 @@ export default class DatabaseUtils {
     }
   }
 
-  public static convertObjectIDToString(aggregation: any[], fieldName: string, renamedFieldName?: string) {
+  public static pushConvertObjectIDToString(aggregation: any[], fieldName: string, renamedFieldName?: string) {
     if (!renamedFieldName) {
       renamedFieldName = fieldName;
     }
@@ -220,7 +215,7 @@ export default class DatabaseUtils {
     // }`));
   }
 
-  public static renameField(aggregation: any[], fieldName: string, renamedFieldName: string) {
+  public static pushRenameField(aggregation: any[], fieldName: string, renamedFieldName: string) {
     // Rename
     aggregation.push(JSON.parse(`{
       "$addFields": {
@@ -248,11 +243,11 @@ export default class DatabaseUtils {
     }
   }
 
-  public static renameDatabaseID(aggregation: any[], nestedField?: string) {
+  public static pushRenameDatabaseID(aggregation: any[], nestedField?: string) {
     // Root document?
     if (!nestedField) {
       // Convert ID to string
-      DatabaseUtils.convertObjectIDToString(aggregation, '_id', 'id');
+      DatabaseUtils.pushConvertObjectIDToString(aggregation, '_id', 'id');
       // Remove IDs
       aggregation.push({
         $project: {
@@ -262,7 +257,7 @@ export default class DatabaseUtils {
       });
     } else {
       // Convert ID to string
-      DatabaseUtils.convertObjectIDToString(
+      DatabaseUtils.pushConvertObjectIDToString(
         aggregation, `${nestedField}._id`, `${nestedField}.id`);
       // Remove IDs
       const project = {
@@ -305,7 +300,7 @@ export default class DatabaseUtils {
       $unwind: { 'path': `$${fieldName}`, 'preserveNullAndEmptyArrays': true }
     });
     // Replace nested ID field
-    DatabaseUtils.renameDatabaseID(aggregation, fieldName);
+    DatabaseUtils.pushRenameDatabaseID(aggregation, fieldName);
     // Handle null
     const addNullFields: any = {};
     addNullFields[`${fieldName}`] = {

@@ -439,7 +439,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -499,6 +500,7 @@ export default class SiteService {
       {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID,
+        issuer: filteredRequest.Issuer,
         companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withCompany: filteredRequest.WithCompany,
@@ -591,7 +593,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -636,7 +639,8 @@ export default class SiteService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,
-      action: action, detailedMessages: site
+      action: action,
+      detailedMessages: { site }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

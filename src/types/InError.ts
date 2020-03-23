@@ -36,10 +36,10 @@ export enum TransactionInErrorType {
 }
 
 export enum ChargingStationInErrorType {
-  MISSING_SETTINGS = 'missingSettings',
-  CONNECTION_BROKEN = 'connectionBroken',
-  MISSING_SITE_AREA = 'missingSiteArea',
-  CONNECTOR_ERROR = 'connectorError',
+  MISSING_SETTINGS = 'missing_settings',
+  CONNECTION_BROKEN = 'connection_broken',
+  MISSING_SITE_AREA = 'missing_site_area',
+  CONNECTOR_ERROR = 'connector_error',
 }
 
 export enum UserInErrorType {

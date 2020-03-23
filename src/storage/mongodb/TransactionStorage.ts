@@ -450,8 +450,8 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
@@ -506,11 +506,11 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -608,8 +608,8 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
@@ -645,9 +645,9 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -691,6 +691,7 @@ export default class TransactionStorage {
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
+    match.issuer = true;
     // User / Site Admin
     if (params.userIDs) {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
@@ -793,14 +794,14 @@ export default class TransactionStorage {
     }
     aggregation = aggregation.concat(toSubRequests);
     // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
     // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
@@ -896,11 +897,11 @@ export default class TransactionStorage {
       oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -933,11 +934,11 @@ export default class TransactionStorage {
       }
     });
     // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
     // Sort
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
@@ -1034,10 +1035,10 @@ export default class TransactionStorage {
     aggregation.push({
       $addFields: {
         dateStart: {
-          $toDate: { $subtract: [{ $toLong: '$authDate' },  5 * 60 * 1000] }
+          $toDate: { $subtract: [{ $toLong: '$authDate' }, 5 * 60 * 1000] }
         },
         dateEnd: {
-          $toDate: { $add: [{ $toLong: '$authDate' },  params.sessionShouldBeStartedAfterMins * 60 * 1000] }
+          $toDate: { $add: [{ $toLong: '$authDate' }, params.sessionShouldBeStartedAfterMins * 60 * 1000] }
         }
       }
     });
@@ -1049,9 +1050,9 @@ export default class TransactionStorage {
         pipeline: [{
           $match: {
             $and: [
-              { $expr: { $eq: ['$tagID', '$$tagID'] }},
-              { $expr: { $gt: ['$timestamp', '$$dateStart'] }},
-              { $expr: { $lt: ['$timestamp', '$$dateEnd'] }}
+              { $expr: { $eq: ['$tagID', '$$tagID'] } },
+              { $expr: { $gt: ['$timestamp', '$$dateStart'] } },
+              { $expr: { $lt: ['$timestamp', '$$dateEnd'] } }
             ]
           }
         }],

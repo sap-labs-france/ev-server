@@ -296,7 +296,7 @@ export default class ChargingStationService {
             errorCode: HTTPError.GENERAL_ERROR,
             message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
             module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
-            detailedMessages: chargingProfiles.result[index]
+            detailedMessages: { result: chargingProfiles.result[index] }
           });
         }
         // Log
@@ -324,7 +324,7 @@ export default class ChargingStationService {
         errorCode: HTTPError.LIMIT_POWER_ERROR,
         module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
         message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
-        detailedMessages: result,
+        detailedMessages: { result },
         user: req.user
       });
     }
@@ -335,7 +335,7 @@ export default class ChargingStationService {
       user: req.user,
       module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
-      detailedMessages: result
+      detailedMessages: { result }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -429,14 +429,14 @@ export default class ChargingStationService {
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
-      for (const oneResult of result as OCPPSetChargingProfileCommandResult[]) {
+      for (const oneResult of result) {
         if (oneResult.status !== OCPPChargingProfileStatus.ACCEPTED) {
           resultStatus = oneResult.status;
           break;
         }
       }
     } else {
-      resultStatus = (result as OCPPSetChargingProfileCommandResult).status;
+      resultStatus = (result).status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new AppError({
@@ -445,7 +445,7 @@ export default class ChargingStationService {
         user: user,
         errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
-        message: `Cannot set the Charging Profile!`,
+        message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
       });
     }
@@ -675,7 +675,8 @@ export default class ChargingStationService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
-      action: action, detailedMessages: chargingStation
+      action: action,
+      detailedMessages: { chargingStation }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -923,7 +924,7 @@ export default class ChargingStationService {
         action: 'FirmwareDownload',
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: 'ChargingStationService', method: 'handleGetFirmware',
-        detailedMessages: error,
+        detailedMessages: { error },
       });
       res.sendStatus(404);
     });
@@ -1407,7 +1408,7 @@ export default class ChargingStationService {
                 source: chargingStation.id, user: user, action: command,
                 module: 'ChargingStationService', method: 'handleChargingStationCommand',
                 message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
-                detailedMessages: result
+                detailedMessages: { result }
               });
             }
             // Refresh Configuration
@@ -1488,7 +1489,7 @@ export default class ChargingStationService {
       }
       // Throw error
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
@@ -1498,7 +1499,7 @@ export default class ChargingStationService {
       });
     } catch (error) {
       throw new AppError({
-        source: Constants.CENTRAL_SERVER,
+        source: chargingStation.id,
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,

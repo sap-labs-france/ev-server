@@ -117,11 +117,9 @@ export default class SiteAreaStorage {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
     }
-
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
     }
-
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -132,11 +130,10 @@ export default class SiteAreaStorage {
     }
     // Sites
     if (params.withSite) {
-      DatabaseUtils.pushSiteLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-          asField: 'site', oneToOneCardinality: true
-        });
+      DatabaseUtils.pushSiteLookupInAggregation({
+        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true
+      });
     }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -165,11 +162,11 @@ export default class SiteAreaStorage {
       });
     }
     // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       // Sort
@@ -193,7 +190,8 @@ export default class SiteAreaStorage {
     // Project
     if (projectFields) {
       DatabaseUtils.projectFields(aggregation,
-        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat', 'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.private']);
+        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat',
+        'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.private', 'chargingStations.inactive']);
     }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')

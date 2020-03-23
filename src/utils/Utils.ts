@@ -17,13 +17,12 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
 import Building from '../types/Building';
 import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import Company from '../types/Company';
 import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
@@ -49,16 +48,16 @@ export default class Utils {
     }
     const connector = chargingStation.connectors[connectorId - 1];
     if (connector.power <= 3680) {
-      // Notifify every 120 mins
+      // Notify every 120 mins
       intervalMins = 120;
     } else if (connector.power <= 7360) {
-      // Notifify every 60 mins
+      // Notify every 60 mins
       intervalMins = 60;
     } else if (connector.power < 50000) {
-      // Notifify every 30 mins
+      // Notify every 30 mins
       intervalMins = 30;
     } else if (connector.power >= 50000) {
-      // Notifify every 15 mins
+      // Notify every 15 mins
       intervalMins = 15;
     }
     return intervalMins;
@@ -81,17 +80,6 @@ export default class Utils {
 
   public static objectHasProperty(object: object, key: string): boolean {
     return Object.prototype.hasOwnProperty.call(object, key);
-  }
-
-  public static getUIInactivityStatusLevel(inactivityStatus: InactivityStatus): InactivityStatusLevel {
-    switch (inactivityStatus) {
-      case InactivityStatus.INFO:
-        return 'info';
-      case InactivityStatus.WARNING:
-        return 'warning';
-      case InactivityStatus.ERROR:
-        return 'danger';
-    }
   }
 
   public static generateGUID() {
@@ -193,6 +181,12 @@ export default class Utils {
     return connectorStats;
   }
 
+  public static getChargingStationHeartbeatMaxIntervalSecs(): number {
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    return config.heartbeatIntervalSecs * 2;
+  }
+
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
     // Cannot charge in //
     if (chargingStation.cannotChargeInParallel) {
@@ -262,7 +256,7 @@ export default class Utils {
   //     source: transaction.chargeBoxID,
   //     module: 'Utils', method: 'pushTransactionToRevenueCloud',
   //     message: `Transaction ID '${transaction.id}' has been refunded successfully`,
-  //     detailedMessages: result.data
+  //     detailedMessages: { data: result.data }
   //   });
   // }
 
@@ -470,9 +464,12 @@ export default class Utils {
     return userID;
   }
 
-  public static convertAmpToPowerWatts(chargingStation: ChargingStation, ampValue: number): number {
-    if (chargingStation && chargingStation.connectors && chargingStation.connectors.length > 0 && chargingStation.connectors[0].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[0].numberOfConnectedPhase, ampValue);
+  public static convertAmpToPowerWatts(chargingStation: ChargingStation, connectorID: number, ampValue: number): number {
+    // AC Chargers?
+    if (chargingStation &&
+        chargingStation.connectors && chargingStation.connectors.length > 0 &&
+        chargingStation.connectors[connectorID].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[connectorID].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
@@ -503,12 +500,12 @@ export default class Utils {
     return true;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
+  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false) {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
     }
-    if (inversedName) {
+    if (invertedName) {
       if (user.firstName) {
         fullName = `${user.name}, ${user.firstName}`;
       } else {
@@ -883,7 +880,7 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
+    // pragma if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
     //     action: Action.CHARGING_PROFILE_UPDATE,

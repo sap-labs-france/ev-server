@@ -16,13 +16,17 @@ export default class InitialCarImportTask extends MigrationTask {
         module: 'InitialCarImportTask', method: 'migrate',
         action: 'InitialCarImport',
         message: `Error while importing the Cars: ${error.message}`,
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
+  }
+
+  isAsynchronous() {
+    return true;
   }
 
   getName() {

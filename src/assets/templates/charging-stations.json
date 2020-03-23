@@ -86,7 +86,7 @@
 					"parameters": {
 						"AllowOfflineTxForUnknownId": "true",
 						"AuthorizationCacheEnabled": "false",
-						"HeartBeatInterval": "60"
+						"HeartBeatInterval": "300"
 					}
 				}
 			],
@@ -223,7 +223,7 @@
 					"parameters": {
 						"AllowOfflineTxForUnknownId": "true",
 						"AuthorizationCacheEnabled": "false",
-						"HeartBeatInterval": "60"
+						"HeartBeatInterval": "300"
 					}
 				}
 			],
@@ -354,7 +354,7 @@
 					"parameters": {
 						"AllowOfflineTxForUnknownId": "true",
 						"AuthorizationCacheEnabled": "true",
-						"HeartBeatInterval": "60"
+						"HeartBeatInterval": "300"
 					}
 				}
 			],
@@ -492,7 +492,7 @@
 					"parameters": {
 						"MeterValueSampleInterval": "60",
 						"ClockAlignedDataInterval": "0",
-						"HeartBeatInterval": "60",
+						"HeartBeatInterval": "300",
 						"ConnectionTimeOut": "60",						
 						"WebSocketPingInterval": "120",
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
@@ -598,7 +598,7 @@
 					"parameters": {
 						"MeterValueSampleInterval": "60",
 						"WebSocketPingInterval": "120",
-						"HeartBeatInterval": "60",
+						"HeartBeatInterval": "300",
 						"MeterValuesSampledData": "SoC,Energy.Active.Import.Register",
 						"LocalAuthorizeOffline": "true",
 						"StopTransactionOnEVSideDisconnect": "true",
@@ -726,7 +726,7 @@
 						"AuthorizationCacheEnabled": "false",
 						"ClockAlignedDataInterval": "0",
 						"ConnectionTimeOut": "60",
-						"HeartBeatInterval": "60",
+						"HeartBeatInterval": "300",
 						"MeterValuesSampledData": "Current.Import,Power.Active.Import,Energy.Active.Import.Interval,Energy.Active.Import.Register",
 						"LocalAuthorizeOffline": "false",
 						"MeterValueSampleInterval": "60",
@@ -786,7 +786,7 @@
 					"capabilities": {
 						"supportStaticLimitationForChargingStation": true,
 						"supportStaticLimitationPerConnector": true,
-						"supportChargingProfiles": false
+						"supportChargingProfiles": true
 					}
 				}
 			],
@@ -832,7 +832,7 @@
 						"AuthorizeRemoteTxRequests": "1",
 						"ClockAlignedDataInterval": "0",
 						"ConnectionTimeOut": "60",	
-						"HeartBeatInterval": "60",
+						"HeartBeatInterval": "300",
 						"LocalAuthorizeOffline": "1",
 						"MeterValueSampleInterval": "60",
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
