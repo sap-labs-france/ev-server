@@ -279,9 +279,19 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'User has no Billing data',
       });
     }
-    const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT });
-    if (userOpenedInvoices.length > 0) {
-      return userOpenedInvoices[0];
+    try {
+      const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT });
+      if (userOpenedInvoices.length > 0) {
+        return userOpenedInvoices[0];
+      }
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.GET_OPENED_INVOICE,
+        module: 'StripeBilling', method: 'getOpenedInvoice',
+        message: 'Failed to retrieve opened invoices',
+        detailedMessages: { error }
+      });
     }
   }
 
@@ -353,19 +363,39 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Invoice item not provided',
       });
     }
-    return await this.stripe.invoiceItems.create({
-      customer: user.billingData.customerID,
-      currency: this.settings.currency.toLocaleLowerCase(),
-      amount: invoiceItem.amount * 100,
-      description: invoiceItem.description,
-      tax_rates: invoiceItem.taxes ? invoiceItem.taxes : [],
-      invoice: invoice.id
-    });
+    try {
+      return await this.stripe.invoiceItems.create({
+        customer: user.billingData.customerID,
+        currency: this.settings.currency.toLocaleLowerCase(),
+        amount: invoiceItem.amount * 100,
+        description: invoiceItem.description,
+        tax_rates: invoiceItem.taxes ? invoiceItem.taxes : [],
+        invoice: invoice.id
+      });
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CREATE,
+        module: 'StripeBilling', method: 'createInvoiceItem',
+        message: 'Failed to create invoice item',
+        detailedMessages: { error }
+      });
+    }
   }
 
   public async sendInvoice(invoiceId: string): Promise<BillingInvoice> {
     await this.checkConnection();
-    return await this.stripe.invoices.sendInvoice(invoiceId);
+    try {
+      return await this.stripe.invoices.sendInvoice(invoiceId);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.BILLING_SEND_INVOICE,
+        module: 'StripeBilling', method: 'sendInvoice',
+        message: 'Failed to send invoice',
+        detailedMessages: { error }
+      });
+    }
   }
 
   public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
