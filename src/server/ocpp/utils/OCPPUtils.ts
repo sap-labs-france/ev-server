@@ -8,7 +8,6 @@ import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResu
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
@@ -353,7 +352,7 @@ export default class OCPPUtils {
         const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
         if (!existingConfiguration) {
           // No config at all: Set default OCPP configuration
-          chargingStationConfiguration.configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
+          chargingStationConfiguration.configuration = OCPPConstants.DEFAULT_OCPP_16_CONFIGURATION;
         }
       }
       // Save config
