@@ -261,6 +261,13 @@ export default class OCPPUtils {
   }
 
   public static async clearAllChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[]) {
+    Logging.logDebug({
+      tenantID: tenantID,
+      action: Action.CHARGING_PROFILE_DELETE,
+      message: 'Clear All Charging Profiles is being called',
+      module: 'OCPPUtils', method: 'clearAllChargingProfiles',
+      detailedMessages: { tenantID, chargingProfiles }
+    });
     if (chargingProfiles) {
       for (const chargingProfile of chargingProfiles) {
         try {
@@ -277,6 +284,12 @@ export default class OCPPUtils {
         }
       }
     }
+    Logging.logDebug({
+      tenantID: tenantID,
+      action: Action.CHARGING_PROFILE_DELETE,
+      message: 'Clear All Charging Profiles has been called',
+      module: 'OCPPUtils', method: 'clearAllChargingProfiles'
+    });
   }
 
   public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
