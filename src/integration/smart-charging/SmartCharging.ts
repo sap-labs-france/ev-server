@@ -24,7 +24,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
   public async computeAndApplyChargingProfiles(siteArea: SiteArea) {
     Logging.logDebug({
       tenantID: this.tenantID,
-      source: siteArea.id,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles is being called',
       module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
@@ -34,7 +33,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
     if (!chargingProfiles) {
       throw new BackendError({
-        source: siteArea.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles have been built for Site Area: ${siteArea.name}`,
@@ -49,7 +47,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         // Log failed
         Logging.logError({
           tenantID: this.tenantID,
-          source: siteArea.id,
+          source: chargingProfile.chargingStationID,
           action: Action.CHARGING_PROFILE_UPDATE,
           module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area: ${siteArea.name} failed`,
@@ -59,7 +57,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     }
     Logging.logDebug({
       tenantID: this.tenantID,
-      source: siteArea.id,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles has been called',
       module: 'SmartCharging', method: 'computeAndApplyChargingProfiles'

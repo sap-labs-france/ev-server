@@ -456,6 +456,7 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
+    // Delete
     await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

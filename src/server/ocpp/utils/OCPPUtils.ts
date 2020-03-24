@@ -1,22 +1,19 @@
 import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import BackendError from '../../../exception/BackendError';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { KeyValue } from '../../../types/GlobalType';
-import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam, OCPPChargingProfileStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
+import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import AppError from '../../../exception/AppError';
-import { HTTPError } from '../../../types/HTTPError';
-import User from '../../../types/User';
-import UserToken from '../../../types/UserToken';
 
 export default class OCPPUtils {
 
@@ -271,10 +268,11 @@ export default class OCPPUtils {
         } catch (error) {
           Logging.logError({
             tenantID: tenantID,
-            module: 'OCPPUtils', method: 'clearAllChargingProfiles',
+            source: chargingProfile.chargingStationID,
             action: Action.CHARGING_PROFILE_DELETE,
+            module: 'OCPPUtils', method: 'clearAllChargingProfiles',
             message: `Error while clearing charging profile for chargingStation ${chargingProfile.chargingStationID}`,
-            detailedMessages: error
+            detailedMessages: { error }
           });
         }
       }
@@ -282,14 +280,22 @@ export default class OCPPUtils {
   }
 
   public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingProfile.chargingStationID,
+      action: Action.CHARGING_PROFILE_DELETE,
+      message: 'Clear and Delete Charging Profile is being called',
+      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
+      detailedMessages: { tenantID, chargingProfile, user }
+    });
+    // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Check if Charging Profile is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
-      throw new AppError({
+      throw new BackendError({
         source: chargingProfile.chargingStationID,
         action: Action.CHARGING_PROFILE_DELETE,
         user: user,
-        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support the Charging Profiles`,
       });
@@ -297,18 +303,17 @@ export default class OCPPUtils {
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
-      throw new AppError({
+      throw new BackendError({
         source: chargingProfile.chargingStationID,
         action: Action.CHARGING_PROFILE_DELETE,
         user: user,
-        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }
     // Clear Charging Profile
     // Do not check the result beacause:
-    // 1\ Charging Profile exists and has been delete: Status = ACCEPTED
+    // 1\ Charging Profile exists and has been deleted: Status = ACCEPTED
     // 2\ Charging Profile does not exist : Status = UNKNOWN
     // As there are only 2 statuses, testing them is not necessary
     await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
@@ -323,18 +328,33 @@ export default class OCPPUtils {
       module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
       message: 'Charging Profile has been deleted successfully',
     });
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingProfile.chargingStationID,
+      action: Action.CHARGING_PROFILE_DELETE,
+      message: 'Clear and Delete Charging Profile has been called',
+      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
+      detailedMessages: { tenantID, chargingProfile, user }
+    });
   }
 
   public static async applyAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingProfile.chargingStationID,
+      action: Action.CHARGING_PROFILE_UPDATE,
+      message: 'Apply and Save Charging Profile is being called',
+      module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
+      detailedMessages: { tenantID, chargingProfile, user }
+    });
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
-      throw new AppError({
+      throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
@@ -354,11 +374,10 @@ export default class OCPPUtils {
       resultStatus = (result).status;
     }
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
-      throw new AppError({
+      throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         user: user,
-        errorCode: HTTPError.SET_CHARGING_PROFILE_ERROR,
         module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
         message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
@@ -366,7 +385,6 @@ export default class OCPPUtils {
     }
     // Save
     await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
-    // Log
     Logging.logInfo({
       tenantID: user.tenantID,
       source: chargingStation.id,
@@ -375,6 +393,14 @@ export default class OCPPUtils {
       module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
+    });
+    // Log
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingProfile.chargingStationID,
+      action: Action.CHARGING_PROFILE_UPDATE,
+      message: 'Apply and Save Charging Profile has been called',
+      module: 'OCPPUtils', method: 'applyAndSaveChargingProfile'
     });
   }
 

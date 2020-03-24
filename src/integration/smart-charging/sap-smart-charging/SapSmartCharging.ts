@@ -47,11 +47,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           action: Action.SAP_SMART_CHARGING,
           message: `SAP Smart Charging service responded with status '${response.status}'`,
           module: 'SapSmartCharging', method: 'getChargingProfiles',
-          detailedMessages: response
+          detailedMessages: { response }
         });
       }
       // Build charging profiles from result
-      const chargingProfiles = this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
+      const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
         source: siteArea.id,
@@ -68,7 +68,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'getChargingProfiles',
         message: 'Unable to call the SAP Smart Charging service',
-        detailedMessages: error,
+        detailedMessages: { error },
       });
     }
   }
@@ -256,7 +256,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return chargingStationFuse;
   }
 
-  private buildChargingProfiles(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
+  private buildChargingProfilesFromOptimizer(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
     const startSchedule = new Date();

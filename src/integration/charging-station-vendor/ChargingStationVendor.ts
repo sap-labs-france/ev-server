@@ -578,7 +578,7 @@ export default abstract class ChargingStationVendor {
         action: Action.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
         module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     // Default on current connector
