@@ -691,7 +691,6 @@ export default class TransactionStorage {
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    match.issuer = true;
     // User / Site Admin
     if (params.userIDs) {
       match.userID = { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) };
@@ -741,7 +740,8 @@ export default class TransactionStorage {
         foreignField: '_id',
         asField: 'chargeBox',
         oneToOneCardinality: true,
-        oneToOneCardinalityNotNull: false
+        oneToOneCardinalityNotNull: false,
+        pipelineMatch: { 'issuer': true }
       });
     }
     // Add respective users
