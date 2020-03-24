@@ -306,12 +306,12 @@ export default class ChargingStationService {
           source: chargingStation.id,
           action: action,
           user: req.user,
-          module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+          module: 'ChargingStationService', method: 'setAndSaveChargingProfile',
           message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
           detailedMessages: { chargingProfile: chargingProfiles.result[index] }
         });
         // Apply & Save charging plan
-        await ChargingStationService.applyAndSaveChargingProfile(action, chargingStation, updatedChargingProfile, req.user);
+        await ChargingStationService.setAndSaveChargingProfile(action, chargingStation, updatedChargingProfile, req.user);
         break;
       }
     }
@@ -406,13 +406,13 @@ export default class ChargingStationService {
       });
     }
     // Apply & Save charging plan
-    await OCPPUtils.applyAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
+    await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  private static async applyAndSaveChargingProfile(action: Action, chargingStation: ChargingStation, chargingProfile: ChargingProfile, user: UserToken) {
+  private static async setAndSaveChargingProfile(action: Action, chargingStation: ChargingStation, chargingProfile: ChargingProfile, user: UserToken) {
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
@@ -421,7 +421,7 @@ export default class ChargingStationService {
         action: action,
         user: user,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        module: 'ChargingStationService', method: 'applyAndSaveChargingProfile',
+        module: 'ChargingStationService', method: 'setAndSaveChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }

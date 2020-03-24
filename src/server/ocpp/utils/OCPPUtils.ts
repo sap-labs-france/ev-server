@@ -351,24 +351,32 @@ export default class OCPPUtils {
     });
   }
 
-  public static async applyAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
+  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Apply and Save Charging Profile is being called',
-      module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
+      module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
       detailedMessages: { tenantID, chargingProfile, user }
     });
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
+    if (!chargingStation) {
+      throw new BackendError({
+        source: chargingProfile.chargingStationID,
+        action: Action.CHARGING_PROFILE_UPDATE,
+        module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
+        message: `Charging Station not found`,
+      });
+    }
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
+        module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }
@@ -391,7 +399,7 @@ export default class OCPPUtils {
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         user: user,
-        module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
+        module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
         message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
       });
@@ -403,7 +411,7 @@ export default class OCPPUtils {
       source: chargingStation.id,
       action: Action.CHARGING_PROFILE_UPDATE,
       user: user,
-      module: 'OCPPUtils', method: 'applyAndSaveChargingProfile',
+      module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
     });
@@ -413,7 +421,7 @@ export default class OCPPUtils {
       source: chargingProfile.chargingStationID,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Apply and Save Charging Profile has been called',
-      module: 'OCPPUtils', method: 'applyAndSaveChargingProfile'
+      module: 'OCPPUtils', method: 'setAndSaveChargingProfile'
     });
   }
 

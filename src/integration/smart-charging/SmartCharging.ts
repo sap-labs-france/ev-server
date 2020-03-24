@@ -42,7 +42,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     for (const chargingProfile of chargingProfiles) {
       try {
         // Set Charging Profile
-        await OCPPUtils.applyAndSaveChargingProfile(this.tenantID, chargingProfile);
+        await OCPPUtils.setAndSaveChargingProfile(this.tenantID, chargingProfile);
       } catch (error) {
         // Log failed
         Logging.logError({
