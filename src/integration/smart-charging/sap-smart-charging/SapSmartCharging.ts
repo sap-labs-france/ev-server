@@ -31,7 +31,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       module: 'SapSmartCharging', method: 'getChargingProfiles',
       detailedMessages: { siteArea }
     });
-
     // Optimizer implementation:
     // Get seconds since midnight
     // Moment at midnight
@@ -55,17 +54,17 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           detailedMessages: response
         });
       }
+      // Build charging profiles from result
+      const chargingProfiles = this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
         source: siteArea.id,
         action: Action.SAP_SMART_CHARGING,
         message: 'Get Charging Profiles has been called',
         module: 'SapSmartCharging', method: 'getChargingProfiles',
-        detailedMessages: { response }
+        detailedMessages: { response, chargingProfiles }
       });
-      // Build charging profiles from result
-      return this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
-
+      return chargingProfiles;
     } catch (error) {
       Logging.logError({
         tenantID: this.tenantID,
@@ -89,6 +88,14 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
 
 
   private buildRequest(siteArea: SiteArea, currentTimeSeconds: number): OptimizerChargingProfilesRequest {
+    Logging.logDebug({
+      tenantID: this.tenantID,
+      source: siteArea.id,
+      action: Action.SAP_SMART_CHARGING,
+      message: 'Build Optimizer request is being called',
+      module: 'SapSmartCharging', method: 'buildRequest',
+      detailedMessages: { siteArea, currentTimeSeconds }
+    });
     // Instantiate initial arrays for request
     const cars: OptimizerCar[] = [];
     const carAssignments: OptimizerCarAssignment[] = [];
@@ -179,6 +186,14 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       event: optimizerEvent,
       state: optimizerState,
     };
+    Logging.logDebug({
+      tenantID: this.tenantID,
+      source: siteArea.id,
+      action: Action.SAP_SMART_CHARGING,
+      message: 'Build Optimizer request has been called',
+      module: 'SapSmartCharging', method: 'buildRequest',
+      detailedMessages: { request }
+    });
     return request;
   }
 
@@ -273,11 +288,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       });
       // Set duration
       chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
-
       // Get ChargingStation ID and Connector ID from name property
       const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
       const connectorId = car.name.substring(car.name.lastIndexOf('-') + 1);
-
       // Build profile of charging profile
       const profile: Profile = {
         chargingProfileId: connectorId as unknown as number,
@@ -286,7 +299,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         stackLevel: 2,
         chargingSchedule: chargingSchedule
       };
-
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
         id: car.name,
