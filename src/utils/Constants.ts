@@ -1,7 +1,7 @@
 import Tenant from '../types/Tenant';
 
 export default class Constants {
-  public static readonly CSV_SEPARATOR = '\t'; // Cannot store Regex ind enum
+  public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
