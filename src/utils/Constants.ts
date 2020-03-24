@@ -88,7 +88,7 @@ export default class Constants {
   public static readonly OCPP_ERROR_FORMATION_VIOLATION = 'FormationViolation';
   // Payload is syntactically correct but at least one field contains an invalid value
   public static readonly OCPP_ERROR_PROPERTY_RAINT_VIOLATION = 'PropertyraintViolation';
-  // Payload for Action is syntactically correct but at least one of the fields violates occurence raints
+  // Payload for Action is syntactically correct but at least one of the fields violates occurrence raints
   public static readonly OCPP_ERROR_OCCURENCE_RAINT_VIOLATION = 'OccurenceraintViolation';
   // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. "somestring" = 12)
   public static readonly OCPP_ERROR_TYPERAINT_VIOLATION = 'TyperaintViolation';
