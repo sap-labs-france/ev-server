@@ -260,12 +260,12 @@ export default class OCPPUtils {
     return false;
   }
 
-  public static async clearAllChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[]) {
+  public static async clearAndDeleteChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[]) {
     Logging.logDebug({
       tenantID: tenantID,
       action: Action.CHARGING_PROFILE_DELETE,
       message: 'Clear All Charging Profiles is being called',
-      module: 'OCPPUtils', method: 'clearAllChargingProfiles',
+      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles',
       detailedMessages: { tenantID, chargingProfiles }
     });
     if (chargingProfiles) {
@@ -277,7 +277,7 @@ export default class OCPPUtils {
             tenantID: tenantID,
             source: chargingProfile.chargingStationID,
             action: Action.CHARGING_PROFILE_DELETE,
-            module: 'OCPPUtils', method: 'clearAllChargingProfiles',
+            module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles',
             message: `Error while clearing charging profile for chargingStation ${chargingProfile.chargingStationID}`,
             detailedMessages: { error }
           });
@@ -288,7 +288,7 @@ export default class OCPPUtils {
       tenantID: tenantID,
       action: Action.CHARGING_PROFILE_DELETE,
       message: 'Clear All Charging Profiles has been called',
-      module: 'OCPPUtils', method: 'clearAllChargingProfiles'
+      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles'
     });
   }
 
