@@ -1,6 +1,6 @@
 
 const OCPPConstants = {
-  DEFAULT_OCPP_CONFIGURATION: [
+  DEFAULT_OCPP_16_CONFIGURATION: [
     { 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },
     { 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null },
     { 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null },
