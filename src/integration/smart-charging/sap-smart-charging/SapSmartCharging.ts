@@ -300,7 +300,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         id: car.name,
         chargingStationID: chargingStationId,
         connectorID: connectorId as unknown as number,
-        // ChargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
+        // pragma chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
         // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
       };
