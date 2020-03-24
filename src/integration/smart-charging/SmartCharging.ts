@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/member-ordering */
+import BackendError from '../../exception/BackendError';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import { SmartChargingSetting } from '../../types/Setting';
 import SiteArea from '../../types/SiteArea';
-import { HTTPError } from '../../types/HTTPError';
-import { Action } from '../../types/Authorization';
-import AppError from '../../exception/AppError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import Logging from '../../utils/Logging';
 
 export default abstract class SmartCharging<T extends SmartChargingSetting> {
@@ -32,14 +31,12 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
       detailedMessages: { siteArea }
     });
-
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.getChargingProfiles(siteArea);
     if (!chargingProfiles) {
-      throw new AppError({
+      throw new BackendError({
         source: siteArea.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        errorCode: HTTPError.GENERAL_ERROR,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles available for Site Area: ${siteArea.name}`,
       });
@@ -50,12 +47,11 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         // Set Charging Profile
         await OCPPUtils.applyAndSaveChargingProfile(this.tenantID, chargingProfile);
       } catch (error) {
-        // If one fails clear every profile
-        await OCPPUtils.clearAllChargingProfiles(this.tenantID, chargingProfiles);
-        throw new AppError({
+        // Log failed
+        Logging.logError({
+          tenantID: this.tenantID,
           source: siteArea.id,
           action: Action.CHARGING_PROFILE_UPDATE,
-          errorCode: HTTPError.GENERAL_ERROR,
           module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area: ${siteArea.name} failed`,
           detailedMessages: { error }

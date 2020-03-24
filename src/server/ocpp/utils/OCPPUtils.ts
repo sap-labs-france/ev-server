@@ -326,6 +326,7 @@ export default class OCPPUtils {
   }
 
   public static async applyAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
+    // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
