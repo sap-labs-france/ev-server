@@ -42,10 +42,10 @@ export default class Constants {
   public static readonly PWD_NUMBER_MIN_COUNT = 1;
   public static readonly PWD_SPECIAL_MIN_COUNT = 1;
 
-  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store Regex ind enum
-  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store Regex ind enum
-  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store Regex ind enum
-  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store Regex ind enum
+  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store regex in enum
+  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store regex in enum
+  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
+  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
