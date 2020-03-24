@@ -121,7 +121,7 @@ export default class CentralRestServer {
         module: MODULE_NAME,
         method: 'start', action: 'Startup',
         message: 'Socket is trying to connect from ' + socket.handshake.headers.origin,
-        detailedMessages: socket.handshake
+        detailedMessages: { socketHandshake: socket.handshake }
       });
       next();
     });
@@ -139,7 +139,7 @@ export default class CentralRestServer {
           module: MODULE_NAME,
           method: 'start', action: 'Startup',
           message: 'Socket is trying to connect without token',
-          detailedMessages: socket.handshake
+          detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
@@ -148,7 +148,7 @@ export default class CentralRestServer {
           module: MODULE_NAME,
           method: 'start', action: 'Startup',
           message: 'Socket is connected to tenant ' + userToken.tenantID,
-          detailedMessages: socket.handshake
+          detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
         // Handle Socket IO connection

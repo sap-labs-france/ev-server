@@ -8,7 +8,7 @@ applications:
   # health-check-http-endpoint: /health-check
   # For server type using WS:
   # health-check-type: http
-  # For server type not listing on a socket:
+  # For server type not listening on a socket:
   # health-check-type: process
   buildpacks:
   - https://github.com/cloudfoundry/nodejs-buildpack

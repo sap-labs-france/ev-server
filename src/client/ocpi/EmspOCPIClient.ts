@@ -77,7 +77,7 @@ export default class EmspOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
-        detailedMessages: sendResult.logs,
+        detailedMessages: { logs: sendResult.logs },
         source: 'OCPI Client',
         module: 'OCPIClient',
         method: 'sendTokens'
@@ -88,7 +88,7 @@ export default class EmspOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
-        detailedMessages: sendResult.logs,
+        detailedMessages: { logs: sendResult.logs },
         source: 'OCPI Client',
         module: 'OCPIClient',
         method: 'sendTokens'
@@ -338,7 +338,7 @@ export default class EmspOCPIClient extends OCPIClient {
               source: 'OCPI Client',
               module: 'OCPIClient',
               method: 'pullCdrs',
-              detailedMessages: cdr,
+              detailedMessages: { cdr },
             });
             sendResult.failure++;
           }
@@ -500,7 +500,7 @@ export default class EmspOCPIClient extends OCPIClient {
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'pushToken',
-      detailedMessages: token
+      detailedMessages: { token }
     });
 
     // Call IOP

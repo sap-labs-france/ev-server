@@ -28,7 +28,7 @@ export default class OCPISessionsService {
         method: 'updateSession',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
-        detailedMessages: session,
+        detailedMessages: { session },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
@@ -50,7 +50,7 @@ export default class OCPISessionsService {
           method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No user found for auth_id ${session.auth_id}`,
-          detailedMessages: session,
+          detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
@@ -65,7 +65,7 @@ export default class OCPISessionsService {
           method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
-          detailedMessages: session,
+          detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
@@ -76,7 +76,7 @@ export default class OCPISessionsService {
           method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
-          detailedMessages: session,
+          detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
@@ -127,7 +127,7 @@ export default class OCPISessionsService {
         module: MODULE_NAME,
         method: 'updateSession',
         message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
-        detailedMessages: session
+        detailedMessages: { session }
       });
       return;
     }
