@@ -58,5 +58,12 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         });
       }
     }
+    Logging.logDebug({
+      tenantID: this.tenantID,
+      source: siteArea.id,
+      action: Action.CHARGING_PROFILE_UPDATE,
+      message: 'Compute and Apply Charging Profiles has been called',
+      module: 'SmartCharging', method: 'computeAndApplyChargingProfiles'
+    });
   }
 }
