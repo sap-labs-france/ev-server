@@ -306,12 +306,12 @@ export default class ChargingStationService {
           source: chargingStation.id,
           action: action,
           user: req.user,
-          module: 'ChargingStationService', method: 'setAndSaveChargingProfile',
+          module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
           message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
           detailedMessages: { chargingProfile: chargingProfiles.result[index] }
         });
         // Apply & Save charging plan
-        await ChargingStationService.setAndSaveChargingProfile(action, chargingStation, updatedChargingProfile, req.user);
+        await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, updatedChargingProfile, req.user);
         break;
       }
     }
@@ -410,21 +410,6 @@ export default class ChargingStationService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static async setAndSaveChargingProfile(action: Action, chargingStation: ChargingStation, chargingProfile: ChargingProfile, user: UserToken) {
-    // Get Vendor Instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-    if (!chargingStationVendor) {
-      throw new AppError({
-        source: chargingStation.id,
-        action: action,
-        user: user,
-        errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
-        module: 'ChargingStationService', method: 'setAndSaveChargingProfile',
-        message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
-      });
-    }
   }
 
   public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
