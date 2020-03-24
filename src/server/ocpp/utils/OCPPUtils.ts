@@ -356,7 +356,7 @@ export default class OCPPUtils {
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
       action: Action.CHARGING_PROFILE_UPDATE,
-      message: 'Apply and Save Charging Profile is being called',
+      message: 'Set and Save Charging Profile is being called',
       module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
       detailedMessages: { tenantID, chargingProfile, user }
     });
@@ -420,7 +420,7 @@ export default class OCPPUtils {
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
       action: Action.CHARGING_PROFILE_UPDATE,
-      message: 'Apply and Save Charging Profile has been called',
+      message: 'Set and Save Charging Profile has been called',
       module: 'OCPPUtils', method: 'setAndSaveChargingProfile'
     });
   }
