@@ -18,7 +18,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     super(tenantID, setting);
   }
 
-  public async getChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
+  public async buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
     Logging.logDebug({
       tenantID: this.tenantID,
       source: siteArea.id,

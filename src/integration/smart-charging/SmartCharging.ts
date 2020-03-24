@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/member-ordering */
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { Action } from '../../types/Authorization';
@@ -16,7 +15,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     this.setting = setting;
   }
 
-  async abstract getChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
+  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
 
   protected getSettings(): T {
     return this.setting;
@@ -32,13 +31,13 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       detailedMessages: { siteArea }
     });
     // Call the charging plans
-    const chargingProfiles: ChargingProfile[] = await this.getChargingProfiles(siteArea);
+    const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
     if (!chargingProfiles) {
       throw new BackendError({
         source: siteArea.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-        message: `No Charging Profiles available for Site Area: ${siteArea.name}`,
+        message: `No Charging Profiles have been built for Site Area: ${siteArea.name}`,
       });
     }
     // Apply the charging plans
