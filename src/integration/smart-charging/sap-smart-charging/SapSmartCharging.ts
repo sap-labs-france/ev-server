@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import moment from 'moment';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
@@ -11,18 +12,13 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import SmartCharging from '../SmartCharging';
-import moment = require('moment');
 
 export default class SapSmartCharging extends SmartCharging<SapSmartChargingSetting> {
-
-  // Helper to resolve generated IDs, Charging Station IDs and Connector IDs --> Oliver is asked to implement String ID Property
-  // private idAssignments = [];
-
   public constructor(tenantID: string, setting: SapSmartChargingSetting) {
     super(tenantID, setting);
   }
 
-  public async getChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
+  public async buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
     Logging.logDebug({
       tenantID: this.tenantID,
       source: siteArea.id,
@@ -51,11 +47,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           action: Action.SAP_SMART_CHARGING,
           message: `SAP Smart Charging service responded with status '${response.status}'`,
           module: 'SapSmartCharging', method: 'getChargingProfiles',
-          detailedMessages: response
+          detailedMessages: { response }
         });
       }
       // Build charging profiles from result
-      const chargingProfiles = this.buildChargingProfiles(response.data, (currentTimeSeconds / 60));
+      const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
         source: siteArea.id,
@@ -72,7 +68,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'getChargingProfiles',
         message: 'Unable to call the SAP Smart Charging service',
-        detailedMessages: error,
+        detailedMessages: { error },
       });
     }
   }
@@ -260,7 +256,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return chargingStationFuse;
   }
 
-  private buildChargingProfiles(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
+  private buildChargingProfilesFromOptimizer(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
     const startSchedule = new Date();
