@@ -6,7 +6,7 @@ export default class CarApi extends CrudApi {
     super(authenticatedApi);
   }
   public readById(id) {
-    return super.readById(id, '/client/api/Car');
+    return super.read({ CarID: id }, '/client/api/Car');
   }
 
   public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
