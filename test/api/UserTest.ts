@@ -202,7 +202,6 @@ describe('User tests', function() {
             limit: 100,
             skip: 0
           });
-          console.log('ggggg' + JSON.stringify(response.data.result));
           expect(response.status).to.equal(200);
           const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
