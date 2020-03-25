@@ -9,4 +9,10 @@ export interface HttpBuildingsRequest extends HttpDatabaseRequest {
   Search?: string;
   SiteAreaID?: string;
   WithSiteArea?: boolean;
+  WithNoSiteArea?: boolean;
+}
+
+export interface HttpAssignBuildingsToSiteAreaRequest {
+  siteAreaID: string;
+  buildingIDs: string[];
 }

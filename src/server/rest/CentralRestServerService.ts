@@ -65,6 +65,8 @@ class RequestMapper {
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
+          AddBuildingsToSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
+          RemoveBuildingsFromSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
           BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),

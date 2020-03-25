@@ -86,7 +86,8 @@ export default class BuildingStorage {
   }
 
   public static async getBuildings(tenantID: string,
-    params: { search?: string; buildingID?: string; buildingIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean } = {},
+    params: { search?: string; buildingID?: string; buildingIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
+      withNoSiteArea?: boolean; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
@@ -109,10 +110,15 @@ export default class BuildingStorage {
         { 'address.country': { $regex: searchRegex, $options: 'i' } }
       ];
     }
-    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+    // With no Site Area
+    if (params.withNoSiteArea) {
+      filters.$and = [
+        { 'siteAreaID': null }
+      ];
+    } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
       filters.$and = [
         { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
-      ]
+      ];
     }
     // Create Aggregation
     const aggregation = [];
@@ -213,6 +219,63 @@ export default class BuildingStorage {
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('BuildingStorage', 'deleteBuilding', uniqueTimerID, { id });
+  }
+
+  public static async addBuildingsToSiteArea(tenantID: string, siteAreaID: string, buildingIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'addBuildingsToSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site Area provided?
+    if (siteAreaID) {
+      // At least one Building
+      if (buildingIDs && buildingIDs.length > 0) {
+        // Update all buildings
+        await global.database.getCollection<any>(tenantID, 'buildings').updateMany({
+          $and: [
+            { '_id': { $in: buildingIDs.map((buildingID) => Utils.convertToObjectID(buildingID)) } }
+          ]
+        }, {
+          $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+        }, {
+          upsert: false
+        });
+      }
+    }
+    // Debug
+    Logging.traceEnd('BuildingStorage', 'addBuildingsToSiteArea', uniqueTimerID, {
+      siteAreaID,
+      buildingIDs
+    });
+  }
+
+  public static async removeBuildingsFromSiteArea(tenantID: string, siteAreaID: string, buildingIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'removeBuildingsFromSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site Area provided?
+    if (siteAreaID) {
+      // At least one Building
+      if (buildingIDs && buildingIDs.length > 0) {
+        // Update all buildings
+        await global.database.getCollection<any>(tenantID, 'buildings').updateMany({
+          $and: [
+            { '_id': { $in: buildingIDs.map((buildingID) => Utils.convertToObjectID(buildingID)) } },
+            { 'siteAreaID': Utils.convertToObjectID(siteAreaID) }
+          ]
+        }, {
+          $set: { siteAreaID: null }
+        }, {
+          upsert: false
+        });
+      }
+    }
+    // Debug
+    Logging.traceEnd('BuildingStorage', 'removeBuildingsFromSiteArea', uniqueTimerID, {
+      siteAreaID,
+      buildingIDs
+    });
   }
 
   private static async _saveBuildingImage(tenantID: string, buildingID: string, buildingImageToSave: string): Promise<void> {

@@ -96,6 +96,8 @@ export enum Action {
 
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
+  ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
+
   REFUND = 'Refund',
 
   CHANGE_CONFIGURATION = 'ChangeConfiguration',
