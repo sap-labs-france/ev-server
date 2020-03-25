@@ -84,7 +84,8 @@ export default class ConsumptionStorage {
         _id: {
           cumulatedConsumption: '$cumulatedConsumption',
           consumption: '$consumption',
-          cumulatedAmount: '$cumulatedAmount'
+          cumulatedAmount: '$cumulatedAmount',
+          limitWatts: '$limitWatts',
         },
         userID: { $last: '$userID' },
         chargeBoxID: { $last: '$chargeBoxID' },
@@ -118,6 +119,16 @@ export default class ConsumptionStorage {
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
+
+    const aggregationFirstValue = [];
+    aggregationFirstValue.push({
+      $match: {
+        transactionId: Utils.convertToInt(params.transactionId),
+        totalDurationSecs: 60
+      }
+    });
+    // Add first value to show whole session
+    consumptionsMDB.unshift(...await global.database.getCollection<any>(tenantID, 'consumptions').aggregate(aggregationFirstValue, { allowDiskUse: true }).toArray());
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;

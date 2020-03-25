@@ -369,7 +369,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
-    initialValue.limitWatts = 0;
+    initialValue.limitWatts = consumptions[0].limitWatts;
     if (Authorizations.isAdmin(loggedUser)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;
