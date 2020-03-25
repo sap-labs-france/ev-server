@@ -184,7 +184,7 @@ export default class Utils {
   public static getChargingStationHeartbeatMaxIntervalSecs(): number {
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
-    return config.heartbeatIntervalSecs * 2;
+    return config.heartbeatIntervalSecs * 3;
   }
 
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
@@ -468,8 +468,8 @@ export default class Utils {
     // AC Chargers?
     if (chargingStation &&
         chargingStation.connectors && chargingStation.connectors.length > 0 &&
-        chargingStation.connectors[connectorID].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[connectorID].numberOfConnectedPhase, ampValue);
+        chargingStation.connectors[connectorID-1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID-1].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[connectorID-1].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
