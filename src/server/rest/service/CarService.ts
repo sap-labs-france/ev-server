@@ -4,11 +4,12 @@ import TenantComponents from '../../../types/TenantComponents';
 import UtilsService from './UtilsService';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import Constants from '../../../utils/Constants';
 import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
+import BackendError from '../../../exception/AppError';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -82,5 +83,43 @@ export default class CarService {
     // Return
     res.json(CarSecurity.filterCarResponse(car, req.user));
     next();
+  }
+
+  public static async handleSynchronizeCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canSynchronizeCars(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SYNCHRONIZE_CARS,
+        entity: Entity.CARS,
+        module: 'CarService',
+        method: 'handleSynchronizeCars'
+      });
+    }
+    try {
+      const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+      if (carDatabaseImpl) {
+        const result = await carDatabaseImpl.synchronizeCars();
+        res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+        next();
+      } else {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message:'Error While retrieving data from EVDatabase',
+          module: 'CarService',
+          method: 'handleSynchronizeCars'
+        });
+      }
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Error while importing the Cars: ${error.message}`,
+        module: 'CarService',
+        method: 'handleSynchronizeCars'
+      });
+    }
   }
 }

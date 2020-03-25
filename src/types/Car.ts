@@ -179,5 +179,5 @@ export enum BatteryCapacityEstimate {
 
 export interface CarSynchronizeAction {
   synchronized: number;
-  error: number;
+  inError: number;
 }

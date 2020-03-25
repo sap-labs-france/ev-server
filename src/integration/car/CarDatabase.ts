@@ -11,7 +11,7 @@ export default abstract class CarDatabase {
     /* eslint-disable */
     const actionsDone = {
       synchronized: 0,
-      error: 0
+      inError: 0
     } as CarSynchronizeAction;
     // Get the cars
     const cars = await this.getCars();
@@ -48,7 +48,7 @@ export default abstract class CarDatabase {
           });
         }
       } catch (error) {
-        actionsDone.error++;
+        actionsDone.inError++;
         // Log
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
@@ -61,13 +61,13 @@ export default abstract class CarDatabase {
       }
     }
     // Log
-    if (actionsDone.synchronized || actionsDone.error) {
+    if (actionsDone.synchronized || actionsDone.inError) {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_CARS,
         module: 'CarDatabase', method: 'synchronizeCars',
-        message: `${actionsDone.synchronized} car(s) were successfully synchronized, ${actionsDone.error} got errors`
+        message: `${actionsDone.synchronized} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
       });
     } else {
       Logging.logInfo({
