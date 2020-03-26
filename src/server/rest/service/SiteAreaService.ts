@@ -12,6 +12,9 @@ import Utils from '../../../utils/Utils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import SmartCharging from '../../../integration/smart-charging/SmartCharging';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -210,7 +213,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Get
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargeBoxes: true });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
       'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
@@ -236,6 +239,14 @@ export default class SiteAreaService {
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    if (siteArea.smartCharging && !filteredRequest.smartCharging) {
+      const chargingProfiles = [];
+      for (const chargingStation of siteArea.chargingStations) {
+        chargingProfiles.push(...(await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
+          { chargingStationID: chargingStation.id }, Constants.DB_PARAMS_MAX_LIMIT)).result);
+      }
+      await OCPPUtils.clearAndDeleteChargingProfiles(req.user.tenantID, chargingProfiles);
+    }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.siteID = filteredRequest.siteID;
