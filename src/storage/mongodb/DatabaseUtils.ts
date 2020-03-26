@@ -98,7 +98,7 @@ export default class DatabaseUtils {
     });
   }
 
-  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, externalPipeline?: Object[]) {
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup, externalPipeline?: Record<string, any>[]) {
     // Build Lookup's pipeline
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
@@ -153,7 +153,7 @@ export default class DatabaseUtils {
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
   }
 
-  private static buildChargingStationInactiveFlagQuery(): Object {
+  private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
     // Add inactive field
     return {
       $addFields: {

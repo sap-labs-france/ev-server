@@ -211,7 +211,7 @@ export default class OCPIUtils {
     const newToken: any = {};
     // Generate random
     newToken.ak = Math.floor(Math.random() * 100);
-    // Fill new Token with tenant subdmain
+    // Fill new Token with tenant subdomain
     newToken.tid = tenantSubdomain;
     // Generate random
     newToken.zk = Math.floor(Math.random() * 100);
