@@ -191,7 +191,7 @@ export default class SiteAreaStorage {
     if (projectFields) {
       DatabaseUtils.projectFields(aggregation,
         [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat',
-        'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.private', 'chargingStations.inactive']);
+          'chargingStations.deleted', 'chargingStations.cannotChargeInParallel', 'chargingStations.private', 'chargingStations.inactive']);
     }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
