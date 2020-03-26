@@ -493,7 +493,7 @@
 						"MeterValueSampleInterval": "60",
 						"ClockAlignedDataInterval": "0",
 						"HeartBeatInterval": "180",
-						"ConnectionTimeOut": "60",						
+						"ConnectionTimeOut": "60",
 						"WebSocketPingInterval": "120",
 						"MeterValuesSampledData": "Energy.Active.Import.Register",
 						"StopTransactionOnEVSideDisconnect": "1",
@@ -731,7 +731,7 @@
 						"LocalAuthorizeOffline": "false",
 						"MeterValueSampleInterval": "60",
 						"AllowOffLineTxForUnknownId":"false",
-						"UnlockConnectorOnEVSideDisconnect": "true"					
+						"UnlockConnectorOnEVSideDisconnect": "true"
 					}
 				}
 			],
@@ -829,7 +829,7 @@
 						"AuthorizationCacheEnabled": "0",
 						"AuthorizeRemoteTxRequests": "1",
 						"ClockAlignedDataInterval": "0",
-						"ConnectionTimeOut": "60",	
+						"ConnectionTimeOut": "120",
 						"HeartBeatInterval": "180",
 						"LocalAuthorizeOffline": "1",
 						"MeterValueSampleInterval": "60",
@@ -953,7 +953,7 @@
 						"AuthorizationCacheEnabled": "False",
 						"AuthorizeRemoteTxRequests": "True",
 						"ClockAlignedDataInterval": "1",
-						"ConnectionTimeOut": "60",	
+						"ConnectionTimeOut": "60",
 						"HeartBeatInterval": "300",
 						"LocalAuthorizeOffline": "False",
 						"MeterValuesAlignedData": "0",
