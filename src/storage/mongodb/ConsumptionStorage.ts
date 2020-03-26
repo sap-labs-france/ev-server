@@ -100,6 +100,7 @@ export default class ConsumptionStorage {
         stateOfCharge: { $last: '$stateOfCharge' },
         instantPower: { $max: '$instantPower' },
         totalInactivitySecs: { $max: '$totalInactivitySecs' },
+        totalDurationSecs: { $last: '$totalDurationSecs' },
         pricingSource: { $last: '$pricingSource' },
         amount: { $last: '$amount' },
         cumulatedAmount: { $last: '$cumulatedAmount' },
@@ -120,15 +121,24 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
 
-    const aggregationFirstValue = [];
-    aggregationFirstValue.push({
-      $match: {
-        transactionId: Utils.convertToInt(params.transactionId),
-        totalDurationSecs: 60
-      }
-    });
-    // Add first value to show whole session
-    consumptionsMDB.unshift(...await global.database.getCollection<any>(tenantID, 'consumptions').aggregate(aggregationFirstValue, { allowDiskUse: true }).toArray());
+
+    // Possible check for the first consumption:
+
+    // if (consumptionsMDB[0].totalDurationSecs !== 60) {
+    //   const aggregationFirstValue = [];
+    //   aggregationFirstValue.push({
+    //     $match: {
+    //       transactionId: Utils.convertToInt(params.transactionId),
+    //       totalDurationSecs: 60
+    //     }
+    //   });
+    //   // Add first value to show whole session
+    //   const firstConsumption = await global.database.getCollection<any>(tenantID, 'consumptions').aggregate(aggregationFirstValue, { allowDiskUse: true }).toArray();
+    //   if (firstConsumption[0]) {
+    //     consumptionsMDB.unshift(...firstConsumption);
+    //   }
+    // }
+
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
