@@ -5,7 +5,6 @@ import OCPIService20 from './ocpi-services-impl/ocpi-2.0/OCPIService';
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 import OCPIUtils from '../ocpi/OCPIUtils';
 import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
-import Constants from '../../utils/Constants';
 
 export default class OCPIServices {
 
