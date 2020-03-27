@@ -240,12 +240,7 @@ export default class SiteAreaService {
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      const chargingProfiles = [];
-      for (const chargingStation of siteArea.chargingStations) {
-        chargingProfiles.push(...(await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-          { chargingStationID: chargingStation.id }, Constants.DB_PARAMS_MAX_LIMIT)).result);
-      }
-      await OCPPUtils.clearAndDeleteChargingProfiles(req.user.tenantID, chargingProfiles);
+      OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;

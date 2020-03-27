@@ -14,6 +14,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
+import SiteArea from '../../../types/SiteArea';
 
 export default class OCPPUtils {
 
@@ -260,7 +261,16 @@ export default class OCPPUtils {
     return false;
   }
 
-  public static async clearAndDeleteChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[]) {
+  public static async clearAndDeleteChargingProfilesForSiteArea(tenantID: string, siteArea: SiteArea, user?: UserToken) {
+    const chargingProfiles = [];
+    for (const chargingStation of siteArea.chargingStations) {
+      chargingProfiles.push(...(await ChargingStationStorage.getChargingProfiles(tenantID,
+        { chargingStationID: chargingStation.id }, Constants.DB_PARAMS_MAX_LIMIT)).result);
+    }
+    await OCPPUtils.clearAndDeleteChargingProfiles(tenantID, chargingProfiles, user);
+  }
+
+  public static async clearAndDeleteChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[], user?: UserToken) {
     Logging.logDebug({
       tenantID: tenantID,
       action: Action.CHARGING_PROFILE_DELETE,
@@ -271,7 +281,7 @@ export default class OCPPUtils {
     if (chargingProfiles) {
       for (const chargingProfile of chargingProfiles) {
         try {
-          await this.clearAndDeleteChargingProfile(tenantID, chargingProfile);
+          await this.clearAndDeleteChargingProfile(tenantID, chargingProfile, user);
         } catch (error) {
           Logging.logError({
             tenantID: tenantID,
