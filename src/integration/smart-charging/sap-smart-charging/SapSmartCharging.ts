@@ -5,7 +5,7 @@ import { Action } from '../../../types/Authorization';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, Profile } from '../../../types/ChargingProfile';
 import { Connector } from '../../../types/ChargingStation';
 import { ChargePointStatus } from '../../../types/ocpp/OCPPServer';
-import { OptimizerCar, OptimizerCarAssignment, OptimizerChargingProfilesRequest, OptimizerResult, OptimizerChargingStation, OptimizerEvent, OptimizerFuse, OptimizerFuseTree, OptimizerState } from '../../../types/Optimizer';
+import { OptimizerCar, OptimizerCarAssignment, OptimizerChargingProfilesRequest, OptimizerChargingStation, OptimizerEvent, OptimizerFuse, OptimizerFuseTree, OptimizerResult, OptimizerState } from '../../../types/Optimizer';
 import { SapSmartChargingSetting } from '../../../types/Setting';
 import SiteArea from '../../../types/SiteArea';
 import Constants from '../../../utils/Constants';
@@ -300,7 +300,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         id: car.name,
         chargingStationID: chargingStationId,
         connectorID: connectorId as unknown as number,
-        // chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
+        // pragma chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
         // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
       };

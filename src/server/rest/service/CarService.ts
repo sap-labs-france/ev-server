@@ -64,6 +64,8 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'CarService', 'handleGetCar', req.user);
+
     let car;
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car

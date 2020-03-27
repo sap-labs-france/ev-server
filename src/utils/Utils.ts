@@ -468,8 +468,8 @@ export default class Utils {
     // AC Chargers?
     if (chargingStation &&
         chargingStation.connectors && chargingStation.connectors.length > 0 &&
-        chargingStation.connectors[connectorID-1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID-1].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[connectorID-1].numberOfConnectedPhase, ampValue);
+        chargingStation.connectors[connectorID - 1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID - 1].numberOfConnectedPhase) {
+      return this.convertAmpToW(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
