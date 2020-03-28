@@ -57,8 +57,10 @@ const GRANTS = {
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
       {
         resource: 'Billing',
-        action: ['CheckBillingConnection', 'SynchronizeUsersBilling', 'ReadBillingTaxes']
+        action: ['BillingCheckConnection', 'BillingSynchronizeUsers', 'BillingForceSynchronizeUser']
       },
+      { resource: 'Taxes', action: ['List'], attributes: ['*'] },
+      { resource: 'Invoices', action: ['List'], attributes: ['*'] },
       { resource: 'Building', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Buildings', action: 'List', attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
@@ -91,6 +93,8 @@ const GRANTS = {
         resource: 'Company', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
+      { resource: 'Invoices', action: ['List'], attributes: ['*'] },
+      { resource: 'Invoice', action: ['Download'], attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
       {
         resource: 'Site', action: 'Read', attributes: ['*'],

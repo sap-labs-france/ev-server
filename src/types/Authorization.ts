@@ -31,7 +31,10 @@ export enum Entity {
   BUILDING = 'Building',
   BUILDINGS = 'Buildings',
   CAR = 'Car',
-  CARS = 'Cars'
+  CARS = 'Cars',
+  INVOICE = 'Invoice',
+  INVOICES = 'Invoices',
+  TAXES = 'Taxes'
 }
 
 export enum Action {
@@ -60,11 +63,7 @@ export enum Action {
   REGISTER = 'Register',
   REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
-  CHECK_CONNECTION_BILLING = 'CheckBillingConnection',
-  SYNCHRONIZE_BILLING = 'SynchronizeUsersBilling',
   SYNCHRONIZE_CARS = 'SynchronizeCars',
-  BILLING_TRANSACTION = 'BillingTransaction',
-  READ_BILLING_TAXES = 'ReadBillingTaxes',
   POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
@@ -107,6 +106,14 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
+  BILLING_SYNCHRONIZE = 'BillingSynchronizeUsers',
+  BILLING_FORCE_SYNCHRONIZE = 'BillingForceSynchronizeUser',
+  BILLING_CHECK_CONNECTION = 'BillingCheckConnection',
+  BILLING_TRANSACTION = 'BillingTransaction',
+  BILLING_SEND_INVOICE = 'BillingSendInvoice',
+  BILLING_GET_OPENED_INVOICE = 'BillingGetOpenedInvoice',
+  BILLING_CREATE_INVOICE = 'BillingCreateInvoice',
+  BILLING_CREATE_INVOICE_ITEM = 'BillingCreateInvoiceItem',
 
   MONGO_DB = 'MongoDB',
 
