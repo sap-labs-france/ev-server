@@ -98,7 +98,7 @@ export default class BuildingStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[]; } | undefined) = {};
+    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
     // Build filter
     if (params.buildingID) {
       filters._id = Utils.convertToObjectID(params.buildingID);
