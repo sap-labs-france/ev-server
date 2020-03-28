@@ -1,3 +1,5 @@
+import { ActionsResponse } from "./GlobalType";
+
 export interface BillingTransactionData {
   status?: string;
   invoiceStatus?: string;
@@ -34,9 +36,7 @@ export interface BillingPartialUser {
   billingData: BillingUserData;
 }
 
-export interface BillingUserSynchronizeAction {
-  synchronized: number;
-  error: number;
+export interface BillingUserSynchronizeAction extends ActionsResponse {
   billingData?: BillingUserData;
 }
 

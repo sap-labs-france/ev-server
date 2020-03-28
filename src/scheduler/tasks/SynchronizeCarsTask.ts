@@ -13,9 +13,9 @@ export default class SynchronizeCarsTask extends SchedulerTask {
       const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
       if (carDatabaseImpl) {
         const synchronizeAction = await carDatabaseImpl.synchronizeCars();
-        if (synchronizeAction.error > 0) {
+        if (synchronizeAction.inError > 0) {
           await NotificationHandler.sendCarsSynchronizationFailed({
-            nbrCarsInError: synchronizeAction.error,
+            nbrCarsInError: synchronizeAction.inError,
             evseDashboardURL: Utils.buildEvseURL()
           });
         }
