@@ -323,7 +323,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         auto_advance: true
       });
     } catch (e) {
-      // No pending invoice item found
+      // No pending invoice item found: Create one
       try {
         invoiceItem = await this.stripe.invoiceItems.create({
           customer: user.billingData.customerID,
@@ -332,7 +332,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           description: invoiceItem.description,
           tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
         });
-
         invoice = await this.stripe.invoices.create({
           customer: user.billingData.customerID,
           collection_method: 'send_invoice',
@@ -363,7 +362,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       });
     }
     try {
-      return await this.stripe.invoiceItems.create({
+      return this.stripe.invoiceItems.create({
         customer: user.billingData.customerID,
         currency: this.settings.currency.toLocaleLowerCase(),
         amount: invoiceItem.amount * 100,
