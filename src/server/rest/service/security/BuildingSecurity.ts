@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Building from '../../../../types/Building';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpBuildingRequest, HttpBuildingsRequest } from '../../../../types/requests/HttpBuildingRequest';
+import { HttpAssignBuildingsToSiteAreaRequest, HttpBuildingRequest, HttpBuildingsRequest } from '../../../../types/requests/HttpBuildingRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -19,10 +19,19 @@ export default class BuildingSecurity {
     } as HttpBuildingRequest;
   }
 
+  public static filterAssignBuildingsToSiteAreaRequest(request: any): HttpAssignBuildingsToSiteAreaRequest {
+    return {
+      siteAreaID: sanitize(request.siteAreaID),
+      buildingIDs: request.buildingIDs.map(sanitize)
+    };
+  }
+
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
     const filteredRequest: HttpBuildingsRequest = {
       Search: sanitize(request.Search),
+      SiteAreaID: sanitize(request.SiteAreaID),
       WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
+      WithNoSiteArea: !request.WithNoSiteArea ? false : UtilsSecurity.filterBoolean(request.WithNoSiteArea)
     } as HttpBuildingsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
