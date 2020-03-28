@@ -864,8 +864,7 @@ export default class ChargingStationStorage {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
-            { '_id': { $in: chargingStationIDs } },
-            { 'siteAreaID': null }
+            { '_id': { $in: chargingStationIDs } }
           ]
         }, {
           $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
