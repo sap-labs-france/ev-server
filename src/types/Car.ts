@@ -64,19 +64,19 @@ export interface Car extends CreatedUpdatedProps{
   chargeStandardChargeTime: number;
   chargeStandardChargeSpeed: number;
   chargeStandardEstimate?: boolean;
-  chargeStandardTables: { [id: string]: ChargeStandardTable; };
+  chargeStandardTables: ChargeStandardTable[];
   chargeAlternativePower: number;
   chargeAlternativePhase: number;
   chargeAlternativePhaseAmp: number;
   chargeAlternativeChargeTime: number;
   chargeAlternativeChargeSpeed: number;
-  chargeAlternativeTables: { [id: string]: ChargeAlternativeTable; };
+  chargeAlternativeTables: ChargeAlternativeTable[];
   chargeOptionPower?: number;
   chargeOptionPhase?: number;
   chargeOptionPhaseAmp?: number;
   chargeOptionChargeTime?: number;
   chargeOptionChargeSpeed?: number;
-  chargeOptionTables: { [id: string]: ChargeOptionTable; };
+  chargeOptionTables: ChargeOptionTable[];
   fastChargePlug?: string;
   fastChargePlugEstimate?: boolean;
   fastChargePlugLocation?: string;
@@ -119,6 +119,7 @@ export interface Car extends CreatedUpdatedProps{
   hash?: string;
 }
 export interface ChargeOptionTable {
+  type: string;
   evsePhaseVolt?: number;
   evsePhaseAmp?: number;
   evsePhase?: number;
@@ -130,6 +131,7 @@ export interface ChargeOptionTable {
   chargeSpeed?: number;
 }
 export interface ChargeAlternativeTable {
+  type: string;
   evsePhaseVolt: number;
   evsePhaseAmp: number;
   evsePhase: number;
@@ -141,6 +143,7 @@ export interface ChargeAlternativeTable {
   chargeSpeed: number;
 }
 export interface ChargeStandardTable {
+  type: string;
   evsePhaseVolt: number;
   evsePhaseAmp: number;
   evsePhase: number;
@@ -172,9 +175,4 @@ export enum BatteryCapacityEstimate {
   BATTERY_KWH_FULL_FIELD_IS_ESTIMATE = 'F',
   NONE_OF_THE_BATTERY_KWH__FIELDS_ARE_ESTIMATES = 'N',
   BATTERY_KWH_USEABLE_FIELD_IS_ESTIMATE = 'U',
-}
-
-export interface CarSynchronizeAction {
-  synchronized: number;
-  error: number;
 }

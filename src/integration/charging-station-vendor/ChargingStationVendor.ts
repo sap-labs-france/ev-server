@@ -17,7 +17,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-      connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -110,7 +110,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
-      ocppParamName: string, ocppParamValue: string) {
+    ocppParamName: string, ocppParamValue: string) {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -145,7 +145,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPSetChargingProfileCommandResult | OCPPSetChargingProfileCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -261,7 +261,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async clearChargingProfile(tenantID: string, chargingStation: ChargingStation,
-      chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
+    chargingProfile: ChargingProfile): Promise<OCPPClearChargingProfileCommandResult | OCPPClearChargingProfileCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -380,7 +380,7 @@ export default abstract class ChargingStationVendor {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation,
-      connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -522,8 +522,8 @@ export default abstract class ChargingStationVendor {
         // Get the current connector limitation from the charging plan
         // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
         if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-            compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-            compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+          compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
           let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
           // Check
           if (connectorLimitAmps > limitDefaultMaxAmps) {
@@ -550,7 +550,7 @@ export default abstract class ChargingStationVendor {
         const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
           tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
         if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
-            ocppConfiguration.configurationKey[0].value) {
+          ocppConfiguration.configurationKey[0].value) {
           let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
           // Check
           if (connectorLimitAmps > limitDefaultMaxAmps) {
@@ -578,7 +578,7 @@ export default abstract class ChargingStationVendor {
         action: Action.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
         module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
-        detailedMessages: error
+        detailedMessages: { error }
       });
     }
     // Default on current connector

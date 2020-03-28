@@ -542,7 +542,7 @@ export default class UserService {
       action: action
     });
     // Notify
-    if (statusHasChanged) {
+    if (statusHasChanged && req.user.tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,

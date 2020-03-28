@@ -4,11 +4,12 @@ import TenantComponents from '../../../types/TenantComponents';
 import UtilsService from './UtilsService';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import CarSecurity from './security/CarSecurity';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import Constants from '../../../utils/Constants';
 import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
+import BackendError from '../../../exception/AppError';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -64,6 +65,8 @@ export default class CarService {
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'CarService', 'handleGetCar', req.user);
+
     let car;
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car
@@ -79,6 +82,33 @@ export default class CarService {
     }
     // Return
     res.json(CarSecurity.filterCarResponse(car, req.user));
+    next();
+  }
+
+  public static async handleSynchronizeCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canSynchronizeCars(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.SYNCHRONIZE_CARS,
+        entity: Entity.CARS,
+        module: 'CarService',
+        method: 'handleSynchronizeCars'
+      });
+    }
+    const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+    if (!carDatabaseImpl) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car service is not configured',
+        module: 'CarService',
+        method: 'handleSynchronizeCars'
+      });
+    }
+    const result = await carDatabaseImpl.synchronizeCars();
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 }

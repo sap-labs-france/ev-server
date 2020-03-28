@@ -15,6 +15,7 @@ export interface TenantDefinition {
     smartCharging?: { content?: SettingDBContent };
     billing?: { content?: SettingDBContent };
     building?: { content?: SettingDBContent };
+    car?: { content?: SettingDBContent };
   };
 }
 
@@ -29,6 +30,7 @@ export default class CONTEXTS {
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
     TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
     TENANT_BUILDING: 'ut-building', // Only building component is active
+    TENANT_CAR: 'ut-car', // Only car component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -308,6 +310,14 @@ export default class CONTEXTS {
     componentSettings: {
       building: {},
       organization: {}
+    }
+  },
+  {
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CAR,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab1',
+    subdomain: 'utcar',
+    componentSettings: {
+      car: {},
     }
   }];
 

@@ -23,6 +23,7 @@ import UserApi from './UserApi';
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import BaseApi from './utils/BaseApi';
 import Constants from './utils/Constants';
+import CarApi from './CarApi';
 
 // Set
 chai.use(chaiSubset);
@@ -32,6 +33,8 @@ export default class CentralServerService {
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
   public buildingApi: BuildingApi;
+  public carApi: CarApi;
+  public carApiSuperTenant: CarApi;
   public companyApi: CompanyApi;
   public siteApi: SiteApi;
   public siteAreaApi: SiteAreaApi;
@@ -97,6 +100,8 @@ export default class CentralServerService {
     this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
     this.billingApi = new BillingApi(this.authenticatedApi);
     this.buildingApi = new BuildingApi(this.authenticatedApi);
+    this.carApi = new CarApi(this.authenticatedApi);
+    this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 
   public static get DefaultInstance(): CentralServerService {

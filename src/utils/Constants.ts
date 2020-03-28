@@ -1,7 +1,7 @@
 import Tenant from '../types/Tenant';
 
 export default class Constants {
-  public static readonly CSV_SEPARATOR = '\t'; // Cannot store Regex ind enum
+  public static readonly CSV_SEPARATOR = '\t'; // Cannot store regex in enum
 
   public static readonly DB_RECORD_COUNT_DEFAULT = 100;
   public static readonly DB_RECORD_COUNT_CEIL = 2000;
@@ -42,10 +42,10 @@ export default class Constants {
   public static readonly PWD_NUMBER_MIN_COUNT = 1;
   public static readonly PWD_SPECIAL_MIN_COUNT = 1;
 
-  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store Regex ind enum
-  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store Regex ind enum
-  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store Regex ind enum
-  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store Regex ind enum
+  public static readonly PWD_UPPERCASE_RE = /([A-Z])/g; // Cannot store regex in enum
+  public static readonly PWD_LOWERCASE_RE = /([a-z])/g; // Cannot store regex in enum
+  public static readonly PWD_NUMBER_RE = /([\d])/g; // Cannot store regex in enum
+  public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g; // Cannot store regex in enum
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
@@ -88,7 +88,7 @@ export default class Constants {
   public static readonly OCPP_ERROR_FORMATION_VIOLATION = 'FormationViolation';
   // Payload is syntactically correct but at least one field contains an invalid value
   public static readonly OCPP_ERROR_PROPERTY_RAINT_VIOLATION = 'PropertyraintViolation';
-  // Payload for Action is syntactically correct but at least one of the fields violates occurence raints
+  // Payload for Action is syntactically correct but at least one of the fields violates occurrence raints
   public static readonly OCPP_ERROR_OCCURENCE_RAINT_VIOLATION = 'OccurenceraintViolation';
   // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. "somestring" = 12)
   public static readonly OCPP_ERROR_TYPERAINT_VIOLATION = 'TyperaintViolation';

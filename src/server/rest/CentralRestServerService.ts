@@ -200,6 +200,7 @@ class RequestMapper {
           OcpiEndpointUpdate: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
           OcpiEndpointUnregister: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
+          SynchronizeCars: CarService.handleSynchronizeCars.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;
