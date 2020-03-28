@@ -5,6 +5,7 @@ export default class CarApi extends CrudApi {
   public constructor(authenticatedApi) {
     super(authenticatedApi);
   }
+
   public readById(id) {
     return super.read({ CarID: id }, '/client/api/Car');
   }

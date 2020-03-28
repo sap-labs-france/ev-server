@@ -1,22 +1,23 @@
-import chai, { assert, expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import { ObjectID } from 'mongodb';
-import Billing from '../../src/integration/billing/Billing';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
-import { HTTPAuthError } from '../../src/types/HTTPError';
-import { UserInErrorType } from '../../src/types/InError';
 import { BillingSetting, BillingSettingsType, SettingDB, StripeBillingSetting } from '../../src/types/Setting';
-import User from '../../src/types/User';
-import Constants from '../../src/utils/Constants';
-import Cypher from '../../src/utils/Cypher';
-import config from '../config';
-import Factory from '../factories/Factory';
+import chai, { assert, expect } from 'chai';
+import Billing from '../../src/integration/billing/Billing';
+import { BillingInvoiceStatus } from '../../src/types/Billing';
+import CONTEXTS from './contextProvider/ContextConstants';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import CONTEXTS from './contextProvider/ContextConstants';
+import Constants from '../../src/utils/Constants';
 import ContextProvider from './contextProvider/ContextProvider';
+import Cypher from '../../src/utils/Cypher';
+import Factory from '../factories/Factory';
+import { HTTPAuthError } from '../../src/types/HTTPError';
+import { ObjectID } from 'mongodb';
 import SiteContext from './contextProvider/SiteContext';
+import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
 import TenantContext from './contextProvider/TenantContext';
+import User from '../../src/types/User';
+import { UserInErrorType } from '../../src/types/InError';
+import chaiSubset from 'chai-subset';
+import config from '../config';
 
 chai.use(chaiSubset);
 
@@ -26,10 +27,11 @@ class TestData {
   public tenantContext: TenantContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
-  public userContext: any;
+  public userContext: User;
   public userService: CentralServerService;
   public siteContext: SiteContext;
   public createdUsers: User[] = [];
+  public isForcedSynchro: boolean;
 
   public static async setBillingSystemValidCredentials(testData) {
     const stripeSettings = TestData.getStripeSettings();
@@ -85,6 +87,7 @@ describe('Billing Service', function() {
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
       );
+      testData.isForcedSynchro = false;
     });
 
     describe('Where admin user', () => {
@@ -214,6 +217,72 @@ describe('Billing Service', function() {
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
 
+      it('Should create an invoice', async () => {
+        if (!testData.isForcedSynchro) {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          testData.isForcedSynchro = true;
+        }
+        const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
+        const invoice = await billingImpl.createInvoice(billingUser, { description: 'Test invoice', amount: 5000 });
+        expect(invoice).to.not.be.undefined;
+        expect(invoice.invoice).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
+        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.id);
+        expect(billingInvoice).to.not.be.undefined;
+      });
+
+      it('Should create an invoice with multiple invoice items', async () => {
+        if (!testData.isForcedSynchro) {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          testData.isForcedSynchro = true;
+        }
+        const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
+        const invoice = await billingImpl.createInvoice(billingUser, { description: 'Test invoice', amount: 5000 });
+        expect(invoice).to.not.be.undefined;
+        expect(invoice.invoice).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
+        const openedInvoice = await billingImpl.getOpenedInvoice(billingUser);
+        expect(openedInvoice).to.not.be.undefined;
+        await billingImpl.createInvoiceItem(billingUser, openedInvoice, { description: 'Test invoice multiple items', amount: 1000 });
+        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.id);
+        expect(billingInvoice).to.not.be.undefined;
+        expect(billingInvoice.items.length).to.be.eq(2);
+      });
+
+      it('Should finalize and send an invoice', async () => {
+        if (!testData.isForcedSynchro) {
+          await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+          testData.isForcedSynchro = true;
+        }
+        const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
+        const invoice = await billingImpl.createInvoice(billingUser, { description: 'Test invoice', amount: 5000 });
+        expect(invoice).to.not.be.undefined;
+        expect(invoice.invoice).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
+        const billingInvoice = await billingImpl.sendInvoice(invoice.invoice.id);
+        expect(billingInvoice).to.not.be.undefined;
+        expect(billingInvoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
+      });
+
+      it('Should list invoices', async () => {
+        const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
+        const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
+        for (let i = 0; i < response.data.result.length; i++) {
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices[i].id);
+        }
+      });
+
+      it('Should list filtered invoices', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        for (const invoice of response.data.result) {
+          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
+        }
+      });
+
       after(async () => {
         await TestData.setBillingSystemValidCredentials(testData);
         for (const user of testData.createdUsers) {
@@ -310,6 +379,41 @@ describe('Billing Service', function() {
         } as User;
         const response = await testData.userService.billingApi.forceSynchronizeUser({ id: fakeUser.id });
         expect(response.status).to.be.eq(HTTPAuthError.ERROR);
+      });
+
+      it('Should list invoices', async () => {
+        // Set userContext as ADMIN to ForceSynchronize basic user
+        const basicUser: User = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const adminUser: User = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          adminUser
+        );
+        await testData.userService.billingApi.forceSynchronizeUser({ id: basicUser.id });
+        const billingUser = await billingImpl.getUserByEmail(basicUser.email);
+        const invoice = await billingImpl.createInvoice(billingUser, { description: 'Test invoice', amount: 5000 });
+        expect(invoice).to.not.be.undefined;
+        expect(invoice.invoice).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.not.be.undefined;
+        expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
+
+        // Set back userContext to BASIC to consult invoices
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          basicUser
+        );
+        const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
+        for (let i = 0; i < response.data.result.length; i++) {
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices[i].id);
+        }
+      });
+
+      it('Should list filtered invoices', async () => {
+        const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        for (const invoice of response.data.result) {
+          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
+        }
       });
     });
   });

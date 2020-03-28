@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import BuildingStorage from '../../../storage/mongodb/BuildingStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import Building from '../../../types/Building';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -14,6 +15,78 @@ import BuildingSecurity from './security/BuildingSecurity';
 import UtilsService from './UtilsService';
 
 export default class BuildingService {
+
+  public static async handleAssignBuildingsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BUILDING,
+      Action.UPDATE, Entity.BUILDING, 'BuildingService', 'handleAssignBuildingsToSiteArea');
+    const filteredRequest = BuildingSecurity.filterAssignBuildingsToSiteAreaRequest(req.body);
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, 'BuildingService', 'handleAssignBuildingsToSiteArea', req.user);
+    if (!filteredRequest.buildingIDs || (filteredRequest.buildingIDs && filteredRequest.buildingIDs.length <= 0)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Building\'s IDs must be provided',
+        module: 'BuildingService',
+        method: 'handleAssignBuildingsToSiteArea',
+        user: req.user
+      });
+    }
+    // Get the Site Area
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+      'BuildingService', 'handleAssignBuildingsToSiteArea', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
+        module: 'BuildingService',
+        method: 'handleAssignBuildingsToSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Get Buildings
+    for (const buildingID of filteredRequest.buildingIDs) {
+      // Check the building
+      const building = await BuildingStorage.getBuilding(req.user.tenantID, buildingID);
+      UtilsService.assertObjectExists(action, building, `Building '${buildingID}' doesn't exist anymore.`,
+        'BuildingService', 'handleAssignBuildingsToSiteArea', req.user);
+      // Check auth
+      if (!Authorizations.canUpdateBuilding(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.UPDATE,
+          entity: Entity.BUILDING,
+          module: 'BuildingService',
+          method: 'handleAssignBuildingsToSiteArea',
+          value: buildingID
+        });
+      }
+    }
+    // Save
+    if (action === Action.ADD_BUILDING_TO_SITE_AREA) {
+      await BuildingStorage.addBuildingsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.buildingIDs);
+    } else {
+      await BuildingStorage.removeBuildingsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.buildingIDs);
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user,
+      module: 'BuildingService',
+      method: 'handleAssignBuildingsToSiteArea',
+      message: 'Site Area\'s Buildings have been assigned successfully',
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
 
   public static async handleDeleteBuilding(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
@@ -140,7 +213,9 @@ export default class BuildingService {
     const buildings = await BuildingStorage.getBuildings(req.user.tenantID,
       {
         search: filteredRequest.Search,
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         withSiteArea: filteredRequest.WithSiteArea,
+        withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'siteAreaID', 'address.coordinates', 'address.city', 'address.country', 'siteArea.id', 'siteArea.name']

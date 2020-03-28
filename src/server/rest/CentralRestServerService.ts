@@ -65,6 +65,8 @@ class RequestMapper {
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
+          AddBuildingsToSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
+          RemoveBuildingsFromSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
           BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),
@@ -167,6 +169,7 @@ class RequestMapper {
           Setting: SettingService.handleGetSetting.bind(this),
           BillingConnection: BillingService.handleGetBillingConnection.bind(this),
           BillingTaxes: BillingService.handleGetBillingTaxes.bind(this),
+          BillingUserInvoices: BillingService.handleGetUserInvoices.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),
@@ -199,6 +202,7 @@ class RequestMapper {
           OcpiEndpointUpdate: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
           OcpiEndpointUnregister: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
+          SynchronizeCars: CarService.handleSynchronizeCars.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;

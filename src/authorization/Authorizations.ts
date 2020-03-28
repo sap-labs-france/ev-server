@@ -150,6 +150,7 @@ export default class Authorizations {
       'id': user.id,
       'role': user.role,
       'name': user.name,
+      'email': user.email,
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
@@ -460,6 +461,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
+  public static canSynchronizeCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.SYNCHRONIZE_CARS);
+  }
+
   public static canListBuildings(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.BUILDINGS, Action.LIST);
   }
@@ -527,23 +532,27 @@ export default class Authorizations {
   }
 
   public static canCheckConnectionBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.CHECK_CONNECTION_BILLING);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_CHECK_CONNECTION);
   }
 
   public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE);
   }
 
   public static canSynchronizeUserBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE);
   }
 
   public static canForceUserSynchronizationBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_BILLING);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_FORCE_SYNCHRONIZE);
   }
 
   public static canReadBillingTaxes(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.READ_BILLING_TAXES);
+    return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
+  }
+
+  public static canReadBillingInvoices(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
   public static isSuperAdmin(user: UserToken | User): boolean {
