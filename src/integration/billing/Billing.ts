@@ -26,13 +26,13 @@ export default abstract class Billing<T extends BillingSetting> {
   public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
     // Check
     const actionsDone: BillingUserSynchronizeAction = {
-      synchronized: 0,
-      error: 0
+      inSuccess: 0,
+      inError: 0
     };
     // Get users already in Billing synchronization error
     const usersBillingInError = await UserStorage.getUsersInError(tenantID,
       { errorTypes: [UserInErrorType.FAILED_BILLING_SYNCHRO] }, Constants.DB_PARAMS_MAX_LIMIT);
-    actionsDone.error = usersBillingInError.result.length;
+    actionsDone.inError = usersBillingInError.result.length;
     // Sync e-Mobility New Users with no billing data + e-Mobility Users that have been updated after last sync
     const newUsersToSyncInBilling = await UserStorage.getUsers(tenantID,
       { 'statuses': [UserStatus.ACTIVE], 'notSynchronizedBillingData': true },
@@ -58,9 +58,9 @@ export default abstract class Billing<T extends BillingSetting> {
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
-          actionsDone.synchronized++;
+          actionsDone.inSuccess++;
         } catch (error) {
-          actionsDone.error++;
+          actionsDone.inError++;
           Logging.logError({
             tenantID: tenantID,
             actionOnUser: user,
@@ -87,7 +87,7 @@ export default abstract class Billing<T extends BillingSetting> {
         // Get e-Mobility User
         const user = await UserStorage.getUserByBillingID(tenantID, userBillingIDChangedInBilling);
         if (!user) {
-          actionsDone.error++;
+          actionsDone.inError++;
           Logging.logError({
             tenantID: tenantID,
             source: Constants.CENTRAL_SERVER,
@@ -101,7 +101,7 @@ export default abstract class Billing<T extends BillingSetting> {
         const billingUser = await this.getUser(userBillingIDChangedInBilling);
         if (!billingUser) {
           // Only triggers an error if e-Mobility user is not deleted
-          actionsDone.error++;
+          actionsDone.inError++;
           user.billingData.hasSynchroError = true;
           await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
           Logging.logError({
@@ -125,9 +125,9 @@ export default abstract class Billing<T extends BillingSetting> {
             module: 'Billing', method: 'synchronizeUsers',
             message: 'Successfully synchronized in the billing system'
           });
-          actionsDone.synchronized++;
+          actionsDone.inSuccess++;
         } catch (error) {
-          actionsDone.error++;
+          actionsDone.inError++;
           Logging.logError({
             tenantID: tenantID,
             actionOnUser: user,
@@ -140,23 +140,23 @@ export default abstract class Billing<T extends BillingSetting> {
       }
     }
     // Log
-    if (actionsDone.synchronized || actionsDone.error) {
-      if (actionsDone.synchronized > 0) {
+    if (actionsDone.inSuccess || actionsDone.inError) {
+      if (actionsDone.inSuccess > 0) {
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_BILLING,
           module: 'Billing', method: 'synchronizeUsers',
-          message: `${actionsDone.synchronized} user(s) were successfully synchronized`
+          message: `${actionsDone.inSuccess} user(s) were successfully synchronized`
         });
       }
-      if (actionsDone.error > 0) {
+      if (actionsDone.inError > 0) {
         Logging.logError({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_BILLING,
           module: 'Billing', method: 'synchronizeUsers',
-          message: `Synchronization failed with ${actionsDone.error} errors. Check your Billing system's logs.`
+          message: `Synchronization failed with ${actionsDone.inError} errors. Check your Billing system's logs.`
         });
       }
     } else {

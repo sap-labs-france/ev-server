@@ -97,29 +97,18 @@ export default class CarService {
         method: 'handleSynchronizeCars'
       });
     }
-    try {
-      const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
-      if (carDatabaseImpl) {
-        const result = await carDatabaseImpl.synchronizeCars();
-        res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
-        next();
-      } else {
-        throw new BackendError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message:'Error While retrieving data from EVDatabase',
-          module: 'CarService',
-          method: 'handleSynchronizeCars'
-        });
-      }
-    } catch (error) {
+    const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+    if (!carDatabaseImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `Error while importing the Cars: ${error.message}`,
+        message: 'Car service is not configured',
         module: 'CarService',
         method: 'handleSynchronizeCars'
       });
     }
+    const result = await carDatabaseImpl.synchronizeCars();
+    res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
   }
 }

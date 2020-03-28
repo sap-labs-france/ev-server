@@ -176,8 +176,3 @@ export enum BatteryCapacityEstimate {
   NONE_OF_THE_BATTERY_KWH__FIELDS_ARE_ESTIMATES = 'N',
   BATTERY_KWH_USEABLE_FIELD_IS_ESTIMATE = 'U',
 }
-
-export interface CarSynchronizeAction {
-  synchronized: number;
-  inError: number;
-}

@@ -1,18 +1,19 @@
 import CarStorage from '../../storage/mongodb/CarStorage';
 import { Action } from '../../types/Authorization';
-import { Car, CarSynchronizeAction } from '../../types/Car';
+import { Car } from '../../types/Car';
+import { ActionsResponse } from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 
 export default abstract class CarDatabase {
   public abstract async getCars(): Promise<Car[]>;
-  public async synchronizeCars(): Promise<CarSynchronizeAction> {
+  public async synchronizeCars(): Promise<ActionsResponse> {
     /* eslint-disable */
-    const actionsDone = {
-      synchronized: 0,
+    const actionsDone: ActionsResponse = {
+      inSuccess: 0,
       inError: 0
-    } as CarSynchronizeAction;
+    };
     // Get the cars
     const cars = await this.getCars();
     for (const car of cars) {
@@ -23,7 +24,7 @@ export default abstract class CarDatabase {
           car.hash = Cypher.hash(JSON.stringify(car));
           car.createdOn = new Date();
           await CarStorage.saveCar(car);
-          actionsDone.synchronized++;
+          actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
@@ -37,7 +38,7 @@ export default abstract class CarDatabase {
           car.hash = Cypher.hash(JSON.stringify(car));
           car.lastChangedOn = new Date();
           await CarStorage.saveCar(car);
-          actionsDone.synchronized++;
+          actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
@@ -61,13 +62,13 @@ export default abstract class CarDatabase {
       }
     }
     // Log
-    if (actionsDone.synchronized || actionsDone.inError) {
+    if (actionsDone.inSuccess || actionsDone.inError) {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_CARS,
         module: 'CarDatabase', method: 'synchronizeCars',
-        message: `${actionsDone.synchronized} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
+        message: `${actionsDone.inSuccess} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
       });
     } else {
       Logging.logInfo({
