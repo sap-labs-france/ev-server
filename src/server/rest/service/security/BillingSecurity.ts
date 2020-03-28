@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import {BillingInvoice, BillingInvoiceFilter, BillingTax} from '../../../../types/Billing';
+import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 
