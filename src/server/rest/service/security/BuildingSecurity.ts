@@ -23,7 +23,7 @@ export default class BuildingSecurity {
     return {
       siteAreaID: sanitize(request.siteAreaID),
       buildingIDs: request.buildingIDs.map(sanitize)
-    } as HttpAssignBuildingsToSiteAreaRequest;
+    };
   }
 
   public static filterBuildingsRequest(request: any): HttpBuildingsRequest {
