@@ -1,4 +1,4 @@
-import { ActionsResponse } from "./GlobalType";
+import { ActionsResponse } from './GlobalType';
 
 export interface BillingTransactionData {
   status?: string;
