@@ -240,7 +240,7 @@ export default class SiteAreaService {
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+      await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
