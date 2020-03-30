@@ -15,6 +15,7 @@ export interface TenantDefinition {
     smartCharging?: { content?: SettingDBContent };
     billing?: { content?: SettingDBContent };
     building?: { content?: SettingDBContent };
+    car?: { content?: SettingDBContent };
   };
 }
 
@@ -29,6 +30,7 @@ export default class CONTEXTS {
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
     TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
     TENANT_BUILDING: 'ut-building', // Only building component is active
+    TENANT_CAR: 'ut-car', // Only car component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -309,6 +311,14 @@ export default class CONTEXTS {
       building: {},
       organization: {}
     }
+  },
+  {
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CAR,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab1',
+    subdomain: 'utcar',
+    componentSettings: {
+      car: {},
+    }
   }];
 
   // List of users created in a tenant
@@ -575,6 +585,18 @@ export default class CONTEXTS {
     {
       id: '5e68ae9e2fa3df719875edef',
       siteAreaID: '5ce249a2372f0b1c8caf9294'
+    },
+    {
+      id: '5e7a4509fe033d9842cfd545',
+      siteAreaID: '5ce249a2372f0b1c8caf9294'
+    },
+    {
+      id: '5e7b41b76b802f26bcce005d',
+      siteAreaID: '5ce249a2372f0b1c8caf5476'
+    },
+    {
+      id: '5e7b434f6b802f26bcce0066',
+      siteAreaID: '5ce249a2372f0b1c8caf5432'
     }
   ];
 }

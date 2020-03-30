@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingTax } from '../../../../types/Billing';
+import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 
@@ -21,7 +21,7 @@ export default class BillingSecurity {
   }
 
   static filterTaxResponse(tax: BillingTax, loggedUser: UserToken): BillingTax {
-    const filteredTax: BillingTax = {} as BillingTax;
+    const filteredTax = {} as BillingTax;
     if (!tax) {
       return null;
     }
@@ -36,6 +36,42 @@ export default class BillingSecurity {
     return filteredTax;
   }
 
+  static filterInvoicesResponse(invoices: BillingInvoice[], loggedUser: UserToken): BillingInvoice[] {
+    const filteredInvoices = [];
+    if (!invoices) {
+      return null;
+    }
+    for (const invoice of invoices) {
+      // Filter
+      const filteredInvoice = BillingSecurity.filterInvoiceResponse(invoice, loggedUser);
+      if (filteredInvoices) {
+        filteredInvoices.push(filteredInvoice);
+      }
+    }
+    return filteredInvoices;
+  }
+
+  static filterInvoiceResponse(invoice: BillingInvoice, loggedUser: UserToken): BillingInvoice {
+    const filteredInvoice = {} as BillingInvoice;
+    if (!invoice) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadBillingInvoices(loggedUser)) {
+      // Set only necessary info
+      filteredInvoice.id = invoice.id;
+      filteredInvoice.number = invoice.number;
+      filteredInvoice.status = invoice.status;
+      filteredInvoice.amountDue = invoice.amountDue;
+      filteredInvoice.createdOn = invoice.createdOn;
+      filteredInvoice.downloadUrl = invoice.downloadUrl;
+      filteredInvoice.payUrl = invoice.payUrl;
+      filteredInvoice.currency = invoice.currency;
+      filteredInvoice.customerID = invoice.customerID;
+    }
+    return filteredInvoice;
+  }
+
   static filterSynchronizeUserRequest(request: any): HttpSynchronizeUserRequest {
     const filteredUser: HttpSynchronizeUserRequest = {} as HttpSynchronizeUserRequest;
     if (request.id) {
@@ -45,5 +81,22 @@ export default class BillingSecurity {
       filteredUser.email = sanitize(request.email);
     }
     return filteredUser;
+  }
+
+  static filterGetUserInvoicesRequest(request: any): BillingInvoiceFilter {
+    const filteredRequest = {} as BillingInvoiceFilter;
+    if (request.Status) {
+      filteredRequest.status = sanitize(request.Status);
+    }
+    if (request.StartDateTime) {
+      filteredRequest.startDateTime = sanitize(request.StartDateTime);
+    }
+    if (request.EndDateTime) {
+      filteredRequest.endDateTime = sanitize(request.EndDateTime);
+    }
+    if (request.Search) {
+      filteredRequest.search = sanitize(request.Search);
+    }
+    return filteredRequest;
   }
 }

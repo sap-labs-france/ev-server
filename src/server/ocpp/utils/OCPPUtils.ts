@@ -367,7 +367,7 @@ export default class OCPPUtils {
         source: chargingProfile.chargingStationID,
         action: Action.CHARGING_PROFILE_UPDATE,
         module: 'OCPPUtils', method: 'setAndSaveChargingProfile',
-        message: `Charging Station not found`,
+        message: 'Charging Station not found',
       });
     }
     // Get Vendor Instance
