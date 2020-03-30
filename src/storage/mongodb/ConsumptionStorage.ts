@@ -100,7 +100,6 @@ export default class ConsumptionStorage {
         stateOfCharge: { $last: '$stateOfCharge' },
         instantPower: { $max: '$instantPower' },
         totalInactivitySecs: { $max: '$totalInactivitySecs' },
-        totalDurationSecs: { $last: '$totalDurationSecs' },
         pricingSource: { $last: '$pricingSource' },
         amount: { $last: '$amount' },
         cumulatedAmount: { $last: '$cumulatedAmount' },
