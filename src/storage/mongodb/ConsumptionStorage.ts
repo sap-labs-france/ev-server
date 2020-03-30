@@ -87,41 +87,48 @@ export default class ConsumptionStorage {
           cumulatedAmount: '$cumulatedAmount',
           limitWatts: '$limitWatts'
         },
-        userID: { $last: '$userID' },
-        chargeBoxID: { $last: '$chargeBoxID' },
-        siteID: { $last: '$siteID' },
-        siteAreaID: { $last: '$siteAreaID' },
-        connectorId: { $last: '$connectorId' },
-        transactionId: { $last: '$transactionId' },
-        endedAt: { $max: '$endedAt' },
-        startedAt: { $min: '$startedAt' },
-        cumulatedConsumption: { $last: '$cumulatedConsumption' },
-        consumption: { $last: '$consumption' },
-        stateOfCharge: { $last: '$stateOfCharge' },
-        instantPower: { $max: '$instantPower' },
-        totalInactivitySecs: { $max: '$totalInactivitySecs' },
-        pricingSource: { $last: '$pricingSource' },
-        amount: { $last: '$amount' },
-        cumulatedAmount: { $last: '$cumulatedAmount' },
-        roundedAmount: { $last: '$roundedAmount' },
-        currencyCode: { $last: '$currencyCode' },
-        limitWatts: { $last: '$limitWatts' },
-        limitAmps: { $last: '$limitAmps' },
+        consumptions: { $push: "$$ROOT" }
       }
     });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    // Sort
-    aggregation.push({ $sort: { endedAt: 1 } });
+    aggregation.push({
+      $sort: { 'consumptions.startedAt': 1 }
+    });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-
+    // Do the optimization in the code!!!
+    let lastConsumption;
+    const consumptions: Consumption[] = [];
+    for (const consumptionMDB of consumptionsMDB) {
+      // Simplify grouped consumption
+      for (let i = 0; i <= consumptionMDB.consumptions.length - 3 ; i++) {
+        if (!lastConsumption) {
+          lastConsumption = consumptionMDB.consumptions[i];
+        }
+        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i+1].startedAt.getTime()) {
+          // Remove
+          lastConsumption = consumptionMDB.consumptions[i+1];
+          consumptionMDB.consumptions.splice(i+1, 1);
+          i--;
+        } else {
+          // Insert the last consumption before it changes
+          consumptionMDB.consumptions.splice(i, 0, lastConsumption);
+          lastConsumption = consumptionMDB.consumptions[i+2];
+          i++;
+        }
+      }
+      // Unwind
+      for (const consumption of consumptionMDB.consumptions) {
+        consumptions.push(consumption);
+      }
+    }
+    // Sort
+    consumptions.sort((cons1, cons2) => {
+      return cons1.startedAt.getTime() - cons2.startedAt.getTime();
+    });
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
-    return consumptionsMDB;
+    return consumptions;
   }
 }
