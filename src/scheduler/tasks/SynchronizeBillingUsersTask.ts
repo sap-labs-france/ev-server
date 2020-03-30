@@ -10,11 +10,11 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (billingImpl) {
       const synchronizeAction = await billingImpl.synchronizeUsers(tenant.id);
-      if (synchronizeAction.error > 0) {
+      if (synchronizeAction.inError > 0) {
         await NotificationHandler.sendBillingUserSynchronizationFailed(
           tenant.id,
           {
-            nbrUsersInError: synchronizeAction.error,
+            nbrUsersInError: synchronizeAction.inError,
             evseDashboardURL: Utils.buildEvseURL(tenant.subdomain),
             evseDashboardBillingURL: await Utils.buildEvseBillingSettingsURL(tenant.id)
           }

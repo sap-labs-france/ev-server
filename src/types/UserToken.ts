@@ -4,6 +4,7 @@ export default interface UserToken {
   id?: string;
   role?: string;
   name?: string;
+  email?: string;
   firstName?: string;
   locale?: string;
   language?: string;

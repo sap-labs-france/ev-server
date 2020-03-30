@@ -6,6 +6,8 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
+import { BillingInvoice, BillingInvoiceFilter } from '../../../types/Billing';
+import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
@@ -22,22 +24,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.CHECK_CONNECTION_BILLING,
+        entity: Entity.BILLING, action: Action.BILLING_CHECK_CONNECTION,
         module: 'BillingService', method: 'handleGetBillingConnection',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-      !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        action: action,
-        user: req.user
-      });
-    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -84,30 +80,23 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USERS, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleSynchronizeUsers',
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-      !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService',
-        method: 'handleSynchronizeUsers',
-        action: Action.SYNCHRONIZE_BILLING,
-        user: req.user
-      });
-    }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: 'BillingService', method: 'handleSynchronizeUsers',
         action: action,
         user: req.user
       });
@@ -125,22 +114,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleSynchronizeUser',
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService', method: 'handleSynchronizeUser',
-        action: Action.SYNCHRONIZE_BILLING,
-        user: req.user
-      });
-    }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
       throw new AppError({
@@ -169,29 +152,23 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_BILLING,
+        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
         module: 'BillingService', method: 'handleForceSynchronizeUser',
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService', method: 'handleForceSynchronizeUser',
-        action: Action.SYNCHRONIZE_BILLING,
-        user: req.user
-      });
-    }
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        module: 'BillingService', method: 'handleForceSynchronizeUser',
         message: 'Billing service is not configured',
+        module: 'BillingService', method: 'handleForceSynchronizeUser',
         action: action,
         user: req.user
       });
@@ -212,22 +189,16 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.READ_BILLING_TAXES,
+        entity: Entity.TAXES, action: Action.LIST,
         module: 'BillingService', method: 'handleGetBillingTaxes',
       });
     }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.TAXES, 'BillingService', 'handleGetBillingTaxes');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.LIST, Entity.TAXES, 'BillingService', 'handleGetBillingTaxes');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
-    if (!Utils.isTenantComponentActive(tenant, TenantComponents.BILLING) ||
-        !Utils.isTenantComponentActive(tenant, TenantComponents.PRICING)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Billing or Pricing not active in this Tenant',
-        module: 'BillingService', method: 'handleSynchronizeUsers',
-        action: action,
-        user: req.user
-      });
-    }
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -245,5 +216,51 @@ export default class BillingService {
     // Return
     taxes = BillingSecurity.filterTaxesResponse(taxes, req.user);
     res.json(Object.assign(taxes, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  public static async handleGetUserInvoices(action: Action, req: Request, res: Response, next: NextFunction) {
+    if (!Authorizations.canReadBillingInvoices(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.INVOICES, action: Action.LIST,
+        module: 'BillingService', method: 'handleGetUserInvoices',
+      });
+    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.LIST, Entity.INVOICES, 'BillingService', 'handleGetUserInvoices');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.PRICING,
+      Action.LIST, Entity.INVOICES, 'BillingService', 'handleGetUserInvoices');
+    // Get Billing implementation from factory
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: 'BillingService', method: 'handleGetUserInvoices',
+        action: action,
+        user: req.user
+      });
+    }
+    const filteredRequest: BillingInvoiceFilter = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    const billingUser = await billingImpl.getUserByEmail(req.user.email);
+    let invoices = await billingImpl.getUserInvoices(billingUser,
+      {
+        status: filteredRequest.status,
+        search: filteredRequest.search,
+        startDateTime: filteredRequest.startDateTime,
+        endDateTime: filteredRequest.endDateTime
+      });
+    invoices = BillingSecurity.filterInvoicesResponse(invoices, req.user);
+    // Return
+    const result = {
+      result: invoices,
+      count: invoices.length
+    } as DataResult<BillingInvoice>;
+    res.json(Object.assign(result, Constants.REST_RESPONSE_SUCCESS));
+    next();
   }
 }
