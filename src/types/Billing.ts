@@ -49,15 +49,15 @@ export interface BillingTax {
 
 export interface BillingInvoice {
   id: string;
-  number: string;
-  status: BillingInvoiceStatus;
-  amountDue: number;
-  currency: string;
-  customerID: string;
-  createdOn: Date;
-  downloadUrl: string;
-  payUrl: string;
-  items: BillingInvoiceItem[];
+  number?: string;
+  status?: BillingInvoiceStatus;
+  amountDue?: number;
+  currency?: string;
+  customerID?: string;
+  createdOn?: Date;
+  downloadUrl?: string;
+  payUrl?: string;
+  items?: BillingInvoiceItem[];
 }
 
 export interface BillingInvoiceItem {
@@ -69,8 +69,7 @@ export interface BillingInvoiceItem {
 export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
-  PENDING = 'pending',
-  DRAFT = 'draft'
+  DRAFT = 'draft',
 }
 
 export interface BillingInvoiceFilter {
