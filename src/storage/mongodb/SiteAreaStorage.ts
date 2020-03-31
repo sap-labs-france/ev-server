@@ -89,7 +89,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargeBoxes?: boolean; withAvailableChargers?: boolean;
+      withChargeBoxes?: boolean; smartCharging?: boolean; withAvailableChargers?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -119,6 +119,9 @@ export default class SiteAreaStorage {
     }
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
+    }
+    if (params.smartCharging === true || params.smartCharging === false) {
+      filters.smartCharging = params.smartCharging;
     }
     // Create Aggregation
     const aggregation = [];
@@ -245,6 +248,12 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+      { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
+      { $set: { siteAreaID: null } },
+      { upsert: false }
+    );
+    // Remove Building's Site Area
+    await global.database.getCollection<any>(tenantID, 'buildings').updateMany(
       { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
       { $set: { siteAreaID: null } },
       { upsert: false }

@@ -1,8 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import {BillingInvoice, BillingInvoiceFilter, BillingTax} from '../../../../types/Billing';
+import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
+import { DataResult } from '../../../../types/DataResult';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -36,19 +38,19 @@ export default class BillingSecurity {
     return filteredTax;
   }
 
-  static filterInvoicesResponse(invoices: BillingInvoice[], loggedUser: UserToken): BillingInvoice[] {
+  static filterInvoicesResponse(invoices: DataResult<BillingInvoice>, loggedUser: UserToken): void {
     const filteredInvoices = [];
     if (!invoices) {
       return null;
     }
-    for (const invoice of invoices) {
+    for (const invoice of invoices.result) {
       // Filter
       const filteredInvoice = BillingSecurity.filterInvoiceResponse(invoice, loggedUser);
       if (filteredInvoices) {
         filteredInvoices.push(filteredInvoice);
       }
     }
-    return filteredInvoices;
+    invoices.result = filteredInvoices;
   }
 
   static filterInvoiceResponse(invoice: BillingInvoice, loggedUser: UserToken): BillingInvoice {
@@ -94,9 +96,8 @@ export default class BillingSecurity {
     if (request.EndDateTime) {
       filteredRequest.endDateTime = sanitize(request.EndDateTime);
     }
-    if (request.Search) {
-      filteredRequest.search = sanitize(request.Search);
-    }
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 }
