@@ -370,12 +370,12 @@ export default abstract class ChargingStationVendor {
         module: 'ChargingStationVendor', method: 'clearChargingProfile',
         detailedMessages: { error }
       });
-      if (!error.status) {
+      // if (!error.status) {
         throw error;
-      }
-      return {
-        status: error.status
-      };
+      // }
+      // return {
+      //   status: error.status
+      // };
     }
   }
 

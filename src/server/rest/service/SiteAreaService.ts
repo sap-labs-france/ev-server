@@ -3,7 +3,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
@@ -15,6 +15,7 @@ import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import SmartCharging from '../../../integration/smart-charging/SmartCharging';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import AppError from '../../../exception/AppError';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -239,8 +240,10 @@ export default class SiteAreaService {
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    let clearingSuccessful = true;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+      clearingSuccessful = false;
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -257,6 +260,16 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea }
     });
+    if (!clearingSuccessful) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.SITE_AREA_CLEAR_CHARGING_PROFILES_NOT_SUCCESSFUL,
+        message: 'Error occurred while clearing Charging Profiles for Site Area',
+        module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+        user: req.user, actionOnUser: req.user
+      });
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
