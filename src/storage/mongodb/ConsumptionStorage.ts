@@ -3,7 +3,6 @@ import global from '../../types/GlobalType';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID: string, consumptionToSave: Consumption): Promise<string> {
@@ -78,13 +77,16 @@ export default class ConsumptionStorage {
         transactionId: Utils.convertToInt(params.transactionId)
       }
     });
+    aggregation.push({
+      $addFields: {
+        roundedInstantPower: { $round: [ { $divide: ["$instantPower", 100] } ] }
+      }
+    });
     // Triming excess values
     aggregation.push({
       $group: {
         _id: {
-          instantPower: '$instantPower',
-          consumption: '$consumption',
-          roundedAmount: '$roundedAmount',
+          roundedInstantPower: '$roundedInstantPower',
           limitWatts: '$limitWatts'
         },
         consumptions: { $push: '$$ROOT' }

@@ -314,12 +314,9 @@ export default class TransactionSecurity {
       const newConsumption = {
         date: consumption.endedAt,
         instantPower: consumption.instantPower,
-        consumption: consumption.consumption,
         cumulatedConsumption: consumption.cumulatedConsumption,
         stateOfCharge: consumption.stateOfCharge,
-        amount: consumption.amount,
         cumulatedAmount: consumption.cumulatedAmount,
-        currencyCode: consumption.currencyCode,
         limitWatts: consumption.limitWatts
       };
       if (consumption.stateOfCharge) {
