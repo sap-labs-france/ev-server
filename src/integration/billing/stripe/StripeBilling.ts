@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import i18n from 'i18n-js';
 import moment from 'moment';
-import Stripe from 'stripe';
+import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
-import DbParams from '../../../types/database/DbParams';
 import { DataResult } from '../../../types/DataResult';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -244,18 +243,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       limit: StripeBilling.STRIPE_MAX_LIST,
       type: 'customer.*',
     };
-
     try {
       // Check Stripe
       await this.checkConnection();
       // Loop until all users are read
-
       do {
         events = await this.stripe.events.list(request);
         for (const evt of events.data) {
-          if (evt.data.object.object === 'customer' && evt.data.object['id']) {
-            if (!collectedCustomerIDs.includes(evt.data.object['id'])) {
-              collectedCustomerIDs.push(evt.data.object['id']);
+          if (evt.data.object.object === 'customer' && (evt.data.object as IResourceObject).id) {
+            if (!collectedCustomerIDs.includes((evt.data.object as IResourceObject).id)) {
+              collectedCustomerIDs.push((evt.data.object as IResourceObject).id);
             }
           }
         }
