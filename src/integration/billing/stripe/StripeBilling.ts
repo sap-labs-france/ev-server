@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import i18n from 'i18n-js';
 import moment from 'moment';
-import Stripe from 'stripe';
+import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { DataResult } from '../../../types/DataResult';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -17,6 +18,7 @@ import Billing from '../Billing';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ITaxRate = Stripe.taxRates.ITaxRate;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
+import IInvoiceListOptions = Stripe.invoices.IInvoiceListOptions;
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -155,10 +157,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       return {
         id: invoice.id,
         number: invoice.number,
-        status: invoice.status,
+        status: invoice.status as BillingInvoiceStatus,
         amountDue: invoice.amount_due,
         currency: invoice.currency,
-        customerID: invoice.customer,
+        customerID: invoice.customer.toString(),
         createdOn: new Date(invoice.created * 1000),
         downloadUrl: invoice.invoice_pdf,
         payUrl: invoice.hosted_invoice_url,
@@ -167,48 +169,48 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<BillingInvoice[]> {
+  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>> {
     await this.checkConnection();
     const invoices = [] as BillingInvoice[];
-    let request;
-    const requestParams: any = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    const requestParams: IInvoiceListOptions = { customer: user.billingData.customerID };
     if (filters) {
+      if (filters.status) {
+        requestParams.status = filters.status;
+      }
+      if (filters.startDateTime || filters.endDateTime) {
+        requestParams.created = {};
+      }
       if (filters.startDateTime) {
-        Object.assign(requestParams, { created: { gte: new Date(filters.startDateTime).getTime() / 1000 } });
+        // @ts-ignore
+        requestParams.created.gte = new Date(filters.startDateTime).getTime() / 1000;
       }
       if (filters.endDateTime) {
-        if (requestParams.created) {
-          Object.assign(requestParams.created, { lte: new Date(filters.endDateTime).getTime() / 1000 });
-        } else {
-          Object.assign(requestParams, { created: { lte: new Date(filters.endDateTime).getTime() / 1000 } });
-        }
+        // @ts-ignore
+        requestParams.created.lte = new Date(filters.endDateTime).getTime() / 1000;
       }
     }
-    do {
-      request = await this.stripe.invoices.list(requestParams);
-      for (const invoice of request.data) {
-        const matchStatus = !filters || !filters.status || filters.status.split('|').includes(invoice.status);
-        const matchSearch = !filters || !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim());
-        if (matchStatus && matchSearch) {
-          invoices.push({
-            id: invoice.id,
-            number: invoice.number,
-            status: invoice.status,
-            amountDue: invoice.amount_due,
-            currency: invoice.currency,
-            customerID: invoice.customer,
-            createdOn: new Date(invoice.created * 1000),
-            downloadUrl: invoice.invoice_pdf,
-            payUrl: invoice.hosted_invoice_url,
-            items: invoice.lines.data,
-          });
-        }
-      }
-      if (request.has_more) {
-        requestParams['starting_after'] = invoices[invoices.length - 1].id;
-      }
-    } while (request.has_more);
-    return invoices;
+    // Always force the max: impossible to handle the pagination!!!
+    requestParams.limit = 100;
+    // Call
+    const request = await this.stripe.invoices.list(requestParams);
+    for (const invoice of request.data) {
+      invoices.push({
+        id: invoice.id,
+        number: invoice.number,
+        status: invoice.status as BillingInvoiceStatus,
+        amountDue: invoice.amount_due,
+        currency: invoice.currency,
+        customerID: invoice.customer.toString(),
+        createdOn: new Date(invoice.created * 1000),
+        downloadUrl: invoice.invoice_pdf,
+        payUrl: invoice.hosted_invoice_url,
+        items: invoice.lines.data,
+      });
+    }
+    return {
+      count: invoices.length,
+      result: invoices
+    };
   }
 
   public async getTaxes(): Promise<BillingTax[]> {
@@ -241,18 +243,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       limit: StripeBilling.STRIPE_MAX_LIST,
       type: 'customer.*',
     };
-
     try {
       // Check Stripe
       await this.checkConnection();
       // Loop until all users are read
-
       do {
         events = await this.stripe.events.list(request);
         for (const evt of events.data) {
-          if (evt.data.object.object === 'customer' && evt.data.object.id) {
-            if (!collectedCustomerIDs.includes(evt.data.object.id)) {
-              collectedCustomerIDs.push(evt.data.object.id);
+          if (evt.data.object.object === 'customer' && (evt.data.object as IResourceObject).id) {
+            if (!collectedCustomerIDs.includes((evt.data.object as IResourceObject).id)) {
+              collectedCustomerIDs.push((evt.data.object as IResourceObject).id);
             }
           }
         }
@@ -275,11 +275,15 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async getOpenedInvoice(user: BillingPartialUser): Promise<BillingInvoice> {
     if (!user.billingData || !user.billingData.customerID) {
       throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
         message: 'User has no Billing data',
+        module: 'StripeBilling',
+        method: 'getOpenedInvoice',
+        action: Action.BILLING_GET_OPENED_INVOICE
       });
     }
     try {
-      const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT });
+      const userOpenedInvoices = (await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT })).result;
       if (userOpenedInvoices.length > 0) {
         return userOpenedInvoices[0];
       }
@@ -321,24 +325,22 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         collection_method: 'send_invoice',
         days_until_due: daysUntilDue,
         auto_advance: true
-      });
+      }) as BillingInvoice;
     } catch (e) {
-      // No pending invoice item found
+      // No pending invoice item found: Create one
       try {
         invoiceItem = await this.stripe.invoiceItems.create({
           customer: user.billingData.customerID,
           currency: this.settings.currency.toLocaleLowerCase(),
           amount: invoiceItem.amount,
           description: invoiceItem.description,
-          tax_rates: invoiceItem.taxes ? invoiceItem.taxes : []
         });
-
         invoice = await this.stripe.invoices.create({
           customer: user.billingData.customerID,
           collection_method: 'send_invoice',
           days_until_due: daysUntilDue,
           auto_advance: true
-        });
+        }) as BillingInvoice;
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -368,7 +370,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         currency: this.settings.currency.toLocaleLowerCase(),
         amount: invoiceItem.amount * 100,
         description: invoiceItem.description,
-        tax_rates: invoiceItem.taxes ? invoiceItem.taxes : [],
         invoice: invoice.id
       });
     } catch (error) {
@@ -382,10 +383,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async sendInvoice(invoiceId: string): Promise<BillingInvoice> {
+  public async sendInvoiceToUser(invoiceId: string): Promise<BillingInvoice> {
     await this.checkConnection();
     try {
-      return await this.stripe.invoices.sendInvoice(invoiceId);
+      return await this.stripe.invoices.sendInvoice(invoiceId) as BillingInvoice;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -529,10 +530,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         collectionMethod = 'charge_automatically';
         daysUntilDue = 0;
       }
-      const taxRates: ITaxRate[] = [];
-      if (this.settings.taxID) {
-        taxRates.push(this.settings.taxID);
-      }
+      // Const taxRates: ITaxRate[] = [];
+      // if (this.settings.taxID) {
+      //   taxRates.push(this.settings.taxID);
+      // }
       let invoiceStatus: string;
       let invoiceItem: string;
       let newInvoiceItem: Stripe.invoiceItems.InvoiceItem;
@@ -565,7 +566,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            tax_rates: taxRates,
+            // Tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -603,13 +604,11 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            tax_rates: taxRates,
+            // Tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
-          if (!newInvoiceItem.invoice) {
-            invoiceStatus = BillingInvoiceStatus.PENDING;
-          } else {
+          if (newInvoiceItem.invoice) {
             if (typeof (newInvoiceItem.invoice) === 'string') {
               newInvoice.id = newInvoiceItem.invoice;
             } else {
@@ -1076,7 +1075,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         }
       }
     }
-    if (!subscription && billingMethod && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingPlan && billingMethod && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       // Create subscription
       let billingCycleAnchor = moment().unix(); // Now
       const plan = await this.getBillingPlan(billingPlan); // Existence was already checked
