@@ -210,30 +210,28 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         requestParams['starting_after'] = invoices[invoices.length - 1].id;
       }
     } while (request.has_more);
-    const beginIndex = dbParams.skip ? dbParams.skip : 0;
-    let endIndex;
-    if (!dbParams.limit) {
-      endIndex = invoices.length;
-    } else if (dbParams.skip) {
-      endIndex = dbParams.skip + dbParams.limit;
-    } else {
-      endIndex = dbParams.limit;
+    const beginIndex = dbParams ? (dbParams.skip ? dbParams.skip : 0) : 0;
+    let endIndex = invoices.length;
+    if (dbParams && dbParams.limit) {
+      endIndex = dbParams.skip ? dbParams.skip + dbParams.limit : dbParams.limit;
     }
-    // Sort by date
-    if (dbParams.sort) {
+
+    // Sorting
+    if (dbParams && dbParams.sort) {
+      // By date
       if (dbParams.sort.createdOn) {
         const dir = dbParams.sort.createdOn;
         invoices.sort((a, b) => a.createdOn > b.createdOn ? 1 * dir : a.createdOn < b.createdOn ? -1 * dir : 0);
       }
+      // By status
       if (dbParams.sort.status) {
         const dir = dbParams.sort.status;
         invoices.sort((a, b) => a.status.localeCompare(b.status) * dir);
       }
     }
-
     return {
       count: invoices.length,
-      result: dbParams.onlyRecordCount ? [] : invoices.slice(beginIndex, endIndex)
+      result: dbParams ? (dbParams.onlyRecordCount ? [] : invoices.slice(beginIndex, endIndex)) : invoices
     };
   }
 
@@ -391,7 +389,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       });
     }
     try {
-      return this.stripe.invoiceItems.create({
+      return await this.stripe.invoiceItems.create({
         customer: user.billingData.customerID,
         currency: this.settings.currency.toLocaleLowerCase(),
         amount: invoiceItem.amount * 100,

@@ -272,7 +272,7 @@ describe('Billing Service', function() {
         const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
         const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
         for (let i = 0; i < response.data.result.length; i++) {
-          expect(response.data.result[i].id).to.be.eq(billingUserInvoices[i].id);
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].id);
         }
       });
 
@@ -405,7 +405,7 @@ describe('Billing Service', function() {
         const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
         for (let i = 0; i < response.data.result.length; i++) {
-          expect(response.data.result[i].id).to.be.eq(billingUserInvoices[i].id);
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].id);
         }
       });
 
