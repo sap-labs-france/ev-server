@@ -82,46 +82,58 @@ export default class ConsumptionStorage {
     aggregation.push({
       $group: {
         _id: {
-          cumulatedConsumption: '$cumulatedConsumption',
+          instantPower: '$instantPower',
           consumption: '$consumption',
-          cumulatedAmount: '$cumulatedAmount',
+          roundedAmount: '$roundedAmount',
           limitWatts: '$limitWatts'
         },
-        userID: { $last: '$userID' },
-        chargeBoxID: { $last: '$chargeBoxID' },
-        siteID: { $last: '$siteID' },
-        siteAreaID: { $last: '$siteAreaID' },
-        connectorId: { $last: '$connectorId' },
-        transactionId: { $last: '$transactionId' },
-        endedAt: { $max: '$endedAt' },
-        startedAt: { $min: '$startedAt' },
-        cumulatedConsumption: { $last: '$cumulatedConsumption' },
-        consumption: { $last: '$consumption' },
-        stateOfCharge: { $last: '$stateOfCharge' },
-        instantPower: { $max: '$instantPower' },
-        totalInactivitySecs: { $max: '$totalInactivitySecs' },
-        pricingSource: { $last: '$pricingSource' },
-        amount: { $last: '$amount' },
-        cumulatedAmount: { $last: '$cumulatedAmount' },
-        roundedAmount: { $last: '$roundedAmount' },
-        currencyCode: { $last: '$currencyCode' },
-        limitWatts: { $last: '$limitWatts' },
-        limitAmps: { $last: '$limitAmps' },
+        consumptions: { $push: "$$ROOT" }
       }
     });
-    // Convert Object ID to string
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
-    // Sort
-    aggregation.push({ $sort: { endedAt: 1 } });
+    aggregation.push({
+      $sort: { 'consumptions.startedAt': 1 }
+    });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-
+    // Do the optimization in the code!!!
+    const consumptions: Consumption[] = [];
+    for (const consumptionMDB of consumptionsMDB) {
+      let lastConsumption: Consumption = null;
+      let lastConsumtionRemoved = false;
+        // Simplify grouped consumption
+      for (let i = 0; i <= consumptionMDB.consumptions.length - 3 ; i++) {
+        if (!lastConsumption) {
+          lastConsumption = consumptionMDB.consumptions[i];
+        }
+        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i+1].startedAt.getTime()) {
+          // Remove
+          lastConsumption = consumptionMDB.consumptions[i+1];
+          consumptionMDB.consumptions.splice(i+1, 1);
+          lastConsumtionRemoved = true;
+          i--;
+        } else {
+          // Insert the last consumption before it changes
+          if (lastConsumtionRemoved) {
+            consumptionMDB.consumptions.splice(i, 0, lastConsumption);
+            lastConsumtionRemoved = false
+            i++;
+          }
+          lastConsumption = consumptionMDB.consumptions[i+1];
+        }
+      }
+      // Unwind
+      for (const consumption of consumptionMDB.consumptions) {
+        consumptions.push(consumption);
+      }
+    }
+    // Sort
+    consumptions.sort((cons1, cons2) => {
+      return cons1.endedAt.getTime() - cons2.endedAt.getTime();
+    });
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
-    return consumptionsMDB;
+    return consumptions;
   }
 }

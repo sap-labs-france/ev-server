@@ -506,24 +506,22 @@ export default class OCPPCommonTests {
     for (let i = 0; i < response.data.values.length; i++) {
       // Get the value
       const value = response.data.values[i];
-      // Check
-      expect(value).to.include({
-        'chargeBoxID': this.newTransaction.chargeBoxID,
-        'connectorId': this.newTransaction.connectorId,
-        'date': transactionCurrentTime.toISOString(),
-        'value': (i > 0 ? this.transactionMeterValues[i - 1] * this.transactionMeterValueIntervalSecs : this.transactionStartMeterValue),
-        'cumulated': transactionCumulatedConsumption
-      });
-      if (withSoC) {
-        // Check
-        expect(value).to.include({
-          'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
-        });
-      }
       // Add time
       transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
       // Sum
       transactionCumulatedConsumption += this.transactionMeterValues[i];
+      // Check
+      expect(value).to.include({
+        'date': transactionCurrentTime.toISOString(),
+        'instantPower': this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        'cumulatedConsumption': transactionCumulatedConsumption
+      });
+      if (withSoC) {
+        // Check
+        expect(value).to.include({
+          'stateOfCharge': this.transactionMeterSoCValues[i]
+        });
+      }
     }
   }
 

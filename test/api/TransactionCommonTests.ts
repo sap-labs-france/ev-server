@@ -524,13 +524,13 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: cumulated - meterStart
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: cumulated - meterStart
         }
       ]
     });
@@ -564,19 +564,19 @@ export default class TransactionCommonTests {
       TransactionId: transactionId,
       StartDateTime: startDate.clone().subtract(1, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(3);
+    expect(response.data.values).has.lengthOf(2);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: cumulated - meterStart
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: cumulated - meterStart
         }
       ]
     });
@@ -615,14 +615,14 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(1, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(2);
+    expect(response.data.values).has.lengthOf(1);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         }
       ]
     });
@@ -631,14 +631,14 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(1.5, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(2);
+    expect(response.data.values).has.lengthOf(1);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         }
       ]
     });
@@ -647,19 +647,19 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(3, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(3);
+    expect(response.data.values).has.lengthOf(2);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -668,19 +668,19 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().add(1, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(2, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(3);
+    expect(response.data.values).has.lengthOf(2);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -689,14 +689,14 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().add(1.5, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(2, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(2);
+    expect(response.data.values).has.lengthOf(1);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -705,14 +705,14 @@ export default class TransactionCommonTests {
       StartDateTime: startDate.clone().add(2, 'hour').toISOString(),
       EndDateTime: startDate.clone().add(3, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(2);
+    expect(response.data.values).has.lengthOf(1);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -739,14 +739,14 @@ export default class TransactionCommonTests {
       TransactionId: transactionId,
       EndDateTime: startDate.clone().add(1, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(2);
+    expect(response.data.values).has.lengthOf(1);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         }
       ]
     });
@@ -754,19 +754,19 @@ export default class TransactionCommonTests {
       TransactionId: transactionId,
       EndDateTime: startDate.clone().add(2.5, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(3);
+    expect(response.data.values).has.lengthOf(2);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -774,19 +774,19 @@ export default class TransactionCommonTests {
       TransactionId: transactionId,
       EndDateTime: startDate.clone().add(4, 'hour').toISOString()
     });
-    expect(response.data.values).has.lengthOf(3);
+    expect(response.data.values).has.lengthOf(2);
     expect(response.data).to.containSubset({
       id: transactionId,
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          value: meterValues[0].value,
-          cumulated: meterValues[0].value
+          instantPower: meterValues[0].value,
+          cumulatedConsumption: meterValues[0].value
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          value: meterValues[1].value,
-          cumulated: meterValues[1].value + meterValues[0].value
+          instantPower: meterValues[1].value,
+          cumulatedConsumption: meterValues[1].value + meterValues[0].value
         }
       ]
     });
@@ -811,8 +811,8 @@ export default class TransactionCommonTests {
       values: [
         {
           date: stopDate.toISOString(),
-          value: meterStop - meterStart,
-          cumulated: meterStop
+          instantPower: meterStop - meterStart,
+          cumulatedConsumption: meterStop
         }
       ]
     });
