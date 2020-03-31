@@ -461,6 +461,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
   }
 
+  public static canReadCarConstructors(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.GET_CAR_CONSTRUCTORS);
+  }
+
   public static canSynchronizeCars(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.SYNCHRONIZE_CARS);
   }

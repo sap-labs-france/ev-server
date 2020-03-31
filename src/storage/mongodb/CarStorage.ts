@@ -21,7 +21,7 @@ export default class CarStorage {
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[] } = {},
+    params: { search?: string; carID?: string; carIDs?: string[]; vehicleMakes?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
@@ -50,6 +50,17 @@ export default class CarStorage {
           _id: { $in: params.carIDs }
         }
       });
+    }
+    if (params.vehicleMakes && Array.isArray(params.vehicleMakes)) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          'vehicleMake': {
+            $in: params.vehicleMakes
+          }
+        }
+      });
+
     }
     // Filters
     if (filters) {
@@ -252,4 +263,47 @@ export default class CarStorage {
     Logging.traceEnd('CarStorage', 'saveCar', uniqueTimerID, { carToSave });
     return carToSave.id;
   }
+
+  public static async getCarConstructors(
+    params: { search?: string } = {}): Promise<string[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
+    // Set the filters
+    const filters: ({ $or?: any[] } | undefined) = {};
+
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
+      ];
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    aggregation.push({
+      $group: { _id: null, uniqueValues: { $addToSet: '$vehicleMake' } }
+    });
+    aggregation.push({
+      $project: {
+        _id: 0,
+        vehicleMakes: '$uniqueValues'
+      }
+    });
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd('CarStorage', 'getCars', uniqueTimerID, { result });
+    // Ok
+    return result.length > 0 ? result[0].vehicleMakes : null;
+  }
+
 }
