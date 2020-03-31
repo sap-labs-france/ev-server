@@ -235,17 +235,11 @@ export default class BillingService {
     }
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
-    const invoices = await billingImpl.getUserInvoices(billingUser,
-      {
-        status: filteredRequest.status,
-        search: filteredRequest.search,
-        startDateTime: filteredRequest.startDateTime,
-        endDateTime: filteredRequest.endDateTime
-      } as BillingInvoiceFilter, {
-        limit: filteredRequest['Limit'],
-        skip: filteredRequest['Skip'],
-        sort: filteredRequest['Sort']
-      });
+    const invoices = await billingImpl.getUserInvoices(billingUser, {
+      status: filteredRequest.status,
+      startDateTime: filteredRequest.startDateTime,
+      endDateTime: filteredRequest.endDateTime
+    });
     invoices.result = BillingSecurity.filterInvoicesResponse(invoices.result, req.user);
     // Return
     res.json(Object.assign(invoices, Constants.REST_RESPONSE_SUCCESS));

@@ -76,5 +76,4 @@ export interface BillingInvoiceFilter {
   status?: BillingInvoiceStatus;
   startDateTime?: Date;
   endDateTime?: Date;
-  search?: string;
 }

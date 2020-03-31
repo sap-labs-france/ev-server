@@ -302,7 +302,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter, dbParams?: DbParams): Promise<DataResult<BillingInvoice>>;
+  async abstract getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>>;
 
   async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
 

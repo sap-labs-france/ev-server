@@ -5,8 +5,8 @@ import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
-import { DataResult } from '../../../types/DataResult';
 import DbParams from '../../../types/database/DbParams';
+import { DataResult } from '../../../types/DataResult';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -170,68 +170,47 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter, dbParams?: DbParams): Promise<DataResult<BillingInvoice>> {
+  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>> {
     await this.checkConnection();
     const invoices = [] as BillingInvoice[];
     const requestParams: IInvoiceListOptions = { customer: user.billingData.customerID };
     if (filters) {
       if (filters.status) {
-        Object.assign(requestParams, { status: filters.status });
+        requestParams.status = filters.status;
+      }
+      if (filters.startDateTime || filters.endDateTime) {
+        requestParams.created = {};
       }
       if (filters.startDateTime) {
-        Object.assign(requestParams, { created: { gte: new Date(filters.startDateTime).getTime() / 1000 } });
+        // @ts-ignore
+        requestParams.created.gte = new Date(filters.startDateTime).getTime() / 1000;
       }
       if (filters.endDateTime) {
-        if (requestParams.created) {
-          Object.assign(requestParams.created, { lte: new Date(filters.endDateTime).getTime() / 1000 });
-        } else {
-          Object.assign(requestParams, { created: { lte: new Date(filters.endDateTime).getTime() / 1000 } });
-        }
+        // @ts-ignore
+        requestParams.created.lte = new Date(filters.endDateTime).getTime() / 1000;
       }
     }
-    let request;
-    do {
-      request = await this.stripe.invoices.list(requestParams);
-      for (const invoice of request.data) {
-        invoices.push({
-          id: invoice.id,
-          number: invoice.number,
-          status: invoice.status,
-          amountDue: invoice.amount_due,
-          currency: invoice.currency,
-          customerID: invoice.customer,
-          createdOn: new Date(invoice.created * 1000),
-          downloadUrl: invoice.invoice_pdf,
-          payUrl: invoice.hosted_invoice_url,
-          items: invoice.lines.data,
-        });
-      }
-      if (request.has_more) {
-        requestParams['starting_after'] = invoices[invoices.length - 1].id;
-      }
-    } while (request.has_more);
-    const beginIndex = dbParams ? (dbParams.skip ? dbParams.skip : 0) : 0;
-    let endIndex = invoices.length;
-    if (dbParams && dbParams.limit) {
-      endIndex = dbParams.skip ? dbParams.skip + dbParams.limit : dbParams.limit;
-    }
-
-    // Sorting
-    if (dbParams && dbParams.sort) {
-      // By date
-      if (dbParams.sort.createdOn) {
-        const dir = dbParams.sort.createdOn;
-        invoices.sort((a, b) => a.createdOn > b.createdOn ? 1 * dir : a.createdOn < b.createdOn ? -1 * dir : 0);
-      }
-      // By status
-      if (dbParams.sort.status) {
-        const dir = dbParams.sort.status;
-        invoices.sort((a, b) => a.status.localeCompare(b.status) * dir);
-      }
+    // Always force the max: impossible to handle the pagination!!!
+    requestParams.limit = 100;
+    // Call
+    const request = await this.stripe.invoices.list(requestParams);
+    for (const invoice of request.data) {
+      invoices.push({
+        id: invoice.id,
+        number: invoice.number,
+        status: invoice.status as BillingInvoiceStatus,
+        amountDue: invoice.amount_due,
+        currency: invoice.currency,
+        customerID: invoice.customer.toString(),
+        createdOn: new Date(invoice.created * 1000),
+        downloadUrl: invoice.invoice_pdf,
+        payUrl: invoice.hosted_invoice_url,
+        items: invoice.lines.data,
+      });
     }
     return {
       count: invoices.length,
-      result: dbParams ? (dbParams.onlyRecordCount ? [] : invoices.slice(beginIndex, endIndex)) : invoices
+      result: invoices
     };
   }
 
