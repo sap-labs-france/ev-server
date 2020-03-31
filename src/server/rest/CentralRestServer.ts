@@ -120,7 +120,7 @@ export default class CentralRestServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: 'start', action: 'Startup',
-        message: 'Socket is trying to connect from ' + socket.handshake.headers.origin,
+        message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketHandshake: socket.handshake }
       });
       next();
@@ -138,7 +138,7 @@ export default class CentralRestServer {
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME,
           method: 'start', action: 'Startup',
-          message: 'Socket is trying to connect without token',
+          message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.disconnect(true);
@@ -147,7 +147,7 @@ export default class CentralRestServer {
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME,
           method: 'start', action: 'Startup',
-          message: 'Socket is connected to tenant ' + userToken.tenantID,
+          message: 'SocketIO client is connected to tenant ' + userToken.tenantID,
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);

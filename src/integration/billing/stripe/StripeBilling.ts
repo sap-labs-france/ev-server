@@ -1104,7 +1104,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         }
       }
     }
-    if (!subscription && billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    if (!subscription && billingPlan && billingMethod && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       // Create subscription
       let billingCycleAnchor = moment().unix(); // Now
       const plan = await this.getBillingPlan(billingPlan); // Existence was already checked

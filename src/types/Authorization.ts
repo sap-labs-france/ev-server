@@ -95,6 +95,8 @@ export enum Action {
 
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
+  ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
+
   REFUND = 'Refund',
 
   CHANGE_CONFIGURATION = 'ChangeConfiguration',
@@ -121,6 +123,7 @@ export enum Action {
   DELETE_CREDENTIALS = 'DeleteCredentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 
+  CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SAP_SMART_CHARGING = 'SAPSmartCharging',
 }
 

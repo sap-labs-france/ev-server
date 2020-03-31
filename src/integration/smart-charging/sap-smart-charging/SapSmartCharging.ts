@@ -77,7 +77,18 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Build URL
     const url = this.setting.optimizerUrl;
     const user = this.setting.user;
-    const password = Cypher.decrypt(this.setting.password);
+    let password = this.setting.password;
+    if (password) {
+      password = Cypher.decrypt(password);
+    }
+    if (!url || !user || !password) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
+        message: 'SAP Smart Charging service configuration is incorrect',
+        module: 'SapSmartCharging', method: 'getChargingProfiles',
+      });
+    }
     const requestUrl = url.slice(0, 8) + user + ':' + password + '@' + url.slice(8);
     return requestUrl;
   }
