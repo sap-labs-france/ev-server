@@ -13,6 +13,7 @@ phases:
       - ssh-keygen -F github.com || ssh-keyscan github.com >>~/.ssh/known_hosts
       - git config --global url."git@github.com:".insteadOf "https://github.com/"
       - git init
+      - if git ls-remote --quiet --exit-code origin &> /dev/null; then git remote remove origin; fi
       - if [ -z ${remote_origin} ]; then echo "missing remote_origin env variable, exiting"; exit 1; fi
       - git remote add origin ${remote_origin}
       - git fetch
