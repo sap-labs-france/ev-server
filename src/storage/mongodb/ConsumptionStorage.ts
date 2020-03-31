@@ -82,9 +82,9 @@ export default class ConsumptionStorage {
     aggregation.push({
       $group: {
         _id: {
-          cumulatedConsumption: '$cumulatedConsumption',
+          instantPower: '$instantPower',
           consumption: '$consumption',
-          cumulatedAmount: '$cumulatedAmount',
+          roundedAmount: '$roundedAmount',
           limitWatts: '$limitWatts'
         },
         consumptions: { $push: "$$ROOT" }
