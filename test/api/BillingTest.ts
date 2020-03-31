@@ -262,7 +262,7 @@ describe('Billing Service', function() {
         expect(invoice.invoice).to.not.be.undefined;
         expect(invoice.invoiceItem).to.not.be.undefined;
         expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-        const billingInvoice = await billingImpl.sendInvoice(invoice.invoice.id);
+        const billingInvoice = await billingImpl.sendInvoiceToUser(invoice.invoice.id);
         expect(billingInvoice).to.not.be.undefined;
         expect(billingInvoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
       });

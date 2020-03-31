@@ -1,8 +1,9 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import {BillingInvoice, BillingInvoiceFilter, BillingTax} from '../../../../types/Billing';
+import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
@@ -97,6 +98,8 @@ export default class BillingSecurity {
     if (request.Search) {
       filteredRequest.search = sanitize(request.Search);
     }
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 }

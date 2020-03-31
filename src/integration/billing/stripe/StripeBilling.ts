@@ -5,6 +5,8 @@ import Stripe from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { DataResult } from '../../../types/DataResult';
+import DbParams from '../../../types/database/DbParams';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -168,12 +170,17 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<BillingInvoice[]> {
+  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter, dbParams?: DbParams): Promise<DataResult<BillingInvoice>> {
     await this.checkConnection();
     const invoices = [] as BillingInvoice[];
-    let request;
-    const requestParams: IInvoiceListOptions = { limit: StripeBilling.STRIPE_MAX_LIST, customer: user.billingData.customerID };
+    const requestParams: IInvoiceListOptions = { customer: user.billingData.customerID };
     if (filters) {
+      if (filters.status) {
+        Object.assign(requestParams, { status: filters.status });
+      }
+      if (filters.search) {
+        Object.assign(requestParams, { number: filters.search.trim().toUpperCase() });
+      }
       if (filters.startDateTime) {
         Object.assign(requestParams, { created: { gte: new Date(filters.startDateTime).getTime() / 1000 } });
       }
@@ -185,31 +192,52 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         }
       }
     }
+    let request;
     do {
       request = await this.stripe.invoices.list(requestParams);
       for (const invoice of request.data) {
-        const matchStatus = !filters || !filters.status || filters.status.split('|').includes(invoice.status);
-        const matchSearch = !filters || !filters.search || filters.search === '' || invoice.number.toUpperCase().startsWith(filters.search.toUpperCase().trim());
-        if (matchStatus && matchSearch) {
-          invoices.push({
-            id: invoice.id,
-            number: invoice.number,
-            status: invoice.status,
-            amountDue: invoice.amount_due,
-            currency: invoice.currency,
-            customerID: invoice.customer,
-            createdOn: new Date(invoice.created * 1000),
-            downloadUrl: invoice.invoice_pdf,
-            payUrl: invoice.hosted_invoice_url,
-            items: invoice.lines.data,
-          });
-        }
+        invoices.push({
+          id: invoice.id,
+          number: invoice.number,
+          status: invoice.status,
+          amountDue: invoice.amount_due,
+          currency: invoice.currency,
+          customerID: invoice.customer,
+          createdOn: new Date(invoice.created * 1000),
+          downloadUrl: invoice.invoice_pdf,
+          payUrl: invoice.hosted_invoice_url,
+          items: invoice.lines.data,
+        });
       }
       if (request.has_more) {
         requestParams['starting_after'] = invoices[invoices.length - 1].id;
       }
     } while (request.has_more);
-    return invoices;
+    const beginIndex = dbParams.skip ? dbParams.skip : 0;
+    let endIndex;
+    if (!dbParams.limit) {
+      endIndex = invoices.length;
+    } else if (dbParams.skip) {
+      endIndex = dbParams.skip + dbParams.limit;
+    } else {
+      endIndex = dbParams.limit;
+    }
+    // Sort by date
+    if (dbParams.sort) {
+      if (dbParams.sort.createdOn) {
+        const dir = dbParams.sort.createdOn;
+        invoices.sort((a, b) => a.createdOn > b.createdOn ? 1 * dir : a.createdOn < b.createdOn ? -1 * dir : 0);
+      }
+      if (dbParams.sort.status) {
+        const dir = dbParams.sort.status;
+        invoices.sort((a, b) => a.status.localeCompare(b.status) * dir);
+      }
+    }
+
+    return {
+      count: invoices.length,
+      result: dbParams.onlyRecordCount ? [] : invoices.slice(beginIndex, endIndex)
+    };
   }
 
   public async getTaxes(): Promise<BillingTax[]> {
@@ -284,7 +312,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       });
     }
     try {
-      const userOpenedInvoices = await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT });
+      const userOpenedInvoices = (await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT })).result;
       if (userOpenedInvoices.length > 0) {
         return userOpenedInvoices[0];
       }
@@ -384,7 +412,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async sendInvoice(invoiceId: string): Promise<BillingInvoice> {
+  public async sendInvoiceToUser(invoiceId: string): Promise<BillingInvoice> {
     await this.checkConnection();
     try {
       return await this.stripe.invoices.sendInvoice(invoiceId) as BillingInvoice;
@@ -531,7 +559,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         collectionMethod = 'charge_automatically';
         daysUntilDue = 0;
       }
-      // const taxRates: ITaxRate[] = [];
+      // Const taxRates: ITaxRate[] = [];
       // if (this.settings.taxID) {
       //   taxRates.push(this.settings.taxID);
       // }
@@ -567,7 +595,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            // tax_rates: taxRates,
+            // Tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -605,7 +633,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            // tax_rates: taxRates,
+            // Tax_rates: taxRates,
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
