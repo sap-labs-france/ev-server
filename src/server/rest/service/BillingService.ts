@@ -232,15 +232,20 @@ export default class BillingService {
       });
     }
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
+    // Get user
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
+    UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
+      'BillingService', 'handleGetUserInvoices', req.user);
+      // Get invoices
     const invoices = await billingImpl.getUserInvoices(billingUser, {
       status: filteredRequest.status,
       startDateTime: filteredRequest.startDateTime,
       endDateTime: filteredRequest.endDateTime
     });
-    invoices.result = BillingSecurity.filterInvoicesResponse(invoices.result, req.user);
+    // Filter
+    BillingSecurity.filterInvoicesResponse(invoices, req.user);
     // Return
-    res.json(Object.assign(invoices, Constants.REST_RESPONSE_SUCCESS));
+    res.json(invoices);
     next();
   }
 }
