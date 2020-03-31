@@ -94,7 +94,7 @@
     "@types/passport-jwt": "^3.0.1",
     "@types/socket.io": "^2.1.4",
     "@types/socketio-jwt": "^0.0.0",
-    "@types/stripe-v3": "^3.1.13",
+    "@types/stripe": "^7.13.22",
     "@types/urlencode": "^1.1.1",
     "@types/uuid": "^3.4.5",
     "@types/ws": "^7.2.3",

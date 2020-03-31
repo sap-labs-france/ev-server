@@ -1,4 +1,6 @@
+import DbParams from '../../types/database/DbParams';
 import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { DataResult } from '../../types/DataResult';
 import User, { UserStatus } from '../../types/User';
 import { Action } from '../../types/Authorization';
 import BackendError from '../../exception/BackendError';
@@ -24,6 +26,7 @@ export default abstract class Billing<T extends BillingSetting> {
   }
 
   public async synchronizeUsers(tenantID): Promise<BillingUserSynchronizeAction> {
+    await this.checkConnection();
     // Check
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
@@ -299,7 +302,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: BillingPartialUser, params?: BillingInvoiceFilter): Promise<BillingInvoice[]>;
+  async abstract getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>>;
 
   async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
 
@@ -309,5 +312,5 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
-  async abstract sendInvoice(invoiceId: string): Promise<BillingInvoice>;
+  async abstract sendInvoiceToUser(invoiceId: string): Promise<BillingInvoice>;
 }
