@@ -198,6 +198,18 @@ export default class SettingStorage {
   }
 
   public static async saveBillingSettings(tenantID: string, billingSettingsToSave: BillingSettings): Promise<string> {
+    const settings = await SettingStorage.getBillingSettings(tenantID);
+    if (settings.type === BillingSettingsType.STRIPE) {
+      if (!billingSettingsToSave.stripe.secretKey ||
+          (!billingSettingsToSave.stripe.immediateBillingAllowed && billingSettingsToSave.stripe.periodicBillingAllowed && !billingSettingsToSave.stripe.advanceBillingAllowed)) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'SettingStorage',
+          method: 'saveBillingSettings',
+          message: 'One or several mandatory fields are missing'
+        });
+      }
+    }
     // Build internal structure
     const settingsToSave = {
       id: billingSettingsToSave.id,
