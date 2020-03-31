@@ -125,7 +125,7 @@ export default class ConsumptionStorage {
     }
     // Sort
     consumptions.sort((cons1, cons2) => {
-      return cons1.startedAt.getTime() - cons2.startedAt.getTime();
+      return cons1.endedAt.getTime() - cons2.endedAt.getTime();
     });
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
