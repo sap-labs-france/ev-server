@@ -89,7 +89,7 @@ export default class ConsumptionStorage {
           roundedInstantPower: '$roundedInstantPower',
           limitWatts: '$limitWatts'
         },
-        consumptions: { $push: "$$ROOT" }
+        consumptions: { $push: '$$ROOT' }
       }
     });
     aggregation.push({
@@ -104,25 +104,25 @@ export default class ConsumptionStorage {
     for (const consumptionMDB of consumptionsMDB) {
       let lastConsumption: Consumption = null;
       let lastConsumtionRemoved = false;
-        // Simplify grouped consumption
+      // Simplify grouped consumption
       for (let i = 0; i <= consumptionMDB.consumptions.length - 3 ; i++) {
         if (!lastConsumption) {
           lastConsumption = consumptionMDB.consumptions[i];
         }
-        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i+1].startedAt.getTime()) {
+        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i + 1].startedAt.getTime()) {
           // Remove
-          lastConsumption = consumptionMDB.consumptions[i+1];
-          consumptionMDB.consumptions.splice(i+1, 1);
+          lastConsumption = consumptionMDB.consumptions[i + 1];
+          consumptionMDB.consumptions.splice(i + 1, 1);
           lastConsumtionRemoved = true;
           i--;
         } else {
           // Insert the last consumption before it changes
           if (lastConsumtionRemoved) {
             consumptionMDB.consumptions.splice(i, 0, lastConsumption);
-            lastConsumtionRemoved = false
+            lastConsumtionRemoved = false;
             i++;
           }
-          lastConsumption = consumptionMDB.consumptions[i+1];
+          lastConsumption = consumptionMDB.consumptions[i + 1];
         }
       }
       // Unwind
@@ -131,9 +131,7 @@ export default class ConsumptionStorage {
       }
     }
     // Sort
-    consumptions.sort((cons1, cons2) => {
-      return cons1.endedAt.getTime() - cons2.endedAt.getTime();
-    });
+    consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
