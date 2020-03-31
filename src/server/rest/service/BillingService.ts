@@ -6,8 +6,6 @@ import BillingFactory from '../../../integration/billing/BillingFactory';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { BillingInvoice, BillingInvoiceFilter } from '../../../types/Billing';
-import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
