@@ -10,30 +10,39 @@ import Utils from '../../utils/Utils';
 
 export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
   async processTenant(tenant: Tenant): Promise<void> {
-    try {
-      const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
-      if (isOrgCompActive) {
-        const isSmartChargingCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
-        if (isSmartChargingCompActive) {
-          const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargeBoxes: true }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Get Site Area
-          for (const siteArea of siteAreas.result) {
-            if (siteArea.smartCharging) {
-              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
-            }
+    if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
+        Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+      // Get all site areas
+      const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
+        { withChargeBoxes: true, smartCharging: true },
+        Constants.DB_PARAMS_MAX_LIMIT);
+      // Get Site Area
+      for (const siteArea of siteAreas.result) {
+        try {
+          // Get implementation
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+          if (!smartCharging) {
+            // Log
+            Logging.logError({
+              tenantID: tenant.id,
+              module: 'CheckAndComputeSmartChargingTask', method: 'run',
+              action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+              message: `No implementation available for the Smart Charging`,
+            });
           }
+          // Apply Charging Profiles
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        } catch (error) {
+          // Log error
+          Logging.logError({
+            tenantID: tenant.id,
+            module: 'CheckAndComputeSmartChargingTask', method: 'run',
+            action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+            message: `Error while running the task '${name}': ${error.message}`,
+            detailedMessages: { error }
+          });
         }
       }
-    } catch (error) {
-      // Log error
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: 'CheckAndComputeSmartChargingTask', method: 'run',
-        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
-        message: `Error while running the task '${name}': ${error.message}`,
-        detailedMessages: { error }
-      });
     }
   }
 }
