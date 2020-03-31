@@ -79,7 +79,7 @@ export default class ConsumptionStorage {
     });
     aggregation.push({
       $addFields: {
-        roundedInstantPower: { $round: [ { $divide: ["$instantPower", 100] } ] }
+        roundedInstantPower: { $round: [ { $divide: ['$instantPower', 100] } ] }
       }
     });
     // Triming excess values
