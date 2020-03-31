@@ -542,8 +542,7 @@ export default class OCPPService {
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
-      const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
-      if (isOrgCompActive) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
         // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
@@ -551,13 +550,15 @@ export default class OCPPService {
         if (site) {
           startTransaction.siteID = site.id;
         }
-        const isSmartChargingCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING);
-        if (isSmartChargingCompActive) {
+        // Handle Smart Charging
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
           // Get Site Area
           const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
           if (siteArea.smartCharging) {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
           }
         }
       }
