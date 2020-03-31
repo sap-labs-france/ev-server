@@ -327,39 +327,6 @@ export default class TransactionSecurity {
       }
       return newConsumption;
     });
-    // for (let i = 1; i < filteredTransaction.values.length; i++) {
-    //   if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
-    //     const addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
-    //     const newDate = new Date(filteredTransaction.values[i - 1].endedAt.getTime() + 60000);
-    //     addedValue.endedAt = newDate;
-    //     addedValue.date = newDate;
-    //     if (filteredTransaction.values[i].date.getTime() !== addedValue.date.getTime()) {
-    //       filteredTransaction.values.splice(i, 0, addedValue);
-    //     }
-    //     i++;
-    //   }
-    // }
-    // const initialValue = JSON.parse(JSON.stringify(filteredTransaction.values[0]));
-    // const initialDate = new Date(filteredTransaction.values[0].endedAt.getTime() - 60000);
-    // initialValue.endedAt = initialDate;
-    // initialValue.date = initialDate;
-    // initialValue.value = 0;
-    // initialValue.cumulated = 0;
-    // initialValue.instantPower = 0;
-    // initialValue.cumulatedConsumption = 0;
-    // initialValue.limitWatts = consumptions[0].limitWatts;
-    // if (Authorizations.isAdmin(loggedUser)) {
-    //   initialValue.startedAt = new Date(initialDate.getTime() - 60000);
-    //   initialValue.consumption = 0;
-    //   initialValue.amount = 0;
-    //   initialValue.cumulatedAmount = 0;
-    //   initialValue.roundedAmount = 0;
-    // }
-    // if (initialSoC) {
-    //   initialValue.stateOfCharge = initialSoC;
-    //   filteredTransaction.stateOfCharge = initialSoC;
-    // }
-    // filteredTransaction.values.splice(0, 0, initialValue);
     return filteredTransaction;
   }
 }
