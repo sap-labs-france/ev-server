@@ -178,9 +178,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       if (filters.status) {
         Object.assign(requestParams, { status: filters.status });
       }
-      if (filters.search) {
-        Object.assign(requestParams, { number: filters.search.trim().toUpperCase() });
-      }
       if (filters.startDateTime) {
         Object.assign(requestParams, { created: { gte: new Date(filters.startDateTime).getTime() / 1000 } });
       }
