@@ -123,6 +123,7 @@ export enum Action {
   DELETE_CREDENTIALS = 'DeleteCredentials',
   OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 
+  CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SAP_SMART_CHARGING = 'SAPSmartCharging',
 }
 
