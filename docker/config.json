@@ -242,5 +242,20 @@
         "config": {}
       }
     ]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "trace": true,
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
   }
 }
