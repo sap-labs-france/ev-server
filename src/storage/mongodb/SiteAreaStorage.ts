@@ -252,8 +252,8 @@ export default class SiteAreaStorage {
       { $set: { siteAreaID: null } },
       { upsert: false }
     );
-    // Remove Building's Site Area
-    await global.database.getCollection<any>(tenantID, 'buildings').updateMany(
+    // Remove Asset's Site Area
+    await global.database.getCollection<any>(tenantID, 'assets').updateMany(
       { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
       { $set: { siteAreaID: null } },
       { upsert: false }

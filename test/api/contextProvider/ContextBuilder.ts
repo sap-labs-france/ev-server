@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import moment from 'moment';
 import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
-import BuildingStorage from '../../../src/storage/mongodb/BuildingStorage';
+import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
@@ -291,20 +291,20 @@ export default class ContextBuilder {
         }
         newTenantContext.addSiteContext(siteContext);
       }
-      // Check if the building tenant exists and is activated
-      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.BUILDING) &&
-      buildTenant.components[TenantComponents.BUILDING].active) {
-        // Create Building list
-        for (const buildingDef of CONTEXTS.TENANT_BUILDING_LIST) {
-          const dummyBuilding = Factory.building.build();
-          dummyBuilding.id = buildingDef.id;
-          dummyBuilding.createdBy = { id: adminUser.id };
-          dummyBuilding.createdOn = moment().toISOString();
-          dummyBuilding.issuer = true;
-          dummyBuilding.siteAreaID = buildingDef.siteAreaID;
-          console.log(`Building '${dummyBuilding.name}' created`);
-          await BuildingStorage.saveBuilding(buildTenant.id, dummyBuilding);
-          newTenantContext.getContext().buildings.push(dummyBuilding);
+      // Check if the asset tenant exists and is activated
+      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
+      buildTenant.components[TenantComponents.ASSET].active) {
+        // Create Asset list
+        for (const assetDef of CONTEXTS.TENANT_ASSET_LIST) {
+          const dummyAsset = Factory.asset.build();
+          dummyAsset.id = assetDef.id;
+          dummyAsset.createdBy = { id: adminUser.id };
+          dummyAsset.createdOn = moment().toISOString();
+          dummyAsset.issuer = true;
+          dummyAsset.siteAreaID = assetDef.siteAreaID;
+          console.log(`Asset '${dummyAsset.name}' created`);
+          await AssetStorage.saveAsset(buildTenant.id, dummyAsset);
+          newTenantContext.getContext().assets.push(dummyAsset);
         }
       }
     }

@@ -61,8 +61,8 @@ const GRANTS = {
       },
       { resource: 'Taxes', action: ['List'], attributes: ['*'] },
       { resource: 'Invoices', action: ['List'], attributes: ['*'] },
-      { resource: 'Building', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
@@ -86,8 +86,8 @@ const GRANTS = {
         resource: 'User', action: ['Read', 'Update'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
-      { resource: 'Building', action: 'Read', attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       {
         resource: 'Company', action: 'Read', attributes: ['*'],
@@ -183,8 +183,8 @@ const GRANTS = {
   demo: {
     grants: [
       { resource: 'User', action: 'Read', attributes: ['*'] },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
-      { resource: 'Building', action: 'Read', attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: 'Read', attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },

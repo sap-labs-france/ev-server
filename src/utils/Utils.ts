@@ -15,7 +15,7 @@ import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import { Action } from '../types/Authorization';
-import Building from '../types/Building';
+import Asset from '../types/Asset';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import Company from '../types/Company';
@@ -1026,34 +1026,34 @@ export default class Utils {
     return moment(date).isValid();
   }
 
-  public static checkIfBuildingValid(building: Partial<Building>, req: Request): void {
-    if (req.method !== 'POST' && !building.id) {
+  public static checkIfAssetValid(asset: Partial<Asset>, req: Request): void {
+    if (req.method !== 'POST' && !asset.id) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Building ID is mandatory',
-        module: 'BuildingService',
-        method: 'checkIfBuildingValid',
+        message: 'Asset ID is mandatory',
+        module: 'AssetService',
+        method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
-    if (!building.name) {
+    if (!asset.name) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Building Name is mandatory',
-        module: 'BuildingService',
-        method: 'checkIfBuildingValid',
+        message: 'Asset Name is mandatory',
+        module: 'AssetService',
+        method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
-    if (!building.siteAreaID) {
+    if (!asset.siteAreaID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Building Site Area is mandatory',
-        module: 'BuildingService',
-        method: 'checkIfBuildingValid',
+        message: 'Asset Site Area is mandatory',
+        module: 'AssetService',
+        method: 'checkIfAssetValid',
         user: req.user.id
       });
     }
@@ -1348,10 +1348,10 @@ export default class Utils {
         }
         break;
 
-      // Building
-      case TenantComponents.BUILDING:
+      // Asset
+      case TenantComponents.ASSET:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only Building
+          // Only Asset
           return {
             'type': null,
           } as SettingDBContent;

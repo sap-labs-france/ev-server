@@ -28,8 +28,8 @@ export enum Entity {
   OCPI_ENDPOINTS = 'OcpiEndpoints',
   CONNECTION = 'Connection',
   CONNECTIONS = 'Connections',
-  BUILDING = 'Building',
-  BUILDINGS = 'Buildings',
+  ASSET = 'Asset',
+  ASSETS = 'Assets',
   CAR = 'Car',
   CARS = 'Cars',
   INVOICE = 'Invoice',
@@ -95,7 +95,7 @@ export enum Action {
 
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
-  ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
+  ADD_ASSET_TO_SITE_AREA = 'AddAssetsToSiteArea',
 
   REFUND = 'Refund',
 
@@ -139,6 +139,6 @@ export interface AuthorizationContext {
   sitesOwner?: string[];
   company?: string;
   companies?: string[];
-  building?: string;
-  buildings?: string[];
+  asset?: string;
+  assets?: string[];
 }

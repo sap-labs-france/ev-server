@@ -14,7 +14,7 @@ export interface TenantDefinition {
     analytics?: { content?: SettingDBContent };
     smartCharging?: { content?: SettingDBContent };
     billing?: { content?: SettingDBContent };
-    building?: { content?: SettingDBContent };
+    asset?: { content?: SettingDBContent };
     car?: { content?: SettingDBContent };
   };
 }
@@ -29,7 +29,7 @@ export default class CONTEXTS {
     TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
     TENANT_FUNDING: 'ut-refund', // Only refund component is active
     TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
-    TENANT_BUILDING: 'ut-building', // Only building component is active
+    TENANT_ASSET: 'ut-asset', // Only asset component is active
     TENANT_CAR: 'ut-car', // Only car component is active
   };
 
@@ -304,11 +304,11 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BUILDING,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
-    subdomain: 'utbuilding',
+    subdomain: 'utasset',
     componentSettings: {
-      building: {},
+      asset: {},
       organization: {}
     }
   },
@@ -580,8 +580,8 @@ export default class CONTEXTS {
     }
   ];
 
-  // List of buildings created in a tenant where organization component is active
-  static readonly TENANT_BUILDING_LIST: any = [
+  // List of assets created in a tenant where organization component is active
+  static readonly TENANT_ASSET_LIST: any = [
     {
       id: '5e68ae9e2fa3df719875edef',
       siteAreaID: '5ce249a2372f0b1c8caf9294'

@@ -465,24 +465,24 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.SYNCHRONIZE_CARS);
   }
 
-  public static canListBuildings(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDINGS, Action.LIST);
+  public static canListAssets(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
   }
 
-  public static canReadBuilding(loggedUser: UserToken, buildingId: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.READ);
+  public static canReadAsset(loggedUser: UserToken, assetId: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ);
   }
 
-  public static canCreateBuilding(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.CREATE);
+  public static canCreateAsset(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.CREATE);
   }
 
-  public static canUpdateBuilding(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.UPDATE);
+  public static canUpdateAsset(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.UPDATE);
   }
 
-  public static canDeleteBuilding(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BUILDING, Action.DELETE);
+  public static canDeleteAsset(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.DELETE);
   }
 
   public static canListTenants(loggedUser: UserToken): boolean {
