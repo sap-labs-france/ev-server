@@ -242,8 +242,11 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     let clearingSuccessful = true;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
-      clearingSuccessful = false;
+      try {
+        await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+      } catch {
+        clearingSuccessful = false;
+      }
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -264,7 +267,7 @@ export default class SiteAreaService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: action,
-        errorCode: HTTPError.SITE_AREA_CLEAR_CHARGING_PROFILES_NOT_SUCCESSFUL,
+        errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profiles for Site Area',
         module: 'SiteAreaService', method: 'handleUpdateSiteArea',
         user: req.user, actionOnUser: req.user

@@ -263,6 +263,7 @@ export default class OCPPUtils {
 
   public static async clearAndDeleteChargingProfilesForSiteArea(tenantID: string, siteArea: SiteArea, user?: UserToken) {
     const chargingProfiles = [];
+    let clearingSuccessful = true;
     for (const chargingStation of siteArea.chargingStations) {
       chargingProfiles.push(...(await ChargingStationStorage.getChargingProfiles(tenantID,
         { chargingStationID: chargingStation.id }, Constants.DB_PARAMS_MAX_LIMIT)).result);
@@ -279,9 +280,13 @@ export default class OCPPUtils {
               message: `Error while clearing charging profile for chargingStation ${chargingProfile.chargingStationID}`,
               detailedMessages: { error }
             });
+            clearingSuccessful = false;
           }
         }
       }
+    }
+    if (!clearingSuccessful) {
+      throw Error;
     }
   }
 
@@ -317,24 +322,8 @@ export default class OCPPUtils {
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
     }
-    // Clear Charging Profile
-    // Do not check the result beacause:
-    // 1\ Charging Profile exists and has been deleted: Status = ACCEPTED
-    // 2\ Charging Profile does not exist : Status = UNKNOWN
-    // As there are only 2 statuses, testing them is not necessary
-    try {
-      await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
-    } catch (error) {
-      Logging.logError({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
-        message: 'Error occurred while clearing the Charging Profile',
-        module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
-        detailedMessages: { error }
-      });
-    }
-    // Delete
+
+    // Delete from database
     await ChargingStationStorage.deleteChargingProfile(tenantID, chargingProfile.id);
     // Log
     Logging.logInfo({
@@ -345,6 +334,26 @@ export default class OCPPUtils {
       module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
       message: 'Charging Profile has been deleted successfully',
     });
+
+    // Clear Charging Profile
+    // Do not check the result beacause:
+    // 1\ Charging Profile exists and has been deleted: Status = ACCEPTED
+    // 2\ Charging Profile does not exist : Status = UNKNOWN
+    // As there are only 2 statuses, testing them is not necessary
+    try {
+      await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
+    } catch (error) {
+      throw Error;
+      // Logging.logError({
+      //   tenantID: tenantID,
+      //   source: chargingStation.id,
+      //   action: Action.CHARGING_PROFILE_DELETE,
+      //   message: 'Error occurred while clearing the Charging Profile',
+      //   module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
+      //   detailedMessages: { error }
+      // });
+    }
+
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,

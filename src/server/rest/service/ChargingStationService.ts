@@ -276,7 +276,7 @@ export default class ChargingStationService {
       let planHasBeenAdjusted = false;
       // Check schedules
       if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
-          updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
           // Check the limit max is beyond the new values
           if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
@@ -441,8 +441,19 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Delete
-    await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
+    try {
+      // Delete
+      await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
+    } catch {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
+        message: 'Error occurred while clearing Charging Profile',
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
+        user: req.user, actionOnUser: req.user
+      });
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -851,7 +862,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleAction(command: OCPPChargingStationCommand|Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(command: OCPPChargingStationCommand | Action, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
@@ -1311,7 +1322,7 @@ export default class ChargingStationService {
           });
           // Check
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({
