@@ -27,7 +27,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
               tenantID: tenant.id,
               module: 'CheckAndComputeSmartChargingTask', method: 'run',
               action: Action.CHECK_AND_APPLY_SMART_CHARGING,
-              message: `No implementation available for the Smart Charging`,
+              message: 'No implementation available for the Smart Charging',
             });
           }
           // Apply Charging Profiles

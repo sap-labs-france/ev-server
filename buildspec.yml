@@ -10,7 +10,7 @@ phases:
       - if [ -z ${build_ssh_key} ]; then echo "missing build_ssh_key store parameter, exiting"; exit 1; fi
       - echo "${build_ssh_key}" > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
-      - ssh-keygen -F github.com || ssh-keyscan github.com >>~/.ssh/known_hosts
+      - ssh-keygen -F github.com || ssh-keyscan github.com >> ~/.ssh/known_hosts
       - git config --global url."git@github.com:".insteadOf "https://github.com/"
       - git init
       - git remote remove origin || true
