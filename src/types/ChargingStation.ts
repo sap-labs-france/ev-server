@@ -95,6 +95,13 @@ export interface Connector {
 export interface ConnectorCurrentLimit {
   limitAmps: number;
   limitWatts: number;
+  source?: ConnectorCurrentLimitSource;
+}
+
+export enum ConnectorCurrentLimitSource {
+  CP = 'CP', // Charging Profile
+  SL = 'SL', // Static Limitation
+  CO = 'CO' // Connector
 }
 
 export enum ConnectorCurrentType {

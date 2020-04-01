@@ -1,4 +1,4 @@
-
+import { ConnectorCurrentLimitSource } from './ChargingStation';
 export default interface Consumption {
   id: string;
   startedAt: Date;
@@ -23,4 +23,5 @@ export default interface Consumption {
   toPrice?: boolean;
   limitAmps?: number;
   limitWatts?: number;
+  source?: ConnectorCurrentLimitSource;
 }

@@ -16,7 +16,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
-import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits, ConnectorCurrentLimitSource } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -1162,10 +1162,12 @@ export default class OCPPService {
             const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
             consumption.limitAmps = connectorLimit.limitAmps;
             consumption.limitWatts = connectorLimit.limitWatts;
+            consumption.source = connectorLimit.source;
           } else {
             // Default
             consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
             consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
+            consumption.source = ConnectorCurrentLimitSource.CO;
           }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
