@@ -12,7 +12,6 @@ RUN apk add --no-cache --virtual .gyp \
         python \
     && npm install \
     && apk del .gyp
-RUN git submodule update --init --recursive
 
 COPY src ./src
 COPY build ./build
