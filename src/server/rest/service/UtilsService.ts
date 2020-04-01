@@ -55,7 +55,6 @@ export default class UtilsService {
   public static assertComponentIsActiveFromToken(userToken: UserToken, component: TenantComponents,
     action: Action, entity: Entity, module: string, method: string) {
     // Check from token
-    console.log(userToken);
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
     if (!active) {
