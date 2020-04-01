@@ -35,6 +35,8 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import { SDK_VERSION } from 'firebase-admin';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -540,14 +542,24 @@ export default class OCPPService {
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
-      const isOrgCompActive = Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION);
-      if (isOrgCompActive) {
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
         // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
         const site = chargingStation.siteArea ? chargingStation.siteArea.site : null;
         if (site) {
           startTransaction.siteID = site.id;
+        }
+        // Handle Smart Charging
+        if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+          // Get Site Area
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+          if (siteArea.smartCharging) {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          }
         }
       }
       // Cleanup ongoing transactions
@@ -582,14 +594,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-          id: '666',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.timestamp,
-          value: transaction.meterStart,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '666',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
 
       // Price it
@@ -787,14 +799,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-          id: '6969',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.stop.timestamp,
-          value: transaction.stop.meterStop,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '6969',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.stop.timestamp,
+        value: transaction.stop.meterStop,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);

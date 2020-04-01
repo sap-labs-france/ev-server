@@ -16,6 +16,7 @@ import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
+import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -85,6 +86,9 @@ export default class SchedulerManager {
             break;
           case 'CheckSessionNotStartedAfterAuthorizeTask':
             schedulerTask = new CheckSessionNotStartedAfterAuthorizeTask();
+            break;
+          case 'CheckAndComputeSmartChargingTask':
+            schedulerTask = new CheckAndComputeSmartChargingTask();
             break;
 
           default:

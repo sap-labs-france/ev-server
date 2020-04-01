@@ -8,7 +8,7 @@ import Utils from '../../utils/Utils';
 import SapSmartCharging from './sap-smart-charging/SapSmartCharging';
 
 export default class SmartChargingFactory {
-  static async getPricingImpl(tenantID: string): Promise<SmartCharging<SmartChargingSetting>> {
+  static async getSmartChargingImpl(tenantID: string): Promise<SmartCharging<SmartChargingSetting>> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if the pricing is active
