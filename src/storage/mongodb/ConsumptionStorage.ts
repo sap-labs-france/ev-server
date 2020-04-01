@@ -3,7 +3,6 @@ import global from '../../types/GlobalType';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID: string, consumptionToSave: Consumption): Promise<string> {
@@ -78,16 +77,19 @@ export default class ConsumptionStorage {
         transactionId: Utils.convertToInt(params.transactionId)
       }
     });
+    aggregation.push({
+      $addFields: {
+        roundedInstantPower: { $round: [ { $divide: ['$instantPower', 100] } ] }
+      }
+    });
     // Triming excess values
     aggregation.push({
       $group: {
         _id: {
-          cumulatedConsumption: '$cumulatedConsumption',
-          consumption: '$consumption',
-          cumulatedAmount: '$cumulatedAmount',
+          roundedInstantPower: '$roundedInstantPower',
           limitWatts: '$limitWatts'
         },
-        consumptions: { $push: "$$ROOT" }
+        consumptions: { $push: '$$ROOT' }
       }
     });
     aggregation.push({
@@ -98,24 +100,29 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Do the optimization in the code!!!
-    let lastConsumption;
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
+      let lastConsumption: Consumption = null;
+      let lastConsumtionRemoved = false;
       // Simplify grouped consumption
       for (let i = 0; i <= consumptionMDB.consumptions.length - 3 ; i++) {
         if (!lastConsumption) {
           lastConsumption = consumptionMDB.consumptions[i];
         }
-        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i+1].startedAt.getTime()) {
+        if (lastConsumption.endedAt.getTime() === consumptionMDB.consumptions[i + 1].startedAt.getTime()) {
           // Remove
-          lastConsumption = consumptionMDB.consumptions[i+1];
-          consumptionMDB.consumptions.splice(i+1, 1);
+          lastConsumption = consumptionMDB.consumptions[i + 1];
+          consumptionMDB.consumptions.splice(i + 1, 1);
+          lastConsumtionRemoved = true;
           i--;
         } else {
           // Insert the last consumption before it changes
-          consumptionMDB.consumptions.splice(i, 0, lastConsumption);
-          lastConsumption = consumptionMDB.consumptions[i+2];
-          i++;
+          if (lastConsumtionRemoved) {
+            consumptionMDB.consumptions.splice(i, 0, lastConsumption);
+            lastConsumtionRemoved = false;
+            i++;
+          }
+          lastConsumption = consumptionMDB.consumptions[i + 1];
         }
       }
       // Unwind
@@ -124,9 +131,7 @@ export default class ConsumptionStorage {
       }
     }
     // Sort
-    consumptions.sort((cons1, cons2) => {
-      return cons1.endedAt.getTime() - cons2.endedAt.getTime();
-    });
+    consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
