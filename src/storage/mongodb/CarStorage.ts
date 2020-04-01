@@ -1,4 +1,4 @@
-import { Car } from '../../types/Car';
+import { Car, carMaker } from '../../types/Car';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -21,7 +21,7 @@ export default class CarStorage {
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[]; vehicleMakes?: string[] } = {},
+    params: { search?: string; carID?: string; carIDs?: string[]; vehicleMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
@@ -51,12 +51,12 @@ export default class CarStorage {
         }
       });
     }
-    if (params.vehicleMakes && Array.isArray(params.vehicleMakes)) {
+    if (params.vehicleMakers && Array.isArray(params.vehicleMakers)) {
       // Build filter
       aggregation.push({
         $match: {
           'vehicleMake': {
-            $in: params.vehicleMakes
+            $in: params.vehicleMakers
           }
         }
       });
@@ -264,17 +264,16 @@ export default class CarStorage {
     return carToSave.id;
   }
 
-  public static async getCarConstructors(
-    params: { search?: string } = {}): Promise<string[]> {
+  public static async getCarMakers(
+    params: { search?: string } = {}): Promise<DataResult<carMaker>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
     // Set the filters
     const filters: ({ $or?: any[] } | undefined) = {};
 
     if (params.search) {
-      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleMake': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } },
       ];
     }
     // Create Aggregation
@@ -286,12 +285,23 @@ export default class CarStorage {
       });
     }
     aggregation.push({
-      $group: { _id: null, uniqueValues: { $addToSet: '$vehicleMake' } }
+      $group: {
+        _id: null,
+        vehicleMakers: {
+          $addToSet: {
+            vehicleMaker: '$vehicleMake'
+          }
+        }
+      }
     });
     aggregation.push({
-      $project: {
-        _id: 0,
-        vehicleMakes: '$uniqueValues'
+      $unwind: {
+        path: '$vehicleMakers'
+      }
+    });
+    aggregation.push({
+      $replaceRoot: {
+        newRoot: '$vehicleMakers'
       }
     });
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
@@ -303,7 +313,10 @@ export default class CarStorage {
     // Debug
     Logging.traceEnd('CarStorage', 'getCars', uniqueTimerID, { result });
     // Ok
-    return result.length > 0 ? result[0].vehicleMakes : null;
+    return {
+      count: result.length,
+      result: result
+    };
   }
 
 }

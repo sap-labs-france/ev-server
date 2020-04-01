@@ -19,7 +19,6 @@ const GRANTS = {
       { resource: 'Cars', action: 'List', attributes: ['*'] },
       { resource: 'Cars', action: 'SynchronizeCars', attributes: ['*'] },
       { resource: 'Car', action: 'Read', attributes: ['*'] },
-      { resource: 'Car', action: 'GetCarConstructors', attributes: ['*'] },
     ]
   },
   admin: {
@@ -78,9 +77,6 @@ const GRANTS = {
       { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
       { resource: 'Cars', action: 'List', attributes: ['*'] },
       { resource: 'Car', action: 'Read', attributes: ['*'] },
-      { resource: 'Car', action: 'GetCarConstructors', attributes: ['*'] },
-
-
     ]
   },
   basic: {

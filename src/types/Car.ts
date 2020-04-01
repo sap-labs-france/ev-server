@@ -118,6 +118,9 @@ export interface Car extends CreatedUpdatedProps{
   videos?: string[];
   hash?: string;
 }
+export interface carMaker {
+  vehicleMaker: string;
+}
 export interface ChargeOptionTable {
   type: string;
   evsePhaseVolt?: number;

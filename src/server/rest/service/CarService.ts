@@ -34,7 +34,7 @@ export default class CarService {
     const cars = await CarStorage.getCars(
       {
         search: filteredRequest.Search,
-        vehicleMakes: filteredRequest.VehicleMake ? filteredRequest.VehicleMake.split('|') : null
+        vehicleMakers: filteredRequest.VehicleMaker ? filteredRequest.VehicleMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
@@ -113,21 +113,26 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetCarConstructors(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarMakers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, 'CarService', 'handleGetCarMakers');
+    }
     // Check auth
-    if (!Authorizations.canReadCarConstructors(req.user)) {
+    if (!Authorizations.canReadCar(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.GET_CAR_CONSTRUCTORS,
+        action: Action.READ,
         entity: Entity.CAR,
         module: 'CarService',
-        method: 'handleGetCarConstructors'
+        method: 'handleGetCarMakers'
       });
     }
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
-    const carConstructors = await CarStorage.getCarConstructors({ search: filteredRequest.Search });
-    res.json(CarSecurity.filterCarConstructorsResponse(carConstructors, req.user));
+    const carConstructors = await CarStorage.getCarMakers({ search: filteredRequest.Search });
+    CarSecurity.filterCarConstructorsResponse(carConstructors, req.user);
+    res.json(carConstructors);
     next();
   }
 }

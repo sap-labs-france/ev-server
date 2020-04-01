@@ -1,5 +1,5 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car, CarConstructor } from '../../../../types/Car';
+import { Car, CarConstructor, carMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
@@ -11,7 +11,7 @@ export default class CarSecurity {
   public static filterCarsRequest(request: any): HttpCarsRequest {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),
-      VehicleMake: sanitize(request.VehicleMake),
+      VehicleMaker: sanitize(request.VehicleMake),
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -76,20 +76,20 @@ export default class CarSecurity {
     return filteredCar;
   }
 
-  public static filterCarConstructorsResponse(carConstructors: string[], loggedUser: UserToken): CarConstructor[] {
-    const filteredCarConstructors = [];
+  public static filterCarConstructorsResponse(carConstructors: DataResult<carMaker>, loggedUser: UserToken) {
+    const filteredCarConstructors = [] as carMaker[];
     if (!carConstructors) {
       return null;
     }
-    if (!Authorizations.canReadCarConstructors(loggedUser)) {
+    if (!Authorizations.canReadCar(loggedUser)) {
       return null;
     }
-    for (const carConstructor of carConstructors) {
+    for (const carConstructor of carConstructors.result) {
       filteredCarConstructors.push({
-        vehicleMake: carConstructor
+        vehicleMaker: carConstructor.vehicleMaker
       });
     }
-    return filteredCarConstructors;
+    carConstructors.result = filteredCarConstructors;
   }
 
   public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
