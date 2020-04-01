@@ -15,12 +15,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     this.setting = setting;
   }
 
-  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
-
-  protected getSettings(): T {
-    return this.setting;
-  }
-
   public async computeAndApplyChargingProfiles(siteArea: SiteArea) {
     Logging.logDebug({
       tenantID: this.tenantID,
@@ -62,4 +56,10 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       module: 'SmartCharging', method: 'computeAndApplyChargingProfiles'
     });
   }
+
+  protected getSettings(): T {
+    return this.setting;
+  }
+
+  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
 }
