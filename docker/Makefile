@@ -26,7 +26,7 @@ clean-server-image:
 	-docker rmi $(PROJECT_NAME)_server
 
 clean-mongodb-images:
-	-docker rmi mongo:4.0
+	-docker rmi mongo:4.2
 	-docker rmi $(PROJECT_NAME)_enablereplset
 
 clean-images: clean-mongodb-images clean-server-image

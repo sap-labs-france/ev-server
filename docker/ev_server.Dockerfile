@@ -12,12 +12,14 @@ RUN apk add --no-cache --virtual .gyp \
         python \
     && npm install \
     && apk del .gyp
+RUN git submodule update --init --recursive
 
 COPY src ./src
 COPY build ./build
 COPY *.json ./
 COPY docker/config.json ./src/assets/config.json
 COPY webpack.config.js ./
+
 RUN npm run build:${build}
 
 FROM node:lts-alpine
@@ -28,7 +30,7 @@ COPY --from=builder /usr/builder/dist ./dist
 
 EXPOSE 81 8000 8010 8080 9090 9292
 
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait /wait
 RUN chmod +x /wait
 
-CMD /wait && node dist/start.js
+CMD /wait && node -r source-map-support/register --stack-trace-limit=1024 dist/start.js
