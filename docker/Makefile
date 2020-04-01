@@ -11,7 +11,7 @@ local-env:
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml up -d
 
 server:
-	git submodule --init --recursive
+	git submodule update --init --recursive
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml up -d
 
 all: local-env server
