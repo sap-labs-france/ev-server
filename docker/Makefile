@@ -7,7 +7,7 @@ default: all
 mongo-express:
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml up -d
 
-local-env:
+local-env: mongo-express
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml up -d
 
 server:
@@ -23,26 +23,26 @@ all: local-env server
 clean-mongo-express-container:
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml down
 
-clean-local-env-containers:
+clean-local-env-containers: clean-mongo-express-container
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
 
 clean-server-container:
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml down
 
-clean-containers: clean-mongo-express-container clean-local-env-containers clean-server-container
+clean-containers: clean-local-env-containers clean-server-container
 
 clean-mongo-express-image:
 	-docker rmi mongo-express
 
-clean-local-env-images:
+clean-local-env-images: clean-mongo-express-image
 	-docker rmi mongo:4.2
 	-docker rmi $(PROJECT_NAME)_enablereplset
-	-docker rmi djfarrelly/maildev
+	-docker rmi maildev/maildev
 
 clean-server-image:
 	-docker rmi $(PROJECT_NAME)_server
 
-clean-images: clean-mongo-express-image clean-local-env-images clean-server-image
+clean-images: clean-local-env-images clean-server-image
 
 clean-mongo-data:
 	-docker volume rm $(PROJECT_NAME)_mongo-data

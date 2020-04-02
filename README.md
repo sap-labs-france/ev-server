@@ -532,7 +532,7 @@ Depending on the need it is possible to start different docker containers.
 Each following command has to be executed in folder [docker](./docker).
 
 #### Minimal local environment
-It consist in starting a pre configured empty mongo database plus a mail service.
+It consist in starting a pre configured empty mongo database plus a mail service and mongo express.
 To start it, execute command:
 ```bash
 make local-env
@@ -549,7 +549,7 @@ Due to fixed replica set configuration, the database hostname has to be referenc
 To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for MacOSX or in `C:\Windows\System32\Drivers\etc\hosts` for Windows.
 
 The database is then accessible using the credential `evse-admin/evse-admin-pwd`.
-The default login/password on the master tenant is super.admin@ev.com/Super.admin00.
+The default login/password on the master tenant is super.admin@ev.com/Super.admin00. The default login/password on the SLF tenant is slf.admin@ev.com/Slf.admin00.
 
 #### ev-server
 In case of UI development or test purpose, the server has been containerized.
@@ -567,7 +567,7 @@ make clean-server-container
 ```
 
 #### mongo express
-If needed, it is possible to start a [mongo express](https://github.com/mongo-express/mongo-express) instance auto connected to mongodb
+If needed, it is possible to start or stop a [mongo express](https://github.com/mongo-express/mongo-express) instance auto connected to mongodb independently.
 To start it, execute command:
 ```bash
 make mongo-express
@@ -579,7 +579,7 @@ make clean-mongo-express-container
 ```
 
 #### All in one
-It is possible to start local environment and ev-server containers in one command :
+It is possible to build and start all containers in one command:
 ```bash
 make
 ```
