@@ -289,7 +289,7 @@ When the user will be notified (by email for instance), a link to the front-end 
 
 ### Notifications
 
-The user will receive a notification when, for instance, his vehicule will be fully charged.
+The user will receive a notification when, for instance, his vehicle will be fully charged.
 
 Only notification via emails is implemented today.
 
@@ -535,48 +535,53 @@ Each following command has to be executed in folder [docker](./docker).
 It consist in starting a pre configured empty mongo database plus a mail service.
 To start it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-local-env.yml up
+make local-env
 ```
 To stop it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-local-env.yml down
+make clean-local-env-containers
 ```
-The mongo database folder will be kept along multiple restarts. To remove it, delete the folder [docker/mongo](./docker/mongo).
-
+The mongo database folder will be kept along multiple restarts. To remove it:
+```bash
+make clean-mongo-data
+```
 Due to fixed replica set configuration, the database hostname has to be referenced in the host machine to be accessible.
-To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for mac-os or in `c:\Windows\System32\Drivers\etc\hosts` for windows.
+To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for MacOSX or in `C:\Windows\System32\Drivers\etc\hosts` for Windows.
 
 The database is then accessible using the credential `evse-admin/evse-admin-pwd`.
+The default login/password on the master tenant is super.admin@ev.com/Super.admin00.
 
 #### ev-server
 In case of UI development or test purpose, the server has been containerized.
 To start it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-server.yml up
+make server
 ```
-In order to rebuild the image in case of changes add the arguments `--build --force-recreate`
-
+In order to rebuild the image in case of changes:
+```bash
+make server-force
+```
 To stop it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-server.yml down
+make clean-server-container
 ```
 
 #### mongo express
 If needed, it is possible to start a [mongo express](https://github.com/mongo-express/mongo-express) instance auto connected to mongodb
 To start it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-mongo-express.yml up
+make mongo-express
 ```
 
 To stop it, execute command:
 ```bash
-docker-compose -p evse -f docker-compose-mongo-express.yml down
+make clean-mongo-express-container
 ```
 
 #### All in one
-It is possible to start multiple containers in one command :
+It is possible to start local environment and ev-server containers in one command :
 ```bash
-docker-compose -p evse -f docker-compose-local-env.yml -f docker-compose-server.yml -f docker-compose-mongo-express.yml up
+make
 ```
 
 ## Architecture
