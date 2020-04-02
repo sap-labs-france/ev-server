@@ -20,7 +20,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingProfileStatus, OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPSetChargingProfileCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -276,7 +276,7 @@ export default class ChargingStationService {
       let planHasBeenAdjusted = false;
       // Check schedules
       if (updatedChargingProfile.profile && updatedChargingProfile.profile.chargingSchedule &&
-          updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
+        updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         for (const chargingSchedulePeriod of updatedChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
           // Check the limit max is beyond the new values
           if (chargingSchedulePeriod.limit > filteredRequest.ampLimitValue) {
@@ -441,8 +441,19 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Delete
-    await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
+    try {
+      // Delete
+      await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
+    } catch {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
+        message: 'Error occurred while clearing Charging Profile',
+        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
+        user: req.user, actionOnUser: req.user
+      });
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -660,9 +671,10 @@ export default class ChargingStationService {
     }
     const ocppParams: OCPPParams[] = [];
     for (const chargingStation of chargingStations.result) {
+      const ocppParameters = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
       // Get OCPP Params
       ocppParams.push({
-        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+        params: ocppParameters.result,
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
@@ -851,7 +863,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleAction(command: OCPPChargingStationCommand|Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(command: OCPPChargingStationCommand | Action, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
@@ -1233,10 +1245,10 @@ export default class ChargingStationService {
   private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
     let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
     for (const config of configurations) {
-      for (const params of config.params.configuration) {
+      for (const param of config.params) {
         csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
-        csv += `${params.key}` + Constants.CSV_SEPARATOR;
-        csv += `${Utils.replaceSpecialCharsInCSVValueParam(params.value)}` + Constants.CSV_SEPARATOR;
+        csv += `${param.key}` + Constants.CSV_SEPARATOR;
+        csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
         csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
         csv += `${config.siteName}\r\n`;
       }
@@ -1311,7 +1323,7 @@ export default class ChargingStationService {
           });
           // Check
           if (result.status === OCPPConfigurationStatus.ACCEPTED ||
-              result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
+            result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
             // Reboot?
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({
