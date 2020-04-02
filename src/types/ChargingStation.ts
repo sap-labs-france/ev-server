@@ -99,9 +99,9 @@ export interface ConnectorCurrentLimit {
 }
 
 export enum ConnectorCurrentLimitSource {
-  CP = 'CP', // Charging Profile
-  SL = 'SL', // Static Limitation
-  CO = 'CO' // Connector
+  CHARGING_PROFILE = 'CP',
+  STATIC_LIMITATION = 'SL',
+  CONNECTOR = 'CO'
 }
 
 export enum ConnectorCurrentType {

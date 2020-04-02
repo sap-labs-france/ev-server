@@ -1167,7 +1167,7 @@ export default class OCPPService {
             // Default
             consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
             consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
-            consumption.source = ConnectorCurrentLimitSource.CO;
+            consumption.source = ConnectorCurrentLimitSource.CONNECTOR;
           }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(

@@ -532,7 +532,7 @@ export default abstract class ChargingStationVendor {
           const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
             limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
-            source: ConnectorCurrentLimitSource.CP,
+            source: ConnectorCurrentLimitSource.CHARGING_PROFILE,
           };
           Logging.logDebug({
             tenantID: tenantID,
@@ -560,7 +560,7 @@ export default abstract class ChargingStationVendor {
           const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
             limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
-            source: ConnectorCurrentLimitSource.SL,
+            source: ConnectorCurrentLimitSource.STATIC_LIMITATION,
           };
           Logging.logDebug({
             tenantID: tenantID,
@@ -587,7 +587,7 @@ export default abstract class ChargingStationVendor {
     const result: ConnectorCurrentLimit = {
       limitAmps: limitDefaultMaxAmps,
       limitWatts: limitDefaultMaxPower,
-      source: ConnectorCurrentLimitSource.CO
+      source: ConnectorCurrentLimitSource.CONNECTOR
     };
     Logging.logDebug({
       tenantID: tenantID,
