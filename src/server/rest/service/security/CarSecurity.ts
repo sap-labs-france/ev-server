@@ -1,17 +1,27 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car, CarConstructor, carMaker } from '../../../../types/Car';
+import { Car, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
+  
+  public static filterCarMakersRequest(request: any): HttpCarMakersRequest {
+    const filteredRequest: HttpCarsRequest = {
+      Search: sanitize(request.Search),
+    } as HttpCarsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
   public static filterCarsRequest(request: any): HttpCarsRequest {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),
-      VehicleMaker: sanitize(request.VehicleMake),
+      CarMaker: sanitize(request.CarMaker),
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -76,20 +86,20 @@ export default class CarSecurity {
     return filteredCar;
   }
 
-  public static filterCarConstructorsResponse(carConstructors: DataResult<carMaker>, loggedUser: UserToken) {
-    const filteredCarConstructors = [] as carMaker[];
-    if (!carConstructors) {
+  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken) {
+    const filteredCarConstructors: CarMaker[] = [];
+    if (!carMakers) {
       return null;
     }
     if (!Authorizations.canReadCar(loggedUser)) {
       return null;
     }
-    for (const carConstructor of carConstructors.result) {
+    for (const carMaker of carMakers.result) {
       filteredCarConstructors.push({
-        vehicleMaker: carConstructor.vehicleMaker
+        carMaker: carMaker.carMaker
       });
     }
-    carConstructors.result = filteredCarConstructors;
+    carMakers.result = filteredCarConstructors;
   }
 
   public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
