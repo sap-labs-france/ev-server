@@ -186,7 +186,7 @@ export type OCPPParams = {
   siteName: string;
   siteAreaName: string;
   chargingStationName: string;
-  params: ChargingStationConfiguration;
+  params: OcppParameter[];
 };
 
 export enum ChargerVendor {

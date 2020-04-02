@@ -604,7 +604,7 @@ export default class ChargingStationStorage {
     let value = null;
     if (configuration) {
       // Get the value
-      configuration.configuration.every((param) => {
+      configuration.result.every((param) => {
         // Check
         if (param.key === paramName) {
           value = param.value;

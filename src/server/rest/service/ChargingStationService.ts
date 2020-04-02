@@ -671,9 +671,10 @@ export default class ChargingStationService {
     }
     const ocppParams: OCPPParams[] = [];
     for (const chargingStation of chargingStations.result) {
+      const ocppParameters = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
       // Get OCPP Params
       ocppParams.push({
-        params: await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id),
+        params: ocppParameters.result,
         siteName: chargingStation.siteArea.site.name,
         siteAreaName: chargingStation.siteArea.name,
         chargingStationName: chargingStation.id
