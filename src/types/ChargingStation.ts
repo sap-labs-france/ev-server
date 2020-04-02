@@ -95,7 +95,7 @@ export interface Connector {
 export interface ConnectorCurrentLimit {
   limitAmps: number;
   limitWatts: number;
-  source?: ConnectorCurrentLimitSource;
+  limitSource: ConnectorCurrentLimitSource;
 }
 
 export enum ConnectorCurrentLimitSource {

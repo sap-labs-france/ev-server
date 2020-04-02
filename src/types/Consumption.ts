@@ -23,5 +23,5 @@ export default interface Consumption {
   toPrice?: boolean;
   limitAmps?: number;
   limitWatts?: number;
-  source?: ConnectorCurrentLimitSource;
+  limitSource?: ConnectorCurrentLimitSource;
 }
