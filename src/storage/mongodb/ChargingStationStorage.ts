@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate, Connector, ConnectorType, PowerLimitUnits } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate, Connector, ConnectorType, PowerLimitUnits, OcppParameter } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -639,29 +639,38 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
   }
 
-  public static async getConfiguration(tenantID: string, id: string): Promise<ChargingStationConfiguration> {
+  public static async getConfiguration(tenantID: string, id: string): Promise<DataResult<OcppParameter>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
+    const configurationsMDB = await global.database.getCollection<ChargingStationConfiguration>(tenantID, 'configurations')
       .findOne({
         '_id': id
       });
     // Found?
-    let configuration = null;
+    const configuration = [];
     if (configurationsMDB && configurationsMDB.configuration && configurationsMDB.configuration.length > 0) {
       // Set values
-      configuration = {
-        id: configurationsMDB._id,
-        timestamp: Utils.convertToDate(configurationsMDB.timestamp),
-        configuration: configurationsMDB.configuration
-      };
+      let index = 0;
+      configurationsMDB.configuration.forEach((parameter) => {
+        configuration.push({
+          id: index,
+          key: parameter.key,
+          value: parameter.value,
+          readonly: parameter.readonly
+        });
+        index++;
+      });
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
-    return configuration;
+    return {
+      count: (configuration.length > 0 ?
+        (configuration[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : configuration[0].count) : 0),
+      result: configuration
+    };
   }
 
   public static async getChargingProfile(tenantID: string, id: string): Promise<ChargingProfile> {
