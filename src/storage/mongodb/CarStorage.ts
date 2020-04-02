@@ -1,4 +1,4 @@
-import { Car } from '../../types/Car';
+import { Car, CarMaker } from '../../types/Car';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -21,7 +21,7 @@ export default class CarStorage {
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[] } = {},
+    params: { search?: string; carID?: string; carIDs?: string[]; carMaker?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
@@ -36,8 +36,9 @@ export default class CarStorage {
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
-        { 'vehicleModele': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleModel': { $regex: searchRegex, $options: 'i' } },
         { 'vehicleMake': { $regex: searchRegex, $options: 'i' } },
+        { 'vehicleModelVersion': { $regex: searchRegex, $options: 'i' } },
       ];
     }
     // Create Aggregation
@@ -48,6 +49,16 @@ export default class CarStorage {
       aggregation.push({
         $match: {
           _id: { $in: params.carIDs }
+        }
+      });
+    }
+    if (params.carMaker) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          'vehicleMake': {
+            $in: params.carMaker
+          }
         }
       });
     }
@@ -252,4 +263,65 @@ export default class CarStorage {
     Logging.traceEnd('CarStorage', 'saveCar', uniqueTimerID, { carToSave });
     return carToSave.id;
   }
+
+  public static async getCarMakers(
+      params: { search?: string } = {}): Promise<DataResult<CarMaker>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCarMakers');
+    // Set the filters
+    const filters: ({ $or?: any[] } | undefined) = {};
+
+    if (params.search) {
+      filters.$or = [
+        { 'vehicleMake': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } },
+      ];
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    aggregation.push({
+      $group: {
+        _id: null,
+        carMaker: {
+          $addToSet: {
+            carMaker: '$vehicleMake'
+          }
+        }
+      }
+    });
+    aggregation.push({
+      $unwind: {
+        path: '$carMaker'
+      }
+    });
+    aggregation.push({
+      $replaceRoot: {
+        newRoot: '$carMaker'
+      }
+    });
+    aggregation.push({
+      $sort: {
+        carMaker: 1
+      }
+    });
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd('CarStorage', 'getCarMakers', uniqueTimerID, { result });
+    // Ok
+    return {
+      count: result.length,
+      result: result
+    };
+  }
+
 }

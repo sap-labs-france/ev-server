@@ -33,7 +33,8 @@ export default class CarService {
     // Get the cars
     const cars = await CarStorage.getCars(
       {
-        search: filteredRequest.Search
+        search: filteredRequest.Search,
+        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
@@ -109,6 +110,32 @@ export default class CarService {
     }
     const result = await carDatabaseImpl.synchronizeCars();
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
+    next();
+  }
+
+  public static async handleGetCarMakers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, 'CarService', 'handleGetCarMakers');
+    }
+    // Check auth
+    if (!Authorizations.canReadCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ,
+        entity: Entity.CAR,
+        module: 'CarService',
+        method: 'handleGetCarMakers'
+      });
+    }
+    // Filter
+    const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
+    // Get car makers
+    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search });
+    // Filter
+    CarSecurity.filterCarMakersResponse(carMakers, req.user);
+    res.json(carMakers);
     next();
   }
 }
