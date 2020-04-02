@@ -5,7 +5,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
-import { KeyValue } from '../../../types/GlobalType';
+import { KeyValue, ActionsResponse } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { InactivityStatus } from '../../../types/Transaction';
@@ -14,6 +14,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
+import SiteArea from '../../../types/SiteArea';
 
 export default class OCPPUtils {
 
@@ -260,36 +261,32 @@ export default class OCPPUtils {
     return false;
   }
 
-  public static async clearAndDeleteChargingProfiles(tenantID: string, chargingProfiles: ChargingProfile[]) {
-    Logging.logDebug({
-      tenantID: tenantID,
-      action: Action.CHARGING_PROFILE_DELETE,
-      message: 'Clear All Charging Profiles is being called',
-      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles',
-      detailedMessages: { tenantID, chargingProfiles }
-    });
-    if (chargingProfiles) {
-      for (const chargingProfile of chargingProfiles) {
+  public static async clearAndDeleteChargingProfilesForSiteArea(tenantID: string, siteArea: SiteArea, user?: UserToken): Promise<ActionsResponse> {
+    const actionsResponse: ActionsResponse = {
+      inError: 0,
+      inSuccess: 0
+    };
+    for (const chargingStation of siteArea.chargingStations) {
+      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+        { chargingStationID: chargingStation.id }, Constants.DB_PARAMS_MAX_LIMIT);
+      for (const chargingProfile of chargingProfiles.result) {
         try {
-          await this.clearAndDeleteChargingProfile(tenantID, chargingProfile);
+          await this.clearAndDeleteChargingProfile(tenantID, chargingProfile, user);
+          actionsResponse.inSuccess++;
         } catch (error) {
           Logging.logError({
             tenantID: tenantID,
             source: chargingProfile.chargingStationID,
             action: Action.CHARGING_PROFILE_DELETE,
-            module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles',
-            message: `Error while clearing charging profile for chargingStation ${chargingProfile.chargingStationID}`,
+            module: 'OCPPUtils', method: 'clearAndDeleteChargingProfilesForSiteArea',
+            message: `Error while clearing the charging profile for chargingStation ${chargingProfile.chargingStationID}`,
             detailedMessages: { error }
           });
+          actionsResponse.inError++;
         }
       }
     }
-    Logging.logDebug({
-      tenantID: tenantID,
-      action: Action.CHARGING_PROFILE_DELETE,
-      message: 'Clear All Charging Profiles has been called',
-      module: 'OCPPUtils', method: 'clearAndDeleteChargingProfiles'
-    });
+    return actionsResponse;
   }
 
   public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
@@ -329,8 +326,20 @@ export default class OCPPUtils {
     // 1\ Charging Profile exists and has been deleted: Status = ACCEPTED
     // 2\ Charging Profile does not exist : Status = UNKNOWN
     // As there are only 2 statuses, testing them is not necessary
-    await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
-    // Delete
+    try {
+      await chargingStationVendor.clearChargingProfile(tenantID, chargingStation, chargingProfile);
+    } catch (error) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: Action.CHARGING_PROFILE_DELETE,
+        message: 'Error occurred while clearing the Charging Profile',
+        module: 'OCPPUtils', method: 'clearAndDeleteChargingProfile',
+        detailedMessages: { error }
+      });
+      throw error;
+    }
+    // Delete from database
     await ChargingStationStorage.deleteChargingProfile(tenantID, chargingProfile.id);
     // Log
     Logging.logInfo({
