@@ -1245,10 +1245,10 @@ export default class ChargingStationService {
   private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
     let csv = `Charging Station${Constants.CSV_SEPARATOR}Name${Constants.CSV_SEPARATOR}Value${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Site\r\n`;
     for (const config of configurations) {
-      for (const params of config.params.configuration) {
+      for (const param of config.params) {
         csv += `${config.chargingStationName}` + Constants.CSV_SEPARATOR;
-        csv += `${params.key}` + Constants.CSV_SEPARATOR;
-        csv += `${Utils.replaceSpecialCharsInCSVValueParam(params.value)}` + Constants.CSV_SEPARATOR;
+        csv += `${param.key}` + Constants.CSV_SEPARATOR;
+        csv += `${Utils.replaceSpecialCharsInCSVValueParam(param.value)}` + Constants.CSV_SEPARATOR;
         csv += `${config.siteAreaName}` + Constants.CSV_SEPARATOR;
         csv += `${config.siteName}\r\n`;
       }
