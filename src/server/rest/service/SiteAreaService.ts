@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import SiteArea from '../../../types/SiteArea';
@@ -9,13 +11,10 @@ import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import SmartCharging from '../../../integration/smart-charging/SmartCharging';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import AppError from '../../../exception/AppError';
+import { ActionsResponse } from '../../../types/GlobalType';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -240,13 +239,9 @@ export default class SiteAreaService {
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
-    let clearingSuccessful = true;
+    let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      try {
-        await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
-      } catch {
-        clearingSuccessful = false;
-      }
+      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -263,7 +258,7 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea }
     });
-    if (!clearingSuccessful) {
+    if (actionsResponse && actionsResponse.inError > 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: action,
