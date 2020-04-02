@@ -265,7 +265,7 @@ export default class CarStorage {
   }
 
   public static async getCarMakers(
-      params: { search?: string } = {}): Promise<DataResult<CarMaker>> {
+    params: { search?: string } = {}): Promise<DataResult<CarMaker>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCarMakers');
     // Set the filters
