@@ -4,7 +4,7 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation, { ConnectorCurrentLimit, StaticLimitAmps } from '../../types/ChargingStation';
+import ChargingStation, { ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -370,12 +370,7 @@ export default abstract class ChargingStationVendor {
         module: 'ChargingStationVendor', method: 'clearChargingProfile',
         detailedMessages: { error }
       });
-      if (!error.status) {
-        throw error;
-      }
-      return {
-        status: error.status
-      };
+      throw error;
     }
   }
 
@@ -529,9 +524,10 @@ export default abstract class ChargingStationVendor {
           if (connectorLimitAmps > limitDefaultMaxAmps) {
             connectorLimitAmps = limitDefaultMaxAmps;
           }
-          const result = {
+          const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
+            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
+            limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
           };
           Logging.logDebug({
             tenantID: tenantID,
@@ -556,9 +552,10 @@ export default abstract class ChargingStationVendor {
           if (connectorLimitAmps > limitDefaultMaxAmps) {
             connectorLimitAmps = limitDefaultMaxAmps;
           }
-          const result = {
+          const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps)
+            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
+            limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
           };
           Logging.logDebug({
             tenantID: tenantID,
@@ -582,9 +579,10 @@ export default abstract class ChargingStationVendor {
       });
     }
     // Default on current connector
-    const result = {
+    const result: ConnectorCurrentLimit = {
       limitAmps: limitDefaultMaxAmps,
-      limitWatts: limitDefaultMaxPower
+      limitWatts: limitDefaultMaxPower,
+      limitSource: ConnectorCurrentLimitSource.CONNECTOR
     };
     Logging.logDebug({
       tenantID: tenantID,

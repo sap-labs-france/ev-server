@@ -34,6 +34,8 @@ export enum HTTPError {
   USER_WITH_NO_SITE_ERROR = 525,
 
   BILLING_DELETE_ERROR = 510,
+
+  CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL = 537,
 }
 
 export enum HTTPAuthError {
