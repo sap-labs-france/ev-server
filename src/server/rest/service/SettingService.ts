@@ -12,6 +12,9 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Utils from '../../../utils/Utils';
+import TenantComponents from '../../../types/TenantComponents';
 
 export default class SettingService {
   public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -142,6 +145,37 @@ export default class SettingService {
     });
     // Ok
     res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
+    next();
+  }
+
+  static async handleCheckSmartChargingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+    // Check if Component is active
+    if (!Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Smart Charging is not active for Tenant '${req.user.tenantID}'`,
+        module: 'SettingService',
+        method: 'handleUpdateSetting',
+        user: req.user
+      });
+    }
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ,
+        entity: Entity.SETTING,
+        module: 'SettingService',
+        method: 'handleCheckSmartChargingConnection'
+      });
+    }
+    // Get implementation
+    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    await smartCharging.checkConnection();
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 

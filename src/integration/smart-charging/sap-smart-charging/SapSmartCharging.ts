@@ -18,6 +18,42 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     super(tenantID, setting);
   }
 
+  public async checkConnection() {
+    const siteArea = {
+      maximumPower: 10000,
+      chargingStations: [],
+    } as SiteArea;
+
+    try {
+      const request = this.buildRequest(siteArea, 0);
+      // Call Optimizer
+      const response = await Axios.post(this.buildUrl(), request, {
+        headers: {
+          Accept: 'application/json',
+        }
+      });
+      if (response.status !== 200 && response.status !== 202) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SAP_SMART_CHARGING,
+          message: `SAP Smart Charging service responded with status '${response.status}' '${response.statusText}'`,
+          module: 'SapSmartCharging', method: 'getChargingProfiles',
+          detailedMessages: { response }
+        });
+      }
+      return response;
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
+        message: `SAP Smart Charging service responded with '${error}'`,
+        module: 'SapSmartCharging', method: 'checkConnection',
+        detailedMessages: { error }
+      });
+    }
+  }
+
+
   public async buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
     Logging.logDebug({
       tenantID: this.tenantID,
@@ -45,7 +81,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           action: Action.SAP_SMART_CHARGING,
-          message: `SAP Smart Charging service responded with status '${response.status}'`,
+          message: `SAP Smart Charging service responded with status '${response.status}' '${response.statusText}'`,
           module: 'SapSmartCharging', method: 'getChargingProfiles',
           detailedMessages: { response }
         });
