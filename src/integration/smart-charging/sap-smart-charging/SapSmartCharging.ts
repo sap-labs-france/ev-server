@@ -37,7 +37,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           source: Constants.CENTRAL_SERVER,
           action: Action.SAP_SMART_CHARGING,
           message: `SAP Smart Charging service responded with status '${response.status}' '${response.statusText}'`,
-          module: 'SapSmartCharging', method: 'getChargingProfiles',
+          module: 'SapSmartCharging', method: 'checkConnection',
           detailedMessages: { response }
         });
       }
