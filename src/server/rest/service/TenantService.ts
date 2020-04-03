@@ -250,7 +250,7 @@ export default class TenantService {
           module: 'SettingService',
           method: 'handleUpdateSetting',
           user: req.user,
-          detailedMessages: { siteAreas },
+          detailedMessages: {siteAreas: siteAreas.result.map((siteArea) => `${siteArea.name} (${siteArea.id})`)},
         });
       }
     }
