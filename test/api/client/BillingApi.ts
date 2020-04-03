@@ -7,7 +7,7 @@ export default class BillingApi extends CrudApi {
   }
 
   public async testConnection(params?, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return await super.readAll(params, paging, ordering, '/client/api/BillingConnection');
+    return await super.readAll(params, paging, ordering, '/client/api/CheckBillingConnection');
   }
 
   public async synchronizeUsers(params?, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {

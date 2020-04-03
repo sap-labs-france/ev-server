@@ -16,7 +16,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
-import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits, ConnectorCurrentLimitSource } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';

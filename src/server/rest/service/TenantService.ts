@@ -18,6 +18,7 @@ import Utils from '../../../utils/Utils';
 import TenantValidator from '../validation/TenantValidation';
 import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 export default class TenantService {
 
@@ -238,6 +239,22 @@ export default class TenantService {
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
       'TenantService', 'handleUpdateTenant', req.user);
+    // Check if smart charging is deactivated in all site areas when deactivated in super tenant
+    if (!tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
+      const siteAreas = await SiteAreaStorage.getSiteAreas(tenantUpdate.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
+      if (siteAreas.count !== 0) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.SMART_CHARGING_STILL_ACTIVE_FOR_SITE_AREA,
+          message: 'Site Area(s) is/are still enabled for Smart Charging. Please deactivate it/them to disable Smart Charging in Tenant',
+          module: 'SettingService',
+          method: 'handleUpdateSetting',
+          user: req.user,
+          detailedMessages: { siteAreas },
+        });
+      }
+    }
+
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();
