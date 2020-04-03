@@ -237,9 +237,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const chargingStation: OptimizerChargingStation = {
       '@type': 'ChargingStation',
       id: connectorIndex,
-      fusePhase1: Math.floor(connector.amperage / 3),
-      fusePhase2: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
-      fusePhase3: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
+      fusePhase1: connector.amperage / 3,
+      fusePhase2: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
+      fusePhase3: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
     };
     return chargingStation;
   }
@@ -287,7 +287,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       for (let i = Math.floor(currentTimeMinutes / 15); i < Math.floor(currentTimeMinutes / 15) + 3; i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlot * 15 * 60,
-          limit: car.currentPlan[i]
+          limit: car.currentPlan[i] * 3
         });
         currentTimeSlot++;
       }
