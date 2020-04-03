@@ -76,10 +76,10 @@
     "externalProtocol": "http"
   },
   "WSDLEndpoint": {
-    "baseUrl": "http://localhost:8010"
+    "baseUrl": "http://localhost:8000"
   },
   "JsonEndpoint": {
-    "baseUrl": "ws://localhost:8000"
+    "baseUrl": "ws://localhost:8010"
   },
   "OCPIEndpoint": {
     "baseUrl": "http://localhost:9090"
