@@ -513,7 +513,7 @@ export default class OCPPUtils {
       // Log
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
-        method: 'requestAndSaveChargingStationOcppParameters', action: 'RequestConfiguration',
+        method: 'requestAndSaveChargingStationOcppParameters', action: 'RequestOcppParameters',
         message: 'Command sent with success',
         detailedMessages: { ocppConfiguration }
       });
@@ -526,14 +526,14 @@ export default class OCPPUtils {
       // Set default?
       if (!chargingStationOcppParameters.configuration) {
         // Check if there is an already existing config in DB
-        const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
+        const existingConfiguration = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
         if (!existingConfiguration) {
           // No config at all: Set default OCPP configuration
           chargingStationOcppParameters.configuration = OCPPConstants.DEFAULT_OCPP_16_CONFIGURATION;
         }
       }
       // Save config
-      await ChargingStationStorage.saveConfiguration(tenantID, chargingStationOcppParameters);
+      await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
       // Check OCPP Configuration
       if (forceUpdateOCPPParametersWithTemplate) {
         await this.checkAndUpdateChargingStationOcppParameters(tenantID, chargingStation, chargingStationOcppParameters);
@@ -541,13 +541,13 @@ export default class OCPPUtils {
       // Ok
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'OCPPUtils',
-        method: 'requestAndSaveChargingStationOcppParameters', action: 'RequestConfiguration',
+        method: 'requestAndSaveChargingStationOcppParameters', action: 'RequestOcppParameters',
         message: 'Configuration has been saved'
       });
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
+      Logging.logActionExceptionMessage(tenantID, 'RequestOcppParameters', error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }

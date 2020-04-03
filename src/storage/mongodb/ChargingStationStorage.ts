@@ -594,13 +594,13 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
   }
 
-  public static async getConfigurationParamValue(tenantID: string, chargeBoxID: string, paramName: string) {
+  public static async getOcppParameterValue(tenantID: string, chargeBoxID: string, paramName: string) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfigurationParamValue');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getOcppParameterValue');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Get the config
-    const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargeBoxID);
+    const configuration = await ChargingStationStorage.getOcppParameters(tenantID, chargeBoxID);
     let value = null;
     if (configuration) {
       // Get the value
@@ -614,13 +614,13 @@ export default class ChargingStationStorage {
       });
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getConfigurationParamValue', uniqueTimerID);
+    Logging.traceEnd('ChargingStationStorage', 'getOcppParameterValue', uniqueTimerID);
     return value;
   }
 
-  static async saveConfiguration(tenantID: string, parameters: ChargingStationOcppParameters) {
+  static async saveOcppParameters(tenantID: string, parameters: ChargingStationOcppParameters) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveOcppParameters');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -636,12 +636,12 @@ export default class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
+    Logging.traceEnd('ChargingStationStorage', 'saveOcppParameters', uniqueTimerID);
   }
 
-  public static async getConfiguration(tenantID: string, id: string): Promise<DataResult<OcppParameter>> {
+  public static async getOcppParameters(tenantID: string, id: string): Promise<DataResult<OcppParameter>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getOcppParameters');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -665,7 +665,7 @@ export default class ChargingStationStorage {
       }
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
+    Logging.traceEnd('ChargingStationStorage', 'getOcppParameters', uniqueTimerID);
     return {
       count: parameters.length,
       result: parameters

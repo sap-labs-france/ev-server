@@ -481,10 +481,10 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Get the Config
-    const configuration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
+    // Get the Parameters
+    const parameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
     // Return the result
-    res.json(configuration);
+    res.json(parameters);
     next();
   }
 
@@ -671,7 +671,7 @@ export default class ChargingStationService {
     }
     const ocppParams: OCPPParams[] = [];
     for (const chargingStation of chargingStations.result) {
-      const ocppParameters = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
+      const ocppParameters = await ChargingStationStorage.getOcppParameters(req.user.tenantID, chargingStation.id);
       // Get OCPP Params
       ocppParams.push({
         params: ocppParameters.result,
