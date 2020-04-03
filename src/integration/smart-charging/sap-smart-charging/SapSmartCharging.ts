@@ -59,8 +59,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       tenantID: this.tenantID,
       source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Get Charging Profiles is being called',
-      module: 'SapSmartCharging', method: 'getChargingProfiles',
+      message: 'Build Charging Profiles is being called',
+      module: 'SapSmartCharging', method: 'buildChargingProfiles',
       detailedMessages: { siteArea }
     });
     // Optimizer implementation:
@@ -86,19 +86,27 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           source: Constants.CENTRAL_SERVER,
           action: Action.SAP_SMART_CHARGING,
           message: `SAP Smart Charging service responded with status '${response.status}' '${response.statusText}'`,
-          module: 'SapSmartCharging', method: 'getChargingProfiles',
+          module: 'SapSmartCharging', method: 'buildChargingProfiles',
           detailedMessages: { response }
         });
       }
-      // Build charging profiles from result
+      Logging.logDebug({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
+        message: 'SAP Smart Charging service has been called successfully',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
+        detailedMessages: { status: response.status, response: response.data }
+      });
+        // Build charging profiles from result
       const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
-        message: 'Get Charging Profiles has been called',
-        module: 'SapSmartCharging', method: 'getChargingProfiles',
-        detailedMessages: { Status: response.status, Response: response.data, Profiles: chargingProfiles }
+        message: 'Charging Profiles have been built successfully',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
+        detailedMessages: { chargingProfiles }
       });
       return chargingProfiles;
     } catch (error) {
@@ -106,7 +114,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
-        module: 'SapSmartCharging', method: 'getChargingProfiles',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
         message: 'Unable to call the SAP Smart Charging service',
         detailedMessages: { error },
       });
@@ -139,7 +147,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       tenantID: this.tenantID,
       source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Build Optimizer request is being called',
+      message: 'Build SAP Smart Charging request is being called',
       module: 'SapSmartCharging', method: 'buildRequest',
       detailedMessages: { SiteAreaName: siteArea.name, MaximumPower: siteArea.maximumPower, ChargingStations: siteArea.chargingStations }
     });
@@ -173,7 +181,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'buildRequest',
-        message: `No Charging Stations in Site Area '${siteArea.name}'`
+        message: `No Charging Stations found in Site Area '${siteArea.name}'`
       });
     }
     // Loop through charging stations to get each connector
@@ -235,7 +243,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       tenantID: this.tenantID,
       source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Build Optimizer request has been called',
+      message: 'Build SAP Smart Charging request has been called',
       module: 'SapSmartCharging', method: 'buildRequest',
       detailedMessages: { request }
     });
