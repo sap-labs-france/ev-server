@@ -169,7 +169,7 @@ export interface ChargingStationCapabilities {
   supportChargingProfiles: boolean;
 }
 
-export interface ChargingStationConfiguration {
+export interface ChargingStationOcppParameters {
   id: string;
   timestamp: Date;
   configuration: KeyValue[];

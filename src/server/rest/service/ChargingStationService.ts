@@ -459,11 +459,11 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStationConfiguration(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationOcppParameters(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationOcppParametersRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
@@ -477,7 +477,7 @@ export default class ChargingStationService {
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleGetChargingStationConfiguration',
+        method: 'handleGetChargingStationOcppParameters',
         value: chargingStation.id
       });
     }
@@ -488,10 +488,10 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleRequestChargingStationConfiguration(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRequestChargingStationOcppParameters(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterRequestChargingStationConfigurationRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
+    const filteredRequest = ChargingStationSecurity.filterRequestChargingStationOcppParametersRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -500,7 +500,7 @@ export default class ChargingStationService {
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
         module: 'ChargingStationService',
-        method: 'handleRequestChargingStationConfiguration',
+        method: 'handleRequestChargingStationOcppParameters',
         value: filteredRequest.chargeBoxID
       });
     }
@@ -508,9 +508,9 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
+      'ChargingStationService', 'handleRequestChargingStationOcppParameters', req.user);
     // Get the Config
-    const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+    const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
       req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
     // Ok
     res.json(result);
@@ -1335,7 +1335,7 @@ export default class ChargingStationService {
               });
             }
             // Refresh Configuration
-            await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
+            await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
             // Check update with Vendor
             const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
             if (chargingStationVendor) {

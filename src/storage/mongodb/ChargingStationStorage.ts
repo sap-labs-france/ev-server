@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationConfiguration, ChargingStationCurrentType, ChargingStationTemplate, Connector, ConnectorType, PowerLimitUnits, OcppParameter } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationCurrentType, ChargingStationTemplate, Connector, ConnectorType, PowerLimitUnits, OcppParameter } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -618,18 +618,18 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  static async saveConfiguration(tenantID: string, configuration: ChargingStationConfiguration) {
+  static async saveConfiguration(tenantID: string, parameters: ChargingStationOcppParameters) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
-      '_id': configuration.id
+      '_id': parameters.id
     }, {
       $set: {
-        configuration: configuration.configuration,
-        timestamp: Utils.convertToDate(configuration.timestamp)
+        configuration: parameters.configuration,
+        timestamp: Utils.convertToDate(parameters.timestamp)
       }
     }, {
       upsert: true,
@@ -645,31 +645,30 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const configurationsMDB = await global.database.getCollection<ChargingStationConfiguration>(tenantID, 'configurations')
+    const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({
         '_id': id
       });
     // Found?
-    const configuration = [];
-    if (configurationsMDB && configurationsMDB.configuration && configurationsMDB.configuration.length > 0) {
+    const parameters = [];
+    if (parametersMDB && parametersMDB.configuration && parametersMDB.configuration.length > 0) {
       // Set values
       let index = 0;
-      configurationsMDB.configuration.forEach((parameter) => {
-        configuration.push({
-          id: index,
+      for (const parameter of parametersMDB.configuration) {
+        parameters.push({
+          id: index.toString(),
           key: parameter.key,
           value: parameter.value,
           readonly: parameter.readonly
-        });
+        } as OcppParameter);
         index++;
-      });
+      }
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return {
-      count: (configuration.length > 0 ?
-        (configuration[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : configuration[0].count) : 0),
-      result: configuration
+      count: parameters.length,
+      result: parameters
     };
   }
 
