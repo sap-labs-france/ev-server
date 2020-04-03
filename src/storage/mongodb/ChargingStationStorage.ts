@@ -650,7 +650,7 @@ export default class ChargingStationStorage {
         '_id': id
       });
     // Found?
-    const parameters = [];
+    const parameters: OcppParameter[] = [];
     if (parametersMDB && parametersMDB.configuration && parametersMDB.configuration.length > 0) {
       // Set values
       let index = 0;
@@ -660,7 +660,7 @@ export default class ChargingStationStorage {
           key: parameter.key,
           value: parameter.value,
           readonly: parameter.readonly
-        } as OcppParameter);
+        });
         index++;
       }
     }
