@@ -664,6 +664,16 @@ export default class ChargingStationStorage {
         index++;
       }
     }
+    // Sort
+    parameters.sort((param1, param2) => {
+      if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
+        return -1;
+      }
+      if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
+        return 1;
+      }
+      return 0;
+    });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getOcppParameters', uniqueTimerID);
     return {
