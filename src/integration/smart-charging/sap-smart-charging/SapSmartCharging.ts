@@ -41,7 +41,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           detailedMessages: { response }
         });
       }
-      return response;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

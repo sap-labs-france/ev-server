@@ -8,6 +8,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -1239,6 +1240,30 @@ export default class ChargingStationService {
         chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     }
     return chargingStations;
+  }
+
+  static async handleCheckSmartChargingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+    // Check if Component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
+      action, Entity.CHARGING_STATION, 'ChargingStationService', 'handleCheckSmartChargingConnection');
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ,
+        entity: Entity.SETTING,
+        module: 'ChargingStationService',
+        method: 'handleCheckSmartChargingConnection'
+      });
+    }
+    // Get implementation
+    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    // Check
+    await smartCharging.checkConnection();
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {
