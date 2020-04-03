@@ -12,6 +12,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import SmartCharging from '../SmartCharging';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export default class SapSmartCharging extends SmartCharging<SapSmartChargingSetting> {
   public constructor(tenantID: string, setting: SapSmartChargingSetting) {
@@ -56,10 +57,10 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   public async buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]> {
     Logging.logDebug({
       tenantID: this.tenantID,
-      source: siteArea.id,
+      source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Get Charging Profiles is being called',
-      module: 'SapSmartCharging', method: 'getChargingProfiles',
+      message: 'Build Charging Profiles is being called',
+      module: 'SapSmartCharging', method: 'buildChargingProfiles',
       detailedMessages: { siteArea }
     });
     // Optimizer implementation:
@@ -68,6 +69,10 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const mmtMidnight = moment().startOf('day');
     // Difference in seconds
     const currentTimeSeconds = moment().diff(mmtMidnight, 'seconds');
+    // Get the Charging Stations of the site area with status charging and preparing
+    const chargingStations = await ChargingStationStorage.getChargingStations(this.tenantID,
+      { siteAreaIDs: [siteArea.id], connectorStatuses: [ChargePointStatus.PREPARING, ChargePointStatus.CHARGING] }, Constants.DB_PARAMS_MAX_LIMIT);
+    siteArea.chargingStations = chargingStations.result;
     try {
       const request = this.buildRequest(siteArea, currentTimeSeconds);
       // Call Optimizer
@@ -81,19 +86,27 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           source: Constants.CENTRAL_SERVER,
           action: Action.SAP_SMART_CHARGING,
           message: `SAP Smart Charging service responded with status '${response.status}' '${response.statusText}'`,
-          module: 'SapSmartCharging', method: 'getChargingProfiles',
+          module: 'SapSmartCharging', method: 'buildChargingProfiles',
           detailedMessages: { response }
         });
       }
-      // Build charging profiles from result
+      Logging.logDebug({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.SAP_SMART_CHARGING,
+        message: 'SAP Smart Charging service has been called successfully',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
+        detailedMessages: { status: response.status, response: response.data }
+      });
+        // Build charging profiles from result
       const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
-        source: siteArea.id,
+        source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
-        message: 'Get Charging Profiles has been called',
-        module: 'SapSmartCharging', method: 'getChargingProfiles',
-        detailedMessages: { response, chargingProfiles }
+        message: 'Charging Profiles have been built successfully',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
+        detailedMessages: { chargingProfiles }
       });
       return chargingProfiles;
     } catch (error) {
@@ -101,7 +114,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
-        module: 'SapSmartCharging', method: 'getChargingProfiles',
+        module: 'SapSmartCharging', method: 'buildChargingProfiles',
         message: 'Unable to call the SAP Smart Charging service',
         detailedMessages: { error },
       });
@@ -132,11 +145,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
   private buildRequest(siteArea: SiteArea, currentTimeSeconds: number): OptimizerChargingProfilesRequest {
     Logging.logDebug({
       tenantID: this.tenantID,
-      source: siteArea.id,
+      source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Build Optimizer request is being called',
+      message: 'Build SAP Smart Charging request is being called',
       module: 'SapSmartCharging', method: 'buildRequest',
-      detailedMessages: { siteArea, currentTimeSeconds }
+      detailedMessages: { SiteAreaName: siteArea.name, MaximumPower: siteArea.maximumPower, ChargingStations: siteArea.chargingStations }
     });
     // Instantiate initial arrays for request
     const cars: OptimizerCar[] = [];
@@ -168,7 +181,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         source: Constants.CENTRAL_SERVER,
         action: Action.SAP_SMART_CHARGING,
         module: 'SapSmartCharging', method: 'buildRequest',
-        message: `No Charging Stations in Site Area '${siteArea.name}'`
+        message: `No Charging Stations found in Site Area '${siteArea.name}'`
       });
     }
     // Loop through charging stations to get each connector
@@ -181,21 +194,19 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       // Loop through connectors to generate Cars, charging stations and car assignments for request
       for (const connector of chargingStation.connectors) {
         // Check if connector is charging
-        if (connector.status === ChargePointStatus.CHARGING) {
-          // Build Car
-          cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId));
-          // Build Charging Station
-          const chargingStationOptimizer = this.buildChargingStation(connectorIndex, connector);
-          chargingStations.push(chargingStationOptimizer);
-          chargingStationChildren.push(chargingStationOptimizer);
-          // Assign Car to Charging Station
-          carAssignments.push(this.buildCarAssignment(connectorIndex));
-          // Calculate
-          sumConnectorAmperagePhase1 += chargingStationOptimizer.fusePhase1;
-          sumConnectorAmperagePhase2 += chargingStationOptimizer.fusePhase2;
-          sumConnectorAmperagePhase3 += chargingStationOptimizer.fusePhase3;
-          connectorIndex++;
-        }
+        // Build Car
+        cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId));
+        // Build Charging Station
+        const chargingStationOptimizer = this.buildChargingStation(connectorIndex, connector);
+        chargingStations.push(chargingStationOptimizer);
+        chargingStationChildren.push(chargingStationOptimizer);
+        // Assign Car to Charging Station
+        carAssignments.push(this.buildCarAssignment(connectorIndex));
+        // Calculate
+        sumConnectorAmperagePhase1 += chargingStationOptimizer.fusePhase1;
+        sumConnectorAmperagePhase2 += chargingStationOptimizer.fusePhase2;
+        sumConnectorAmperagePhase3 += chargingStationOptimizer.fusePhase3;
+        connectorIndex++;
       }
       const chargingStationFuse = this.buildChargingStationFuse(
         fuseID, sumConnectorAmperagePhase1, sumConnectorAmperagePhase2,
@@ -230,9 +241,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     };
     Logging.logDebug({
       tenantID: this.tenantID,
-      source: siteArea.id,
+      source: Constants.CENTRAL_SERVER,
       action: Action.SAP_SMART_CHARGING,
-      message: 'Build Optimizer request has been called',
+      message: 'Build SAP Smart Charging request has been called',
       module: 'SapSmartCharging', method: 'buildRequest',
       detailedMessages: { request }
     });
@@ -269,9 +280,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const chargingStation: OptimizerChargingStation = {
       '@type': 'ChargingStation',
       id: connectorIndex,
-      fusePhase1: Math.floor(connector.amperage / 3),
-      fusePhase2: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
-      fusePhase3: Math.floor(((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3),
+      fusePhase1: connector.amperage / 3,
+      fusePhase2: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
+      fusePhase3: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
     };
     return chargingStation;
   }
@@ -319,7 +330,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       for (let i = Math.floor(currentTimeMinutes / 15); i < Math.floor(currentTimeMinutes / 15) + 3; i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlot * 15 * 60,
-          limit: car.currentPlan[i]
+          limit: car.currentPlan[i] * 3
         });
         currentTimeSlot++;
       }
@@ -332,10 +343,10 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
       // Get ChargingStation ID and Connector ID from name property
       const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
-      const connectorId = car.name.substring(car.name.lastIndexOf('-') + 1);
+      const connectorId = parseInt(car.name.substring(car.name.lastIndexOf('-') + 1));
       // Build profile of charging profile
       const profile: Profile = {
-        chargingProfileId: connectorId as unknown as number,
+        chargingProfileId: connectorId,
         chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
         chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
         stackLevel: 2,
@@ -345,7 +356,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       const chargingProfile: ChargingProfile = {
         id: car.name,
         chargingStationID: chargingStationId,
-        connectorID: connectorId as unknown as number,
+        connectorID: connectorId,
         // pragma chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
         // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
