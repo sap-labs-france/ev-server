@@ -240,7 +240,8 @@ export default class TenantService {
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
       'TenantService', 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
-    if (!tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
+    if (tenantUpdate.components && tenantUpdate.components.smartCharging &&
+       !tenantUpdate.components.smartCharging.active && tenant.components.smartCharging.active) {
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenantUpdate.id, { smartCharging: true }, Constants.DB_PARAMS_MAX_LIMIT);
       if (siteAreas.count !== 0) {
         throw new AppError({
