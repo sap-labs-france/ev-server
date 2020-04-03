@@ -15,7 +15,7 @@ applications:
   random-route: true
   routes:
   - route: e-mobility-server.cfapps.eu10.hana.ondemand.com
-  command: node -r source-map-support/register dist/start.js
+  command: node -r source-map-support/register --stack-trace-limit=1024 dist/start.js
   env:
     OPTIMIZE_MEMORY: true
   services:

@@ -53,7 +53,7 @@ clean-local-env: clean-local-env-containers clean-local-env-images
 
 clean-server: clean-server-container clean-server-image
 
-clean: clean-containers clean-mongo-data clean-images
+clean: clean-containers clean-images
 
 dist-clean-images:
 	docker image prune -a -f

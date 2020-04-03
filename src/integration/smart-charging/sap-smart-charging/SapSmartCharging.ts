@@ -98,7 +98,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         module: 'SapSmartCharging', method: 'buildChargingProfiles',
         detailedMessages: { status: response.status, response: response.data }
       });
-        // Build charging profiles from result
+      // Build charging profiles from result
       const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
