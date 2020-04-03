@@ -297,10 +297,10 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
       // Get ChargingStation ID and Connector ID from name property
       const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
-      const connectorId = car.name.substring(car.name.lastIndexOf('-') + 1);
+      const connectorId = parseInt(car.name.substring(car.name.lastIndexOf('-') + 1));
       // Build profile of charging profile
       const profile: Profile = {
-        chargingProfileId: connectorId as unknown as number,
+        chargingProfileId: connectorId,
         chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
         chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
         stackLevel: 2,
@@ -310,7 +310,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       const chargingProfile: ChargingProfile = {
         id: car.name,
         chargingStationID: chargingStationId,
-        connectorID: connectorId as unknown as number,
+        connectorID: connectorId,
         // pragma chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
         // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
