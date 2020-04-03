@@ -8,7 +8,7 @@ import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
-  
+
   public static filterCarMakersRequest(request: any): HttpCarMakersRequest {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),

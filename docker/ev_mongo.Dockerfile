@@ -1,4 +1,4 @@
-FROM mongo:4.0
+FROM mongo:4.2
 
 ARG mongodb_name
 ARG mongodb_user
