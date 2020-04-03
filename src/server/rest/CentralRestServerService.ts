@@ -170,7 +170,7 @@ class RequestMapper {
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
-          BillingConnection: BillingService.handleGetBillingConnection.bind(this),
+          CheckBillingConnection: BillingService.handleCheckBillingConnection.bind(this),
           BillingTaxes: BillingService.handleGetBillingTaxes.bind(this),
           BillingUserInvoices: BillingService.handleGetUserInvoices.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
