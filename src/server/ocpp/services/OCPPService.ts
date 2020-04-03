@@ -553,7 +553,7 @@ export default class OCPPService {
         // Handle Smart Charging
         if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
           // Get Site Area
-          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
           if (siteArea.smartCharging) {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
             if (smartCharging) {

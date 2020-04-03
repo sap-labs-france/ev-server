@@ -29,7 +29,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       throw new BackendError({
         action: Action.CHARGING_PROFILE_UPDATE,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-        message: `No Charging Profiles have been built for Site Area: ${siteArea.name}`,
+        message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
     }
     // Apply the charging plans
@@ -44,7 +44,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
           source: chargingProfile.chargingStationID,
           action: Action.CHARGING_PROFILE_UPDATE,
           module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area: ${siteArea.name} failed`,
+          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed`,
           detailedMessages: { error }
         });
       }

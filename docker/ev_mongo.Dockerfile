@@ -15,5 +15,5 @@ RUN mkdir -p ${mongodb_home} && chown ${mongodb_user}:${mongodb_user} ${mongodb_
 COPY initdb/${export_file} ${mongodb_home}
 RUN chown ${mongodb_user}:${mongodb_user} ${mongodb_home}/${export_file}
 RUN apt-get -y update \
-    && apt-get -y install flip unzip
+  && apt-get -y install flip unzip
 RUN flip -u ./docker-entrypoint-initdb.d/*.sh
