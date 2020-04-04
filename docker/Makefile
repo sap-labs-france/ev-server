@@ -13,12 +13,13 @@ mongo-express:
 local-env: mongo-express
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml up -d
 
-$(NAME):
+submodule-update:
 	git submodule update --init --recursive
+
+$(NAME): submodule-update
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d
 
-$(NAME)-force:
-	git submodule update --init --recursive
+$(NAME)-force: submodule-update
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d --build --force-recreate
 
 all: local-env $(NAME)
