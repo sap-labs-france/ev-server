@@ -15,12 +15,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     this.setting = setting;
   }
 
-  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
-
-  protected getSettings(): T {
-    return this.setting;
-  }
-
   public async computeAndApplyChargingProfiles(siteArea: SiteArea) {
     Logging.logDebug({
       tenantID: this.tenantID,
@@ -35,7 +29,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       throw new BackendError({
         action: Action.CHARGING_PROFILE_UPDATE,
         module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-        message: `No Charging Profiles have been built for Site Area: ${siteArea.name}`,
+        message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
     }
     // Apply the charging plans
@@ -50,7 +44,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
           source: chargingProfile.chargingStationID,
           action: Action.CHARGING_PROFILE_UPDATE,
           module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
-          message: `Setting Charging Profiles for Site Area: ${siteArea.name} failed`,
+          message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed`,
           detailedMessages: { error }
         });
       }
@@ -62,4 +56,12 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       module: 'SmartCharging', method: 'computeAndApplyChargingProfiles'
     });
   }
+
+  protected getSettings(): T {
+    return this.setting;
+  }
+
+  async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
+
+  async abstract checkConnection();
 }

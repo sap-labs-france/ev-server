@@ -1,5 +1,6 @@
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { ConnectorCurrentLimitSource } from '../../types/ChargingStation';
 import global from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -25,12 +26,13 @@ export default class AddLimitToConsumptionsTask extends MigrationTask {
           {
             chargeBoxID: chargingStation.id,
             connectorId: connector.connectorId,
-            limitWatts: { $exists: false },
+            limitSource: { $exists: false },
           },
           {
             $set: {
               limitAmps: connector.amperage,
-              limitWatts: connector.power
+              limitWatts: connector.power,
+              limitSource: ConnectorCurrentLimitSource.CONNECTOR
             }
           }
         );
@@ -49,7 +51,7 @@ export default class AddLimitToConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {

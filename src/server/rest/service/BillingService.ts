@@ -16,7 +16,7 @@ import UtilsService from './UtilsService';
 
 export default class BillingService {
 
-  public static async handleGetBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -236,7 +236,7 @@ export default class BillingService {
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
     UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
       'BillingService', 'handleGetUserInvoices', req.user);
-      // Get invoices
+    // Get invoices
     const invoices = await billingImpl.getUserInvoices(billingUser, {
       status: filteredRequest.status,
       startDateTime: filteredRequest.startDateTime,

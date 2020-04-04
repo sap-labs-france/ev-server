@@ -17,7 +17,7 @@ clean-$(NAME)-image:
 	-docker rmi $(PROJECT_NAME)-$(NAME)
 
 clean-mongodb-image:
-	-docker rmi mongo:4.0
+	-docker rmi mongo:4.2
 
 clean-$(NAME)-containers:
 	-docker ps -a | awk '{ print $$1,$$2 }' | grep $(PROJECT_NAME)-$(NAME) | awk '{print $$1 }' | xargs -I {} docker rm --force {}

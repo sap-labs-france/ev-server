@@ -16,7 +16,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
-import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -200,7 +200,7 @@ export default class OCPPService {
       // Handle the get of configuration later on
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+        await OCPPUtils.requestAndSaveChargingStationOcppParameters(
           headers.tenantID, chargingStation, chargingStationTemplateUpdated);
       }, 3000);
       // Return the result
@@ -553,7 +553,7 @@ export default class OCPPService {
         // Handle Smart Charging
         if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
           // Get Site Area
-          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
           if (siteArea.smartCharging) {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
             if (smartCharging) {
@@ -594,14 +594,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-        id: '666',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.timestamp,
-        value: transaction.meterStart,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '666',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.timestamp,
+          value: transaction.meterStart,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
 
       // Price it
@@ -799,14 +799,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-        id: '6969',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.stop.timestamp,
-        value: transaction.stop.meterStop,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '6969',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
@@ -1162,10 +1162,12 @@ export default class OCPPService {
             const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
             consumption.limitAmps = connectorLimit.limitAmps;
             consumption.limitWatts = connectorLimit.limitWatts;
+            consumption.limitSource = connectorLimit.limitSource;
           } else {
             // Default
             consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
             consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
+            consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
           }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(

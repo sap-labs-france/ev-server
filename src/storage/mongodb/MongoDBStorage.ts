@@ -71,7 +71,7 @@ export default class MongoDBStorage {
           const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}~${JSON.stringify(index.fields)}`);
           if (await indexCreationLock.tryAcquire()) {
             // Create Index
-            this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             // Release the index creation RunLock
             await indexCreationLock.release();
           }
@@ -318,9 +318,6 @@ export default class MongoDBStorage {
         poolSize: this.dbConfig.poolSize,
         replicaSet: this.dbConfig.replicaSet,
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
-        reconnectTries: Number.MAX_VALUE,
-        reconnectInterval: 1000,
-        autoReconnect: true,
         useUnifiedTopology: true
       }
     );

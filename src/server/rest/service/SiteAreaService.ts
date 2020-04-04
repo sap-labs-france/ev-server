@@ -1,17 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { ActionsResponse } from '../../../types/GlobalType';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -210,7 +213,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Get
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargeBoxes: true });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
       'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
@@ -236,6 +239,10 @@ export default class SiteAreaService {
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    let actionsResponse: ActionsResponse;
+    if (siteArea.smartCharging && !filteredRequest.smartCharging) {
+      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+    }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.siteID = filteredRequest.siteID;
@@ -251,6 +258,16 @@ export default class SiteAreaService {
       action: action,
       detailedMessages: { siteArea }
     });
+    if (actionsResponse && actionsResponse.inError > 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
+        message: 'Error occurred while clearing Charging Profiles for Site Area',
+        module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+        user: req.user, actionOnUser: req.user
+      });
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
