@@ -1,4 +1,4 @@
-import { PricingSettingsType, SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
+import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
 import SmartCharging from './SmartCharging';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Tenant from '../../types/Tenant';
