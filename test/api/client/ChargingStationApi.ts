@@ -33,7 +33,7 @@ export default class ChargingStationApi extends CrudApi {
   }
 
   public readConfiguration(chargeBoxID) {
-    return super.read({ ChargeBoxID: chargeBoxID }, '/client/api/ChargingStationConfiguration');
+    return super.read({ ChargeBoxID: chargeBoxID }, '/client/api/ChargingStationOcppParameters');
   }
 
   public readConsumptionStatistics(year) {
