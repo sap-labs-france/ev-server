@@ -1,4 +1,7 @@
 PROJECT_NAME:=evse
+NAME:=server
+DOCKER_REGISTRY:=166296450311.dkr.ecr.eu-west-3.amazonaws.com
+DOCKER_REGISTRY_NAME:=ev_server
 
 .PHONY: all
 
@@ -10,15 +13,15 @@ mongo-express:
 local-env: mongo-express
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml up -d
 
-server:
+$(NAME):
 	git submodule update --init --recursive
-	docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml up -d
+	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d
 
-server-force:
+$(NAME)-force:
 	git submodule update --init --recursive
-	docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml up -d --build --force-recreate
+	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d --build --force-recreate
 
-all: local-env server
+all: local-env $(NAME)
 
 clean-mongo-express-container:
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml down
@@ -26,10 +29,10 @@ clean-mongo-express-container:
 clean-local-env-containers: clean-mongo-express-container
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
 
-clean-server-container:
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml down
+clean-$(NAME)-container:
+	-docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml down
 
-clean-containers: clean-local-env-containers clean-server-container
+clean-containers: clean-local-env-containers clean-$(NAME)-container
 
 clean-mongo-express-image:
 	-docker rmi mongo-express
@@ -39,10 +42,10 @@ clean-local-env-images: clean-mongo-express-image
 	-docker rmi $(PROJECT_NAME)_enablereplset
 	-docker rmi maildev/maildev
 
-clean-server-image:
-	-docker rmi $(PROJECT_NAME)_server
+clean-$(NAME)-image:
+	-docker rmi $(PROJECT_NAME)_$(NAME)
 
-clean-images: clean-local-env-images clean-server-image
+clean-images: clean-local-env-images clean-$(NAME)-image
 
 clean-mongo-data:
 	-docker volume rm $(PROJECT_NAME)_mongo-data
@@ -51,9 +54,16 @@ clean-mongo-express: clean-mongo-express-container clean-mongo-express-image
 
 clean-local-env: clean-local-env-containers clean-local-env-images
 
-clean-server: clean-server-container clean-server-image
+clean-$(NAME): clean-$(NAME)-container clean-$(NAME)-image
 
 clean: clean-containers clean-images
+
+$(NAME)-docker-ecr-tag:
+	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+
+$(NAME)-docker-ecr-push: $(NAME)-force $(NAME)-docker-ecr-tag
+	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME)
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
 
 dist-clean-images:
 	docker image prune -a -f
