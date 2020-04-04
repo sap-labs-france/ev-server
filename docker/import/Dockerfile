@@ -1,6 +1,6 @@
 FROM mongo:4.2
 
-LABEL Serge FABIANO serge.fabiano@sap.com
+LABEL maintainer="Serge FABIANO <serge.fabiano@sap.com>"
 
 RUN apt-get -y update
 RUN apt-get -y install zip
