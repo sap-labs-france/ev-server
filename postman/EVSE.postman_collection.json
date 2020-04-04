@@ -2044,7 +2044,7 @@
 			"response": []
 		},
 		{
-			"name": "FE-ChargingStationConfiguration",
+			"name": "FE-ChargingStationOcppParameters",
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -2063,14 +2063,14 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStationConfiguration?ChargeBoxID=SAP-Mougins-02",
+					"raw": "{{base_url}}/client/api/ChargingStationOcppParameters?ChargeBoxID=SAP-Mougins-02",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"client",
 						"api",
-						"ChargingStationConfiguration"
+						"ChargingStationOcppParameters"
 					],
 					"query": [
 						{
