@@ -4,7 +4,7 @@ import ChargingStationVendorFactory from '../../../integration/charging-station-
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Action } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationCurrentType, ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
