@@ -22,6 +22,12 @@ $(NAME): submodule-update
 $(NAME)-force: submodule-update
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d --build --force-recreate
 
+$(NAME)-standalone: submodule-update
+	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME)-standalone.yml up -d
+
+$(NAME)-standalone-force: submodule-update
+	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME)-standalone.yml up -d --build --force-recreate
+
 all: local-env $(NAME)
 
 clean-mongo-express-container:
@@ -33,7 +39,10 @@ clean-local-env-containers: clean-mongo-express-container
 clean-$(NAME)-container:
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml down
 
-clean-containers: clean-local-env-containers clean-$(NAME)-container
+clean-$(NAME)-standalone-container:
+	-docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME)-standalone.yml down
+
+clean-containers: clean-local-env-containers clean-$(NAME)-container clean-$(NAME)-standalone-container
 
 clean-mongo-express-image:
 	-docker rmi mongo-express
@@ -46,7 +55,10 @@ clean-local-env-images: clean-mongo-express-image
 clean-$(NAME)-image:
 	-docker rmi $(PROJECT_NAME)_$(NAME)
 
-clean-images: clean-local-env-images clean-$(NAME)-image
+clean-$(NAME)-standalone-image:
+	-docker rmi $(PROJECT_NAME)_$(NAME)-standalone
+
+clean-images: clean-local-env-images clean-$(NAME)-image clean-$(NAME)-standalone-image
 
 clean-mongo-data:
 	-docker volume rm $(PROJECT_NAME)_mongo-data
@@ -57,12 +69,21 @@ clean-local-env: clean-local-env-containers clean-local-env-images
 
 clean-$(NAME): clean-$(NAME)-container clean-$(NAME)-image
 
+clean-$(NAME)-standalone: clean-$(NAME)-standalone-container clean-$(NAME)-standalone-image
+
 clean: clean-containers clean-images
 
 $(NAME)-docker-ecr-tag:
 	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
 
 $(NAME)-docker-ecr-push: $(NAME)-force $(NAME)-docker-ecr-tag
+	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME)
+	docker push $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+
+$(NAME)-standalone-docker-ecr-tag:
+	docker tag $(PROJECT_NAME)_$(NAME)-standalone:latest $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+
+$(NAME)-standalone-docker-ecr-push: $(NAME)-standalone-force $(NAME)-standalone-docker-ecr-tag
 	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME)
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
 
