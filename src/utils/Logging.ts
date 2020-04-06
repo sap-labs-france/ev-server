@@ -540,7 +540,7 @@ export default class Logging {
         log.detailedMessages = [log.detailedMessages];
       }
       // Format
-      log.detailedMessages = Logging._format(log.detailedMessages);
+      log.detailedMessages = Logging._format(JSON.parse(JSON.stringify(log.detailedMessages)));
     }
     // Check Type
     if (!log.type) {
