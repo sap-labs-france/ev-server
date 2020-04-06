@@ -890,7 +890,7 @@ export default class TransactionService {
   }
 
   public static convertToCSV(loggedUser: UserToken, transactions: Transaction[]): string {
-    I18nManager.switchLanguage(loggedUser.language);
+    const i18nManager = new I18nManager(loggedUser.locale);
     // Headers
     let csv = `ID${Constants.CSV_SEPARATOR}Charging Station${Constants.CSV_SEPARATOR}Connector${Constants.CSV_SEPARATOR}User ID${Constants.CSV_SEPARATOR}User${Constants.CSV_SEPARATOR}Start Date${Constants.CSV_SEPARATOR}End Date${Constants.CSV_SEPARATOR}Total Consumption (kW.h)${Constants.CSV_SEPARATOR}Total Duration (Mins)${Constants.CSV_SEPARATOR}Total Inactivity (Mins)${Constants.CSV_SEPARATOR}Price${Constants.CSV_SEPARATOR}Price Unit\r\n`;
     // Content
@@ -900,8 +900,8 @@ export default class TransactionService {
       csv += `${transaction.connectorId}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Cypher.hash(transaction.user.id) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.user ? Utils.buildUserFullName(transaction.user, false) : ''}` + Constants.CSV_SEPARATOR;
-      csv += `${I18nManager.formatDateTime(transaction.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${transaction.stop ? `${I18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${I18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}` : ''}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(transaction.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${transaction.stop ? `${i18nManager.formatDateTime(transaction.stop.timestamp, 'L')} ${i18nManager.formatDateTime(transaction.stop.timestamp, 'LT')}` : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalConsumption ? transaction.stop.totalConsumption / 1000 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalDurationSecs ? transaction.stop.totalDurationSecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;
       csv += `${transaction.stop ? Math.round(transaction.stop.totalInactivitySecs ? transaction.stop.totalInactivitySecs / 60 : 0) : ''}` + Constants.CSV_SEPARATOR;

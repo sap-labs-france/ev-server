@@ -497,7 +497,6 @@ export default class StatisticService {
   }
 
   static convertToCSV(loggedUser: UserToken, transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    I18nManager.switchLanguage(loggedUser.language);
     let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {

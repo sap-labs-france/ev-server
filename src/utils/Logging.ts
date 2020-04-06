@@ -260,6 +260,7 @@ export default class Logging {
   }
 
   private static _logActionExceptionMessage(tenantID: string, action: string, exception: any): void {
+    // Log
     Logging.logError({
       tenantID: tenantID,
       user: exception.user,
@@ -276,15 +277,14 @@ export default class Logging {
   }
 
   private static _logActionAppExceptionMessage(tenantID: string, action: string, exception: AppError): void {
-    const detailedMessages = [];
-    detailedMessages.push({
-      'stack': exception.stack
-    });
+    // Add Exception stack
     if (exception.params.detailedMessages) {
-      detailedMessages.push({
-        'details': (exception.params.detailedMessages instanceof Error ? exception.params.detailedMessages.stack : exception.params.detailedMessages)
-      });
+      exception.params.detailedMessages = {
+        'stack': exception.stack,
+        'previous' : exception.params.detailedMessages
+      }
     }
+    // Log
     Logging.logError({
       tenantID: tenantID,
       source: exception.params.source,
@@ -294,11 +294,19 @@ export default class Logging {
       method: exception.params.method,
       action: action,
       message: exception.message,
-      detailedMessages
+      detailedMessages: exception.params.detailedMessages
     });
   }
 
   private static _logActionBackendExceptionMessage(tenantID: string, action: string, exception: BackendError): void {
+    // Add Exception stack
+    if (exception.params.detailedMessages) {
+      exception.params.detailedMessages = {
+        'stack': exception.stack,
+        'previous' : exception.params.detailedMessages
+      }
+    }
+    // Log
     Logging.logError({
       tenantID: tenantID,
       source: exception.params.source,
@@ -308,9 +316,7 @@ export default class Logging {
       message: exception.message,
       user: exception.params.user,
       actionOnUser: exception.params.actionOnUser,
-      detailedMessages: [{
-        'stack': exception.stack
-      }]
+      detailedMessages: exception.params.detailedMessages
     });
   }
 
@@ -333,6 +339,7 @@ export default class Logging {
 
   // Used to check URL params (not in catch)
   private static _logActionAppAuthExceptionMessage(tenantID: string, action: string, exception: AppAuthError): void {
+    // Log
     Logging.logSecurityError({
       tenantID: tenantID,
       user: exception.params.user,
@@ -383,16 +390,41 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _format(detailedMessage: any): string {
-    // JSON?
-    if (typeof detailedMessage === 'object') {
-      try {
-        // Check that every detailedMessages is parsed
-        return JSON.stringify(detailedMessage, null, ' ');
-      } catch (err) {
-        // Do nothing
+  private static _format(detailedMessages: any): string {
+    // Check
+    if (Array.isArray(detailedMessages)) {
+      for (let index = 0; index < detailedMessages.length; index++) {
+        // Override
+        detailedMessages[index] = this._format(detailedMessages[index]);
+      }
+      // Serialize
+      detailedMessages = JSON.stringify(detailedMessages, null, ' ');
+    } else {
+      // JSON?
+      if (typeof detailedMessages === 'object') {
+        // Error?
+        if (detailedMessages instanceof Error) {
+          detailedMessages = {
+            error: detailedMessages.message,
+            stack: detailedMessages.stack
+          };
+        } else {
+          // Check each JSon property
+          for (const key in detailedMessages) {
+            // Error?
+            if (detailedMessages[key] instanceof Error) {
+              detailedMessages[key] = {
+                error: detailedMessages[key].message,
+                stack: detailedMessages[key].stack
+              };
+            } else if (typeof detailedMessages[key] === 'object') {
+              detailedMessages[key] = this._format(detailedMessages[key]);
+            }
+          }
+        }
       }
     }
+    return detailedMessages;
   }
 
   // Log

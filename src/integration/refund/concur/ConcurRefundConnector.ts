@@ -3,7 +3,6 @@ import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
-import AppError from '../../../exception/AppError';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
@@ -14,14 +13,16 @@ import { Action } from '../../../types/Authorization';
 import Company from '../../../types/Company';
 import Connection from '../../../types/Connection';
 import { HTTPError } from '../../../types/HTTPError';
-import { RefundStatus, RefundType } from '../../../types/Refund';
+import { RefundStatus, ConcurRefundType, ConcurLocation } from '../../../types/Refund';
+import { ConcurRefundSetting } from '../../../types/Setting';
 import Site from '../../../types/Site';
 import Transaction from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import RefundConnector from '../RefundConnector';
-import { ConcurRefundSetting } from '../../../types/Setting';
+import I18nManager from '../../../utils/I18nManager';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -131,9 +132,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       connection.id = newConnectionID;
       return connection;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not granted for ${userId}`,
         module: MODULE_NAME,
         method: 'GetAccessToken',
@@ -162,15 +162,15 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           } else {
             site = (await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true })).site;
           }
-          const locationId = await this.getLocation(tenantID, connection, site);
+          const location = await this.getLocation(tenantID, connection, site);
           if (quickRefund) {
-            const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
-            transaction.refundData = { refundId: entryId, type: RefundType.QUICK, refundedAt: new Date() };
+            const entryId = await this.createQuickExpense(connection, transaction, location, userId);
+            transaction.refundData = { refundId: entryId, type: ConcurRefundType.QUICK, refundedAt: new Date() };
           } else {
-            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, userId);
+            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, location, userId);
             transaction.refundData = {
               refundId: entryId,
-              type: RefundType.REPORT,
+              type: ConcurRefundType.REPORT,
               status: RefundStatus.SUBMITTED,
               reportId: expenseReportId,
               refundedAt: new Date()
@@ -244,11 +244,11 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     return true;
   }
 
-  private async getLocation(tenantID: string, connection, site: Site) {
+  private async getLocation(tenantID: string, connection: Connection, site: Site): Promise<ConcurLocation> {
     let response = await axios.get(`${this.setting.apiUrl}/api/v3.0/common/locations?city=${site.address.city}`, {
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
+        Authorization: `Bearer ${connection.data.access_token}`
       }
     });
     if (response.data && response.data.Items && response.data.Items.length > 0) {
@@ -259,15 +259,14 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     response = await axios.get(`${this.setting.apiUrl}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
+        Authorization: `Bearer ${connection.data.access_token}`
       }
     });
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    throw new AppError({
+    throw new BackendError({
       source: Constants.CENTRAL_SERVER,
-      errorCode: HTTPError.CONCUR_CITY_UNKNOWN_ERROR,
       message: `The city '${site.address.city}' of the station is unknown to Concur`,
       module: MODULE_NAME,
       method: 'getLocation',
@@ -275,11 +274,15 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     });
   }
 
-  private async createQuickExpense(connection: Connection, transaction: Transaction, location, userId: string) {
+  private async createQuickExpense(connection: Connection, transaction: Transaction, location: ConcurLocation, userId: string) {
     try {
+      // Get the user
+      const user = await UserStorage.getUser(this.tenantID, userId);
+      // Get the i18n lib
+      const i18nManager = new I18nManager(user.locale);
       const startDate = moment();
       const response = await axios.post(`${this.setting.authenticationUrl}/quickexpense/v4/users/${jwt.decode(connection.data.access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
+        'comment': `Session started on ${i18nManager.formatDateTime(moment.tz(transaction.timestamp, transaction.timezone).toDate())} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })} and consumed ${i18nManager.formatNumber(Math.trunc(transaction.stop.totalConsumption / 10) / 100)} kW.h`,
         'vendor': this.setting.reportName,
         'entryDetails': `Refund of transaction ${transaction.id}`,
         'expenseTypeID': this.setting.expenseTypeCode,
@@ -306,9 +309,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       });
       return response.data.quickExpenseIdUri;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create Quick Expense',
         module: MODULE_NAME,
         method: 'createQuickExpense',
@@ -319,12 +321,16 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     }
   }
 
-  private async createExpenseReportEntry(connection: Connection, expenseReportId, transaction: Transaction, location, userId: string) {
+  private async createExpenseReportEntry(connection: Connection, expenseReportId: string, transaction: Transaction, location: ConcurLocation, userId: string) {
     try {
+      // Get the user
+      const user = await UserStorage.getUser(this.tenantID, userId);
+      // Get the i18n lib
+      const i18nManager = new I18nManager(user.locale);
       const startDate = moment();
       const response = await axios.post(`${this.setting.apiUrl}/api/v3.0/expense/entries`, {
         'Description': `E-Mobility reimbursement ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD')}`,
-        'Comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
+        'Comment': `Session started on ${i18nManager.formatDateTime(moment.tz(transaction.timestamp, transaction.timezone).toDate())} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })} and consumed ${i18nManager.formatNumber(Math.trunc(transaction.stop.totalConsumption / 10) / 100)} kW.h`,
         'VendorDescription': 'E-Mobility',
         'Custom1': transaction.id,
         'ExpenseTypeCode': this.setting.expenseTypeCode,
@@ -354,9 +360,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
         module: MODULE_NAME,
         method: 'createExpenseReport',
@@ -367,7 +372,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     }
   }
 
-  private async createExpenseReport(connection, timezone, userId: string) {
+  private async createExpenseReport(connection: Connection, timezone: string, userId: string) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.setting.apiUrl}/api/v3.0/expense/reports`, {
@@ -376,7 +381,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       }, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
+          Authorization: `Bearer ${connection.data.access_token}`
         }
       });
       Logging.logDebug({
@@ -388,12 +393,10 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to create an Expense Report',
-        module: MODULE_NAME,
-        method: 'createExpenseReport',
+        module: MODULE_NAME, method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
         detailedMessages: { error }
@@ -408,12 +411,12 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     return 0;
   }
 
-  private async getExpenseReport(connection, reportId) {
+  private async getExpenseReport(connection: Connection, reportId: string) {
     try {
       const response = await axios.get(`${this.setting.apiUrl}/api/v3.0/expense/reports/${reportId}`, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
+          Authorization: `Bearer ${connection.data.access_token}`
         }
       });
       return response.data;
@@ -421,9 +424,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       if (error.response.status === 404) {
         return null;
       }
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to get Report details with ID '${reportId}'`,
         module: MODULE_NAME,
         method: 'getExpenseReport',
@@ -433,19 +435,18 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     }
   }
 
-  private async getExpenseReports(connection) {
+  private async getExpenseReports(connection: Connection) {
     try {
       const response = await axios.get(`${this.setting.apiUrl}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
+          Authorization: `Bearer ${connection.data.access_token}`
         }
       });
       return response.data.Items;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: 'Unable to get expense Reports',
         module: MODULE_NAME,
         method: 'getExpenseReports',
@@ -484,9 +485,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       connection.id = await ConnectionStorage.saveConnection(this.tenantID, connection);
       return connection;
     } catch (error) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
         message: `Concur access token not refreshed (ID: '${userId}')`,
         module: MODULE_NAME,
         method: 'refreshToken',
@@ -500,9 +500,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
   private async getRefreshedConnection(userId: string): Promise<Connection> {
     let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenantID, CONNECTOR_ID, userId);
     if (!connection) {
-      throw new AppError({
+      throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         message: `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
         module: MODULE_NAME,
         method: 'getRefreshedConnection',
