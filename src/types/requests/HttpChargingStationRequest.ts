@@ -34,7 +34,7 @@ export interface HttpChargingStationRequest {
   ChargeBoxID: string;
 }
 
-export interface HttpChargingStationConfigurationRequest {
+export interface HttpChargingStationOcppParametersRequest {
   chargeBoxID: string;
   forceUpdateOCPPParamsFromTemplate: boolean;
 }

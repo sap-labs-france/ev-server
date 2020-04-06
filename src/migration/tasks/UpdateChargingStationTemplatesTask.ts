@@ -48,7 +48,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       }
       try {
         // Get the config and Force update of OCPP params with template
-        const result = await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenant.id, chargingStation, true);
+        const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenant.id, chargingStation, true);
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
           updated++;
           Logging.logDebug({

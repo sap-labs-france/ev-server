@@ -148,7 +148,7 @@ Restart the MongoDB service with Powershell as an administrator:
 Connect using the admin user
 
 ```
-mongo -u evse-admin -p <YourPassword>  --authenticationDatabase admin
+mongo -u evse-admin -p <YourPassword> --authenticationDatabase admin
 ```
 
 Create Application User on EVSE schema

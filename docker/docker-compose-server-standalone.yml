@@ -1,0 +1,19 @@
+version: "3.7"
+networks:
+  ev_network:
+    driver: bridge
+services:
+  server-standalone:
+    build:
+      context: ..
+      dockerfile: docker/ev_server-standalone.Dockerfile
+      args:
+        build: prod
+    ports:
+    - 80:80
+    networks:
+      ev_network:
+        aliases:
+        - ev_server-standalone
+    extra_hosts:
+    - ev_server-standalone:127.0.0.1

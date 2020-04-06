@@ -90,7 +90,7 @@ export default abstract class ChargingStationVendor {
     // Update the DB OCPP configuration
     if (result.status === OCPPConfigurationStatus.ACCEPTED) {
       // Refresh Configuration
-      await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(tenantID, chargingStation);
+      await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
       // Update the charger's connectors
       for (const connector of chargingStation.connectors) {
         connector.amperageLimit = maxAmpsPerConnector;
@@ -543,7 +543,7 @@ export default abstract class ChargingStationVendor {
       // Check next the static power limitation
       if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitationForChargingStation) {
         // Read the OCPP Parameter
-        const ocppConfiguration = await OCPPUtils.requestChargingStationConfiguration(
+        const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
           tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
         if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
           ocppConfiguration.configurationKey[0].value) {
