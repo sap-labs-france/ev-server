@@ -270,7 +270,7 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
-        'details': exception.detailedMessages,
+        'error': exception.detailedMessages,
         'stack': exception.stack
       }]
     });
@@ -282,6 +282,10 @@ export default class Logging {
       exception.params.detailedMessages = {
         'stack': exception.stack,
         'previous' : exception.params.detailedMessages
+      }
+    } else {
+      exception.params.detailedMessages = {
+        'stack': exception.stack,
       }
     }
     // Log
@@ -304,6 +308,10 @@ export default class Logging {
       exception.params.detailedMessages = {
         'stack': exception.stack,
         'previous' : exception.params.detailedMessages
+      }
+    } else {
+      exception.params.detailedMessages = {
+        'stack': exception.stack,
       }
     }
     // Log

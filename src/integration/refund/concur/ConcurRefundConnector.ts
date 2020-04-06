@@ -165,12 +165,11 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           const location = await this.getLocation(tenantID, connection, site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, location, userId);
-            transaction.refundData = { refundId: entryId, type: ConcurRefundType.QUICK, refundedAt: new Date() };
+            transaction.refundData = { refundId: entryId, refundedAt: new Date() };
           } else {
             const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, location, userId);
             transaction.refundData = {
               refundId: entryId,
-              type: ConcurRefundType.REPORT,
               status: RefundStatus.SUBMITTED,
               reportId: expenseReportId,
               refundedAt: new Date()
