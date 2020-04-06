@@ -14,7 +14,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
       // Get all site areas
       const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
-        { withChargeBoxes: true, smartCharging: true },
+        { smartCharging: true },
         Constants.DB_PARAMS_MAX_LIMIT);
       // Get Site Area
       for (const siteArea of siteAreas.result) {

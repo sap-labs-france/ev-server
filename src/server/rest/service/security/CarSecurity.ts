@@ -1,16 +1,27 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car } from '../../../../types/Car';
+import { Car, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
+
+  public static filterCarMakersRequest(request: any): HttpCarMakersRequest {
+    const filteredRequest: HttpCarsRequest = {
+      Search: sanitize(request.Search),
+    } as HttpCarsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
   public static filterCarsRequest(request: any): HttpCarsRequest {
     const filteredRequest: HttpCarsRequest = {
       Search: sanitize(request.Search),
+      CarMaker: sanitize(request.CarMaker),
     } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -73,6 +84,22 @@ export default class CarSecurity {
         filteredCar, car, loggedUser);
     }
     return filteredCar;
+  }
+
+  public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken) {
+    const filteredCarConstructors: CarMaker[] = [];
+    if (!carMakers) {
+      return null;
+    }
+    if (!Authorizations.canReadCar(loggedUser)) {
+      return null;
+    }
+    for (const carMaker of carMakers.result) {
+      filteredCarConstructors.push({
+        carMaker: carMaker.carMaker
+      });
+    }
+    carMakers.result = filteredCarConstructors;
   }
 
   public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {

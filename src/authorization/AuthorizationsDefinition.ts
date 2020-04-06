@@ -76,8 +76,7 @@ const GRANTS = {
       { resource: 'Connections', action: 'List', attributes: ['*'] },
       { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
       { resource: 'Cars', action: 'List', attributes: ['*'] },
-      { resource: 'Car', action: 'Read', attributes: ['*'] }
-
+      { resource: 'Car', action: 'Read', attributes: ['*'] },
     ]
   },
   basic: {
