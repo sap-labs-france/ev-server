@@ -3,24 +3,25 @@ import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
-import AbstractConnector from '../../AbstractConnector';
 import AppError from '../../../exception/AppError';
+import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { Action } from '../../../types/Authorization';
+import Company from '../../../types/Company';
+import Connection from '../../../types/Connection';
+import { HTTPError } from '../../../types/HTTPError';
+import { RefundStatus, RefundType } from '../../../types/Refund';
+import Site from '../../../types/Site';
+import Transaction from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import { HTTPError } from '../../../types/HTTPError';
 import Logging from '../../../utils/Logging';
-import Site from '../../../types/Site';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Transaction from '../../../types/Transaction';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import BackendError from '../../../exception/BackendError';
-import Company from '../../../types/Company';
-import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import RefundConnector from '../RefundConnector';
-import { RefundStatus, RefundType } from '../../../types/Refund';
-import { Action } from '../../../types/Authorization';
+import { ConcurRefundSetting } from '../../../types/Setting';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -32,119 +33,78 @@ const CONNECTOR_ID = 'concur';
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
  */
-export default class ConcurRefundConnector extends AbstractConnector implements RefundConnector {
+export default class ConcurRefundConnector extends RefundConnector<ConcurRefundSetting> {
 
-  constructor(tenantID, setting) {
-    super(tenantID, 'concur', setting);
-    axiosRetry(axios,
-      {
-        retries: 3,
-        retryCondition: (error) => error.response.status === HTTPError.GENERAL_ERROR,
-        retryDelay: (retryCount, error) => {
-          try {
-            if (error.config.method === 'post') {
-              if (error.config.url.endsWith('/token')) {
-                throw new BackendError({
-                  source: Constants.CENTRAL_SERVER,
-                  module: MODULE_NAME,
-                  method: 'retryDelay',
-                  message: `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
-                  action: Action.REFUND,
-                  detailedMessages: { response: error.response }
-                });
-              } else {
-                const payload = {
-                  error: error.response.data,
-                  payload: JSON.parse(error.config.data)
-                };
-                throw new BackendError({
-                  source: Constants.CENTRAL_SERVER,
-                  module: MODULE_NAME,
-                  method: 'retryDelay',
-                  message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-                  action: Action.REFUND,
-                  detailedMessages: { payload }
-                });
-              }
-            } else {
+  constructor(tenantID: string, setting: ConcurRefundSetting) {
+    super(tenantID, setting);
+    axiosRetry(axios, {
+      retries: 3,
+      retryCondition: (error) => error.response.status === HTTPError.GENERAL_ERROR,
+      retryDelay: (retryCount, error) => {
+        try {
+          if (error.config.method === 'post') {
+            if (error.config.url.endsWith('/token')) {
               throw new BackendError({
                 source: Constants.CENTRAL_SERVER,
                 module: MODULE_NAME,
                 method: 'retryDelay',
-                message: `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                message: `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
                 action: Action.REFUND,
-                detailedMessages: { response: error.response.data }
+                detailedMessages: { response: error.response }
+              });
+            } else {
+              const payload = {
+                error: error.response.data,
+                payload: JSON.parse(error.config.data)
+              };
+              throw new BackendError({
+                source: Constants.CENTRAL_SERVER,
+                module: MODULE_NAME,
+                method: 'retryDelay',
+                message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                action: Action.REFUND,
+                detailedMessages: { payload }
               });
             }
-          } catch (err) {
-            Logging.logException(err, Action.REFUND, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);
+          } else {
+            throw new BackendError({
+              source: Constants.CENTRAL_SERVER,
+              module: MODULE_NAME,
+              method: 'retryDelay',
+              message: `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+              action: Action.REFUND,
+              detailedMessages: { response: error.response.data }
+            });
           }
-          return retryCount * 200;
-        },
-        shouldResetTimeout: true
-      });
+        } catch (err) {
+          Logging.logException(err, Action.REFUND, Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);
+        }
+        return retryCount * 200;
+      },
+      shouldResetTimeout: true
+    });
   }
 
-  static computeValidUntilAt(result) {
+  private computeValidUntilAt(result) {
     return new Date(result.data.refresh_expires_in * 1000);
   }
 
-  static isConnectionExpired(connection) {
-    return moment(connection.data.refresh_expires_in).isBefore(moment.now());
+  private isTokenExpired(connection: Connection) {
+    return moment(connection.updatedAt).add(connection.data.expires_in, 'seconds').isBefore(moment.now());
   }
 
-  static isTokenExpired(connection) {
-    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
-  }
-
-  getAuthenticationUrl() {
-    return this.getSetting().authenticationUrl;
-  }
-
-  getApiUrl() {
-    return this.getSetting().apiUrl;
-  }
-
-  getClientId() {
-    return this.getSetting().clientId;
-  }
-
-  getClientSecret() {
-    return this.getSetting().clientSecret;
-  }
-
-  getClientSecretDecrypted() {
-    return Cypher.decrypt(this.getSetting().clientSecret);
-  }
-
-  getExpenseTypeCode() {
-    return this.getSetting().expenseTypeCode;
-  }
-
-  getPolicyID() {
-    return this.getSetting().policyId;
-  }
-
-  getReportName() {
-    return this.getSetting().reportName;
-  }
-
-  getPaymentTypeID() {
-    return this.getSetting().paymentTypeId;
-  }
-
-  async createConnection(userId, data) {
+  public async createConnection(userId: string, data: any): Promise<Connection> {
     try {
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         module: MODULE_NAME, method: 'createConnection',
         action: Action.REFUND, message: `request concur access token for ${userId}`
       });
-      const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
+      const result = await axios.post(`${this.setting.authenticationUrl}/oauth2/v0/token`,
         querystring.stringify({
           code: data.code,
-          client_id: this.getClientId(),
-          client_secret: this.getClientSecretDecrypted(),
+          client_id: this.setting.clientId,
+          client_secret: Cypher.decrypt(this.setting.clientSecret),
           redirect_uri: data.redirectUri,
           grant_type: 'authorization_code'
         }),
@@ -154,19 +114,22 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           }
         });
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         module: MODULE_NAME, method: 'createConnection',
         action: Action.REFUND, message: `Concur access token granted for ${userId}`
       });
       const now = new Date();
-      return ConnectionStorage.saveConnection(this.getTenantID(), {
+      const connection: Connection = {
         data: result.data,
         userId: userId,
         connectorId: CONNECTOR_ID,
         createdAt: now,
         updatedAt: now,
-        validUntil: ConcurRefundConnector.computeValidUntilAt(result)
-      });
+        validUntil: this.computeValidUntilAt(result)
+      };
+      const newConnectionID = await ConnectionStorage.saveConnection(this.tenantID, connection);
+      connection.id = newConnectionID;
+      return connection;
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -181,16 +144,14 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  async refund(tenantID: string, userId: string, transactions: Transaction[], quickRefund = false): Promise<any> {
+  public async refund(tenantID: string, userId: string, transactions: Transaction[], quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
     const connection = await this.getRefreshedConnection(userId);
     let expenseReportId;
-
     if (!quickRefund) {
       expenseReportId = await this.createExpenseReport(connection, transactions[0].timezone, userId);
     }
-
     await Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
@@ -218,23 +179,21 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
           await TransactionStorage.saveTransaction(tenantID, transaction);
           refundedTransactions.push(transaction);
         } catch (exception) {
-          Logging.logException(exception, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.getTenantID(), userId);
+          Logging.logException(exception, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenantID, userId);
         }
       },
       { concurrency: 10 });
-
     Logging.logInfo({
-      tenantID: this.getTenantID(),
+      tenantID: this.tenantID,
       user: userId,
       source: MODULE_NAME, action: Action.REFUND,
       module: MODULE_NAME, method: 'Refund',
       message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
     });
-
     return refundedTransactions;
   }
 
-  async updateRefundStatus(tenantID: string, transaction: Transaction): Promise<string> {
+  public async updateRefundStatus(tenantID: string, transaction: Transaction): Promise<string> {
     if (transaction.refundData) {
       const connection = await this.getRefreshedConnection(transaction.userID);
       const report = await this.getExpenseReport(connection, transaction.refundData.reportId);
@@ -272,7 +231,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  canBeDeleted(transaction: Transaction): boolean {
+  public canBeDeleted(transaction: Transaction): boolean {
     if (transaction.refundData && transaction.refundData.status) {
       switch (transaction.refundData.status) {
         case RefundStatus.CANCELLED:
@@ -285,8 +244,8 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     return true;
   }
 
-  async getLocation(tenantID: string, connection, site: Site) {
-    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.address.city}`, {
+  private async getLocation(tenantID: string, connection, site: Site) {
+    let response = await axios.get(`${this.setting.apiUrl}/api/v3.0/common/locations?city=${site.address.city}`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
@@ -297,7 +256,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
     // Get the company
     const company: Company = await CompanyStorage.getCompany(tenantID, site.companyID);
-    response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
+    response = await axios.get(`${this.setting.apiUrl}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
@@ -316,14 +275,14 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     });
   }
 
-  async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
+  private async createQuickExpense(connection: Connection, transaction: Transaction, location, userId: string) {
     try {
       const startDate = moment();
-      const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
+      const response = await axios.post(`${this.setting.authenticationUrl}/quickexpense/v4/users/${jwt.decode(connection.data.access_token).sub}/context/TRAVELER/quickexpenses`, {
         'comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
-        'vendor': this.getReportName(),
+        'vendor': this.setting.reportName,
         'entryDetails': `Refund of transaction ${transaction.id}`,
-        'expenseTypeID': this.getExpenseTypeCode(),
+        'expenseTypeID': this.setting.expenseTypeCode,
         'location': {
           'name': location.Name
         },
@@ -335,11 +294,11 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       }, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
+          Authorization: `Bearer ${connection.data.access_token}`
         }
       });
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         user: userId,
         source: MODULE_NAME, action: Action.REFUND,
         module: MODULE_NAME, method: 'createQuickExpense',
@@ -360,18 +319,18 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  async createExpenseReportEntry(connection, expenseReportId, transaction: Transaction, location, userId: string) {
+  private async createExpenseReportEntry(connection: Connection, expenseReportId, transaction: Transaction, location, userId: string) {
     try {
       const startDate = moment();
-      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
+      const response = await axios.post(`${this.setting.apiUrl}/api/v3.0/expense/entries`, {
         'Description': `E-Mobility reimbursement ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD')}`,
         'Comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
         'VendorDescription': 'E-Mobility',
         'Custom1': transaction.id,
-        'ExpenseTypeCode': this.getExpenseTypeCode(),
+        'ExpenseTypeCode': this.setting.expenseTypeCode,
         'IsBillable': true,
         'IsPersonal': false,
-        'PaymentTypeID': this.getPaymentTypeID(),
+        'PaymentTypeID': this.setting.paymentTypeId,
         'ReportID': expenseReportId,
         'TaxReceiptType': 'N',
         'TransactionAmount': transaction.stop.price,
@@ -383,11 +342,11 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
       }, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
+          Authorization: `Bearer ${connection.data.access_token}`
         }
       });
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         user: userId,
         source: MODULE_NAME, action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReportEntry',
@@ -408,12 +367,12 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  async createExpenseReport(connection, timezone, userId: string) {
+  private async createExpenseReport(connection, timezone, userId: string) {
     try {
       const startDate = moment();
-      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': `${this.getReportName()} - ${moment.tz(timezone).format('DD/MM/YY HH:mm')}`,
-        'PolicyID': this.getPolicyID()
+      const response = await axios.post(`${this.setting.apiUrl}/api/v3.0/expense/reports`, {
+        'Name': `${this.setting.reportName} - ${moment.tz(timezone).format('DD/MM/YY HH:mm')}`,
+        'PolicyID': this.setting.policyId
       }, {
         headers: {
           Accept: 'application/json',
@@ -421,7 +380,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         }
       });
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         user: userId,
         source: MODULE_NAME, action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReport',
@@ -442,7 +401,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  getRetryCount(response) {
+  private getRetryCount(response) {
     if (response && response.config) {
       return response.config['axios-retry'].retryCount;
     }
@@ -451,7 +410,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
 
   private async getExpenseReport(connection, reportId) {
     try {
-      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports/${reportId}`, {
+      const response = await axios.get(`${this.setting.apiUrl}/api/v3.0/expense/reports/${reportId}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${connection.getData().access_token}`
@@ -476,7 +435,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
 
   private async getExpenseReports(connection) {
     try {
-      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
+      const response = await axios.get(`${this.setting.apiUrl}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${connection.getData().access_token}`
@@ -496,15 +455,15 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  private async refreshToken(userId, connection) {
+  private async refreshToken(userId: string, connection: Connection): Promise<Connection> {
     try {
       const startDate = moment();
-      const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
+      const response = await axios.post(`${this.setting.authenticationUrl}/oauth2/v0/token`,
         querystring.stringify({
-          client_id: this.getClientId(),
-          client_secret: this.getClientSecretDecrypted(),
-          refresh_token: connection.getData().refresh_token,
-          scope: connection.getData().scope,
+          client_id: this.setting.clientId,
+          client_secret: Cypher.decrypt(this.setting.clientSecret),
+          refresh_token: connection.data.refresh_token,
+          scope: connection.data.scope,
           grant_type: 'refresh_token'
         }),
         {
@@ -512,16 +471,18 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
-
       Logging.logDebug({
-        tenantID: this.getTenantID(),
+        tenantID: this.tenantID,
         user: userId,
         source: MODULE_NAME, action: Action.REFUND,
         module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
-      connection.updateData(response.data, new Date(), ConcurRefundConnector.computeValidUntilAt(response));
-      return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
+      connection.data = response.data;
+      connection.updatedAt = new Date();
+      connection.validUntil = this.computeValidUntilAt(response);
+      connection.id = await ConnectionStorage.saveConnection(this.tenantID, connection);
+      return connection;
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -536,8 +497,8 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
     }
   }
 
-  private async getRefreshedConnection(userId: string) {
-    let connection = await this.getConnectionByUserId(userId);
+  private async getRefreshedConnection(userId: string): Promise<Connection> {
+    let connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(this.tenantID, CONNECTOR_ID, userId);
     if (!connection) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -549,8 +510,7 @@ export default class ConcurRefundConnector extends AbstractConnector implements 
         user: userId
       });
     }
-
-    if (ConcurRefundConnector.isTokenExpired(connection)) {
+    if (this.isTokenExpired(connection)) {
       connection = await this.refreshToken(userId, connection);
     }
     return connection;
