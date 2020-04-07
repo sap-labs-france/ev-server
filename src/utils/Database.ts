@@ -66,34 +66,4 @@ export default class Database {
       dest.hostname = src.hostname;
     }
   }
-
-  static updateMeterValue(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.chargeBoxID = src.chargeBoxID;
-    dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.transactionId = Utils.convertToInt(src.transactionId);
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    if (src.attribute.format === 'SignedData') {
-      dest.value = src.value;
-    } else {
-      dest.value = Utils.convertToInt(src.value);
-    }
-    dest.attribute = src.attribute;
-  }
-
-  static updateConnection(src, dest, forFrontEnd = true) {
-    dest.connectorId = src.connectorId;
-    dest.createdAt = Utils.convertToDate(src.createdAt);
-    dest.updatedAt = Utils.convertToDate(src.updatedAt);
-    dest.validUntil = Utils.convertToDate(src.validUntil);
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.userId = Database.validateId(src.userId);
-    } else {
-      dest.userId = Utils.convertToObjectID(src.userId);
-    }
-    dest.data = src.data;
-  }
 }
