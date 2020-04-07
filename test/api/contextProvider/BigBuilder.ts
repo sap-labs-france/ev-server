@@ -162,7 +162,7 @@ export default class ContextBuilder {
     }
     let buildTenant: any = {};
     // Create Tenant
-    const dummyTenant = TenantFactory.buildTenantCreate();
+    const dummyTenant = TenantFactory.build();
     dummyTenant.name = tenantContextDef.tenantName;
     dummyTenant.subdomain = tenantContextDef.subdomain;
     dummyTenant.id = tenantContextDef.id;

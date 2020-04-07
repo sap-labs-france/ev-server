@@ -1,56 +1,70 @@
-import Connection from '../../integration/Connection';
+import Connection from '../../types/Connection';
 import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+import { ObjectID } from 'mongodb';
+import { DataResult } from '../../types/DataResult';
 
 export default class ConnectionStorage {
 
-  static async saveConnection(tenantID: string, connectionToSave) {
+  static async saveConnection(tenantID: string, connectionToSave: Connection): Promise<string> {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'saveConnection');
     await Utils.checkTenant(tenantID);
-    const connection: any = {};
-    Database.updateConnection(connectionToSave, connection, false);
-    const connectionFilter = {
+    // Create
+    const connectionMDB: any = {
+      _id: !connectionToSave.id ? new ObjectID() : Utils.convertToObjectID(connectionToSave.id),
       connectorId: connectionToSave.connectorId,
-      userId: Utils.convertUserToObjectID(connectionToSave.userId)
+      userId: Utils.convertToObjectID(connectionToSave.userId),
+      createdAt: Utils.convertToDate(connectionToSave.createdAt),
+      updatedAt: Utils.convertToDate(connectionToSave.updatedAt),
+      validUntil: Utils.convertToDate(connectionToSave.validUntil),
+      data: connectionToSave.data
     };
+    // Update
     const result = await global.database.getCollection<any>(tenantID, 'connections').findOneAndUpdate(
-      connectionFilter,
-      { $set: connection },
+      { _id: connectionMDB._id },
+      { $set: connectionMDB },
       { upsert: true, returnOriginal: false });
     Logging.traceEnd('ConnectionStorage', 'saveConnection', uniqueTimerID);
-    return new Connection(tenantID, result.value);
+    return result.value._id.toHexString();
   }
 
-  static async getConnectionByUserId(tenantID: string, connectorId: string, userId: string) {
-    const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionByUserId');
+  static async getConnectionByConnectorIdAndUserId(tenantID: string, connectorId: string, userId: string): Promise<Connection> {
+    const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionByConnectorIdAndUserId');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
     aggregation.push({
       $match: { connectorId: connectorId, userId: Utils.convertToObjectID(userId) }
     });
-
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Exec
     const results = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation)
       .toArray();
-
-    let connection;
+    let connection: Connection;
     if (results && results.length > 0) {
-      connection = new Connection(tenantID, results[0]);
+      connection = results[0];
     }
-    Logging.traceEnd('ConnectionStorage', 'getConnectionByUserId', uniqueTimerID);
+    Logging.traceEnd('ConnectionStorage', 'getConnectionByConnectorIdAndUserId', uniqueTimerID, {connectorId, userId});
     return connection;
   }
 
-  static async getConnectionsByUserId(tenantID: string, userId: string) {
+  static async getConnectionsByUserId(tenantID: string, userId: string): Promise<DataResult<Connection>> {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionsByUserId');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
     aggregation.push({
       $match: { userId: Utils.convertToObjectID(userId) }
     });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Count Records
     const connectionsCountMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
@@ -58,19 +72,14 @@ export default class ConnectionStorage {
     const connectionsMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-
-    const connections = [];
-    for (const connectionMDB of connectionsMDB) {
-      connections.push(new Connection(tenantID, connectionMDB));
-    }
     Logging.traceEnd('ConnectionStorage', 'getConnectionByUserId', uniqueTimerID);
     return {
       count: (connectionsCountMDB.length > 0 ? connectionsCountMDB[0].count : 0),
-      result: connections
+      result: connectionsMDB
     };
   }
 
-  static async getConnection(tenantID: string, id: string) {
+  static async getConnection(tenantID: string, id: string): Promise<Connection> {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnection');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
@@ -78,14 +87,17 @@ export default class ConnectionStorage {
     aggregation.push({
       $match: { _id: Utils.convertToObjectID(id) }
     });
-
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userId');
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Exec
     const results = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation)
       .toArray();
-
-    let connection;
+    let connection: Connection;
     if (results && results.length > 0) {
-      connection = new Connection(tenantID, results[0]);
+      connection = results[0];
     }
     Logging.traceEnd('ConnectionStorage', 'getConnection', uniqueTimerID);
     return connection;

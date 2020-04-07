@@ -24,7 +24,6 @@ export default class TenantValidator extends SchemaValidator {
     return TenantValidator._instance;
   }
 
-
   public validateTenantCreation(tenant: Tenant): Tenant {
     // Validate schema
     this.validate(this._tenantCreation, tenant);
@@ -55,7 +54,7 @@ export default class TenantValidator extends SchemaValidator {
       }
       // Building active: Organization must be active
       if (tenant.components.building && tenant.components.organization &&
-        tenant.components.building.active && !tenant.components.organization.active) {
+          tenant.components.building.active && !tenant.components.organization.active) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
