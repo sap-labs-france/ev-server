@@ -32,7 +32,7 @@ export default class RunLock {
     }
     this._onMultipleHosts = onMultipleHosts;
     this._runLock = {
-      name: name,
+      name: name.toLowerCase(),
       type: 'runLock',
       timestamp: new Date(),
       hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
