@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import i18n from 'i18n-js';
 import moment from 'moment';
 import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
@@ -516,13 +515,13 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       const chargeBox = transaction.chargeBox;
       // Create or update invoice in Stripe
       let description = '';
-      I18nManager.switchLocale(transaction.user.locale);
+      const i18nManager = new I18nManager(transaction.user.locale);
       const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;
-      const time = I18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
+      const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
       if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-        description = i18n.t('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
+        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
       } else {
-        description = i18n.t('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
+        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
       }
       let collectionMethod = 'send_invoice';
       let daysUntilDue = 30;
@@ -667,7 +666,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async checkIfUserCanBeUpdated(user: User): Promise<boolean> {
     // Check connection
     await this.checkConnection();
-    I18nManager.switchLocale(user.locale);
     let customer: Stripe.customers.ICustomer = null;
     if (user.billingData && user.billingData.customerID) {
       customer = await this.getCustomerByEmail(user.email);
@@ -929,8 +927,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     if (locale) {
       locale = locale.substr(0, 2).toLocaleLowerCase();
     }
-    I18nManager.switchLocale(user.locale);
-    const description = i18n.t('billing.generatedUser', { email: user.email });
+    const i18nManager = new I18nManager(user.locale);
+    const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     let customer;
     if (user.billingData && user.billingData.customerID) {
       customer = await this.getCustomerByID(user.billingData.customerID);

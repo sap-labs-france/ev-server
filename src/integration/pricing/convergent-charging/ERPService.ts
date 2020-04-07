@@ -33,7 +33,7 @@ export default class ERPService extends AbstractSoapClient {
    * @returns {Promise<void>}
    */
   async createInvoice(tenantId, user: User) {
-    const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.id);
+    const connection = await ConnectionStorage.getConnectionByConnectorIdAndUserId(tenantId, 'convergent-invoicing', user.id);
     if (!connection) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -44,7 +44,7 @@ export default class ERPService extends AbstractSoapClient {
         user: user
       });
     }
-    const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
+    const invoiceCreateRequest = new InvoiceCreateRequest(connection.data.gpart, connection.data.vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);
     if (!result.data.InvoiceDocumentNumber) {
       if (result.data.status === 'error') {

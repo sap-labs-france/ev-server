@@ -34,7 +34,7 @@ export default class CarService {
     const cars = await CarStorage.getCars(
       {
         search: filteredRequest.Search,
-        vehicleMakers: filteredRequest.VehicleMaker ? filteredRequest.VehicleMaker.split('|') : null
+        carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
@@ -157,10 +157,13 @@ export default class CarService {
         method: 'handleGetCarMakers'
       });
     }
-    const filteredRequest = CarSecurity.filterCarsRequest(req.query);
-    const carConstructors = await CarStorage.getCarMakers({ search: filteredRequest.Search });
-    CarSecurity.filterCarConstructorsResponse(carConstructors, req.user);
-    res.json(carConstructors);
+    // Filter
+    const filteredRequest = CarSecurity.filterCarMakersRequest(req.query);
+    // Get car makers
+    const carMakers = await CarStorage.getCarMakers({ search: filteredRequest.Search });
+    // Filter
+    CarSecurity.filterCarMakersResponse(carMakers, req.user);
+    res.json(carMakers);
     next();
   }
 }

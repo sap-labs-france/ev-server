@@ -16,7 +16,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
-import ChargingStation, { ChargerVendor, Connector, ConnectorType, PowerLimitUnits, ConnectorCurrentLimitSource } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -36,7 +36,6 @@ import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import { SDK_VERSION } from 'firebase-admin';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -200,7 +199,7 @@ export default class OCPPService {
       // Handle the get of configuration later on
       setTimeout(async () => {
         // Get config and save it
-        await OCPPUtils.requestAndSaveChargingStationOcppConfiguration(
+        await OCPPUtils.requestAndSaveChargingStationOcppParameters(
           headers.tenantID, chargingStation, chargingStationTemplateUpdated);
       }, 3000);
       // Return the result
@@ -553,7 +552,7 @@ export default class OCPPService {
         // Handle Smart Charging
         if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
           // Get Site Area
-          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
           if (siteArea.smartCharging) {
             const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
             if (smartCharging) {
@@ -1362,8 +1361,8 @@ export default class OCPPService {
 
   private async notifyEndOfCharge(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
-      // Switch language
-      I18nManager.switchLocale(transaction.user.locale);
+      // Get the i18n lib
+      const i18nManager = new I18nManager(transaction.user.locale);
       // Notify (Async)
       NotificationHandler.sendEndOfCharge(
         tenantID,
@@ -1374,7 +1373,7 @@ export default class OCPPService {
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': I18nManager.formatNumber(Math.round(transaction.currentTotalConsumption / 10) / 100),
+          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumption / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
           'totalDuration': this.buildCurrentTransactionDuration(transaction),
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
@@ -1386,8 +1385,8 @@ export default class OCPPService {
 
   private async notifyOptimalChargeReached(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     if (transaction.user) {
-      // Switch language
-      I18nManager.switchLocale(transaction.user.locale);
+      // Get the i18n lib
+      const i18nManager = new I18nManager(transaction.user.locale);
       // Notifcation Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
         tenantID,
@@ -1399,7 +1398,7 @@ export default class OCPPService {
           'chargeBoxID': chargingStation.id,
           'transactionId': transaction.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': I18nManager.formatNumber(Math.round(transaction.currentTotalConsumption / 10) / 100),
+          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.currentTotalConsumption / 10) / 100),
           'stateOfCharge': transaction.currentStateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
@@ -1430,14 +1429,15 @@ export default class OCPPService {
 
   // Build Inactivity
   private buildTransactionInactivity(transaction: Transaction, i18nHourShort = 'h') {
+    const i18nManager = new I18nManager(transaction.user.locale);
     // Get total
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
     if (totalInactivitySecs === 0) {
-      return `0${i18nHourShort}00 (${I18nManager.formatPercentage(0)})`;
+      return `0${i18nHourShort}00 (${i18nManager.formatPercentage(0)})`;
     }
     // Build the inactivity percentage
-    const totalInactivityPercent = I18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
+    const totalInactivityPercent = i18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
     return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 
@@ -1713,8 +1713,8 @@ export default class OCPPService {
   private async notifyStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
     // User provided?
     if (user) {
-      // Switch language
-      I18nManager.switchLocale(user.locale);
+      // Get the i18n lib
+      const i18nManager = new I18nManager(user.locale);
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
         tenantID,
@@ -1727,7 +1727,7 @@ export default class OCPPService {
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
           'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
-          'totalConsumption': I18nManager.formatNumber(Math.round(transaction.stop.totalConsumption / 10) / 100),
+          'totalConsumption': i18nManager.formatNumber(Math.round(transaction.stop.totalConsumption / 10) / 100),
           'totalDuration': this.buildTransactionDuration(transaction),
           'totalInactivity': this.buildTransactionInactivity(transaction),
           'stateOfCharge': transaction.stop.stateOfCharge,

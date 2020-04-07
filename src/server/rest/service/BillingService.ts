@@ -16,7 +16,7 @@ import UtilsService from './UtilsService';
 
 export default class BillingService {
 
-  public static async handleGetBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,

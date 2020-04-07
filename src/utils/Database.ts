@@ -1,5 +1,4 @@
 import cfenv from 'cfenv';
-import cluster from 'cluster';
 import os from 'os';
 import Configuration from './Configuration';
 import Utils from './Utils';
@@ -28,15 +27,6 @@ export default class Database {
       }
     }
     return changedID;
-  }
-
-  static updatePricing(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.priceKWH = Utils.convertToFloat(src.priceKWH);
-    dest.priceUnit = src.priceUnit;
   }
 
   static updateMigration(src, dest, forFrontEnd = true) {
@@ -75,23 +65,6 @@ export default class Database {
     } else {
       dest.hostname = src.hostname;
     }
-  }
-
-  static updateStatusNotification(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.chargeBoxID = src.chargeBoxID;
-    dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    if (src.timezone) {
-      dest.timezone = src.timezone;
-    }
-    dest.status = src.status;
-    dest.errorCode = src.errorCode;
-    dest.info = src.info;
-    dest.vendorId = src.vendorId;
-    dest.vendorErrorCode = src.vendorErrorCode;
   }
 
   static updateMeterValue(src, dest, forFrontEnd = true) {

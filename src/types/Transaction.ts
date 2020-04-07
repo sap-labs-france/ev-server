@@ -5,7 +5,7 @@ import User from './User';
 import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
 import { OCPISession } from './ocpi/OCPISession';
 import { OCPICdr } from './ocpi/OCPICdr';
-import { RefundStatus, RefundType } from './Refund';
+import { RefundStatus } from './Refund';
 
 export type InactivityStatusLevel =
  'info' |
@@ -63,7 +63,6 @@ export default interface Transaction {
   refundData?: {
     refundId: string;
     refundedAt: Date;
-    type: RefundType;
     reportId?: string;
     status?: RefundStatus;
   };

@@ -7,28 +7,10 @@
     "url": "https://ev-database.org/export_v26/74964691",
     "key": "Sm9wf91An9tg0d9ta21AA"
   },
-  "CentralSystems": [
-    {
-      "type": "ocpp",
-      "implementation": "soap",
-      "protocol": "http",
-      "host": "server",
-      "port": 8000,
-      "debug": false
-    },
-    {
-      "type": "ocpp",
-      "implementation": "json",
-      "protocol": "ws",
-      "host": "server",
-      "port": 8010,
-      "debug": false
-    }
-  ],
   "CentralSystemRestService": {
     "protocol": "http",
-    "host": "server",
-    "port": 81,
+    "host": "server-standalone",
+    "port": 80,
     "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
@@ -46,34 +28,6 @@
     "port": 3080,
     "distEnabled": false,
     "distPath": "../dist/front-end"
-  },
-  "CentralSystemServer": {
-    "protocol": "http",
-    "host": "server",
-    "port": 81
-  },
-  "OCPIService": {
-    "protocol": "http",
-    "host": "server",
-    "port": 9090,
-    "debug": false,
-    "externalProtocol": "http",
-    "tenantEnabled": [
-      "slf"
-    ],
-    "eMI3id": {
-      "slf": {
-        "country_id": "FR",
-        "party_id": "SLF"
-      }
-    }
-  },
-  "ODataService": {
-    "protocol": "http",
-    "host": "server",
-    "port": 9292,
-    "debug": false,
-    "externalProtocol": "http"
   },
   "WSDLEndpoint": {
     "baseUrl": "http://localhost:8000"

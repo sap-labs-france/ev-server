@@ -2,33 +2,43 @@ PROJECT_NAME:=evse
 NAME:=mongo-tools
 DOCKER_USER:=
 DOCKER_PASSWORD:=
+DOCKER_REGISTRY:=166296450311.dkr.ecr.eu-west-3.amazonaws.com
 
 .PHONY: $(NAME)-start
 
 default: $(NAME)-start
 
 $(NAME)-build:
-	docker build -t $(PROJECT_NAME)-$(NAME) .
+	docker build -t $(PROJECT_NAME)_$(NAME) .
 
 $(NAME)-start: $(NAME)-build
-	docker run -d $(PROJECT_NAME)-$(NAME)
+	docker run -d $(PROJECT_NAME)_$(NAME)
 
 clean-$(NAME)-image:
-	-docker rmi $(PROJECT_NAME)-$(NAME)
+	-docker rmi $(PROJECT_NAME)_$(NAME)
 
 clean-mongodb-image:
-	-docker rmi mongo:4.0
+	-docker rmi mongo:4.2
+
+clean-images clean-$(NAME)-images: clean-mongodb-image clean-$(NAME)-image
 
 clean-$(NAME)-containers:
-	-docker ps -a | awk '{ print $$1,$$2 }' | grep $(PROJECT_NAME)-$(NAME) | awk '{print $$1 }' | xargs -I {} docker rm --force {}
+	-docker ps -a | awk '{ print $$1,$$2 }' | grep $(PROJECT_NAME)_$(NAME) | awk '{print $$1 }' | xargs -I {} docker rm --force {}
 
-clean clean-$(NAME): clean-$(NAME)-containers clean-mongodb-image clean-$(NAME)-image
+clean clean-$(NAME): clean-$(NAME)-containers clean-$(NAME)-images
 
 $(NAME)-docker-tag:
-	docker tag $(PROJECT_NAME)-$(NAME) $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
+	docker tag $(PROJECT_NAME)_$(NAME) $(DOCKER_USER)/$(PROJECT_NAME)_$(NAME)
 
-$(NAME)-docker-push: $(NAME)-docker-tag
-	docker push $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
+$(NAME)-docker-push: $(NAME)-build $(NAME)-docker-tag
+	docker push $(DOCKER_USER)/$(PROJECT_NAME)_$(NAME)
+
+$(NAME)-docker-ecr-tag:
+	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_REGISTRY)/$(NAME):latest
+
+$(NAME)-docker-ecr-push: $(NAME)-build $(NAME)-docker-ecr-tag
+	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(NAME)
+	docker push $(DOCKER_REGISTRY)/$(NAME):latest
 
 ifeq ($(OS),Windows_NT)
 # FIXME
@@ -36,8 +46,8 @@ ifeq ($(OS),Windows_NT)
 else
 $(NAME)-cf-push: export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
 endif
-$(NAME)-cf-push: $(NAME)-build $(NAME)-docker-push
-	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
+$(NAME)-cf-push: $(NAME)-docker-push
+	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)_$(NAME) --docker-username $(DOCKER_USER)
 
 ifeq ($(OS),Windows_NT)
 # FIXME
@@ -46,7 +56,7 @@ else
 $(NAME)-cf-push-only: export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
 endif
 $(NAME)-cf-push-only:
-	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
+	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)_$(NAME) --docker-username $(DOCKER_USER)
 
 dist-clean-images:
 	docker image prune -a -f

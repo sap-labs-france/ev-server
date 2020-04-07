@@ -185,7 +185,7 @@ export default class Configuration {
     return oDataservice;
   }
 
-  // RestService Configuration - internet view
+  // RestService Configuration - Internet view
   static getCentralSystemRestServer(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }

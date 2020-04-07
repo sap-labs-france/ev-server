@@ -169,17 +169,24 @@ export interface ChargingStationCapabilities {
   supportChargingProfiles: boolean;
 }
 
-export interface ChargingStationConfiguration {
+export interface ChargingStationOcppParameters {
   id: string;
   timestamp: Date;
   configuration: KeyValue[];
+}
+
+export interface OcppParameter {
+  id: string;
+  key: string;
+  value: string;
+  readonly: boolean;
 }
 
 export type OCPPParams = {
   siteName: string;
   siteAreaName: string;
   chargingStationName: string;
-  params: ChargingStationConfiguration;
+  params: OcppParameter[];
 };
 
 export enum ChargerVendor {
