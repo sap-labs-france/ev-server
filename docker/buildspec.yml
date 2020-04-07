@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Build tools information
+      - make --version
+      - aws --version
+      - docker-compose --version
+      - docker --version
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building and pushing the Docker image...
+      - make DOCKER_ECR_REGION=$AWS_DEFAULT_REGION server-standalone-docker-ecr-push
+      - echo Build finished on `date`
