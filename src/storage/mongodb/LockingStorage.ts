@@ -6,30 +6,23 @@ import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class LockingStorage {
   public static async getLocks(): Promise<Lock[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
+    const aggregation = [];
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const locksMDB: Lock[] = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
-      .find({})
+    const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
+      .aggregate(aggregation)
       .toArray();
-    const locks: Lock[] = [];
-    // Check
-    if (locksMDB && locksMDB.length > 0) {
-      for (const lockMDB of locksMDB) {
-        const lock = {} as Lock;
-        // Set values
-        Database.updateLock(lockMDB, lock, false);
-        // Add
-        locks.push(lock);
-      }
-    }
     // Debug
     Logging.traceEnd('LockingStorage', 'getLocks', uniqueTimerID);
     // Ok
-    return locks;
+    return locksMDB;
   }
 
   public static async getLockStatus(lockToTest: Lock, lockOnMultipleHosts = true): Promise<boolean> {
