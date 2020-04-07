@@ -25,7 +25,7 @@ import { Action } from '../../types/Authorization';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import Transaction from '../../types/Transaction';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import Tag from '../../types/Tag';
+import { CdrDimensionType } from '../../types/ocpi/OCPIChargingPeriod';
 
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
@@ -190,39 +190,94 @@ export default class CpoOCPIClient extends OCPIClient {
     return authorizationInfo.authorization_id;
   }
 
-  async startSession(token: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, tag: Tag): Promise<OCPISession> {
+  async startSession(ocpiToken: OCPIToken, chargingStation: ChargingStation, transaction: Transaction, authorizationId: string) {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions')}/${this.getLocalCountryCode()}/${this.getLocalPartyID()}/${transaction.id}`;
 
     // Build payload
-    const payload: OCPISession =
+    const ocpiSession: OCPISession =
       {
         id: transaction.id.toString(),
         'start_datetime': transaction.timestamp,
         kwh: 0,
-        'total_cost': transaction.price,
+        'total_cost': transaction.roundedPrice,
         'auth_method': OCPIAuthMethod.AUTH_REQUEST,
-        'auth_id': tag.ocpiToken.auth_id,
+        'auth_id': ocpiToken.auth_id,
         location: null,
         currency: transaction.priceUnit,
         status: OCPISessionStatus.PENDING,
+        'authorization_id': authorizationId,
         'last_updated': transaction.timestamp
       };
 
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
-      action: Action.OCPI_AUTHORIZE_TOKEN,
-      message: `Post authorize at ${tokensUrl}`,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Put session start at ${tokensUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: 'authorizeToken',
-      detailedMessages: { payload }
+      method: 'startSession',
+      detailedMessages: { payload: ocpiSession }
     });
 
     // Call IOP
     // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(tokensUrl, payload,
+    const response = await axios.put(tokensUrl, ocpiSession,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Put Session`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Put Session: ${JSON.stringify(response.data)}`);
+    }
+
+    transaction.ocpiSession = ocpiSession;
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Push session response retrieved from ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'startSession',
+      detailedMessages: { response: response.data.data }
+    });
+  }
+
+  async updateSession(transaction: Transaction) {
+    if (!transaction.ocpiSession) {
+      throw new Error('OCPI Session not started');
+    }
+    // Get tokens endpoint url
+    const tokensUrl = `${this.getEndpointUrl('sessions')}/${this.getLocalCountryCode()}/${this.getLocalPartyID()}/${transaction.id}`;
+
+    transaction.ocpiSession.kwh = transaction.currentTotalConsumption / 1000;
+    transaction.ocpiSession.last_updated = transaction.lastUpdate;
+    transaction.ocpiSession.total_cost = transaction.roundedPrice;
+    transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Put session update at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'updateSession',
+      detailedMessages: { payload: transaction.ocpiSession }
+    });
+
+    // Call IOP
+    // eslint-disable-next-line no-case-declarations
+    const response = await axios.put(tokensUrl, transaction.ocpiSession,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -241,14 +296,145 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Authorization response retrieved from ${tokensUrl}`,
+      message: `Push session response retrieved from ${tokensUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: 'authorizeToken',
+      method: 'updateSession',
       detailedMessages: { response: response.data.data }
     });
+  }
 
-    return response.data.data as OCPISession;
+  async stopSession(transaction: Transaction) {
+    if (!transaction.ocpiSession) {
+      throw new Error('OCPI Session not started');
+    }
+    if (!transaction.stop) {
+      throw new Error('Transaction not stopped');
+    }
+    // Get tokens endpoint url
+    const tokensUrl = `${this.getEndpointUrl('sessions')}/${this.getLocalCountryCode()}/${this.getLocalPartyID()}/${transaction.id}`;
+
+    transaction.ocpiSession.kwh = transaction.stop.totalConsumption / 1000;
+    transaction.ocpiSession.last_updated = transaction.lastUpdate;
+    transaction.ocpiSession.total_cost = transaction.stop.roundedPrice;
+    transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
+    transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Put session stop at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'stopSession',
+      detailedMessages: { payload: transaction.ocpiSession }
+    });
+
+    // Call IOP
+    // eslint-disable-next-line no-case-declarations
+    const response = await axios.put(tokensUrl, transaction.ocpiSession,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Put Session`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Put Session: ${JSON.stringify(response.data)}`);
+    }
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_SESSIONS,
+      message: `Push session response retrieved from ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'stopSession',
+      detailedMessages: { response: response.data.data }
+    });
+  }
+
+  async postCdr(transaction: Transaction) {
+    if (!transaction.ocpiSession) {
+      throw new Error('OCPI Session not started');
+    }
+    if (!transaction.stop) {
+      throw new Error('Transaction not stopped');
+    }
+    // Get tokens endpoint url
+    const tokensUrl = `${this.getEndpointUrl('cdrs')}`;
+
+    transaction.ocpiCdr = {
+      id: transaction.id.toString(),
+      start_date_time: transaction.timestamp,
+      stop_date_time: transaction.stop.timestamp,
+      total_parking_time: transaction.stop.totalInactivitySecs,
+      total_time: transaction.stop.totalDurationSecs,
+      total_energy: transaction.stop.totalConsumption / 1000,
+      total_cost: transaction.stop.roundedPrice,
+      currency: transaction.priceUnit,
+      auth_id: transaction.ocpiSession.auth_id,
+      authorization_id: transaction.ocpiSession.authorization_id,
+      auth_method: transaction.ocpiSession.auth_method,
+      location: transaction.ocpiSession.location,
+      last_updated: transaction.lastUpdate,
+      charging_periods: [
+        {
+          start_date_time: transaction.timestamp,
+          dimensions: [
+            {
+              type: CdrDimensionType.ENERGY,
+              volume: transaction.stop.totalConsumption / 1000
+            }
+          ]
+        }
+      ]
+    };
+
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_CDRS,
+      message: `Post cdr at ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'stopSession',
+      detailedMessages: { payload: transaction.ocpiSession }
+    });
+
+    // Call IOP
+    // eslint-disable-next-line no-case-declarations
+    const response = await axios.post(tokensUrl, transaction.ocpiCdr,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    if (response.status !== 200 || !response.data) {
+      throw new Error(`Invalid response code ${response.status} from Post Cdr`);
+    }
+    if (!response.data.data) {
+      throw new Error(`Invalid response from Post Cdr: ${JSON.stringify(response.data)}`);
+    }
+
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_PUSH_CDRS,
+      message: `Push cdr response retrieved from ${tokensUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'postCdr',
+      detailedMessages: { response: response.data.data }
+    });
   }
 
   async patchChargingStationStatus(chargingStation: ChargingStation, connector: Connector) {

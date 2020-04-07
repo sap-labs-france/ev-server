@@ -351,6 +351,10 @@ export default class OCPPService {
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
           // Handle Meter Values
           await this.updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
+
+          // OCPI
+          await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
+
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station Consumption
@@ -607,6 +611,8 @@ export default class OCPPService {
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
       // Billing
       await this.billTransaction(headers.tenantID, transaction, TransactionAction.START);
+      // OCPI
+      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.START);
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
@@ -645,39 +651,6 @@ export default class OCPPService {
           action: Action.START_TRANSACTION, user: user,
           message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
-
-        if (!user.issuer) {
-          if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
-            throw new BackendError({
-              user: user,
-              action: Action.START_TRANSACTION,
-              module: 'Authorizations',
-              method: 'handleStartTransaction',
-              message: `Unable to start transaction for user '${user.id}' not issued locally`
-            });
-          }
-          const tag = user.tags.find(((value) => value.id === transaction.tagID));
-          if (!tag.ocpiToken) {
-            throw new BackendError({
-              user: user,
-              action: Action.START_TRANSACTION,
-              module: 'Authorizations',
-              method: 'handleStartTransaction',
-              message: `User '${user.id}' with tag '${transaction.tagID}' cannot start transaction thought OCPI protocol due to missing ocpiToken`
-            });
-          }
-          const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
-          if (!ocpiClient) {
-            throw new BackendError({
-              user: user,
-              action: Action.START_TRANSACTION,
-              module: 'Authorizations',
-              method: 'handleStartTransaction',
-              message: 'OCPI component requires at least one CPO endpoint to start transactions'
-            });
-          }
-          transaction.ocpiSession = await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, tag);
-        }
       } else {
         // Log
         Logging.logInfo({
@@ -811,6 +784,8 @@ export default class OCPPService {
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
       // Finalize billing
       await this.billTransaction(headers.tenantID, transaction, TransactionAction.STOP);
+      // OCPI
+      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       // Save the transaction
@@ -1312,6 +1287,86 @@ export default class OCPPService {
         transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
         transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
         transaction.billingData.lastUpdate = new Date();
+        break;
+    }
+  }
+
+  private async updateOCPITransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, transactionAction: TransactionAction) {
+    if (!transaction.user || transaction.user.issuer) {
+      return;
+    }
+    const user: User = transaction.user;
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+
+    let action: Action;
+    switch (transactionAction) {
+      case TransactionAction.START:
+        action = Action.START_TRANSACTION;
+        break;
+      case TransactionAction.UPDATE:
+        action = Action.UPDATE_TRANSACTION;
+        break;
+      case TransactionAction.STOP:
+        action = Action.STOP_TRANSACTION;
+        break;
+    }
+
+    if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: 'Authorizations',
+        method: 'updateOCPITransaction',
+        message: `Unable to ${transactionAction} transaction for user '${user.id}' not issued locally`
+      });
+    }
+    const ocpiClient = await OCPIClientFactory.getAvailableOcpiClient(tenant, OCPIRole.CPO) as CpoOCPIClient;
+    if (!ocpiClient) {
+      throw new BackendError({
+        user: user,
+        action: action,
+        module: 'Authorizations',
+        method: 'updateOCPITransaction',
+        message: `OCPI component requires at least one CPO endpoint to ${transactionAction} transactions`
+      });
+    }
+
+    switch (transactionAction) {
+      case TransactionAction.START:
+        // eslint-disable-next-line no-case-declarations
+        const tag = user.tags.find(((value) => value.id === transaction.tagID));
+        if (!tag.ocpiToken) {
+          throw new BackendError({
+            user: user,
+            action: action,
+            module: 'Authorizations',
+            method: 'updateOCPITransaction',
+            message: `User '${user.id}' with tag '${transaction.tagID}' cannot ${transactionAction} transaction thought OCPI protocol due to missing ocpiToken`
+          });
+        }
+
+        // Retrieve authorization id
+        // eslint-disable-next-line no-case-declarations
+        const authorizes = await OCPPStorage.getAuthorizes(tenant.id, {
+          dateFrom: moment(transaction.timestamp).subtract(10, 'minutes').toDate(),
+          chargeBoxID: transaction.chargeBoxID,
+          tagID: transaction.tagID
+        }, Constants.DB_PARAMS_SINGLE_RECORD);
+
+        // eslint-disable-next-line no-case-declarations
+        let authorizationId = '';
+        if (authorizes && authorizes.result && authorizes.result.length > 0) {
+          authorizationId = authorizes.result[0].authorizationId;
+        }
+
+        await ocpiClient.startSession(tag.ocpiToken, chargingStation, transaction, authorizationId);
+        break;
+      case TransactionAction.UPDATE:
+        await ocpiClient.updateSession(transaction);
+        break;
+      case TransactionAction.STOP:
+        await ocpiClient.stopSession(transaction);
+        await ocpiClient.postCdr(transaction);
         break;
     }
   }

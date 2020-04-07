@@ -82,6 +82,7 @@ export enum Action {
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
   OCPI_PUSH_TOKENS = 'OCPIPushTokens',
   OCPI_PUSH_SESSIONS = 'OCPIPushSessions',
+  OCPI_PUSH_CDRS = 'OCPIPushCdrs',
   OCPI_PULL_CDRS = 'OCPIPullCdrs',
   OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
   OCPI_PULL_SESSIONS = 'OCPIPullSessions',

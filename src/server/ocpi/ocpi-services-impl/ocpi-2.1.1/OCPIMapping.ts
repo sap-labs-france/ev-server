@@ -299,9 +299,9 @@ export default class OCPIMapping {
    * The logic may need to be reviewed based on the list of handled status per connector
    * @param {*} connectors
    */
-  static aggregateConnectorsStatus(connectors: Connector[]) {
+  static aggregateConnectorsStatus(connectors: Connector[]): ChargePointStatus {
     // Build array with charging station ordered by priority
-    const statusesOrdered: string[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
+    const statusesOrdered: ChargePointStatus[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
 
     let aggregatedConnectorStatusIndex = 0;
 
@@ -415,7 +415,7 @@ export default class OCPIMapping {
    * Convert internal status to OCPI Status
    * @param {*} status
    */
-  static convertStatus2OCPIStatus(status: string): OCPIEvseStatus {
+  static convertStatus2OCPIStatus(status: ChargePointStatus): OCPIEvseStatus {
     switch (status) {
       case ChargePointStatus.AVAILABLE:
         return OCPIEvseStatus.AVAILABLE;
