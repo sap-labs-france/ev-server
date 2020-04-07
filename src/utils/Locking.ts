@@ -1,7 +1,9 @@
-import Constants from './Constants';
-import Database from './Database';
-import Lock from '../types/Lock';
+import cfenv from 'cfenv';
+import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
+import Lock from '../types/Lock';
+import Configuration from './Configuration';
+import Constants from './Constants';
 import Logging from './Logging';
 
 const MODULE_NAME = 'RunLock';
@@ -29,8 +31,12 @@ export default class RunLock {
       return;
     }
     this._onMultipleHosts = onMultipleHosts;
-    this._runLock = { name: '', type: '', timestamp: null, hostname: '' };
-    Database.updateRunLock({ name: name, timestamp: new Date() }, this._runLock, false);
+    this._runLock = {
+      name: name,
+      type: 'runLock',
+      timestamp: new Date(),
+      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+    };
   }
 
   public async acquire(): Promise<void> {
@@ -66,6 +72,6 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    await LockingStorage.deleteRunLock(this._runLock);
+    await LockingStorage.deleteRunLock(this._runLock.id);
   }
 }

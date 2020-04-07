@@ -29,17 +29,4 @@ export default class Database {
     return changedID;
   }
 
-  static updateRunLock(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.type = 'runLock';
-    dest.name = src.name;
-    if (!src.hostname) {
-      dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
-    } else {
-      dest.hostname = src.hostname;
-    }
-  }
 }

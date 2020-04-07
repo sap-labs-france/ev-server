@@ -4,8 +4,8 @@ import global from '../../types/GlobalType';
 import Lock from '../../types/Lock';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class LockingStorage {
@@ -80,33 +80,31 @@ export default class LockingStorage {
   //   return runLocks;
   // }
 
-  public static async saveRunLock(runLockToSave): Promise<void> {
+  public static async saveRunLock(runLockToSave: Lock): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
-    const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
-    Database.updateRunLock(runLockToSave, runLock, false);
-    // Set the ID
-    runLock._id = runLock.name + '~' + runLock.type;
+    const runLockMDB = {
+      _id: runLockToSave.id ? runLockToSave.id : `${runLockToSave.name}~${runLockToSave.type}`,
+      name: runLockToSave.name,
+      type: runLockToSave.type,
+      timestamp: Utils.convertToDate(runLockToSave.timestamp),
+      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+    };
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .insertOne(runLock);
+      .insertOne(runLockMDB);
     // Debug
-    Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLock });
+    Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
   }
 
-  public static async deleteRunLock(runLockToDelete): Promise<void> {
+  public static async deleteRunLock(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
-    // Transfer
-    const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
-    Database.updateRunLock(runLockToDelete, runLock, false);
-    // Set the ID
-    runLock._id = runLock.name + '~' + runLock.type;
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .deleteOne(runLock);
+      .findOneAndDelete({ '_id': id });
     // Debug
-    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { runLock: runLock });
+    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { id });
   }
 }
