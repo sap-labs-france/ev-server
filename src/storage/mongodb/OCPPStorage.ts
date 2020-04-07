@@ -3,7 +3,6 @@ import global from '../../types/GlobalType';
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
@@ -379,53 +378,22 @@ export default class OCPPStorage {
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      const meterValue: any = {};
-      // Id
       const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
-      meterValue._id = Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`);
-      // Set
-      Database.updateMeterValue(meterValueToSave, meterValue, false);
+      const meterValueMDB = {
+        _id: Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
+        chargeBoxID: meterValueToSave.chargeBoxID,
+        connectorId: Utils.convertToInt(meterValueToSave.connectorId),
+        transactionId: Utils.convertToInt(meterValueToSave.transactionId),
+        timestamp,
+        value: meterValueToSave.attribute.format === 'SignedData' ?  meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
+        attribute: meterValueToSave.attribute,
+      };
       // Add
-      meterValuesMDB.push(meterValue);
+      meterValuesMDB.push(meterValueMDB);
     }
     // Execute
     await global.database.getCollection<any>(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
-  }
-
-  static async getMeterValues(tenantID: string, transactionID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { transactionId: Utils.convertToInt(transactionID) }
-    });
-    // Read DB
-    const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
-      .aggregate(aggregation, { allowDiskUse: true })
-      .toArray();
-    // Convert to date
-    for (const meterValueMDB of meterValuesMDB) {
-      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
-    }
-    // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
-    // Create
-    const meterValues = [];
-    for (const meterValueMDB of meterValuesMDB) {
-      const meterValue: any = {};
-      // Copy
-      Database.updateMeterValue(meterValueMDB, meterValue);
-      // Add
-      meterValues.push(meterValue);
-    }
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, { transactionID });
-    return meterValues;
   }
 }
