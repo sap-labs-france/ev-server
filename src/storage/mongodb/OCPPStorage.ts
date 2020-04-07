@@ -189,17 +189,25 @@ export default class OCPPStorage {
   static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
+    // Set
+    const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const statusNotification: any = {};
-    // Set the ID
-    const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
-    statusNotification._id = Cypher.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`);
-    // Set
-    Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
+    const statusNotificationMDB: any = {
+      _id: Cypher.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`),
+      timestamp,
+      chargeBoxID: statusNotificationToSave.chargeBoxID,
+      connectorId: Utils.convertToInt(statusNotificationToSave.connectorId),
+      timezone: statusNotificationToSave.timezone,
+      status: statusNotificationToSave.status,
+      errorCode: statusNotificationToSave.errorCode,
+      info: statusNotificationToSave.info,
+      vendorId: statusNotificationToSave.vendorId,
+      vendorErrorCode: statusNotificationToSave.vendorErrorCode
+    };
     // Insert
     await global.database.getCollection<any>(tenantID, 'statusnotifications')
-      .insertOne(statusNotification);
+      .insertOne(statusNotificationMDB);
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
   }

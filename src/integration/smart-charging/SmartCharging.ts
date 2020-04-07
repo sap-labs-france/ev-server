@@ -57,10 +57,6 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     });
   }
 
-  protected getSettings(): T {
-    return this.setting;
-  }
-
   async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;
 
   async abstract checkConnection();

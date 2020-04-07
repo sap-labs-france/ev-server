@@ -4,24 +4,24 @@ import Lock from '../types/Lock';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from './Logging';
 
+const MODULE_NAME = 'RunLock';
+
 /**
  * Namespace based mutually exclusive runtime locking primitive with a DB storage
  * for sharing purpose among different hosts.
  */
 export default class RunLock {
-  private _MODULE_NAME: string;
   private _runLock: Lock;
   private _onMultipleHosts: boolean;
 
-  public constructor(name, onMultipleHosts = true) {
-    this._MODULE_NAME = 'RunLock';
+  public constructor(name: string, onMultipleHosts = true) {
     if (!name) {
       const logMsg = 'RunLock must have a unique name';
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
+        module: MODULE_NAME,
         method: 'constructor',
-        action: 'LockingError',
+        action: 'Locking',
         message: logMsg
       });
       // eslint-disable-next-line no-console
@@ -57,7 +57,7 @@ export default class RunLock {
       const logMsg = `RunLock ${this._runLock.name} is not acquired`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
+        module: MODULE_NAME,
         method: 'release',
         action: 'LockingError',
         message: logMsg

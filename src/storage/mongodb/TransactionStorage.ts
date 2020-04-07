@@ -117,7 +117,6 @@ export default class TransactionStorage {
         refundId: transactionToSave.refundData.refundId,
         refundedAt: Utils.convertToDate(transactionToSave.refundData.refundedAt),
         status: transactionToSave.refundData.status,
-        type: transactionToSave.refundData.type,
         reportId: transactionToSave.refundData.reportId
       };
     }
