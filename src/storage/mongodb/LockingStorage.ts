@@ -65,7 +65,7 @@ export default class LockingStorage {
       name: runLockToSave.name,
       type: runLockToSave.type,
       timestamp: Utils.convertToDate(runLockToSave.timestamp),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+      hostname: runLockToSave.hostname
     };
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
