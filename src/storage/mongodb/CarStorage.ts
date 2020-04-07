@@ -1,14 +1,17 @@
+import axios from 'axios';
+import BackendError from '../../exception/BackendError';
 import { Car, carMaker } from '../../types/Car';
 import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
+import { DataResult, ImageResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
 export default class CarStorage {
-  public static async getCar(id: string, projectFields?: string[]): Promise<Car> {
+  public static async getCar(id: number, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCar');
     // Query single Site
@@ -21,7 +24,7 @@ export default class CarStorage {
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[]; vehicleMakers?: string[] } = {},
+    params: { search?: string; carID?: number; carIDs?: number[]; vehicleMakers?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
@@ -32,7 +35,7 @@ export default class CarStorage {
     // Set the filters
     const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
     if (params.carID) {
-      filters._id = +params.carID;
+      filters._id = params.carID;
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -129,11 +132,16 @@ export default class CarStorage {
     };
   }
 
-  public static async saveCar(carToSave: Car): Promise<string> {
+  public static async saveCar(carToSave: Car): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CarStorage', 'saveCar');
     // Build Request
     // Properties to save
+    // Save car image thumb
+    const thumbImage = Utils.convertToThumbImage(carToSave.images[0]);
+    const response = await axios.get(thumbImage, { responseType: 'arraybuffer' });
+    const returnedB64 = Buffer.from(response.data).toString('base64');
+    const codedImage = 'data:' + response.headers['content-type'] + ';base64,' + returnedB64;
     const carMDB: any = {
       _id: carToSave.id,
       vehicleMake: carToSave.vehicleMake,
@@ -247,9 +255,9 @@ export default class CarStorage {
       euroNCAPSA: carToSave.euroNCAPSA,
       relatedVehicleIDSuccesor: carToSave.relatedVehicleIDSuccesor,
       eVDBDetailURL: carToSave.eVDBDetailURL,
-      images: carToSave.images,
       videos: carToSave.videos,
       hash: carToSave.hash,
+      image: codedImage
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
@@ -259,9 +267,99 @@ export default class CarStorage {
       carMDB,
       { upsert: true }
     );
+
+    await CarStorage.saveCarImages(carToSave.id, carToSave.images);
     // Debug
     Logging.traceEnd('CarStorage', 'saveCar', uniqueTimerID, { carToSave });
     return carToSave.id;
+  }
+
+  public static async saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('CarStorage', 'saveCarImages');
+    // Check if ID is provided
+    if (!carID) {
+      // ID must be provided!
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'CarStorage',
+        method: 'saveCarImages',
+        message: 'Car Images has no ID'
+      });
+    }
+    let response, returnedB64, codedImage;
+    for (const image of carImagesToSave) {
+      response = await axios.get(image, { responseType: 'arraybuffer' });
+      returnedB64 = Buffer.from(response.data).toString('base64');
+      codedImage = 'data:' + response.headers['content-type'] + ';base64,' + returnedB64;
+      // Save car image
+      await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carimages').findOneAndReplace(
+        { _id: Cypher.hash(`${image}~${carID}`), },
+        { image: codedImage, carID: carID },
+        { upsert: true }
+      );
+    }
+    // Debug
+    Logging.traceEnd('CarStorage', 'saveCarImages', uniqueTimerID, { carID });
+  }
+
+  public static async getCarImages(
+    params: { carID: number },
+    dbParams?: DbParams): Promise<DataResult<ImageResult>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCarImages');
+    // Check Limit
+    const limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: ({ carID?: number; $or?: any[] } | undefined) = {};
+    filters.carID = params.carID;
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Always limit the nbr of record to avoid perfs issues
+    aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+
+    // Count Records
+    const carsCountMDB = await global.database.getCollection<DataResult<any>>(Constants.DEFAULT_TENANT, 'carimages')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Remove the limit
+    aggregation.pop();
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Skip
+    if (skip > 0) {
+      aggregation.push({ $skip: skip });
+    }
+    // Limit
+    aggregation.push({
+      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+    });
+    // Project
+    DatabaseUtils.projectFields(aggregation, ['image']);
+    // Read DB
+    const cars = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carimages')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd('CarStorage', 'getCarImages', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    // Ok
+    return {
+      count: (carsCountMDB.length > 0 ?
+        (carsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carsCountMDB[0].count) : 0),
+      result: cars
+    };
   }
 
   public static async getCarMakers(

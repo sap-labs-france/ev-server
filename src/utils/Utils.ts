@@ -1369,6 +1369,10 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
+  public static convertToThumbImage(image: string): string {
+    return [image.slice(0, image.length - 7), '-thumb', image.slice(image.length - 7)].join('');
+  }
+
   private static _isUserEmailValid(email: string): boolean {
     return validator.isEmail(email);
   }
