@@ -29,16 +29,6 @@ export default class Database {
     return changedID;
   }
 
-  static updateMigration(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.name = src.name;
-    dest.version = src.version;
-    dest.durationSecs = Utils.convertToFloat(src.durationSecs);
-  }
-
   static updateLock(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
