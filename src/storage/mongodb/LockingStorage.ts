@@ -80,7 +80,7 @@ export default class LockingStorage {
   //   return runLocks;
   // }
 
-  public static async saveRunLock(runLockToSave: Lock): Promise<void> {
+  public static async saveRunLock(runLockToSave: Lock): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
@@ -92,10 +92,11 @@ export default class LockingStorage {
       hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
     };
     // Create
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLockMDB);
     // Debug
     Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
+    return runLockMDB._id;
   }
 
   public static async deleteRunLock(id: string): Promise<void> {
