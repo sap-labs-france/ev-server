@@ -92,7 +92,7 @@ export default class LockingStorage {
       hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
     };
     // Create
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLockMDB);
     // Debug
     Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
