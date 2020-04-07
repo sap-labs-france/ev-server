@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Asset from '../../../../types/Asset';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpAssignAssetsToSiteAreaRequest, HttpAssetRequest, HttpAssetsRequest } from '../../../../types/requests/HttpAssetRequest';
+import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpBuildingRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -51,12 +51,18 @@ export default class AssetSecurity {
   }
 
   public static _filterAssetRequest(request: any): Partial<Asset> {
-    return {
-      name: sanitize(request.name),
-      siteAreaID: sanitize(request.siteAreaID),
-      address: UtilsSecurity.filterAddressRequest(request.address),
-      image: request.image
-    };
+    const filteredRequest: Partial<Asset> = {};
+    filteredRequest.name = sanitize(request.name),
+    filteredRequest.siteAreaID = sanitize(request.siteAreaID),
+    filteredRequest.assetType = sanitize(request.assetType),
+    filteredRequest.image = request.image
+    if (request.coordinates && request.coordinates.length === 2) {
+      filteredRequest.coordinates = [
+        sanitize(request.coordinates[0]),
+        sanitize(request.coordinates[1])
+      ];
+    }
+    return filteredRequest;
   }
 
   public static filterAssetResponse(asset: Asset, loggedUser: UserToken): Asset {
@@ -77,8 +83,9 @@ export default class AssetSecurity {
         filteredAsset.id = asset.id;
         filteredAsset.name = asset.name;
         filteredAsset.siteAreaID = asset.siteAreaID;
+        filteredAsset.assetType = asset.assetType;
+        filteredAsset.coordinates = asset.coordinates;
         filteredAsset.image = asset.image;
-        filteredAsset.address = UtilsSecurity.filterAddressRequest(asset.address);
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

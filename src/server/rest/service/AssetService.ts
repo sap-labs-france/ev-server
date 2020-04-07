@@ -218,7 +218,7 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'address.coordinates', 'address.city', 'address.country', 'siteArea.id', 'siteArea.name']
+      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'assetType', 'coordinates']
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);
@@ -307,7 +307,8 @@ export default class AssetService {
     // Update
     asset.name = filteredRequest.name;
     asset.siteAreaID = filteredRequest.siteAreaID;
-    asset.address = filteredRequest.address;
+    asset.assetType = filteredRequest.assetType;
+    asset.coordinates = filteredRequest.coordinates;
     asset.image = filteredRequest.image;
     asset.lastChangedBy = { 'id': req.user.id };
     asset.lastChangedOn = new Date();

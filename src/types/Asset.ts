@@ -5,7 +5,8 @@ export default interface Asset extends CreatedUpdatedProps {
   id: string;
   name: string;
   siteAreaID: string;
+  assetType: string;
+  coordinates: number[];
   issuer: boolean;
-  address?: Address;
   image?: string;
 }

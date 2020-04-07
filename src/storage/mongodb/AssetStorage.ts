@@ -63,11 +63,10 @@ export default class AssetStorage {
       _id: !assetToSave.id ? new ObjectID() : Utils.convertToObjectID(assetToSave.id),
       name: assetToSave.name,
       siteAreaID: !assetToSave.siteAreaID ? new ObjectID() : Utils.convertToObjectID(assetToSave.siteAreaID),
+      coordinates: assetToSave.coordinates,
+      assetType: assetToSave.assetType,
       issuer: assetToSave.issuer,
     };
-    if (assetToSave.address) {
-      assetMDB.address = assetToSave.address;
-    }
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(assetMDB, assetToSave);
     // Modify
@@ -106,8 +105,6 @@ export default class AssetStorage {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
-        { 'address.city': { $regex: searchRegex, $options: 'i' } },
-        { 'address.country': { $regex: searchRegex, $options: 'i' } }
       ];
     }
     // With no Site Area
