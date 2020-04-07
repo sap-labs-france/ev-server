@@ -50,7 +50,7 @@ export default class ConnectionStorage {
     if (results && results.length > 0) {
       connection = results[0];
     }
-    Logging.traceEnd('ConnectionStorage', 'getConnectionByConnectorIdAndUserId', uniqueTimerID, {connectorId, userId});
+    Logging.traceEnd('ConnectionStorage', 'getConnectionByConnectorIdAndUserId', uniqueTimerID, { connectorId, userId });
     return connection;
   }
 
