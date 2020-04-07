@@ -282,11 +282,11 @@ export default class Logging {
       exception.params.detailedMessages = {
         'stack': exception.stack,
         'previous' : exception.params.detailedMessages
-      }
+      };
     } else {
       exception.params.detailedMessages = {
         'stack': exception.stack,
-      }
+      };
     }
     // Log
     Logging.logError({
@@ -308,11 +308,11 @@ export default class Logging {
       exception.params.detailedMessages = {
         'stack': exception.stack,
         'previous' : exception.params.detailedMessages
-      }
+      };
     } else {
       exception.params.detailedMessages = {
         'stack': exception.stack,
-      }
+      };
     }
     // Log
     Logging.logError({
