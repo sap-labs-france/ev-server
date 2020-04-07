@@ -32,6 +32,7 @@ export default class RunLock {
     }
     this._onMultipleHosts = onMultipleHosts;
     this._runLock = {
+      id: name.toLowerCase() + '~runLock',
       name: name.toLowerCase(),
       type: 'runLock',
       timestamp: new Date(),
@@ -41,7 +42,7 @@ export default class RunLock {
 
   public async acquire(): Promise<void> {
     if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
-      this._runLock.id = await LockingStorage.saveRunLock(this._runLock);
+      await LockingStorage.saveRunLock(this._runLock);
     }
   }
 
@@ -49,7 +50,7 @@ export default class RunLock {
     if (await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
       return false;
     }
-    this._runLock.id = await LockingStorage.saveRunLock(this._runLock);
+    await LockingStorage.saveRunLock(this._runLock);
     return true;
   }
 

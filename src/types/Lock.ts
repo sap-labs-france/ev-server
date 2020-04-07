@@ -1,5 +1,5 @@
 export default interface Lock {
-  id?: string;
+  id: string;
   name: string;
   type: string;
   timestamp: Date;
