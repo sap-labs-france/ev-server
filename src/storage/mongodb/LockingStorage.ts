@@ -56,36 +56,12 @@ export default class LockingStorage {
     Logging.traceEnd('LockingStorage', 'cleanLocks', uniqueTimerID);
   }
 
-  // pragma static async getRunLocks() {
-  //   // Debug
-  //   const uniqueTimerID = Logging.traceStart('LockingStorage', 'getRunLocks');
-  //   // Read DB
-  //   const runLocksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-  //     .find({ type: 'runLock' })
-  //     .toArray();
-  //   const runLocks = [];
-  //   // Check
-  //   if (runLocksMDB && runLocksMDB.length > 0) {
-  //     for (const runLockMDB of runLocksMDB) {
-  //       const runLock = {};
-  //       // Set values
-  //       Database.updateRunLock(runLockMDB, runLock, false);
-  //       // Add
-  //       runLocks.push(runLock);
-  //     }
-  //   }
-  //   // Debug
-  //   Logging.traceEnd('LockingStorage', 'getRunLocks', uniqueTimerID);
-  //   // Ok
-  //   return runLocks;
-  // }
-
-  public static async saveRunLock(runLockToSave: Lock): Promise<string> {
+  public static async saveRunLock(runLockToSave: Lock): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
     const runLockMDB = {
-      _id: runLockToSave.id ? runLockToSave.id : `${runLockToSave.name}~${runLockToSave.type}`,
+      _id: runLockToSave.id,
       name: runLockToSave.name,
       type: runLockToSave.type,
       timestamp: Utils.convertToDate(runLockToSave.timestamp),
@@ -96,7 +72,6 @@ export default class LockingStorage {
       .insertOne(runLockMDB);
     // Debug
     Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
-    return runLockMDB._id;
   }
 
   public static async deleteRunLock(id: string): Promise<void> {
