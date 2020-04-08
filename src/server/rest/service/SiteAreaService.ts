@@ -170,7 +170,7 @@ export default class SiteAreaService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreaConsumption');
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, 'TransactionService',
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, 'SiteAreaService',
 
       'handleGetConsumptionFromTransaction', req.user);
     // Check auth
