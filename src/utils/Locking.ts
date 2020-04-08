@@ -4,6 +4,7 @@ import LockingStorage from '../storage/mongodb/LockingStorage';
 import Lock from '../types/Lock';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import Cypher from './Cypher';
 import Logging from './Logging';
 
 const MODULE_NAME = 'RunLock';
@@ -32,7 +33,7 @@ export default class RunLock {
     }
     this._onMultipleHosts = onMultipleHosts;
     this._runLock = {
-      id: name.toLowerCase() + '~runLock',
+      lockID: Cypher.hash(name.toLowerCase() + '~runLock'),
       name: name.toLowerCase(),
       type: 'runLock',
       timestamp: new Date(),
@@ -72,6 +73,6 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    await LockingStorage.deleteRunLock(this._runLock.id);
+    await LockingStorage.deleteRunLock(this._runLock.lockID);
   }
 }
