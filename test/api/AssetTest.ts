@@ -140,7 +140,10 @@ describe('Asset Test', function() {
         // Create
         testData.newAsset = await testData.userService.createEntity(
           testData.userService.assetApi,
-          Factory.asset.build({ siteAreaID: testData.createdSiteAreas[0].id })
+          Factory.asset.build({
+            siteAreaID: testData.createdSiteAreas[0].id,
+            assetType: 'PR'
+          })
         );
         testData.createdAssets.push(testData.newAsset);
       });

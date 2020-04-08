@@ -302,6 +302,7 @@ export default class ContextBuilder {
           dummyAsset.createdOn = moment().toISOString();
           dummyAsset.issuer = true;
           dummyAsset.siteAreaID = assetDef.siteAreaID;
+          dummyAsset.assetType = 'CO';
           console.log(`Asset '${dummyAsset.name}' created`);
           await AssetStorage.saveAsset(buildTenant.id, dummyAsset);
           newTenantContext.getContext().assets.push(dummyAsset);
