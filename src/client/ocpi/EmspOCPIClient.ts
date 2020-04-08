@@ -178,7 +178,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_LOCATIONS,
-          message: `Invalid response from Get locations`,
+          message: 'Invalid response from Get locations',
           module: MODULE_NAME, method: 'pullLocations',
           detailedMessages: { response: response.data }
         });
@@ -247,7 +247,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_SESSIONS,
-          message: `Invalid response from Get sessions`,
+          message: 'Invalid response from Get sessions',
           module: MODULE_NAME, method: 'pullSessions',
           detailedMessages: { response: response.data }
         });
@@ -317,7 +317,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_CDRS,
-          message: `Invalid response from Get cdrs`,
+          message: 'Invalid response from Get cdrs',
           module: MODULE_NAME, method: 'pullCdrs',
           detailedMessages: { response: response.data }
         });

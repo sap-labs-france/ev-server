@@ -90,7 +90,7 @@ export default class CpoOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_TOKENS,
-          message: `Invalid response from Pull tokens`,
+          message: 'Invalid response from Pull tokens',
           module: MODULE_NAME, method: 'pullTokens',
           detailedMessages: { data: response.data }
         });
@@ -169,7 +169,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data.data) {
       throw new BackendError({
         action: Action.OCPI_AUTHORIZE_TOKEN,
-        message: `Invalid response from Post Authorize`,
+        message: 'Invalid response from Post Authorize',
         module: MODULE_NAME, method: 'authorizeToken',
         detailedMessages: { data: response.data }
       });
@@ -185,7 +185,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
       throw new BackendError({
         action: Action.OCPI_AUTHORIZE_TOKEN,
-        message: `Authorization rejected`,
+        message: 'Authorization rejected',
         module: MODULE_NAME, method: 'authorizeToken',
         detailedMessages: { authorizationInfo }
       });
@@ -193,7 +193,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!authorizationInfo.authorization_id) {
       throw new BackendError({
         action: Action.OCPI_AUTHORIZE_TOKEN,
-        message: `Authorization allowed without 'authorization_id'`,
+        message: 'Authorization allowed without \'authorization_id\'',
         module: MODULE_NAME, method: 'authorizeToken',
         detailedMessages: { authorizationInfo }
       });
@@ -257,7 +257,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response from Put Session`,
+        message: 'Invalid response from Put Session',
         module: MODULE_NAME, method: 'startSession',
         detailedMessages: { data: response.data }
       });
@@ -316,7 +316,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response from Put Session`,
+        message: 'Invalid response from Put Session',
         module: MODULE_NAME, method: 'updateSession',
         detailedMessages: { data: response.data }
       });
@@ -382,7 +382,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response from Put Session`,
+        message: 'Invalid response from Put Session',
         module: MODULE_NAME, method: 'stopSession',
         detailedMessages: { data: response.data }
       });
@@ -469,7 +469,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_CDRS,
-        message: `Invalid response from Post Cdr`,
+        message: 'Invalid response from Post Cdr',
         module: MODULE_NAME, method: 'postCdr',
         detailedMessages: { data: response.data }
       });
