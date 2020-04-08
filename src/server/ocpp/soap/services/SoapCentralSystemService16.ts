@@ -1,3 +1,4 @@
+import { Action } from '../../../../types/Authorization';
 import global from '../../../../types/GlobalType';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Constants from '../../../../utils/Constants';
@@ -5,6 +6,7 @@ import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
 
 const MODULE_NAME = 'SoapCentralSystemService16';
+
 export default { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */
@@ -12,11 +14,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Authorize', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.AUTHORIZE, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleAuthorize(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Authorize', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.AUTHORIZE, {
             'result': result
           });
           // Answer
@@ -29,7 +31,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'Authorize', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.AUTHORIZE, headers.chargeBoxIdentity,
             MODULE_NAME, 'Authorize', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'authorizeResponse': {
@@ -52,11 +54,11 @@ export default { /* Services */
           // Add current IP to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.BOOT_NOTIFICATION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleBootNotification(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.BOOT_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -68,7 +70,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'BootNotification', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.BOOT_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'BootNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'bootNotificationResponse': {
@@ -84,11 +86,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'DataTransfer', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.DATA_TRANSFER, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleDataTransfer(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'DataTransfer', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.DATA_TRANSFER, {
             'result': result
           });
           callback({
@@ -98,7 +100,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'DataTransfer', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.DATA_TRANSFER, headers.chargeBoxIdentity,
             MODULE_NAME, 'DataTransfer', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'dataTransferResponse': {
@@ -112,11 +114,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'DiagnosticsStatusNotification', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.DIAGNOSTICS_STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleDiagnosticsStatusNotification(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'DiagnosticsStatusNotification', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.DIAGNOSTICS_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -124,7 +126,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'DiagnosticsStatusNotification', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.DIAGNOSTICS_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'DiagnosticsStatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'diagnosticsStatusNotificationResponse': {}
@@ -136,11 +138,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'FirmwareStatusNotification', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.FIRMWARE_STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleFirmwareStatusNotification(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'FirmwareStatusNotification', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.FIRMWARE_STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -148,7 +150,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'FirmwareStatusNotification', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.FIRMWARE_STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'FirmwareStatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'firmwareStatusNotificationResponse': {}
@@ -162,11 +164,11 @@ export default { /* Services */
           // Add current IP to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Heartbeat', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.HEARTBEAT, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleHeartbeat(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Heartbeat', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.HEARTBEAT, {
             'result': result
           });
           callback({
@@ -176,7 +178,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'Heartbeat', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.HEARTBEAT, headers.chargeBoxIdentity,
             MODULE_NAME, 'Heartbeat', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'heartbeatResponse': {
@@ -190,11 +192,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'MeterValues', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.METER_VALUES, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleMeterValues(headers, args);
           // Return the result async
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'MeterValues', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.METER_VALUES, {
             'result': result
           });
           callback({
@@ -202,7 +204,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'MeterValues', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.METER_VALUES, headers.chargeBoxIdentity,
             MODULE_NAME, 'MeterValues', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'meterValuesResponse': {}
@@ -214,11 +216,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StartTransaction', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.START_TRANSACTION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleStartTransaction(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StartTransaction', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.START_TRANSACTION, {
             'result': result
           });
           callback({
@@ -231,7 +233,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'StartTransaction', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.START_TRANSACTION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StartTransaction', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'startTransactionResponse': {
@@ -248,11 +250,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StatusNotification', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.STATUS_NOTIFICATION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleStatusNotification(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StatusNotification', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.STATUS_NOTIFICATION, {
             'result': result
           });
           callback({
@@ -260,7 +262,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'StatusNotification', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.STATUS_NOTIFICATION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StatusNotification', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           // Default
           callback({
@@ -273,11 +275,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StopTransaction', [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.STOP_TRANSACTION, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_16).handleStopTransaction(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'StopTransaction', {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, Action.STOP_TRANSACTION, {
             'result': result
           });
           callback({
@@ -289,7 +291,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, 'StopTransaction', headers.chargeBoxIdentity,
+          Logging.logException(error, Action.STOP_TRANSACTION, headers.chargeBoxIdentity,
             MODULE_NAME, 'StopTransaction', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'stopTransactionResponse': {

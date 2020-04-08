@@ -18,7 +18,6 @@ import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import Utils from './Utils';
 
-
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
 

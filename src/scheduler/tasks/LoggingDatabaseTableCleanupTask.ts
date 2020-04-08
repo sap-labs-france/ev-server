@@ -1,5 +1,6 @@
 import moment from 'moment';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
+import { Action } from '../../types/Authorization';
 import { LoggingDatabaseTableCleanupTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
@@ -56,7 +57,7 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'LogsCleanup', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.LOGS_CLEANUP, error);
     }
   }
 }

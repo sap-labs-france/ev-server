@@ -1,5 +1,6 @@
 import * as http from 'http';
 import uuid from 'uuid/v4';
+import { Action } from '../../../types/Authorization';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../types/GlobalType';
@@ -106,7 +107,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, 'WsConnection', '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+          error, Action.WS_CONNECTION, '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
