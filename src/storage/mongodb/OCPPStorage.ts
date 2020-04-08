@@ -6,6 +6,7 @@ import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
+import { DataResult } from '../../types/DataResult';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
@@ -19,6 +20,7 @@ export default class OCPPStorage {
       .insertOne({
         _id: Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
         tagID: authorize.idTag,
+        authorizationId: authorize.authorizationId,
         chargeBoxID: authorize.chargeBoxID,
         userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
         timestamp: timestamp,
@@ -26,6 +28,77 @@ export default class OCPPStorage {
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
+  }
+
+  static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string}, dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getAuthorizes');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: any = {};
+    // Date from provided?
+    if (params.dateFrom) {
+      filters.timestamp = {};
+      filters.timestamp.$gte = new Date(params.dateFrom);
+    }
+    // Charging Station
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Tag ID
+    if (params.tagID) {
+      filters.tagID = params.tagID;
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Count Records
+    const authorizesCountMDB = await global.database.getCollection<any>(tenantID, 'authorizes')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Sort
+    if (dbParams.sort) {
+      // Sort
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: {
+          _id: 1
+        }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Read DB
+    const authorizesMDB = await global.database.getCollection<any>(tenantID, 'authorizes')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getAuthorizes', uniqueTimerID);
+    // Ok
+    return {
+      count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
+      result: authorizesMDB
+    };
   }
 
   static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {

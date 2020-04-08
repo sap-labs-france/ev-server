@@ -16,5 +16,13 @@ export default interface OCPIEndpoint extends CreatedUpdatedProps {
   availableEndpoints?: any;
   versionUrl?: string;
   lastPatchJobOn?: Date;
-  lastPatchJobResult?: any;
+  lastPatchJobResult?: {
+    successNbr: number;
+    failureNbr: number;
+    totalNbr: number;
+    chargeBoxIDsInFailure?: string[];
+    chargeBoxIDsInSuccess?: string[];
+    tokenIDsInFailure?: string[];
+    tokenIDsInSuccess?: string[];
+  };
 }
