@@ -11,6 +11,7 @@ import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 
 import cluster from 'cluster';
+import cors from 'cors';
 import express from 'express';
 import expressTools from '../ExpressTools';
 import morgan from 'morgan';
@@ -67,6 +68,7 @@ export default class CentralRestServer {
     this.express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
+    this.express.options('/client/auth/:action', cors());
     this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService);
 
     // Secured API

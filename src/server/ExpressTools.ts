@@ -24,7 +24,7 @@ export default class ExpressTools {
     // Secure the application
     app.use(helmet());
     // Cross origin headers
-    // app.use(cors());
+    app.use(cors());
     // Body parser
     app.use(bodyParser.json({
       limit: bodyLimit
