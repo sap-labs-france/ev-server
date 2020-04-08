@@ -31,11 +31,11 @@ export default class LockingStorage {
     const locks = await LockingStorage.getLocks();
     const lockFound: Lock = locks.find((lock: Lock): boolean => {
       if (lockOnMultipleHosts) {
-        // Same lockID
-        return (lockToTest.lockID === lock.lockID);
+        // Same lockHashId
+        return (lockToTest.lockHashId === lock.lockHashId);
       }
-      // Same lockID and hostname
-      return ((lockToTest.lockID === lock.lockID) &&
+      // Same lockHashId and hostname
+      return ((lockToTest.lockHashId === lock.lockHashId) &&
           (lockToTest.hostname === lock.hostname));
     });
     if (lockFound) {
@@ -60,7 +60,7 @@ export default class LockingStorage {
     // Transfer
     const runLockMDB = {
       _id: runLockToSave.id ? Utils.convertToObjectID(runLockToSave.id) : new ObjectID(),
-      lockID: runLockToSave.lockID,
+      lockHashId: runLockToSave.lockHashId,
       name: runLockToSave.name,
       type: runLockToSave.type,
       timestamp: Utils.convertToDate(runLockToSave.timestamp),
@@ -73,13 +73,13 @@ export default class LockingStorage {
     Logging.traceEnd('LockingStorage', 'saveRunLock', uniqueTimerID, { runLock: runLockToSave });
   }
 
-  public static async deleteRunLock(lockID: string): Promise<void> {
+  public static async deleteRunLock(lockHashId: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .findOneAndDelete({ 'lockID': lockID });
+      .findOneAndDelete({ 'lockHashId': lockHashId });
     // Debug
-    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { lockID });
+    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { lockHashId });
   }
 }
