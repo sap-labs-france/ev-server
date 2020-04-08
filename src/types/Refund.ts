@@ -29,4 +29,4 @@ export interface ConcurLocation {
   Longitude: number;
   ID: string;
   URI: string;
- }
+}

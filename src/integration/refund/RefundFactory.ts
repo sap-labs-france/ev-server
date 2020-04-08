@@ -1,6 +1,6 @@
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { RefundSettingsType, RefundSetting } from '../../types/Setting';
+import { RefundSetting, RefundSettingsType } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';

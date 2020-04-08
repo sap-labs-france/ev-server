@@ -1,7 +1,7 @@
-PROJECT_NAME:=evse
+PROJECT_NAME?=evse
 NAME:=server
-DOCKER_REGISTRY:=166296450311.dkr.ecr.eu-west-3.amazonaws.com
-DOCKER_REGISTRY_NAME:=ev_server
+DOCKER_ECR_REGISTRY?=166296450311.dkr.ecr.eu-west-3.amazonaws.com
+DOCKER_ECR_REGISTRY_NAME?=ev_server
 
 .PHONY: all
 
@@ -74,18 +74,18 @@ clean-$(NAME)-standalone: clean-$(NAME)-standalone-container clean-$(NAME)-stand
 clean: clean-containers clean-images
 
 $(NAME)-docker-ecr-tag:
-	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
 $(NAME)-docker-ecr-push: $(NAME)-force $(NAME)-docker-ecr-tag
-	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME)
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
+	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
 $(NAME)-standalone-docker-ecr-tag:
-	docker tag $(PROJECT_NAME)_$(NAME)-standalone:latest $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+	docker tag $(PROJECT_NAME)_$(NAME)-standalone:latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
 $(NAME)-standalone-docker-ecr-push: $(NAME)-standalone-force $(NAME)-standalone-docker-ecr-tag
-	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME)
-	docker push $(DOCKER_REGISTRY)/$(DOCKER_REGISTRY_NAME):latest
+	aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
+	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
 dist-clean-images:
 	docker image prune -a -f
