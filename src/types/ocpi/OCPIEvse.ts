@@ -10,6 +10,7 @@ export interface OCPIEvse {
     latitude: string;
     longitude: string;
   };
+  last_updated: Date;
 }
 
 export enum OCPIEvseStatus {

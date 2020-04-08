@@ -172,7 +172,10 @@ export default class OCPIMapping {
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, {
+      limit,
+      skip
+    });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
@@ -281,8 +284,9 @@ export default class OCPIMapping {
       'uid': OCPIUtils.buildEvseUID(chargingStation),
       'evse_id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
-      'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      'connectors': connectors
+      'capabilities': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+      'connectors': connectors,
+      'last_updated': chargingStation.lastHeartBeat
     };
 
     // Check addChargeBoxID flag
@@ -291,6 +295,48 @@ export default class OCPIMapping {
     }
 
     return [evse];
+  }
+
+  static convertChargingStationToOCPILocation(site: Site, chargingStation: ChargingStation, connectorId: number, countryId: string, partyId: string): OCPILocation {
+    const evseID = OCPIUtils.buildEvseID(countryId, partyId, chargingStation);
+    const connectors: OCPIConnector[] = [];
+    let status: ChargePointStatus;
+    for (const chargingStationConnector of chargingStation.connectors) {
+      if (chargingStationConnector.connectorId === connectorId) {
+        connectors.push(OCPIMapping.convertConnector2OCPIConnector(chargingStation, chargingStationConnector, evseID));
+        status = chargingStationConnector.status;
+        break;
+      }
+    }
+
+    const ocpiLocation: OCPILocation = {
+      id: site.id,
+      name: site.name,
+      address: `${site.address.address1} ${site.address.address2}`,
+      city: site.address.city,
+      'postal_code': site.address.postalCode,
+      country: site.address.country,
+      coordinates: {
+        latitude: site.address.coordinates[1].toString(),
+        longitude: site.address.coordinates[0].toString()
+      },
+      type: OCPILocationType.UNKNOWN,
+      evses: [{
+        uid: OCPIUtils.buildEvseUID(chargingStation),
+        'evse_id': evseID,
+        status: OCPIMapping.convertStatus2OCPIStatus(status),
+        capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+        connectors: connectors,
+        coordinates: {
+          latitude: chargingStation.coordinates[1].toString(),
+          longitude: chargingStation.coordinates[0].toString()
+        },
+        'last_updated': chargingStation.lastHeartBeat
+      }
+      ],
+      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
+    };
+    return ocpiLocation;
   }
 
   /**
