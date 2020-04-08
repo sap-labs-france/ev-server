@@ -1067,16 +1067,6 @@ export default class Utils {
         user: req.user.id
       });
     }
-    if (!asset.coordinates) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Coordinates are mandatory',
-        module: 'AssetService',
-        method: 'checkIfAssetValid',
-        user: req.user.id
-      });
-    }
   }
 
   public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request) {
