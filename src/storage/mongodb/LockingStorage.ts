@@ -4,9 +4,10 @@ import global from '../../types/GlobalType';
 import Lock from '../../types/Lock';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import Utils from '../../utils/Utils';
 
 export default class LockingStorage {
   public static async getLocks(): Promise<Lock[]> {
@@ -30,15 +31,12 @@ export default class LockingStorage {
     const locks = await LockingStorage.getLocks();
     const lockFound: Lock = locks.find((lock: Lock): boolean => {
       if (lockOnMultipleHosts) {
-        // Same name and type
-        return ((lockToTest.name === lock.name) &&
-          (lockToTest.type === lock.type));
+        // Same lockID
+        return (lockToTest.lockID === lock.lockID);
       }
-      // Same name, hostname and type
-      return ((lockToTest.name === lock.name) &&
-          (lockToTest.type === lock.type)) &&
-          (lockToTest.hostname === lock.hostname);
-
+      // Same lockID and hostname
+      return ((lockToTest.lockID === lock.lockID) &&
+          (lockToTest.hostname === lock.hostname));
     });
     if (lockFound) {
       return true;
@@ -61,7 +59,8 @@ export default class LockingStorage {
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
     const runLockMDB = {
-      _id: runLockToSave.id,
+      _id: runLockToSave.id ? Utils.convertToObjectID(runLockToSave.id) : new ObjectID(),
+      lockID: runLockToSave.lockID,
       name: runLockToSave.name,
       type: runLockToSave.type,
       timestamp: Utils.convertToDate(runLockToSave.timestamp),
@@ -71,16 +70,16 @@ export default class LockingStorage {
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLockMDB);
     // Debug
-    Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
+    Logging.traceEnd('LockingStorage', 'saveRunLock', uniqueTimerID, { runLock: runLockToSave });
   }
 
-  public static async deleteRunLock(id: string): Promise<void> {
+  public static async deleteRunLock(lockID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .findOneAndDelete({ '_id': id });
+      .findOneAndDelete({ 'lockID': lockID });
     // Debug
-    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { id });
+    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { lockID });
   }
 }
