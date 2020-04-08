@@ -80,7 +80,6 @@ export default class ExpressTools {
       // Http server
       server = http.createServer(expressApp);
     }
-
     return server;
   }
 
