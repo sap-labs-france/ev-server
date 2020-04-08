@@ -284,9 +284,9 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions')}/${this.getLocalCountryCode()}/${this.getLocalPartyID()}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.stop.totalConsumption / 1000;
-    transaction.ocpiSession.last_updated = transaction.lastUpdate;
     transaction.ocpiSession.total_cost = transaction.stop.roundedPrice;
     transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
+    transaction.ocpiSession.last_updated = transaction.stop.timestamp;
     transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
     // Log
     Logging.logDebug({

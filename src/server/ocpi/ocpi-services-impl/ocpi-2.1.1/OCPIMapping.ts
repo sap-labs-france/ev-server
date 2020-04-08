@@ -172,7 +172,10 @@ export default class OCPIMapping {
     const tokens: OCPIToken[] = [];
 
     // Get all tokens
-    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, { limit, skip });
+    const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, {
+      limit,
+      skip
+    });
 
     // Convert Sites to Locations
     for (const tag of tags.result) {
@@ -282,7 +285,8 @@ export default class OCPIMapping {
       'evse_id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(chargingStation.connectors)),
       'capabilities': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      'connectors': connectors
+      'connectors': connectors,
+      'last_updated': chargingStation.lastHeartBeat
     };
 
     // Check addChargeBoxID flag
@@ -305,19 +309,6 @@ export default class OCPIMapping {
       }
     }
 
-    // Build evse
-    const evse: OCPIEvse = {
-      uid: OCPIUtils.buildEvseUID(chargingStation),
-      'evse_id': evseID,
-      status: OCPIMapping.convertStatus2OCPIStatus(status),
-      capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-      connectors: connectors,
-      coordinates: {
-        latitude: chargingStation.coordinates[1].toString(),
-        longitude: chargingStation.coordinates[0].toString()
-      }
-    };
-
     const ocpiLocation: OCPILocation = {
       id: site.id,
       name: site.name,
@@ -330,8 +321,20 @@ export default class OCPIMapping {
         longitude: site.address.coordinates[0].toString()
       },
       type: OCPILocationType.UNKNOWN,
-      evses: [evse],
-      'last_updated': site.lastChangedOn
+      evses: [{
+        uid: OCPIUtils.buildEvseUID(chargingStation),
+        'evse_id': evseID,
+        status: OCPIMapping.convertStatus2OCPIStatus(status),
+        capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
+        connectors: connectors,
+        coordinates: {
+          latitude: chargingStation.coordinates[1].toString(),
+          longitude: chargingStation.coordinates[0].toString()
+        },
+        'last_updated': chargingStation.lastHeartBeat
+      }
+      ],
+      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
     };
     return ocpiLocation;
   }
