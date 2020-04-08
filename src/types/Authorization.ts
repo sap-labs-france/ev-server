@@ -94,10 +94,51 @@ export enum Action {
 
   OCPP_SERVICE = 'OCPPService',
 
+  HEARTBEAT = 'Heartbeat',
+
+  STATUS_NOTIFICATION = 'StatusNotification',
+
+  EXTRA_INACTIVITY = 'ExtraInactivity',
+
+  CONSUMPTION = 'Consumption',
+
   WS_CONNECTION = 'WSConnection',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
+  METER_VALUES = 'MeterValues',
+
+  NOTIFICATION = 'Notification',
+  CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError',
+  CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered',
+  END_OF_CHARGE = 'NotifyEndOfCharge',
+  OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached',
+  END_OF_SESSION = 'NotifyEndOfSession',
+  REQUEST_PASSWORD = 'NotifyRequestPassword',
+  USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged',
+  NEW_REGISTERED_USER = 'NotifyNewRegisteredUser',
+  UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged',
+  TRANSACTION_STARTED = 'NotifyTransactionStarted',
+  VERIFICATION_EMAIL = 'NotifyVerificationEmail',
+  AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer',
+  PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError',
+  USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity',
+  PREPARING_SESSION_NOT_STARTED = 'NotifyPreparingSessionNotStarted',
+  OFFLINE_CHARGING_STATIONS = 'NotifyOfflineChargingStations',
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'NotifyBillingUserSynchronizationFailed',
+  CAR_SYNCHRONIZATION_FAILED = 'NotifyCarSynchronizationFailed',
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'NotifySessionNotStartedAfterAuthorize',
+
+  UPDATE_CHARGING_STATION_TEMPLATE = 'UpdateChargingStationTemplates',
+
+  SESSION_HASH_SERVICE = 'SessionHashService',
+
+  CLEANUP_TRANSACTION = 'CleanupTransaction',
+  
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
+  
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
   ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
