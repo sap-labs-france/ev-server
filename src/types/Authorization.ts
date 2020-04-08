@@ -87,6 +87,8 @@ export enum Action {
   OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
   OCPI_PULL_SESSIONS = 'OCPIPullSessions',
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
+  OCPI_GET_VERSIONS = 'OCPIGetVersions',
+  OCPI_POST_CREDENTIALS = 'OCPIPostCredentials',
 
   OCPP_SERVICE = 'OCPPService',
 
@@ -122,7 +124,6 @@ export enum Action {
 
   EMPTY_ACTION = '',
   DELETE_CREDENTIALS = 'DeleteCredentials',
-  OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SAP_SMART_CHARGING = 'SAPSmartCharging',
