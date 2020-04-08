@@ -132,6 +132,7 @@ class RequestMapper {
           SiteAreas: SiteAreaService.handleGetSiteAreas.bind(this),
           SiteArea: SiteAreaService.handleGetSiteArea.bind(this),
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage.bind(this),
+          SiteAreaConsumption: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
           Users: UserService.handleGetUsers.bind(this),
           UserSites: UserService.handleGetSites.bind(this),
           UsersInError: UserService.handleGetUsersInError.bind(this),

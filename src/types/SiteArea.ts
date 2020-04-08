@@ -22,3 +22,14 @@ export default interface SiteArea extends CreatedUpdatedProps {
   totalConnectors?: number;
   connectorStats: ConnectorStats;
 }
+
+export interface SiteAreaConsumption {
+  siteAreaId: string;
+  values: SiteAreaConsumptionValues[];
+}
+
+export interface SiteAreaConsumptionValues {
+  date: Date;
+  instantPower: number;
+  limitWatts: number;
+}

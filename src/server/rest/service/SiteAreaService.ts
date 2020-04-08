@@ -1,20 +1,22 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import SiteArea from '../../../types/SiteArea';
-import TenantComponents from '../../../types/TenantComponents';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import SiteAreaSecurity from './security/SiteAreaSecurity';
-import UtilsService from './UtilsService';
+import { NextFunction, Request, Response } from 'express';
 import { ActionsResponse } from '../../../types/GlobalType';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import Logging from '../../../utils/Logging';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import SiteArea from '../../../types/SiteArea';
+import SiteAreaSecurity from './security/SiteAreaSecurity';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantComponents from '../../../types/TenantComponents';
+import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
+import moment from 'moment';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -159,6 +161,69 @@ export default class SiteAreaService {
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
     // Return
     res.json(siteAreas);
+    next();
+  }
+
+  public static async handleGetSiteAreaConsumption(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
+      Action.LIST, Entity.SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreaConsumption');
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, 'TransactionService',
+
+      'handleGetConsumptionFromTransaction', req.user);
+    // Check auth
+    if (!Authorizations.canListSiteAreas(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.SITE_AREAS,
+        module: 'SiteAreaService',
+        method: 'handleGetSiteAreaConsumption'
+      });
+    }
+
+    // Check dates
+    if (!filteredRequest.startDate || !filteredRequest.endDate) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Start date and end date must be provided',
+        module: 'SiteAreaService',
+        method: 'handleGetSiteAreaConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+
+    // Check dates order
+    if (filteredRequest.startDate && filteredRequest.endDate && moment(filteredRequest.startDate).isAfter(moment(filteredRequest.endDate))) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The requested start date '${new Date(filteredRequest.startDate).toISOString()}' is after the requested end date '${new Date(filteredRequest.endDate).toISOString()}' `,
+        module: 'SiteAreaService',
+        method: 'handleGetSiteAreaConsumption',
+        user: req.user,
+        action: action
+      });
+    }
+
+    // Get the ConsumptionValues
+    const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID,
+      {
+        siteAreaId: filteredRequest.siteAreaId,
+        startDate: filteredRequest.startDate,
+        endDate: filteredRequest.endDate
+      },
+    );
+    // Get the Site Area Limit
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaId);
+    const siteAreaLimit = siteArea.maximumPower;
+    // Return
+    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(siteAreaConsumptionValues, siteAreaLimit, filteredRequest.siteAreaId));
     next();
   }
 
