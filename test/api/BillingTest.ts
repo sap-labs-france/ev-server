@@ -32,6 +32,7 @@ class TestData {
   public siteContext: SiteContext;
   public createdUsers: User[] = [];
   public isForcedSynchro: boolean;
+  public pending = false;
 
   public static async setBillingSystemValidCredentials(testData) {
     const stripeSettings = TestData.getStripeSettings();
@@ -49,17 +50,7 @@ class TestData {
     expect(billingImpl).to.not.be.null;
   }
 
-  private static async saveBillingSettings(testData, stripeSettings) {
-    const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
-    expect(tenantBillingSettings.data.count).to.be.eq(1);
-    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
-    componentSetting.content.type = BillingSettingsType.STRIPE;
-    componentSetting.content.stripe = stripeSettings;
-    componentSetting.sensitiveData = ['content.stripe.secretKey'];
-    await testData.userService.settingApi.update(componentSetting);
-  }
-
-  private static getStripeSettings(): StripeBillingSetting {
+  public static getStripeSettings(): StripeBillingSetting {
     return {
       url: config.get('billing.url'),
       publicKey: config.get('billing.publicKey'),
@@ -71,11 +62,27 @@ class TestData {
       periodicBillingAllowed: config.get('billing.periodicBillingAllowed')
     } as StripeBillingSetting;
   }
+
+  private static async saveBillingSettings(testData, stripeSettings) {
+    const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
+    expect(tenantBillingSettings.data.count).to.be.eq(1);
+    const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
+    componentSetting.content.type = BillingSettingsType.STRIPE;
+    componentSetting.content.stripe = stripeSettings;
+    componentSetting.sensitiveData = ['content.stripe.secretKey'];
+    await testData.userService.settingApi.update(componentSetting);
+  }
 }
 
 const testData: TestData = new TestData();
+const billingSettings = TestData.getStripeSettings();
+for (const key of Object.keys(billingSettings)) {
+  if (!billingSettings[key] || billingSettings[key] === '') {
+    testData.pending = true;
+  }
+}
 
-describe('Billing Service', function() {
+describe('Billing Service', testData.pending ? null : function() {
   this.timeout(1000000);
   describe('With component Billing (tenant ut-billing)', () => {
     before(async () => {
@@ -134,16 +141,25 @@ describe('Billing Service', function() {
       });
 
       it('Should update a user', async () => {
-        testData.createdUsers[0].firstName = 'Test';
-        testData.createdUsers[0].name = 'Name';
+        const fakeUser = {
+          ...Factory.user.build(),
+        } as User;
+
+        await testData.userService.createEntity(
+          testData.userService.userApi,
+          fakeUser
+        );
+        testData.createdUsers.push(fakeUser);
+        fakeUser.firstName = 'Test';
+        fakeUser.name = 'Name';
         await testData.userService.updateEntity(
           testData.userService.userApi,
-          testData.createdUsers[0],
+          fakeUser,
           false
         );
 
-        const billingUser = await billingImpl.getUserByEmail(testData.createdUsers[0].email);
-        expect(billingUser.name).to.be.eq(testData.createdUsers[0].firstName + ' ' + testData.createdUsers[0].name);
+        const billingUser = await billingImpl.getUserByEmail(fakeUser.email);
+        expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
       });
 
       it('Should delete a user', async () => {

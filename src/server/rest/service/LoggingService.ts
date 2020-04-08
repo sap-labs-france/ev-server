@@ -169,10 +169,10 @@ export default class LoggingService {
   }
 
   private static convertToCSV(loggedUser: UserToken, loggings) {
-    I18nManager.switchLanguage(loggedUser.language);
+    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = `Date${Constants.CSV_SEPARATOR}Level${Constants.CSV_SEPARATOR}Type${Constants.CSV_SEPARATOR}Action${Constants.CSV_SEPARATOR}Message${Constants.CSV_SEPARATOR}Method${Constants.CSV_SEPARATOR}Module${Constants.CSV_SEPARATOR}Source${Constants.CSV_SEPARATOR}Host${Constants.CSV_SEPARATOR}Process\r\n`;
     for (const log of loggings) {
-      csv += `${I18nManager.formatDateTime(log.timestamp, 'L')} ${I18nManager.formatDateTime(log.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(log.timestamp, 'L')} ${i18nManager.formatDateTime(log.timestamp, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${log.level}` + Constants.CSV_SEPARATOR;
       csv += `${log.type}` + Constants.CSV_SEPARATOR;
       csv += `${log.action}` + Constants.CSV_SEPARATOR;

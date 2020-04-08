@@ -140,7 +140,9 @@ export interface RefundSettings extends Setting {
   concur?: ConcurRefundSetting;
 }
 
-export interface ConcurRefundSetting {
+export interface RefundSetting {
+}
+export interface ConcurRefundSetting extends RefundSetting {
   authenticationUrl: string;
   apiUrl: string;
   appUrl: string;
