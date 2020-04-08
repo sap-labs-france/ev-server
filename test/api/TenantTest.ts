@@ -23,7 +23,7 @@ describe('Tenant tests', function() {
     it('Should be possible to create a valid tenant', async () => {
       // Create
       testData.newTenant = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, Factory.tenant.buildTenantCreate());
+        CentralServerService.DefaultInstance.tenantApi, Factory.tenant.build());
     });
 
     it('Should find the created tenant by id', async () => {
@@ -97,7 +97,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant without email', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       delete tenant.email;
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -108,7 +108,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant without a name', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       delete tenant.name;
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -119,7 +119,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant without a subdomain', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       delete tenant.subdomain;
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -130,7 +130,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an empty email', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.email = '';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -141,7 +141,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an empty name', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.name = '';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -152,7 +152,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an empty subdomain', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.subdomain = '';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -163,7 +163,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an invalid email', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.email = 'missingAt';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -174,7 +174,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an invalid name', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.name = 'A very long name impossible to store in database - A very long name impossible to store in database - A very long name impossible to store in database';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(
@@ -185,7 +185,7 @@ describe('Tenant tests', function() {
 
     it('Should not be possible to create a tenant with an invalid subdomain', async () => {
       // Create
-      const tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.build();
       tenant.subdomain = 'Sub domain';
       // Call
       const response = await CentralServerService.DefaultInstance.createEntity(

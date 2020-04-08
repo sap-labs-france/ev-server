@@ -671,8 +671,7 @@ export default class UserService {
     // Ok
     res.json(
       // Filter
-      UserSecurity.filterUserResponse(
-        user, req.user)
+      UserSecurity.filterUserResponse(user, req.user)
     );
     next();
   }

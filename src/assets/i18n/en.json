@@ -6,7 +6,7 @@
     },
 		"sessionStarted": {
 			"title": "Session Started",
-			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"
+			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
 			"title": "Roaming Send Statuses",

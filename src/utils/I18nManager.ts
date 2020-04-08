@@ -7,6 +7,18 @@ import Constants from './Constants';
 import Utils from './Utils';
 
 export default class I18nManager {
+  private language: string;
+
+  public constructor(locale: string) {
+    // Get language
+    this.language = Utils.getLanguageFromLocale(locale);
+    // Supported languages?
+    if (!this.language || !Constants.SUPPORTED_LANGUAGES.includes(this.language)) {
+      // Default
+      this.language = Constants.DEFAULT_LANGUAGE;
+    }
+  }
+
   public static async initialize() {
     // Get the supported locales for moment
     require('moment/locale/fr');
@@ -20,40 +32,32 @@ export default class I18nManager {
     moment.locale(Constants.DEFAULT_LANGUAGE);
   }
 
-  public static switchLocale(locale: string) {
-    if (locale) {
-      return I18nManager.switchLanguage(Utils.getLanguageFromLocale(locale));
-    }
+  public translate(key: string, params?: object): string {
+    i18n.locale = this.language;
+    return i18n.t(key, params);
   }
 
-  public static switchLanguage(language: string) {
-    // Supported languages?
-    if (language && Constants.SUPPORTED_LANGUAGES.includes(language)) {
-      i18n.locale = language;
-      moment.locale(language);
-    }
+  public formatNumber(value: number): string {
+    return new Intl.NumberFormat(this.language).format(value);
   }
 
-  public static formatNumber(value: number): string {
-    return new Intl.NumberFormat(i18n.locale).format(value);
-  }
-
-  public static formatCurrency(value: number, currency?: string): string {
+  public formatCurrency(value: number, currency?: string): string {
     // Format Currency
     if (currency) {
-      return new Intl.NumberFormat(i18n.locale, { style: 'currency', currency }).format(value);
+      return new Intl.NumberFormat(this.language, { style: 'currency', currency }).format(value);
     }
-    return I18nManager.formatNumber(Math.round(value * 100) / 100);
+    return this.formatNumber(Math.round(value * 100) / 100);
   }
 
-  public static formatPercentage(value: number): string {
+  public formatPercentage(value: number): string {
     if (!isNaN(value)) {
-      return new Intl.NumberFormat(i18n.locale, { style: 'percent' }).format(value);
+      return new Intl.NumberFormat(this.language, { style: 'percent' }).format(value);
     }
     return '0';
   }
 
-  public static formatDateTime(value: Date, format = 'LLL') {
+  public formatDateTime(value: Date, format = 'LLL') {
+    moment.locale(this.language);
     return moment(new Date(value)).format(format);
   }
 }

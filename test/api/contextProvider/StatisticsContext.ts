@@ -8,7 +8,7 @@ import TenantContext from './TenantContext';
 import User from '../../types/User';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
 import * as faker from 'faker';
-import { RefundStatus, RefundType } from '../../../src/types/Refund';
+import { ConcurRefundType, RefundStatus } from '../../../src/types/Refund';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -93,11 +93,9 @@ export default class StatisticsContext {
       refundedAt: new Date(),
       reportId: faker.random.alphaNumeric(20),
       status: RefundStatus.APPROVED,
-      type: RefundType.REPORT
     };
-    TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction)
-      .then(() => console.log('Updated transaction ' + transaction.id + ' with refund data : ' + JSON.stringify(transaction.refundData)))
-      .catch((error) => console.error('Unable to update transaction ' + transaction.id + ' : ' + error));
+    await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
+    console.log('Updated transaction ' + transaction.id + ' with refund data : ' + JSON.stringify(transaction.refundData));
   }
 
   public async deleteTestData() {

@@ -6,11 +6,10 @@ import BillingService from './service/BillingService';
 import BuildingService from './service/BuildingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
-import ConnectorService from './service/ConnectorService';
+import ConnectionService from './service/ConnectionService';
 import LoggingService from './service/LoggingService';
 import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
-import PricingService from './service/PricingService';
 import RegistrationTokenService from './service/RegistrationTokenService';
 import SessionHashService from './service/SessionHashService';
 import SettingService from './service/SettingService';
@@ -91,7 +90,7 @@ class RequestMapper {
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
           OcpiEndpointSendTokens: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           OcpiEndpointGenerateLocalToken: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
-          IntegrationConnectionCreate: ConnectorService.handleCreateConnection.bind(this),
+          IntegrationConnectionCreate: ConnectionService.handleCreateConnection.bind(this),
           ChargingStationRequestOcppParameters: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
@@ -101,7 +100,6 @@ class RequestMapper {
       case 'GET':
         // Register REST actions
         this.registerJsonActionsPaths({
-          Pricing: PricingService.handleGetPricing.bind(this),
           Loggings: LoggingService.handleGetLoggings.bind(this),
           Logging: LoggingService.handleGetLogging.bind(this),
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
@@ -175,8 +173,8 @@ class RequestMapper {
           BillingUserInvoices: BillingService.handleGetUserInvoices.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
-          IntegrationConnections: ConnectorService.handleGetConnections.bind(this),
-          IntegrationConnection: ConnectorService.handleGetConnection.bind(this),
+          IntegrationConnections: ConnectionService.handleGetConnections.bind(this),
+          IntegrationConnection: ConnectionService.handleGetConnection.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this),
           Ping: (action: Action, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
@@ -186,7 +184,6 @@ class RequestMapper {
       case 'PUT':
         // Register REST actions
         this.registerJsonActionsPaths({
-          PricingUpdate: PricingService.handleUpdatePricing.bind(this),
           UserUpdate: UserService.handleUpdateUser.bind(this),
           UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
@@ -226,7 +223,7 @@ class RequestMapper {
           ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),
           TransactionsDelete: TransactionService.handleDeleteTransactions.bind(this),
-          IntegrationConnectionDelete: ConnectorService.handleDeleteConnection.bind(this),
+          IntegrationConnectionDelete: ConnectionService.handleDeleteConnection.bind(this),
           SettingDelete: SettingService.handleDeleteSetting.bind(this),
           OcpiEndpointDelete: OCPIEndpointService.handleDeleteOcpiEndpoint.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)

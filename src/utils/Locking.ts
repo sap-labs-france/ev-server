@@ -1,27 +1,29 @@
-import Constants from './Constants';
-import Database from './Database';
-import Lock from '../types/Lock';
+import cfenv from 'cfenv';
+import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
+import Lock from '../types/Lock';
+import Configuration from './Configuration';
+import Constants from './Constants';
 import Logging from './Logging';
+
+const MODULE_NAME = 'RunLock';
 
 /**
  * Namespace based mutually exclusive runtime locking primitive with a DB storage
  * for sharing purpose among different hosts.
  */
 export default class RunLock {
-  private _MODULE_NAME: string;
   private _runLock: Lock;
   private _onMultipleHosts: boolean;
 
-  public constructor(name, onMultipleHosts = true) {
-    this._MODULE_NAME = 'RunLock';
+  public constructor(name: string, onMultipleHosts = true) {
     if (!name) {
       const logMsg = 'RunLock must have a unique name';
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
+        module: MODULE_NAME,
         method: 'constructor',
-        action: 'LockingError',
+        action: 'Locking',
         message: logMsg
       });
       // eslint-disable-next-line no-console
@@ -29,13 +31,17 @@ export default class RunLock {
       return;
     }
     this._onMultipleHosts = onMultipleHosts;
-    this._runLock = { name: '', type: '', timestamp: null, hostname: '' };
-    Database.updateRunLock({ name: name, timestamp: new Date() }, this._runLock, false);
+    this._runLock = {
+      name: name.toLowerCase(),
+      type: 'runLock',
+      timestamp: new Date(),
+      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+    };
   }
 
   public async acquire(): Promise<void> {
     if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
-      await LockingStorage.saveRunLock(this._runLock);
+      this._runLock.id = await LockingStorage.saveRunLock(this._runLock);
     }
   }
 
@@ -43,8 +49,7 @@ export default class RunLock {
     if (await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
       return false;
     }
-
-    await LockingStorage.saveRunLock(this._runLock);
+    this._runLock.id = await LockingStorage.saveRunLock(this._runLock);
     return true;
   }
 
@@ -57,7 +62,7 @@ export default class RunLock {
       const logMsg = `RunLock ${this._runLock.name} is not acquired`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
+        module: MODULE_NAME,
         method: 'release',
         action: 'LockingError',
         message: logMsg
@@ -66,6 +71,6 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    await LockingStorage.deleteRunLock(this._runLock);
+    await LockingStorage.deleteRunLock(this._runLock.id);
   }
 }

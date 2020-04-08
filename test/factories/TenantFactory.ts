@@ -1,13 +1,8 @@
-import jsf from 'json-schema-faker';
-import tenantCreation from '../../src/assets/server/rest/schemas/tenant/tenant-create.json';
-import tenantUpdate from '../../src/assets/server/rest/schemas/tenant/tenant-update.json';
+import { Factory } from 'rosie';
+import faker from 'faker';
 
-export default class TenantFactory {
-  static buildTenantCreate() {
-    return jsf.generate(tenantCreation);
-  }
+export default Factory.define('tenant')
+  .attr('name', () => faker.company.companyName())
+  .attr('email', () => faker.internet.email())
+  .attr('subdomain', () => faker.random.alphaNumeric(10).toLowerCase());
 
-  static buildTenantUpdate() {
-    return jsf.generate(tenantUpdate);
-  }
-}

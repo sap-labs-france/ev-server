@@ -1282,11 +1282,11 @@ export default class ChargingStationService {
   }
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
-    I18nManager.switchLanguage(loggedUser.language);
+    const i18nManager = new I18nManager(loggedUser.locale);
     let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
-      csv += `${I18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${I18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.connectors ? chargingStation.connectors.length : '0'}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.siteArea.name}` + Constants.CSV_SEPARATOR;
       if (chargingStation.coordinates && chargingStation.coordinates.length === 2) {
@@ -1302,8 +1302,8 @@ export default class ChargingStationService {
       csv += `${chargingStation.firmwareVersion}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.ocppVersion}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.ocppProtocol}` + Constants.CSV_SEPARATOR;
-      csv += `${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${I18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
-      csv += `${I18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${I18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
+      csv += `${i18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${i18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
       csv += (!chargingStation.cannotChargeInParallel ? 'yes' : 'no') + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.powerLimitUnit}\r\n`;

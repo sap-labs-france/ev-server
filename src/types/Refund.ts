@@ -12,7 +12,21 @@ export enum RefundStatus {
   APPROVED = 'approved',
 }
 
-export enum RefundType {
+export enum ConcurRefundType {
   QUICK = 'quick',
   REPORT = 'report',
+}
+
+export interface ConcurLocation {
+  Name: string;
+  Country: string;
+  CountrySubdivision: string;
+  AdministrativeRegion: string;
+  IATACode: string;
+  IsBookingTool: boolean;
+  IsAirport: boolean;
+  Latitude: number;
+  Longitude: number;
+  ID: string;
+  URI: string;
 }

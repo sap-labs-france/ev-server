@@ -32,7 +32,6 @@ export default class SiteAreaSecurity {
       WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
       SiteID: sanitize(request.SiteID)
     } as HttpSiteAreasRequest;
-
     if (request.Issuer) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
