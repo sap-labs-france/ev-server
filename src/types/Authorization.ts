@@ -89,6 +89,7 @@ export enum Action {
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
   OCPI_GET_VERSIONS = 'OCPIGetVersions',
   OCPI_POST_CREDENTIALS = 'OCPIPostCredentials',
+  OCPI_DELETE_CREDENTIALS = 'OCPIDeleteCredentials',
 
   OCPP_SERVICE = 'OCPPService',
 
@@ -123,7 +124,6 @@ export enum Action {
   MONGO_DB = 'MongoDB',
 
   EMPTY_ACTION = '',
-  DELETE_CREDENTIALS = 'DeleteCredentials',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SAP_SMART_CHARGING = 'SAPSmartCharging',

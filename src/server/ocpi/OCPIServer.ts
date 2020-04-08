@@ -10,6 +10,7 @@ import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 
 const MODULE_NAME = 'OCPIServer';
+
 export default class OCPIServer {
   private ocpiRestConfig: Configuration['OCPIService'];
   private express: Application;
@@ -30,8 +31,7 @@ export default class OCPIServer {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME,
-                method: 'constructor',
+                module: MODULE_NAME, method: 'constructor',
                 action: 'HttpRequestLog',
                 message: message
               });

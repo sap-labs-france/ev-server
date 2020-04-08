@@ -58,9 +58,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -70,9 +69,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -99,9 +97,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'putSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -114,9 +111,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       session.id = sessionId;
     } else if (session.id !== sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'putSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Session id ${session.id} does not match request parameter ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -145,9 +141,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -157,9 +152,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -192,9 +186,8 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     if (!patched) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         detailedMessages: { sessionPatched },

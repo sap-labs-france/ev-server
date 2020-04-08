@@ -11,6 +11,8 @@ import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
 import { Action } from '../../types/Authorization';
 
+const MODULE_NAME = 'OCPIClient';
+
 export default abstract class OCPIClient {
   protected ocpiEndpoint: OCPIEndpoint;
   protected tenant: Tenant;
@@ -146,7 +148,7 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_GET_VERSIONS,
       message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
-      module: 'OCPIClient', method: 'getServices'
+      module: MODULE_NAME, method: 'getServices'
     });
     const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
@@ -170,7 +172,7 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_GET_VERSIONS,
       message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
-      module: 'OCPIClient', method: 'getServices'
+      module: MODULE_NAME, method: 'getServices'
     });
     const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
       headers: {
@@ -193,7 +195,7 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_POST_CREDENTIALS,
       message: `Delete credentials at ${credentialsUrl}`,
-      module: 'OCPIClient', method: 'postCredentials'
+      module: MODULE_NAME, method: 'postCredentials'
     });
     // Call eMSP with CPO credentials
     const respOcpiCredentials = await axios.delete(credentialsUrl,
@@ -223,7 +225,7 @@ export default abstract class OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_POST_CREDENTIALS,
       message: `Post credentials at ${credentialsUrl}`,
-      module: 'OCPIClient', method: 'postCredentials',
+      module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credentials }
     });
     // Call eMSP with CPO credentials

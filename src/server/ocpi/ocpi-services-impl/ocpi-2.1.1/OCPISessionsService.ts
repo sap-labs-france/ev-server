@@ -23,9 +23,8 @@ export default class OCPISessionsService {
   public static async updateSession(tenantId: string, session: OCPISession) {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'updateSession',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateSession',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
@@ -45,9 +44,8 @@ export default class OCPISessionsService {
       const user = await UserStorage.getUser(tenantId, session.auth_id);
       if (!user) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No user found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
@@ -60,9 +58,8 @@ export default class OCPISessionsService {
       const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, chargingStationId);
       if (!chargingStation) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: { session },
@@ -71,9 +68,8 @@ export default class OCPISessionsService {
       }
       if (chargingStation.issuer) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
@@ -123,9 +119,8 @@ export default class OCPISessionsService {
     if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'updateSession',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateSession',
         message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
         detailedMessages: { session }
       });

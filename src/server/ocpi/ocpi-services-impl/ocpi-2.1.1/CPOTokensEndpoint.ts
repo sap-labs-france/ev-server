@@ -83,9 +83,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
 
     if (!updatedToken) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Missing content to put token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -99,9 +98,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       const tag = user.tags.find((value) => value.id === tokenId);
       if (!user.issuer) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'patchToken',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'patchToken',
           errorCode: HttpStatusCodes.NOT_FOUND,
           message: `Invalid user found for token ${tokenId}, token issued locally`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -109,9 +107,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       }
       if (!tag.ocpiToken) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'patchToken',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'patchToken',
           errorCode: HttpStatusCodes.NOT_FOUND,
           message: `Invalid user found for token ${tokenId}, token does not belongs to OCPI`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -119,9 +116,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
       }
       if (user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'patchToken',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'patchToken',
           errorCode: HttpStatusCodes.CONFLICT,
           message: `Invalid user found for token ${tokenId}, token belongs to another partner`,
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -154,9 +150,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
 
     if (!patchedTag) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Missing content to patch token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -168,9 +163,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
 
     if (!user) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.NOT_FOUND,
         message: `No user found for token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -179,9 +173,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const tag = user.tags.find((value) => value.id === tokenId);
     if (!user.issuer) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.NOT_FOUND,
         message: `Invalid user found for token ${tokenId}, token issued locally`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -189,9 +182,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!tag.ocpiToken) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.NOT_FOUND,
         message: `Invalid user found for token ${tokenId}, token does not belongs to OCPI`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -199,9 +191,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (user.name !== OCPIUtils.buildOperatorName(countryCode, partyId)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.CONFLICT,
         message: `Invalid user found for token ${tokenId}, token belongs to another partner`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -235,9 +226,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     }
     if (!patched) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'patchToken',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Missing or invalid content to patch token ${tokenId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

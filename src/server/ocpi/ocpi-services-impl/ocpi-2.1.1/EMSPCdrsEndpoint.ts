@@ -16,6 +16,7 @@ import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
+
 /**
  * EMSP Cdrs Endpoint
  */
@@ -49,34 +50,27 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const id = urlSegment.shift();
-
     if (!id) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-
     if (!transaction || !transaction.ocpiCdr) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'postCdrRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The CDR ${id} does not exist or does not belong to the requester`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     return OCPIUtils.success(transaction.ocpiCdr);
   }
 
@@ -87,42 +81,33 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    */
   private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const cdr: OCPICdr = req.body as OCPICdr;
-
     if (!this.validateCdr(cdr)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'postCdrRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cdr object is invalid',
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     if (!cdr.total_cost) {
       cdr.total_cost = 0;
     }
-
     if (!cdr.total_energy) {
       cdr.total_energy = 0;
     }
-
     if (!cdr.total_time) {
       cdr.total_time = 0;
     }
-
     if (!cdr.total_parking_time) {
       cdr.total_parking_time = 0;
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, cdr.id);
-
     if (!transaction) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'postCdrRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${cdr.id}`,
         detailedMessages: { cdr },
@@ -131,21 +116,17 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     }
     if (transaction.ocpiCdr) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'postCdrRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `A cdr already exists for the session ${cdr.id}`,
         detailedMessages: { cdr },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     transaction.ocpiCdr = cdr;
     await TransactionStorage.saveTransaction(tenant.id, transaction);
-
     res.setHeader('Location', OCPIUtils.buildLocationUrl(req, this.getBaseUrl(req), cdr.id));
-
     return OCPIUtils.success({});
   }
 

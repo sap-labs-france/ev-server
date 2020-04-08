@@ -92,9 +92,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const tokenId = urlSegment.shift();
     if (!tokenId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -105,9 +104,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
 
     if (!locationReference) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing LocationReference',
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
@@ -115,9 +113,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (!locationReference.evse_uids || locationReference.evse_uids.length === 0) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing EVSE Id.',
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
@@ -125,9 +122,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     if (locationReference.evse_uids.length > 1) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid or missing parameters : does not support authorization request on multiple EVSE',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -138,9 +134,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
     if (!chargingStation || chargingStation.issuer) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown EVSE ${locationReference.evse_uids[0]}`,
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
@@ -150,9 +145,8 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
     if (!user) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'authorizeRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'authorizeRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'UNKNOWN USER',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR

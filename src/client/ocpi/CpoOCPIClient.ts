@@ -27,6 +27,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import OCPIClient from './OCPIClient';
 
+const MODULE_NAME = 'CpoOCPIClient';
+
 export default class CpoOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.CPO);
@@ -62,7 +64,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_TOKENS,
         message: `Pull Tokens at ${tokensUrl}`,
-        module: 'CpoOCPIClient', method: 'pullTokens'
+        module: MODULE_NAME, method: 'pullTokens'
       });
       // Call IOP
       const response = await axios.get(tokensUrl,
@@ -83,7 +85,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_TOKENS,
         message: `${response.data.data.length} Tokens retrieved from ${tokensUrl}`,
-        module: 'CpoOCPIClient', method: 'pullTokens'
+        module: MODULE_NAME, method: 'pullTokens'
       });
       for (const token of response.data.data) {
         try {
@@ -130,7 +132,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_AUTHORIZE_TOKEN,
       message: `Post authorize at ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'authorizeToken',
+      module: MODULE_NAME, method: 'authorizeToken',
       detailedMessages: { payload }
     });
     // Call IOP
@@ -153,7 +155,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_AUTHORIZE_TOKEN,
       message: `Authorization response retrieved from ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'authorizeToken',
+      module: MODULE_NAME, method: 'authorizeToken',
       detailedMessages: { response: response.data.data }
     });
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
@@ -189,7 +191,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Put session start at ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'startSession',
+      module: MODULE_NAME, method: 'startSession',
       detailedMessages: { payload: ocpiSession }
     });
     // Call IOP
@@ -213,7 +215,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Push session response retrieved from ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'startSession',
+      module: MODULE_NAME, method: 'startSession',
       detailedMessages: { response: response.data.data }
     });
   }
@@ -233,7 +235,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Put session update at ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'updateSession',
+      module: MODULE_NAME, method: 'updateSession',
       detailedMessages: { payload: transaction.ocpiSession }
     });
     // Call IOP
@@ -256,7 +258,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Push session response retrieved from ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'updateSession',
+      module: MODULE_NAME, method: 'updateSession',
       detailedMessages: { response: response.data.data }
     });
   }
@@ -280,7 +282,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Put session stop at ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'stopSession',
+      module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { payload: transaction.ocpiSession }
     });
     // Call IOP
@@ -303,7 +305,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Push session response retrieved from ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'stopSession',
+      module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { response: response.data.data }
     });
   }
@@ -348,7 +350,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_CDRS,
       message: `Post cdr at ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'stopSession',
+      module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { payload: transaction.ocpiSession }
     });
     // Call IOP
@@ -371,7 +373,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_CDRS,
       message: `Push cdr response retrieved from ${tokensUrl}`,
-      module: 'CpoOCPIClient', method: 'postCdr',
+      module: MODULE_NAME, method: 'postCdr',
       detailedMessages: { response: response.data.data }
     });
   }
@@ -418,7 +420,7 @@ export default class CpoOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PATCH_LOCATIONS,
       message: `Patch location at ${fullUrl}`,
-      module: 'CpoOCPIClient', method: 'patchEVSEStatus',
+      module: MODULE_NAME, method: 'patchEVSEStatus',
       detailedMessages: { payload }
     });
     // Call IOP
@@ -520,7 +522,7 @@ export default class CpoOCPIClient extends OCPIClient {
         action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        module: 'CpoOCPIClient', method: 'sendEVSEStatuses'
+        module: MODULE_NAME, method: 'sendEVSEStatuses'
       });
     } else if (sendResult.success > 0) {
       // Log info
@@ -529,7 +531,7 @@ export default class CpoOCPIClient extends OCPIClient {
         action: Action.OCPI_PATCH_LOCATIONS,
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        module: 'CpoOCPIClient', method: 'sendEVSEStatuses'
+        module: MODULE_NAME, method: 'sendEVSEStatuses'
       });
     }
     // Save result in ocpi endpoint

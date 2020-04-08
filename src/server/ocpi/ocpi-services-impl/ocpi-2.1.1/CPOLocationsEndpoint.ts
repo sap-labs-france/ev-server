@@ -74,9 +74,8 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'getLocationRequest',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'getLocationRequest',
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
@@ -90,9 +89,8 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'getLocationRequest',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'getLocationRequest',
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
@@ -106,9 +104,8 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'getLocationRequest',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'getLocationRequest',
           action: Action.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site id '${locationId}' not found`,

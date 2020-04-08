@@ -12,6 +12,8 @@ import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
 import OCPIClient from './OCPIClient';
 
+const MODULE_NAME = 'OCPIClientFactory';
+
 export default class OCPIClientFactory {
   static async getOcpiClient(tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIClient> {
     // Check if OCPI component is active
@@ -21,7 +23,7 @@ export default class OCPIClientFactory {
       if (!ocpiSettings && ocpiSettings.ocpi) {
         Logging.logError({
           tenantID: tenant.id,
-          module: 'OCPIClientFactory', method: 'getOcpiClient',
+          module: MODULE_NAME, method: 'getOcpiClient',
           message: 'OCPI settings are not configured'
         });
       }
@@ -41,7 +43,7 @@ export default class OCPIClientFactory {
     }
     Logging.logError({
       tenantID: tenant.id,
-      module: 'OCPIClientFactory', method: 'getCpoOcpiClient',
+      module: MODULE_NAME, method: 'getCpoOcpiClient',
       message: `CpoOCPIClient is not compatible with endpoint role '${ocpiEndpoint.role}'`
     });
   }
@@ -53,7 +55,7 @@ export default class OCPIClientFactory {
     }
     Logging.logError({
       tenantID: tenant.id,
-      module: 'OCPIClientFactory', method: 'getEmspOcpiClient',
+      module: MODULE_NAME, method: 'getEmspOcpiClient',
       message: `EmspOCPIClient is not compatible with endpoint role '${ocpiEndpoint.role}'`
     });
   }

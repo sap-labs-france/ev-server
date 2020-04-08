@@ -26,6 +26,8 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
 
+const MODULE_NAME = 'EmspOCPIClient';
+
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
@@ -73,7 +75,7 @@ export default class EmspOCPIClient extends OCPIClient {
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        module: 'EmspOCPIClient', method: 'sendTokens'
+        module: MODULE_NAME, method: 'sendTokens'
       });
     } else if (sendResult.success > 0) {
       // Log info
@@ -82,7 +84,7 @@ export default class EmspOCPIClient extends OCPIClient {
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        module: 'EmspOCPIClient', method: 'sendTokens'
+        module: MODULE_NAME, method: 'sendTokens'
       });
     }
     // Save result in ocpi endpoint
@@ -151,7 +153,7 @@ export default class EmspOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_LOCATIONS,
         message: `Retrieve locations at ${locationsUrl}`,
-        module: 'EmspOCPIClient', method: 'pullLocations'
+        module: MODULE_NAME, method: 'pullLocations'
       });
       // Call IOP
       const response = await axios.get(locationsUrl,
@@ -211,7 +213,7 @@ export default class EmspOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_SESSIONS,
         message: `Retrieve sessions at ${sessionsUrl}`,
-        module: 'EmspOCPIClient', method: 'pullSessions'
+        module: MODULE_NAME, method: 'pullSessions'
       });
       // Call IOP
       const response = await axios.get(sessionsUrl,
@@ -272,7 +274,7 @@ export default class EmspOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_CDRS,
         message: `Retrieve cdrs at ${cdrsUrl}`,
-        module: 'EmspOCPIClient', method: 'pullCdrs'
+        module: MODULE_NAME, method: 'pullCdrs'
       });
       // Call IOP
       const response = await axios.get(cdrsUrl,
@@ -297,7 +299,7 @@ export default class EmspOCPIClient extends OCPIClient {
               tenantID: this.tenant.id,
               action: Action.OCPI_PULL_CDRS,
               message: `No transaction found for cdr with id ${cdr.id}`,
-              module: 'EmspOCPIClient', method: 'pullCdrs',
+              module: MODULE_NAME, method: 'pullCdrs',
               detailedMessages: { cdr },
             });
             sendResult.failure++;
@@ -333,7 +335,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PULL_LOCATIONS,
       message: `Processing location ${location.name} with id ${location.id}`,
-      module: 'EmspOCPIClient', method: 'processLocation',
+      module: MODULE_NAME, method: 'processLocation',
       detailedMessage: location
     });
     let site: Site;
@@ -400,7 +402,7 @@ export default class EmspOCPIClient extends OCPIClient {
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Missing evse uid of location ${location.name}`,
-            module: 'EmspOCPIClient', method: 'processLocation',
+            module: MODULE_NAME, method: 'processLocation',
             detailedMessage: location
           });
         } else if (evse.status === OCPIEvseStatus.REMOVED) {
@@ -408,7 +410,7 @@ export default class EmspOCPIClient extends OCPIClient {
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
-            module: 'EmspOCPIClient', method: 'processLocation',
+            module: MODULE_NAME, method: 'processLocation',
             detailedMessage: location
           });
           await ChargingStationStorage.deleteChargingStation(this.tenant.id, chargingStationId);
@@ -417,7 +419,7 @@ export default class EmspOCPIClient extends OCPIClient {
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Update evse ${chargingStationId} of location ${location.name}`,
-            module: 'EmspOCPIClient', method: 'processLocation',
+            module: MODULE_NAME, method: 'processLocation',
             detailedMessage: location
           });
           const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
@@ -441,7 +443,7 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_TOKENS,
       message: `Put token at ${fullUrl}`,
-      module: 'EmspOCPIClient', method: 'pushToken',
+      module: MODULE_NAME, method: 'pushToken',
       detailedMessages: { token }
     });
     // Call IOP
