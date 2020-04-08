@@ -1,18 +1,18 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import Logging from '../../../../utils/Logging';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
 import HttpStatusCodes from 'http-status-codes';
+import AppError from '../../../../exception/AppError';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
+import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
 import OCPITokensService from './OCPITokensService';
 
 const EP_IDENTIFIER = 'tokens';
@@ -50,15 +50,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
-
     // Retrieve token
     const token = await OCPIMapping.getToken(tenant, countryCode, partyId, tokenId);
-
     return OCPIUtils.success(token);
   }
 
@@ -71,16 +68,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
-
     Logging.logDebug(`Updating token ${tokenId} for eMSP ${countryCode}/${partyId}`);
-
     const updatedToken = req.body as OCPIToken;
-
     if (!updatedToken) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -90,10 +83,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     // Retrieve token
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-
     if (user) {
       const tag = user.tags.find((value) => value.id === tokenId);
       if (!user.issuer) {
@@ -124,7 +115,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         });
       }
     }
-
     await OCPITokensService.updateToken(tenant.id, ocpiEndpoint, updatedToken);
     return OCPIUtils.success();
   }
@@ -138,16 +128,12 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
-
     Logging.logDebug(`Patching token ${tokenId} for eMSP ${countryCode}/${partyId}`);
-
     const patchedTag = req.body as Partial<OCPIToken>;
-
     if (!patchedTag) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -157,10 +143,8 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     // Retrieve token
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -233,7 +217,6 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     await UserStorage.saveUserTag(tenant.id, user.id, tag);
     return OCPIUtils.success();
   }

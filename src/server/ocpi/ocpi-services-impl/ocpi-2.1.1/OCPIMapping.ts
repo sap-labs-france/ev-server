@@ -7,14 +7,14 @@ import { DataResult } from '../../../../types/DataResult';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import Tenant from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
 import Configuration from '../../../../utils/Configuration';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import Constants from '../../../../utils/Constants';
 import OCPIUtils from '../../OCPIUtils';
 
 /**
@@ -56,7 +56,6 @@ export default class OCPIMapping {
       issuer: false,
       connectors: []
     } as ChargingStation;
-
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
         Number.parseFloat(evse.coordinates.longitude),
@@ -68,7 +67,6 @@ export default class OCPIMapping {
         Number.parseFloat(location.coordinates.latitude)
       ];
     }
-
     if (evse.connectors && evse.connectors.length > 0) {
       let connectorId = 1;
       for (const ocpiConnector of evse.connectors) {
@@ -109,7 +107,6 @@ export default class OCPIMapping {
         }
       }
     });
-
     // Return evses
     return evses;
   }
@@ -135,7 +132,6 @@ export default class OCPIMapping {
       // Get charging stations from SiteArea
       evses.push(...OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
-
     // Return evses
     return evses;
   }
@@ -147,18 +143,14 @@ export default class OCPIMapping {
   static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Result
     const result: any = { count: 0, locations: [] };
-
     // Get all sites
     const sites = await SiteStorage.getSites(tenant.id, { issuer: true }, { limit, skip });
-
     // Convert Sites to Locations
     for (const site of sites.result) {
       result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
-
     // Set count
     result.count = sites.count;
-
     // Return locations
     return result;
   }
@@ -170,13 +162,11 @@ export default class OCPIMapping {
   static async getAllTokens(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPIToken>> {
     // Result
     const tokens: OCPIToken[] = [];
-
     // Get all tokens
     const tags = await UserStorage.getTags(tenant.id, { issuer: true, dateFrom, dateTo }, {
       limit,
       skip
     });
-
     // Convert Sites to Locations
     for (const tag of tags.result) {
       const user = await UserStorage.getUser(tenant.id, tag.userID);
@@ -192,7 +182,6 @@ export default class OCPIMapping {
         'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
-
     return {
       count: tags.count,
       result: tokens
@@ -205,7 +194,6 @@ export default class OCPIMapping {
    */
   static async getToken(tenant: Tenant, countryId: string, partyId: string, tokenId: string): Promise<OCPIToken> {
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
-
     if (user) {
       const tag = user.tags.find((value) => value.id === tokenId);
       if (!user.issuer && user.name === OCPIUtils.buildOperatorName(countryId, partyId) && tag.ocpiToken) {
@@ -261,7 +249,6 @@ export default class OCPIMapping {
       }
       return evse;
     });
-
     // Return all evses
     return evses;
   }
@@ -278,7 +265,6 @@ export default class OCPIMapping {
     // Get all connectors
     const connectors = chargingStation.connectors.map(
       (connector: any) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
-
     // Build evse
     const evse: any = {
       'uid': OCPIUtils.buildEvseUID(chargingStation),
@@ -288,12 +274,10 @@ export default class OCPIMapping {
       'connectors': connectors,
       'last_updated': chargingStation.lastHeartBeat
     };
-
     // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
       evse.chargeBoxId = chargingStation.id;
     }
-
     return [evse];
   }
 
@@ -308,13 +292,12 @@ export default class OCPIMapping {
         break;
       }
     }
-
     const ocpiLocation: OCPILocation = {
       id: site.id,
       name: site.name,
       address: `${site.address.address1} ${site.address.address2}`,
       city: site.address.city,
-      'postal_code': site.address.postalCode,
+      postal_code: site.address.postalCode,
       country: site.address.country,
       coordinates: {
         latitude: site.address.coordinates[1].toString(),
@@ -323,7 +306,7 @@ export default class OCPIMapping {
       type: OCPILocationType.UNKNOWN,
       evses: [{
         uid: OCPIUtils.buildEvseUID(chargingStation),
-        'evse_id': evseID,
+        evse_id: evseID,
         status: OCPIMapping.convertStatus2OCPIStatus(status),
         capabilities: [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
         connectors: connectors,
@@ -331,10 +314,9 @@ export default class OCPIMapping {
           latitude: chargingStation.coordinates[1].toString(),
           longitude: chargingStation.coordinates[0].toString()
         },
-        'last_updated': chargingStation.lastHeartBeat
-      }
-      ],
-      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
+        last_updated: chargingStation.lastHeartBeat
+      }],
+      last_updated: site.lastChangedOn ? site.lastChangedOn : site.createdOn
     };
     return ocpiLocation;
   }
@@ -348,16 +330,13 @@ export default class OCPIMapping {
   static aggregateConnectorsStatus(connectors: Connector[]): ChargePointStatus {
     // Build array with charging station ordered by priority
     const statusesOrdered: ChargePointStatus[] = [ChargePointStatus.AVAILABLE, ChargePointStatus.OCCUPIED, ChargePointStatus.CHARGING, ChargePointStatus.FAULTED];
-
     let aggregatedConnectorStatusIndex = 0;
-
     // Loop through connector
     for (const connector of connectors) {
       if (statusesOrdered.indexOf(connector.status) > aggregatedConnectorStatusIndex) {
         aggregatedConnectorStatusIndex = statusesOrdered.indexOf(connector.status);
       }
     }
-
     // Return value
     return statusesOrdered[aggregatedConnectorStatusIndex];
   }
@@ -526,17 +505,13 @@ export default class OCPIMapping {
   static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string) {
     // Credential
     const credential: any = {};
-
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getOCPISettings(tenantID);
-
     // Define version url
     credential.url = (versionUrl ? versionUrl : `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${role.toLowerCase()}/versions`);
-
     // Check if available
     if (ocpiSetting && ocpiSetting.ocpi) {
       credential.token = token;
-
       if (role === OCPIRole.EMSP) {
         credential.country_code = ocpiSetting.ocpi.emsp.countryCode;
         credential.party_id = ocpiSetting.ocpi.emsp.partyID;
@@ -544,10 +519,8 @@ export default class OCPIMapping {
         credential.country_code = ocpiSetting.ocpi.cpo.countryCode;
         credential.party_id = ocpiSetting.ocpi.cpo.partyID;
       }
-
       credential.business_details = ocpiSetting.ocpi.businessDetails;
     }
-
     // Return credential object
     return credential;
   }
@@ -557,7 +530,6 @@ export default class OCPIMapping {
    */
   static convertEndpoints(endpointsEntity) {
     const endpoints: any = {};
-
     if (endpointsEntity && endpointsEntity.endpoints) {
       for (const endpoint of endpointsEntity.endpoints) {
         endpoints[endpoint.identifier] = endpoint.url;

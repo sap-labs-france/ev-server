@@ -1,6 +1,7 @@
 import axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
+import BackendError from '../../exception/BackendError';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
@@ -32,7 +33,10 @@ export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
     if (ocpiEndpoint.role !== OCPIRole.EMSP) {
-      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`);
+      throw new BackendError({
+        message: `EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`,
+        module: MODULE_NAME, method: 'constructor',
+      });
     }
   }
 
@@ -136,7 +140,7 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get locations endpoint url
-    let locationsUrl = this.getEndpointUrl('locations');
+    let locationsUrl = this.getEndpointUrl('locations', Action.OCPI_PULL_LOCATIONS);
     if (partial) {
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
       locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
@@ -165,10 +169,19 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get locations`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_LOCATIONS,
+          message: `Invalid response code ${response.status} from Get locations`,
+          module: MODULE_NAME, method: 'pullLocations',
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_LOCATIONS,
+          message: `Invalid response from Get locations`,
+          module: MODULE_NAME, method: 'pullLocations',
+          detailedMessages: { response: response.data }
+        });
       }
       for (const location of response.data.data) {
         try {
@@ -203,7 +216,7 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get sessions endpoint url
-    let sessionsUrl = this.getEndpointUrl('sessions');
+    let sessionsUrl = this.getEndpointUrl('sessions', Action.OCPI_PULL_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=20`;
     let nextResult = true;
@@ -225,10 +238,19 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get sessions`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_SESSIONS,
+          message: `Invalid response code ${response.status} from Get sessions`,
+          module: MODULE_NAME, method: 'pullSessions',
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get sessions: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_SESSIONS,
+          message: `Invalid response from Get sessions`,
+          module: MODULE_NAME, method: 'pullSessions',
+          detailedMessages: { response: response.data }
+        });
       }
       for (const session of response.data.data) {
         try {
@@ -264,7 +286,7 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get cdrs endpoint url
-    let cdrsUrl = this.getEndpointUrl('cdrs');
+    let cdrsUrl = this.getEndpointUrl('cdrs', Action.OCPI_PULL_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=20`;
     let nextResult = true;
@@ -286,10 +308,19 @@ export default class EmspOCPIClient extends OCPIClient {
         });
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get cdrs`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_CDRS,
+          message: `Invalid response code ${response.status} from Get cdrs`,
+          module: MODULE_NAME, method: 'pullCdrs',
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get cdrs: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_CDRS,
+          message: `Invalid response from Get cdrs`,
+          module: MODULE_NAME, method: 'pullCdrs',
+          detailedMessages: { response: response.data }
+        });
       }
       for (const cdr of response.data.data) {
         try {
@@ -432,10 +463,10 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pushToken(token: OCPIToken) {
     // Get tokens endpoint url
-    const tokensUrl = this.getEndpointUrl('tokens');
+    const tokensUrl = this.getEndpointUrl('tokens', Action.OCPI_PUSH_TOKENS);
     // Read configuration to retrieve
-    const countryCode = this.getLocalCountryCode();
-    const partyID = this.getLocalPartyID();
+    const countryCode = this.getLocalCountryCode(Action.OCPI_PUSH_TOKENS);
+    const partyID = this.getLocalPartyID(Action.OCPI_PUSH_TOKENS);
     // Build url to IOP
     const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${token.uid}`;
     // Log
@@ -455,10 +486,13 @@ export default class EmspOCPIClient extends OCPIClient {
         },
         timeout: 10000
       });
-
     // Check response
     if (!response.data) {
-      throw new Error(`Invalid response from put token ${JSON.stringify(response)}`);
+      throw new BackendError({
+        action: Action.OCPI_PUSH_TOKENS,
+        message: `Invalid response from put token ${JSON.stringify(response)}`,
+        module: MODULE_NAME, method: 'pushToken',
+      });
     }
   }
 

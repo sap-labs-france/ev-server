@@ -76,10 +76,11 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
-
+  OCPI_REGISTER = 'OCPIRegister',
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+  OCPI_PATCH_STATUS = 'OCPIPatchStatus',
   OCPI_PUSH_TOKENS = 'OCPIPushTokens',
   OCPI_PUSH_SESSIONS = 'OCPIPushSessions',
   OCPI_PUSH_CDRS = 'OCPIPushCdrs',

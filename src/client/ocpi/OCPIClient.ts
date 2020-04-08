@@ -1,7 +1,9 @@
 import axios from 'axios';
+import BackendError from '../../exception/BackendError';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { Action } from '../../types/Authorization';
 import { HTTPError } from '../../types/HTTPError';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
@@ -9,7 +11,6 @@ import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
-import { Action } from '../../types/Authorization';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -21,7 +22,10 @@ export default abstract class OCPIClient {
 
   protected constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint, role: string) {
     if (role !== OCPIRole.CPO && role !== OCPIRole.EMSP) {
-      throw new Error(`Invalid OCPI role '${role}'`);
+      throw new BackendError({
+        message: `Invalid OCPI role '${role}'`,
+        module: MODULE_NAME, method: 'constructor',
+      });
     }
     this.tenant = tenant;
     this.settings = settings;
@@ -72,7 +76,11 @@ export default abstract class OCPIClient {
       }
       // If not found trigger exception
       if (!versionFound) {
-        throw new Error('OCPI Endpoint version 2.1.1 not found');
+        throw new BackendError({
+          action: Action.OCPI_PUSH_TOKENS,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'constructor',
+        });
       }
       // Delete credentials
       await this.deleteCredentials();
@@ -110,7 +118,11 @@ export default abstract class OCPIClient {
       }
       // If not found trigger exception
       if (!versionFound) {
-        throw new Error('OCPI Endpoint version 2.1.1 not found');
+        throw new BackendError({
+          action: Action.OCPI_REGISTER,
+          message: 'OCPI Endpoint version 2.1.1 not found',
+          module: MODULE_NAME, method: 'register',
+        });
       }
       // Try to read services
       const services = await this.getServices();
@@ -158,7 +170,12 @@ export default abstract class OCPIClient {
     });
     // Check response
     if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
-      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.baseUrl}`);
+      throw new BackendError({
+        action: Action.OCPI_GET_VERSIONS,
+        message: `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`,
+        module: MODULE_NAME, method: 'getVersions',
+        detailedMessages: { response: respOcpiVersions.data }
+      });
     }
     return respOcpiVersions;
   }
@@ -182,14 +199,19 @@ export default abstract class OCPIClient {
     });
     // Check response
     if (!respOcpiServices.data || !respOcpiServices.data.data) {
-      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.versionUrl}`);
+      throw new BackendError({
+        action: Action.OCPI_GET_VERSIONS,
+        message: `Invalid response from GET ${this.ocpiEndpoint.versionUrl}`,
+        module: MODULE_NAME, method: 'getServices',
+        detailedMessages: { response: respOcpiServices.data }
+      });
     }
     return respOcpiServices;
   }
 
   async deleteCredentials() {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials');
+    const credentialsUrl = this.getEndpointUrl('credentials', Action.OCPI_POST_CREDENTIALS);
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
@@ -208,7 +230,12 @@ export default abstract class OCPIClient {
       });
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
-      throw new Error(`Invalid response from delete credentials ${JSON.stringify(respOcpiCredentials.data)}`);
+      throw new BackendError({
+        action: Action.OCPI_POST_CREDENTIALS,
+        message: `Invalid response from delete credentials`,
+        module: MODULE_NAME, method: 'deleteCredentials',
+        detailedMessages: { response: respOcpiCredentials.data }
+      });
     }
     return respOcpiCredentials;
   }
@@ -218,7 +245,7 @@ export default abstract class OCPIClient {
    */
   async postCredentials() {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials');
+    const credentialsUrl = this.getEndpointUrl('credentials', Action.OCPI_POST_CREDENTIALS);
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     // Log
     Logging.logInfo({
@@ -239,37 +266,57 @@ export default abstract class OCPIClient {
       });
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
-      throw new Error(`Invalid response from post credentials ${JSON.stringify(respOcpiCredentials.data)}`);
+      throw new BackendError({
+        action: Action.OCPI_POST_CREDENTIALS,
+        message: `Invalid response from post credentials`,
+        module: MODULE_NAME, method: 'postCredentials',
+        detailedMessages: { response: respOcpiCredentials.data }
+      });
     }
     return respOcpiCredentials;
   }
 
-  getLocalCountryCode(): string {
+  getLocalCountryCode(action: Action): string {
     if (!this.settings[this.role]) {
-      throw new Error(`OCPI settings are missing for role ${this.role}`);
+      throw new BackendError({
+        action, message: `OCPI settings are missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getLocalCountryCode',
+      });
     }
     if (!this.settings[this.role].countryCode) {
-      throw new Error(`OCPI Country code setting is missing for role ${this.role}`);
+      throw new BackendError({
+        action, message: `OCPI Country code setting is missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getLocalCountryCode',
+      });
     }
     return this.settings[this.role].countryCode;
   }
 
-  getLocalPartyID(): string {
+  getLocalPartyID(action: Action): string {
     if (!this.settings[this.role]) {
-      throw new Error(`OCPI settings are missing for role ${this.role}`);
+      throw new BackendError({
+        action, message: `OCPI settings are missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getLocalPartyID',
+      });
     }
     if (!this.settings[this.role].partyID) {
-      throw new Error(`OCPI Party ID setting is missing for role ${this.role}`);
+      throw new BackendError({
+        action, message: `OCPI Party ID setting is missing for role ${this.role}`,
+        module: MODULE_NAME, method: 'getLocalPartyID',
+      });
     }
     return this.settings[this.role].partyID;
   }
 
   async abstract triggerJobs();
 
-  protected getEndpointUrl(service) {
+  protected getEndpointUrl(service, action: Action) {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
-    throw new Error(`No endpoint URL defined for service ${service}`);
+    throw new BackendError({
+      action, message: `No endpoint URL defined for service ${service}`,
+      module: MODULE_NAME, method: 'getLocalPartyID',
+    });
   }
 }

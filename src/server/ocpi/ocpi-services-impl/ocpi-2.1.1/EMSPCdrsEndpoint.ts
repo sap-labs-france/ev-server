@@ -1,18 +1,18 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { HTTPError } from '../../../../types/HTTPError';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../../../types/Tenant';
+import Transaction from '../../../../types/Transaction';
+import Constants from '../../../../utils/Constants';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -33,10 +33,8 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
     switch (req.method) {
       case 'GET':
         return await this.getCdrRequest(req, res, next, tenant);
-        break;
       case 'POST':
         return await this.postCdrRequest(req, res, next, tenant);
-        break;
     }
   }
 

@@ -3,6 +3,7 @@ import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import { HTTPError } from '../../../../types/HTTPError';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
@@ -15,7 +16,6 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
 import uuid = require('uuid');
 
 const EP_IDENTIFIER = 'tokens';
@@ -53,20 +53,16 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
     const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
-
     // Get all tokens
     const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset, req.query.date_from, req.query.date_to);
-
     // Set header
     res.set({
       'X-Total-Count': tokens.count,
       'X-Limit': RECORDS_LIMIT
     });
-
     // Return next link
     const nextUrl = OCPIUtils.buildNextUrl(req, this.getBaseUrl(req), offset, limit, tokens.count);
     if (nextUrl) {
@@ -74,7 +70,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         next: nextUrl
       });
     }
-
     return OCPIUtils.success(tokens.result);
   }
 
@@ -87,7 +82,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const tokenId = urlSegment.shift();
     if (!tokenId) {
@@ -99,9 +93,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const locationReference: OCPILocationReference = req.body;
-
     if (!locationReference) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -129,7 +121,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const chargingStationId = OCPIUtils.buildChargingStationId(locationReference.location_id, locationReference.evse_uids[0]);
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, chargingStationId);
     if (!chargingStation || chargingStation.issuer) {
@@ -141,7 +132,6 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
       });
     }
-
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
     if (!user) {
       throw new AppError({
@@ -152,9 +142,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const tag = user.tags.find((value) => value.id === tokenId);
-
     let allowedStatus: OCPIAllowed;
     if (user.deleted) {
       allowedStatus = OCPIAllowed.EXPIRED;
@@ -172,13 +160,11 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
           allowedStatus = OCPIAllowed.NOT_ALLOWED;
       }
     }
-
     const authorizationInfo: OCPIAuthorizationInfo = {
       allowed: allowedStatus,
-      'authorization_id': uuid(),
+      authorization_id: uuid(),
       location: locationReference
     };
-
     return OCPIUtils.success(authorizationInfo);
   }
 }
