@@ -343,7 +343,6 @@ export default class CpoOCPIClient extends OCPIClient {
       authorization_id: transaction.ocpiSession.authorization_id,
       auth_method: transaction.ocpiSession.auth_method,
       location: transaction.ocpiSession.location,
-      last_updated: transaction.lastUpdate,
       charging_periods: [
         {
           start_date_time: transaction.timestamp,
@@ -354,7 +353,8 @@ export default class CpoOCPIClient extends OCPIClient {
             }
           ]
         }
-      ]
+      ],
+      last_updated: transaction.stop.timestamp
     };
     // Log
     Logging.logDebug({
@@ -362,7 +362,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: Action.OCPI_PUSH_CDRS,
       message: `Post cdr at ${cdrsUrl}`,
       module: 'CpoOCPIClient', method: 'stopSession',
-      detailedMessages: { payload: transaction.ocpiSession }
+      detailedMessages: { payload: transaction.ocpiCdr }
     });
     // Call IOP
     // eslint-disable-next-line no-case-declarations
