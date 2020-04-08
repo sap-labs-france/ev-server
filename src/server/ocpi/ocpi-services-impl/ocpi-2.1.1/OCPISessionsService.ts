@@ -1,20 +1,20 @@
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import HttpStatusCodes from 'http-status-codes';
+import moment from 'moment';
+import AppError from '../../../../exception/AppError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIUtils from '../../OCPIUtils';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Utils from '../../../../utils/Utils';
-import moment from 'moment';
 import Consumption from '../../../../types/Consumption';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import HttpStatusCodes from 'http-status-codes';
-import Logging from '../../../../utils/Logging';
+import { HTTPError } from '../../../../types/HTTPError';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import Utils from '../../../../utils/Utils';
+import OCPIUtils from '../../OCPIUtils';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -23,46 +23,40 @@ export default class OCPISessionsService {
   public static async updateSession(tenantId: string, session: OCPISession) {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'updateSession',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateSession',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Session object is invalid',
         detailedMessages: { session },
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     if (!session.total_cost) {
       session.total_cost = 0;
     }
     if (!session.kwh) {
       session.kwh = 0;
     }
-
     let transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, session.id);
     if (!transaction) {
       const user = await UserStorage.getUser(tenantId, session.auth_id);
       if (!user) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No user found for auth_id ${session.auth_id}`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
-
       const evse = session.location.evses[0];
       const chargingStationId = OCPIUtils.buildChargingStationId(session.location.id, evse.uid);
       const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, chargingStationId);
       if (!chargingStation) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `No charging station found for evse uid ${evse.uid}`,
           detailedMessages: { session },
@@ -71,16 +65,14 @@ export default class OCPISessionsService {
       }
       if (chargingStation.issuer) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateSession',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateSession',
           errorCode: HTTPError.GENERAL_ERROR,
           message: `OCPI Session is not authorized on charging station ${evse.uid} issued locally`,
           detailedMessages: { session },
           ocpiError: OCPIStatusCode.CODE_2003_UNKNOW_LOCATION_ERROR
         });
       }
-
       let connectorId = 1;
       if (evse.connectors && evse.connectors.length === 1) {
         const evseConnectorId = evse.connectors[0].id;
@@ -90,7 +82,6 @@ export default class OCPISessionsService {
           }
         });
       }
-
       transaction = {
         userID: user.id,
         tagID: session.auth_id,
@@ -113,7 +104,6 @@ export default class OCPISessionsService {
         signedData: '',
       } as Transaction;
     }
-
     if (!transaction.lastMeterValue) {
       transaction.lastMeterValue = {
         value: transaction.meterStart,
@@ -123,30 +113,25 @@ export default class OCPISessionsService {
     if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'updateSession',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateSession',
         message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
       return;
     }
-
     if (session.kwh > 0) {
       await OCPISessionsService.computeConsumption(tenantId, transaction, session);
     }
-
     transaction.ocpiSession = session;
     transaction.lastUpdate = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
     transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
-
     transaction.lastMeterValue = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
     };
-
     if (session.end_datetime || session.status === OCPISessionStatus.COMPLETED) {
       const stopTimestamp = session.end_datetime ? session.end_datetime : new Date();
       transaction.stop = {
@@ -167,7 +152,6 @@ export default class OCPISessionsService {
         userID: transaction.userID
       };
     }
-
     await TransactionStorage.saveTransaction(tenantId, transaction);
   }
 
@@ -178,17 +162,14 @@ export default class OCPISessionsService {
       const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
       const currentConsumption = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
       const amount = session.total_cost - transaction.price;
-
       transaction.currentConsumption = currentConsumption;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
       transaction.currentTotalConsumption = transaction.currentTotalConsumption + transaction.currentConsumptionWh;
-
       if (consumptionWh <= 0) {
         transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
           transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
       }
-
       const consumption: Consumption = {
         transactionId: transaction.id,
         connectorId: transaction.connectorId,
@@ -208,7 +189,6 @@ export default class OCPISessionsService {
         currencyCode: session.currency,
         cumulatedAmount: session.total_cost
       } as Consumption;
-
       await ConsumptionStorage.saveConsumption(tenantId, consumption);
     }
   }

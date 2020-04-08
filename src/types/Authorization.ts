@@ -76,16 +76,21 @@ export enum Action {
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
 
-
+  OCPI_REGISTER = 'OCPIRegister',
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
+  OCPI_PATCH_STATUS = 'OCPIPatchStatus',
   OCPI_PUSH_TOKENS = 'OCPIPushTokens',
   OCPI_PUSH_SESSIONS = 'OCPIPushSessions',
+  OCPI_PUSH_CDRS = 'OCPIPushCdrs',
   OCPI_PULL_CDRS = 'OCPIPullCdrs',
   OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
   OCPI_PULL_SESSIONS = 'OCPIPullSessions',
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
+  OCPI_GET_VERSIONS = 'OCPIGetVersions',
+  OCPI_POST_CREDENTIALS = 'OCPIPostCredentials',
+  OCPI_DELETE_CREDENTIALS = 'OCPIDeleteCredentials',
 
   OCPP_SERVICE = 'OCPPService',
 
@@ -120,8 +125,6 @@ export enum Action {
   MONGO_DB = 'MongoDB',
 
   EMPTY_ACTION = '',
-  DELETE_CREDENTIALS = 'DeleteCredentials',
-  OCPI_POST_CREDENTIALS = 'OcpiPostCredentials',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SAP_SMART_CHARGING = 'SAPSmartCharging',
