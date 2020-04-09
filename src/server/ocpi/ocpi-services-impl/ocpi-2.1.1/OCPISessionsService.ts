@@ -15,6 +15,7 @@ import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
 import OCPIUtils from '../../OCPIUtils';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -156,6 +157,68 @@ export default class OCPISessionsService {
     await TransactionStorage.saveTransaction(tenantId, transaction);
   }
 
+  public static async processCdr(tenantId: string, cdr: OCPICdr) {
+    if (!OCPISessionsService.validateCdr(cdr)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Cdr object is invalid',
+        detailedMessages: { cdr },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenantId, cdr.id);
+    if (!transaction) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCdrRequest',
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `No transaction found for ocpi session ${cdr.id}`,
+        detailedMessages: { cdr },
+        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+      });
+    }
+
+    if (!cdr.total_cost) {
+      cdr.total_cost = 0;
+    }
+    if (!cdr.total_energy) {
+      cdr.total_energy = 0;
+    }
+    if (!cdr.total_time) {
+      cdr.total_time = 0;
+    }
+    if (!cdr.total_parking_time) {
+      cdr.total_parking_time = 0;
+    }
+
+    transaction.priceUnit = cdr.currency;
+    transaction.price = cdr.total_cost;
+    transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
+    transaction.stop = {
+      extraInactivityComputed: false,
+      extraInactivitySecs: 0,
+      meterStop: cdr.total_energy * 1000,
+      price: cdr.total_cost,
+      priceUnit: cdr.currency,
+      pricingSource: 'ocpi',
+      roundedPrice: Utils.convertToFloat(cdr.total_cost.toFixed(2)),
+      stateOfCharge: 0,
+      tagID: cdr.auth_id,
+      timestamp: cdr.stop_date_time,
+      totalConsumption: cdr.total_energy * 1000,
+      totalDurationSecs: Math.round(moment.duration(moment(cdr.stop_date_time).diff(moment(cdr.stop_date_time))).asSeconds()),
+      totalInactivitySecs: transaction.currentTotalInactivitySecs,
+      inactivityStatus: transaction.currentInactivityStatus,
+      userID: transaction.userID
+    };
+
+    transaction.ocpiCdr = cdr;
+    await TransactionStorage.saveTransaction(tenantId, transaction);
+  }
+
   private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {
     const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastMeterValue.value);
     const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
@@ -207,6 +270,22 @@ export default class OCPISessionsService {
       return false;
     }
     return OCPISessionsService.validateLocation(session.location);
+  }
+
+  private static validateCdr(cdr: OCPICdr): boolean {
+    if (!cdr.id
+      || !cdr.start_date_time
+      || !cdr.stop_date_time
+      || !cdr.auth_id
+      || !cdr.auth_method
+      || !cdr.location
+      || !cdr.currency
+      || !cdr.charging_periods
+      || !cdr.last_updated
+    ) {
+      return false;
+    }
+    return OCPISessionsService.validateLocation(cdr.location);
   }
 
   private static validateLocation(location: OCPILocation): boolean {
