@@ -34,4 +34,13 @@ export default class SiteAreaApi extends CrudApi {
   public delete(id) {
     return super.delete(id, '/client/api/SiteAreaDelete');
   }
+
+  public readConsumption(SiteAreaId, StartDate, EndDate) {
+    return super.read({
+      SiteAreaId: SiteAreaId,
+      StartDate: StartDate,
+      EndDate: EndDate
+    }, '/client/api/SiteAreaConsumption');
+  }
+
 }

@@ -26,7 +26,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Site Area tests', function() {
+describe('Site Area tests', function () {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -53,6 +53,7 @@ describe('Site Area tests', function() {
         testData.centralUserContext
       );
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
     });
 
     after(async () => {
@@ -159,6 +160,26 @@ describe('Site Area tests', function() {
           Factory.siteArea.build(),
           false
         );
+        expect(response.status).to.equal(500);
+      });
+
+      it('Should not be able to read consumption without site Area ID', async () => {
+        // Try to call Consumptions without Site Area ID
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(null,null,null);
+        expect(response.status).to.equal(500);
+        expect(response.data.message).to.equal('The ID must be provided');
+      });
+
+      it('Should not be able to read consumption without start and end date', async () => {
+        // Try to call Consumptions without start and end date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, null, null);
+        expect(response.status).to.equal(500);
+        expect(response.data.message).to.equal('Start date and end date must be provided');
+      });
+
+      it('Should not be able to read consumption with end date before start date', async () => {
+        // Try to call Consumptions with end date before start date
+        const response = await testData.centralUserService.siteAreaApi.readConsumption(testData.siteAreaContext.getSiteArea().id, new Date(), new Date(new Date().getTime() - (24 * 60 * 60 * 1000)));
         expect(response.status).to.equal(500);
       });
 

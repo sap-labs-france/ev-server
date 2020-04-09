@@ -165,6 +165,7 @@
     "test:cypher": "cross-env TS_NODE_FILES=true mocha test/**/CypherTest.ts --exit",
     "test:user": "cross-env TS_NODE_FILES=true mocha test/**/UserTest.ts --exit",
     "test:siteorg": "cross-env TS_NODE_FILES=true mocha test/**/SiteOrgTest.ts --exit",
+    "test:siteareaorg": "cross-env TS_NODE_FILES=true mocha test/**/SiteAreaOrgTest.ts --exit",
     "test:transaction": "cross-env TS_NODE_FILES=true mocha test/**/TransactionTest.ts --exit",
     "test:stat": "cross-env TS_NODE_FILES=true mocha test/**/StatisticsTest.ts --exit",
     "test:auth": "cross-env TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts --exit",
