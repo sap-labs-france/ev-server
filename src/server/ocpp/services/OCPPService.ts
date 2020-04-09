@@ -611,14 +611,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-        id: '666',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.timestamp,
-        value: transaction.meterStart,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '666',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.timestamp,
+          value: transaction.meterStart,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
@@ -784,14 +784,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-        id: '6969',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.stop.timestamp,
-        value: transaction.stop.meterStop,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '6969',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
