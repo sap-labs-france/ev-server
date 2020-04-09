@@ -4,11 +4,12 @@ import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import BackendError from '../../../exception/BackendError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
@@ -16,6 +17,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
@@ -35,7 +37,6 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -559,28 +560,6 @@ export default class OCPPService {
         if (site) {
           startTransaction.siteID = site.id;
         }
-        // Handle Smart Charging
-        if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-          try {
-            // Get Site Area
-            const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
-            if (siteArea.smartCharging) {
-              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
-              if (smartCharging) {
-                await smartCharging.computeAndApplyChargingProfiles(siteArea);
-              }
-            }
-          } catch (error) {
-            Logging.logError({
-              tenantID: tenant.id,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'handleStartTransaction',
-              action: Action.START_TRANSACTION,
-              message: `An error occurred while trying to call smart charging`,
-              detailedMessages: { error }
-            });
-          }
-        }
       }
       // Cleanup ongoing transactions
       await this.stopOrDeleteActiveTransactions(
@@ -659,6 +638,29 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStation(Action.OCPP_SERVICE, headers.tenantID, chargingStation);
       // Notifiy
       await this.notifyStartTransaction(headers.tenantID, transaction, chargingStation, user);
+      // Handle Smart Charging
+      // Must be handled at the end to get the Transaction ID
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+        try {
+          // Get Site Area
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
+          if (siteArea.smartCharging) {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          }
+        } catch (error) {
+          Logging.logError({
+            tenantID: tenant.id,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleStartTransaction',
+            action: Action.START_TRANSACTION,
+            message: `An error occurred while trying to call smart charging`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }
       // Log
       if (user) {
         // Log
@@ -742,6 +744,36 @@ export default class OCPPService {
       const transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
       UtilsService.assertObjectExists(Action.STOP_TRANSACTION, transaction, `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         'OCPPService', 'handleStopTransaction', null);
+      // Delete TxProfile if any
+      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(headers.tenantID, { 
+        chargingStationID: chargingStation.id,
+        connectorID: transaction.connectorId,
+        profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
+        transactionId:  stopTransaction.transactionId
+      }, Constants.DB_PARAMS_MAX_LIMIT);
+      // Delete all TxProfiles
+      for (const chargingProfile of chargingProfiles.result) {
+        try {
+          await OCPPUtils.clearAndDeleteChargingProfile(headers.tenantID, chargingProfile);
+          Logging.logDebug({
+            tenantID: headers.tenantID,
+            source: chargingStation.id,
+            action: Action.CHARGING_PROFILE_DELETE,
+            message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > TX Charging Profile with ID '${chargingProfile.id}'`,
+            module: MODULE_NAME, method: 'handleStopTransaction',
+            detailedMessages: { chargingProfile }
+          });
+        } catch (error) {
+          Logging.logError({
+            tenantID: headers.tenantID,
+            source: chargingStation.id,
+            action: Action.CHARGING_PROFILE_DELETE,
+            message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
+            module: MODULE_NAME, method: 'handleStopTransaction',
+            detailedMessages: { error: error.message, stack: error.stack, chargingProfile }
+          });
+        }
+      }
       // Get the TagID that stopped the transaction
       const tagId = this.getStopTransactionTagId(stopTransaction, transaction);
       let user: User, alternateUser: User;
@@ -828,7 +860,7 @@ export default class OCPPService {
             module: MODULE_NAME, method: 'handleStopTransaction',
             action: Action.STOP_TRANSACTION,
             message: `An error occurred while trying to call smart charging`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -1023,7 +1055,7 @@ export default class OCPPService {
           module: MODULE_NAME, method: 'updateOCPIStatus',
           action: Action.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

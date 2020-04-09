@@ -50,7 +50,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         action: Action.SAP_SMART_CHARGING,
         message: `SAP Smart Charging service responded with '${error}'`,
         module: MODULE_NAME, method: 'checkConnection',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -101,7 +101,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         detailedMessages: { status: response.status, response: response.data }
       });
       // Build charging profiles from result
-      const chargingProfiles = this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
+      const chargingProfiles = await this.buildChargingProfilesFromOptimizer(response.data, (currentTimeSeconds / 60));
       Logging.logDebug({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
@@ -118,7 +118,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         action: Action.SAP_SMART_CHARGING,
         module: MODULE_NAME, method: 'buildChargingProfiles',
         message: 'Unable to call the SAP Smart Charging service',
-        detailedMessages: { error },
+        detailedMessages: { error: error.message, stack: error.stack },
       });
     }
   }
@@ -312,7 +312,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return chargingStationFuse;
   }
 
-  private buildChargingProfilesFromOptimizer(optimizerResult: OptimizerResult, currentTimeMinutes: number): ChargingProfile[] {
+  private async buildChargingProfilesFromOptimizer(optimizerResult: OptimizerResult, currentTimeMinutes: number): Promise<ChargingProfile[]> {
     const chargingProfiles: ChargingProfile[] = [];
     // Get the last full 15 minutes to set begin of charging profile
     const startSchedule = new Date();
@@ -333,21 +333,28 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         });
         currentTimeSlot++;
       }
-      // Provide third schedule with minimum supported amp of the save car --> duration 60000
-      chargingSchedule.chargingSchedulePeriod.push({
-        startPeriod: currentTimeSlot * 15 * 60,
-        limit: 18
-      });
       // Set duration
-      chargingSchedule.duration = (currentTimeSlot * 15) * 60 + 60000;
+      chargingSchedule.duration = currentTimeSlot * 15 * 60;
       // Get ChargingStation ID and Connector ID from name property
       const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
+      // Get the charging station
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingStationId);
+      if (!chargingStation) {
+        throw new BackendError({
+          source: chargingStationId,
+          action: Action.SAP_SMART_CHARGING,
+          module: MODULE_NAME, method: 'buildChargingProfilesFromOptimizer',
+          message: `Charging Station not found`
+        });
+      }
       const connectorId = parseInt(car.name.substring(car.name.lastIndexOf('-') + 1));
+      const connector = chargingStation.connectors[connectorId-1];
       // Build profile of charging profile
       const profile: Profile = {
         chargingProfileId: connectorId,
         chargingProfileKind: ChargingProfileKindType.ABSOLUTE,
         chargingProfilePurpose: ChargingProfilePurposeType.TX_PROFILE,
+        transactionId: connector.activeTransactionID,
         stackLevel: 2,
         chargingSchedule: chargingSchedule
       };
@@ -356,8 +363,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         id: car.name,
         chargingStationID: chargingStationId,
         connectorID: connectorId,
-        // pragma chargingStationID: this.idAssignments.find((x) => x.generatedId === car.id).chargingStationId,
-        // connectorID: this.idAssignments.find((x) => x.generatedId === car.id).connectorId,
         profile: profile
       };
       // Resolve id for charging station and connector from helper array

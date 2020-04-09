@@ -41,7 +41,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             module: MODULE_NAME, method: 'run',
             action: Action.CHECK_AND_APPLY_SMART_CHARGING,
             message: `Error while running the task '${name}': ${error.message}`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }

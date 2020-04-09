@@ -36,7 +36,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
           action: Action.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
           message: `Error initializing Firebase: '${error.message}'`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -337,7 +337,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     });
   }

@@ -2,9 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import { ActionsResponse } from '../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
@@ -14,8 +17,6 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
-import { ActionsResponse } from '../../../types/GlobalType';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -254,14 +255,16 @@ export default class SiteAreaService {
           module: MODULE_NAME, method: 'handleUpdateSiteArea',
           action: Action.UPDATE,
           message: `An error occurred while trying to call smart charging`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
     siteArea.maximumPower = filteredRequest.maximumPower;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+        req.user.tenantID, siteArea,
+        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;

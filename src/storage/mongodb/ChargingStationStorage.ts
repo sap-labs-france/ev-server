@@ -4,7 +4,7 @@ import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { Action } from '../../types/Authorization';
-import { ChargingProfile } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
@@ -699,6 +699,7 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -714,11 +715,21 @@ export default class ChargingStationStorage {
     if (params.chargingProfileID) {
       filters._id = params.chargingProfileID;
     } else {
+      // Charger
       if (params.chargingStationID) {
         filters.chargingStationID = params.chargingStationID;
       }
+      // Connector
       if (params.connectorID) {
         filters.connectorID = params.connectorID;
+      }
+      // Purpose Type
+      if (params.profilePurposeType) {
+        filters['profile.chargingProfilePurpose'] = params.profilePurposeType;
+      }
+      // Transaction ID
+      if (params.transactionId) {
+        filters['profile.transactionId'] = params.transactionId;
       }
     }
     // Create Aggregation

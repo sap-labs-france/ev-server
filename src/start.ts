@@ -139,7 +139,8 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.STARTUP,
         module: MODULE_NAME, method: 'start',
-        message: `Unexpected exception: ${error.toString()}`
+        message: `Unexpected exception`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -207,7 +208,8 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.STARTUP,
         module: MODULE_NAME, method: 'startMasters',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -293,7 +295,8 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

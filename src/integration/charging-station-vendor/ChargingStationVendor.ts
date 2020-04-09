@@ -251,7 +251,7 @@ export default abstract class ChargingStationVendor {
         action: Action.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
         module: MODULE_NAME, method: 'setChargingProfile',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       if (!error.status) {
         throw error;
@@ -370,7 +370,7 @@ export default abstract class ChargingStationVendor {
         action: Action.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearChargingProfile',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       throw error;
     }
@@ -477,7 +477,7 @@ export default abstract class ChargingStationVendor {
         action: Action.GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       if (!error.status) {
         throw error;
@@ -577,7 +577,7 @@ export default abstract class ChargingStationVendor {
         action: Action.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     // Default on current connector

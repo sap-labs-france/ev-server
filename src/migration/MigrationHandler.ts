@@ -103,7 +103,7 @@ export default class MigrationHandler {
         action: Action.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: error.toString(),
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

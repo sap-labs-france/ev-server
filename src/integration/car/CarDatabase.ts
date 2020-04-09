@@ -59,7 +59,7 @@ export default abstract class CarDatabase {
           action: Action.SYNCHRONIZE_CARS,
           module: MODULE_NAME, method: 'synchronizeCars',
           message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} got synchronization error`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

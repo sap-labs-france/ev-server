@@ -112,7 +112,8 @@ export default class WSConnection {
         source: this.getChargingStationID(),
         action: Action.WS_CONNECTION,
         module: MODULE_NAME, method: 'initialize',
-        message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`
+        message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

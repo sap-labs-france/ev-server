@@ -446,15 +446,16 @@ export default class ChargingStationService {
     }
     try {
       // Delete
-      await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile, req.user);
-    } catch {
+      await OCPPUtils.clearAndDeleteChargingProfile(req.user.tenantID, chargingProfile);
+    } catch(error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profile',
         module: MODULE_NAME, method: 'handleDeleteChargingProfile',
-        user: req.user, actionOnUser: req.user
+        user: req.user, actionOnUser: req.user,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     // Ok
@@ -850,7 +851,7 @@ export default class ChargingStationService {
         action: Action.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
-        detailedMessages: { error },
+        detailedMessages: { error: error.message, stack: error.stack },
       });
       res.sendStatus(404);
     });
@@ -1461,7 +1462,7 @@ export default class ChargingStationService {
         message: `OCPP Command '${command}' has failed`,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         user: user,
-        detailedMessages: { params, error }
+        detailedMessages: { error: error.message, stack: error.stack, params }
       });
     }
   }

@@ -71,7 +71,8 @@ export default abstract class Billing<T extends BillingSetting> {
             source: Constants.CENTRAL_SERVER,
             action: Action.BILLING_SYNCHRONIZE,
             module: MODULE_NAME, method: 'synchronizeUsers',
-            message: 'Failed to synchronize in the billing system'
+            message: 'Failed to synchronize in the billing system',
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -198,7 +199,7 @@ export default abstract class Billing<T extends BillingSetting> {
           action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     } catch (error) {
@@ -215,7 +216,7 @@ export default abstract class Billing<T extends BillingSetting> {
           action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
       throw new BackendError({
@@ -224,7 +225,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.BILLING_SYNCHRONIZE,
         actionOnUser: user,
         message: `Cannot synchronize user '${user.email}' with billing system`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -256,7 +257,7 @@ export default abstract class Billing<T extends BillingSetting> {
           action: Action.BILLING_SYNCHRONIZE,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     } catch (error) {
@@ -266,7 +267,7 @@ export default abstract class Billing<T extends BillingSetting> {
         action: Action.BILLING_SYNCHRONIZE,
         actionOnUser: user,
         message: `Cannot force synchronize user '${user.email}' with billing system`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

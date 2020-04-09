@@ -157,7 +157,8 @@ export default abstract class AbstractOCPIService {
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
-          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+          ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR,
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
 
@@ -256,7 +257,7 @@ export default abstract class AbstractOCPIService {
         module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: action,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       Logging.logActionExceptionMessage(req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT, action, error);
       let errorCode: any = {};

@@ -741,7 +741,7 @@ export default class Authorizations {
           evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           evseDashboardUserURL: await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      ).catch((err) => Logging.logError(err));
+      )
       // Not authorized
       throw new AppError({
         source: chargingStation.id,

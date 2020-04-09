@@ -28,7 +28,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
         module: MODULE_NAME, method: 'run',
         action: Action.SYNCHRONIZE_CARS,
         message: `Error while running the task '${name}': ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

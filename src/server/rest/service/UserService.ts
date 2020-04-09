@@ -210,7 +210,7 @@ export default class UserService {
           message: 'Error occured in billing system',
           module: MODULE_NAME, method: 'handleDeleteUser',
           user: req.user, actionOnUser: user,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -273,7 +273,7 @@ export default class UserService {
           module: MODULE_NAME, method: 'handleDeleteUser',
           message: `User '${user.firstName} ${user.name}' cannot be deleted in billing system`,
           user: req.user, actionOnUser: user,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -306,7 +306,7 @@ export default class UserService {
           action: action,
           user: req.user, actionOnUser: user,
           message: `Unable to synchronize tokens of user ${user.id} with IOP`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -418,7 +418,7 @@ export default class UserService {
             action: action,
             user: req.user, actionOnUser: user,
             message: 'User cannot be updated in billing system',
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -505,7 +505,7 @@ export default class UserService {
             method: 'handleUpdateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${filteredRequest.id} with IOP`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -964,7 +964,7 @@ export default class UserService {
             method: 'handleCreateUser',
             action: action,
             message: `Unable to synchronize tokens of user ${newUserID} with IOP`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -989,7 +989,7 @@ export default class UserService {
             action: action,
             user: newUserID,
             message: 'User cannot be created in billing system',
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -1112,9 +1112,7 @@ export default class UserService {
     try {
       await ratingService.loadChargedItemsToInvoicing();
       invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-    } catch (exception) {
-      Logging.logException(exception, Action.USER_INVOICE, Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
-
+    } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1122,7 +1120,8 @@ export default class UserService {
         module: MODULE_NAME,
         method: 'handleGetUserInvoice',
         user: req.user,
-        action: action
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     if (!invoiceNumber) {
@@ -1179,7 +1178,7 @@ export default class UserService {
         method: 'handleGetUserInvoice',
         user: req.user,
         action: action,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

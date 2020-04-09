@@ -19,7 +19,7 @@ export default class InitialCarImportTask extends MigrationTask {
         module: MODULE_NAME, method: 'migrate',
         action: Action.CAR_SYNCHRONIZATION,
         message: `Error while importing the Cars: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

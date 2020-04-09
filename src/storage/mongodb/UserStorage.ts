@@ -1197,7 +1197,7 @@ export default class UserStorage {
     let eulaText = null;
     try {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
-    } catch (e) {
+    } catch (error) {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
     }
     // Build Front End URL

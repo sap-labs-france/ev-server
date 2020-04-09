@@ -47,7 +47,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
           action: Action.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

@@ -83,7 +83,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         module: MODULE_NAME, method: 'checkConnection',
         action: Action.BILLING_CHECK_CONNECTION,
         message: `Error occured when connecting to Stripe: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     if (!isKeyValid) {
@@ -267,7 +267,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_SYNCHRONIZE,
         module: MODULE_NAME, method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return collectedCustomerIDs;
@@ -294,7 +294,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_GET_OPENED_INVOICE,
         module: MODULE_NAME, method: 'getOpenedInvoice',
         message: 'Failed to retrieve opened invoices',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -327,7 +327,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         days_until_due: daysUntilDue,
         auto_advance: true
       }) as BillingInvoice;
-    } catch (e) {
+    } catch (error) {
       // No pending invoice item found: Create one
       try {
         invoiceItem = await this.stripe.invoiceItems.create({
@@ -348,7 +348,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.BILLING_CREATE_INVOICE,
           module: MODULE_NAME, method: 'createInvoice',
           message: 'Failed to create invoice',
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -379,7 +379,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_CREATE_INVOICE_ITEM,
         module: MODULE_NAME, method: 'createInvoiceItem',
         message: 'Failed to create invoice item',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -394,7 +394,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_SEND_INVOICE,
         module: MODULE_NAME, method: 'sendInvoice',
         message: 'Failed to send invoice',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -457,7 +457,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
         message: `Billing error in Start Transaction: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return {
@@ -484,7 +484,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'updateTransaction',
         message: `Billing error in Update Transaction: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return {
@@ -642,7 +642,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         action: Action.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'updateTransaction',
         message: `Billing error in Stop Transaction: ${error.message}`,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       return {
         status: Constants.BILLING_STATUS_UNBILLED,
@@ -860,7 +860,8 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             module: MODULE_NAME, method: 'updateUser',
             action: Action.USER_CREATE,
             user: user,
-            message: 'Cannot delete the User'
+            message: 'Cannot delete the User',
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -952,7 +953,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -986,7 +987,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -1005,7 +1006,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     //       action: Action.USER_CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
-    //       detailedMessages: { error }
+    //       detailedMessages: { error: error.message, stack: error.stack }
     //     });
     //   }
     // }
@@ -1052,7 +1053,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             action: Action.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -1070,7 +1071,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             action: Action.CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }
@@ -1114,7 +1115,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.USER_CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

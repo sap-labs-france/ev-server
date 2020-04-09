@@ -45,7 +45,7 @@ export default abstract class SchedulerTask {
           action: Action.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `Error while running the task '${name}': ${error.message}`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

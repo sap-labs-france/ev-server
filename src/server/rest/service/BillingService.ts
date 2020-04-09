@@ -64,7 +64,7 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleGetBillingConnection',
         message: 'Billing connection failed',
         action: action,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }

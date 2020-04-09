@@ -79,7 +79,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
           message: `Charging Station OCPP Parameters failed to be updated with Template in Tenant '${tenant.name}'`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }

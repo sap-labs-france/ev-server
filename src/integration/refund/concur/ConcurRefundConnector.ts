@@ -139,7 +139,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'GetAccessToken',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -177,8 +177,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           }
           await TransactionStorage.saveTransaction(tenantID, transaction);
           refundedTransactions.push(transaction);
-        } catch (exception) {
-          Logging.logException(exception, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenantID, userId);
+        } catch (error) {
+          Logging.logException(error, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenantID, userId);
         }
       },
       { concurrency: 10 });
@@ -318,7 +318,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'createQuickExpense',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -369,7 +369,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -401,7 +401,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME, method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -432,7 +432,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME,
         method: 'getExpenseReport',
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -453,7 +453,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME,
         method: 'getExpenseReports',
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -494,7 +494,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'refreshToken',
         action: Action.REFUND,
         user: userId,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
