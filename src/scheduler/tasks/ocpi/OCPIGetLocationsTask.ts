@@ -1,5 +1,6 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
+import { Action } from '../../../types/Authorization';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -33,7 +34,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'OCPIGetLocations', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_GET_LOCATIONS, error);
     }
   }
 

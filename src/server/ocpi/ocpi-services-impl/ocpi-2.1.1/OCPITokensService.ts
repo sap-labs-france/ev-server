@@ -16,9 +16,8 @@ export default class OCPITokensService {
   public static async updateToken(tenantId: string, ocpiEndpoint: OCPIEndpoint, token: OCPIToken): Promise<void> {
     if (!OCPITokensService.validateToken(token)) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'updateToken',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'updateToken',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Token object is invalid',
         detailedMessages: { token },
@@ -30,9 +29,8 @@ export default class OCPITokensService {
     if (user) {
       if (user.issuer) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'updateToken',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateToken',
           errorCode: HttpStatusCodes.CONFLICT,
           message: `The token ${token.uid} is already assigned to internal user`,
           detailedMessages: { token },

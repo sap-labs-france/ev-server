@@ -2,6 +2,7 @@ import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
+import { Action } from '../../types/Authorization';
 import { ChargePointStatus } from '../../types/ocpp/OCPPServer';
 import { CheckPreparingSessionNotStartedTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
@@ -42,7 +43,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'CheckPreparingSessionNotStartedTask', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.PREPARING_SESSION_NOT_STARTED, error);
     }
   }
 }

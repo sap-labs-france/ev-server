@@ -10,6 +10,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
+import { Action } from '../../../types/Authorization';
 
 export default class OCPIGetSessionsTask extends SchedulerTask {
 
@@ -33,7 +34,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'OCPIGetSessionsTask', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_PULL_SESSIONS, error);
     }
   }
 

@@ -13,6 +13,7 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
@@ -303,6 +304,23 @@ export default class SiteAreaService {
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
+    if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+          action: Action.UPDATE,
+          message: `An error occurred while trying to call smart charging`,
+          detailedMessages: { error }
+        });
+      }
+    }
     siteArea.maximumPower = filteredRequest.maximumPower;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {

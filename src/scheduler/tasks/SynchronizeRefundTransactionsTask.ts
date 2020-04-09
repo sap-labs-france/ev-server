@@ -1,5 +1,6 @@
 import RefundFactory from '../../integration/refund/RefundFactory';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import { Action } from '../../types/Authorization';
 import { RefundStatus } from '../../types/Refund';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
@@ -66,7 +67,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           }
         } catch (error) {
           actionsDone.error++;
-          Logging.logActionExceptionMessage(tenant.id, 'RefundSynchronize', error);
+          Logging.logActionExceptionMessage(tenant.id, Action.SYNCHRONIZE_REFUND, error);
         }
       }
       // Log result

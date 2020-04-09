@@ -3,6 +3,7 @@ import HttpStatus from 'http-status-codes';
 import AppError from '../../../exception/AppError';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action } from '../../../types/Authorization';
 import global from '../../../types/GlobalType';
 import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
@@ -46,7 +47,7 @@ export default class SessionHashService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse('SessionHashService', err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(Action.SESSION_HASH_SERVICE, err, req, res, next);
       return true;
     }
     return false;

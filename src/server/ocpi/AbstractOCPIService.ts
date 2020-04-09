@@ -86,9 +86,8 @@ export default abstract class AbstractOCPIService {
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({
-        source: Constants.OCPI_SERVER,
-        module: 'AbstractOCPIService',
-        method: 'restService',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'restService',
         message: 'Regex did not match.'
       });
     }
@@ -137,9 +136,8 @@ export default abstract class AbstractOCPIService {
       // Get token from header
       if (!req.headers || !req.headers.authorization) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Missing authorization token',
@@ -154,9 +152,8 @@ export default abstract class AbstractOCPIService {
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid authorization token',
@@ -173,9 +170,8 @@ export default abstract class AbstractOCPIService {
       // Check if tenant is found
       if (!tenant) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not exist`,
@@ -185,9 +181,8 @@ export default abstract class AbstractOCPIService {
 
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: `The Tenant '${tenantSubdomain}' does not support OCPI`,
@@ -199,9 +194,8 @@ export default abstract class AbstractOCPIService {
       // Check if endpoint is found
       if (!ocpiEndpoint) {
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HttpStatusCodes.UNAUTHORIZED,
           message: 'Invalid token',
@@ -217,9 +211,8 @@ export default abstract class AbstractOCPIService {
       if (endpoint) {
         Logging.logDebug({
           tenantID: tenant.id,
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: action,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: action,
           message: `>> OCPI Request ${req.method} ${req.originalUrl}`,
           action: action,
           detailedMessages: { params: req.body }
@@ -228,9 +221,8 @@ export default abstract class AbstractOCPIService {
         if (response) {
           Logging.logDebug({
             tenantID: tenant.id,
-            source: Constants.OCPI_SERVER,
-            module: MODULE_NAME,
-            method: action,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: action,
             message: `<< OCPI Response ${req.method} ${req.originalUrl}`,
             action: action,
             detailedMessages: { response }
@@ -239,9 +231,8 @@ export default abstract class AbstractOCPIService {
         } else {
           Logging.logWarning({
             tenantID: tenant.id,
-            source: Constants.OCPI_SERVER,
-            module: MODULE_NAME,
-            method: action,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: action,
             message: `<< OCPI Endpoint ${req.method} ${req.originalUrl} not implemented`,
             action: action
           });
@@ -250,9 +241,8 @@ export default abstract class AbstractOCPIService {
       } else {
         // pragma res.sendStatus(501);
         throw new AppError({
-          source: Constants.OCPI_SERVER,
-          module: MODULE_NAME,
-          method: 'processEndpointAction',
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'processEndpointAction',
           action: action,
           errorCode: HTTPError.NOT_IMPLEMENTED_ERROR,
           message: `Endpoint ${action} not implemented`,
@@ -262,9 +252,8 @@ export default abstract class AbstractOCPIService {
     } catch (error) {
       Logging.logDebug({
         tenantID: req.user && req.user.tenantID ? req.user.tenantID : Constants.DEFAULT_TENANT,
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: action,
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: action,
         message: `<< OCPI Response Error ${req.method} ${req.originalUrl}`,
         action: action,
         detailedMessages: { error }
