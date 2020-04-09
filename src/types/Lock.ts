@@ -1,6 +1,6 @@
 export default interface Lock {
   id?: string;
-  lockHashKey: string;
+  keyHash: string;
   name: string;
   type: string;
   timestamp: Date;

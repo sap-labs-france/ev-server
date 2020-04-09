@@ -33,7 +33,7 @@ export default class RunLock {
     }
     this._onMultipleHosts = onMultipleHosts;
     this._runLock = {
-      lockHashKey: Cypher.hash(name.toLowerCase() + '~runLock'),
+      keyHash: Cypher.hash(name.toLowerCase() + '~runLock'),
       name: name.toLowerCase(),
       type: 'runLock',
       timestamp: new Date(),
@@ -73,6 +73,6 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    await LockingStorage.deleteRunLock(this._runLock.lockHashKey);
+    await LockingStorage.deleteRunLock(this._runLock.keyHash);
   }
 }
