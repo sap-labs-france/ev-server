@@ -74,17 +74,17 @@ clean-$(NAME)-standalone: clean-$(NAME)-standalone-container clean-$(NAME)-stand
 
 clean: clean-containers clean-images
 
-$(NAME)-docker-ecr-tag:
+$(NAME)-docker-tag-ecr:
 	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
-$(NAME)-docker-ecr-push: $(NAME)-force $(NAME)-docker-ecr-tag
+$(NAME)-docker-push-ecr: $(NAME)-force $(NAME)-docker-tag-ecr
 	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
 	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
-$(NAME)-standalone-docker-ecr-tag:
+$(NAME)-standalone-docker-tag-ecr:
 	docker tag $(PROJECT_NAME)_$(NAME)-standalone:latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 
-$(NAME)-standalone-docker-ecr-push: $(NAME)-standalone-force $(NAME)-standalone-docker-ecr-tag
+$(NAME)-standalone-docker-push-ecr: $(NAME)-standalone-force $(NAME)-standalone-docker-tag-ecr
 	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
 	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
 

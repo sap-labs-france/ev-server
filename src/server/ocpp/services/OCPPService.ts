@@ -573,7 +573,7 @@ export default class OCPPService {
               source: chargingStation.id,
               module: MODULE_NAME, method: 'handleStartTransaction',
               action: Action.START_TRANSACTION,
-              message: `An error occurred while trying to call smart charging`,
+              message: 'An error occurred while trying to call smart charging',
               detailedMessages: { error }
             });
           }
@@ -823,7 +823,7 @@ export default class OCPPService {
             source: chargingStation.id,
             module: MODULE_NAME, method: 'handleStopTransaction',
             action: Action.STOP_TRANSACTION,
-            message: `An error occurred while trying to call smart charging`,
+            message: 'An error occurred while trying to call smart charging',
             detailedMessages: { error }
           });
         }
@@ -1400,6 +1400,7 @@ export default class OCPPService {
         break;
     }
   }
+
   // Save Consumption
   private async updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector

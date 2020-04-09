@@ -868,10 +868,10 @@ export default class ChargingStationService {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
-    UtilsService.assertIdIsProvided(command as Action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
+    UtilsService.assertIdIsProvided(command, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(command as Action, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
+    UtilsService.assertObjectExists(command, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
       'ChargingStationService', 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector

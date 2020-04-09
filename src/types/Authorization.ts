@@ -150,11 +150,11 @@ export enum Action {
   SESSION_HASH_SERVICE = 'SessionHashService',
 
   CLEANUP_TRANSACTION = 'CleanupTransaction',
-  
+
   DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
 
   FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-  
+
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
   ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
