@@ -1,4 +1,5 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
 import { ChargePointStatus, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import Tenant from '../../types/Tenant';
@@ -66,8 +67,8 @@ export default class CleanupAllTransactionsTask extends MigrationTask {
     if (modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'CleanupAllTransactionsTask', method: 'migrateTenant',
-        action: 'CleanupAllTransactions',
         message: `${modifiedCount} Transactions' extra inactivity have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -96,8 +97,8 @@ export default class CleanupAllTransactionsTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'CleanupAllTransactionsTask', method: 'migrateTenant',
-        action: 'CleanUpTransactions',
         message: `${result.modifiedCount} Transactions have been cleaned in Tenant '${tenant.name}'`
       });
     }

@@ -15,6 +15,7 @@ import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
+import { Action } from '../types/Authorization';
 
 bodyParserXml(bodyParser);
 
@@ -91,8 +92,8 @@ export default class ExpressTools {
       const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: serverModuleName,
-        method: 'start', action: 'Startup',
+        module: serverModuleName, method: 'start',
+        action: Action.STARTUP,
         message: logMsg
       });
       // eslint-disable-next-line no-console

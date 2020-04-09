@@ -1,11 +1,12 @@
-import Constants from '../../utils/Constants';
-import global from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import { Action } from '../../types/Authorization';
+import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import MigrationTask from '../MigrationTask';
 
 export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   async migrate() {
@@ -47,8 +48,8 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
     if (counter > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'AddLastChangePropertiesToBadgeTask', method: 'migrateTenant',
-        action: 'AddLastChangePropertiesToBadge',
         message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
       });
     }

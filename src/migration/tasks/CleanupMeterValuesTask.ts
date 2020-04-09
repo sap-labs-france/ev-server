@@ -5,6 +5,9 @@ import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import { Action } from '../../types/Authorization';
+
+const MODULE_NAME = 'CleanupMeterValuesTask';
 
 export default class CleanupMeterValuesTask extends MigrationTask {
   public totalCount: any;
@@ -50,8 +53,9 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     if (meterValuesMDB.length > 0) {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        source: 'CleanupMeterValuesTask', action: 'Migration',
-        module: 'CleanupMeterValues', method: 'migrate',
+        source: 'CleanupMeterValuesTask',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrate',
         message: `Tenant ${tenant.name} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }

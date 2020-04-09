@@ -53,12 +53,7 @@ obs.observe({ entryTypes: ['measure'] });
 
 export default class Logging {
   // Log Debug
-  public static logDebug(log): void {
-    if (typeof log !== 'object') {
-      log = {
-        simpleMessage: log
-      };
-    }
+  public static logDebug(log: Log): void {
     // Log
     log.level = LogLevel.DEBUG;
     // Log it

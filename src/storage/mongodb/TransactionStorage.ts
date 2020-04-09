@@ -1,3 +1,4 @@
+import { Action } from '../../types/Authorization';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
@@ -983,8 +984,8 @@ export default class TransactionStorage {
       if (existingTransaction) {
         Logging.logWarning({
           tenantID: tenantID,
-          module: 'TransactionStorage',
-          method: '_findAvailableID', action: 'nextID',
+          module: 'TransactionStorage', method: '_findAvailableID',
+          action: Action.TRANSACTION_STARTED,
           message: `Transaction ID '${id}' already exists, generating a new one...`
         });
       } else {

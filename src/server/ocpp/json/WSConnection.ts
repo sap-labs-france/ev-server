@@ -173,11 +173,9 @@ export default class WSConnection {
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: 'sendMessage',
-            action: 'WSError',
-            message: {
-              messageID: messageId,
-              error: JSON.stringify(messageEvent.data, null, ' ')
-            }
+            action: Action.WS_ERROR,
+            message: `Error occured when calling the command '${commandName}'`,
+            detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
           if (!this._requests[messageId]) {
             // Error

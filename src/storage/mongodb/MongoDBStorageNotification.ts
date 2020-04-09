@@ -35,22 +35,21 @@ export default class MongoDBStorageNotification {
     return null;
   }
 
-  static handleInvalidChange(tenantID: string, collection: string, change: Event) {
+  static handleDBInvalidChange(tenantID: string, collection: string, change: Event) {
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
-      module: 'MongoDBStorageNotification',
-      method: 'handleInvalidChange',
-      action: 'Watch',
+      action: Action.DB_WATCH,
+      module: 'MongoDBStorageNotification', method: 'handleDBInvalidChange',
       message: `Invalid change received on collection ${tenantID}.${collection}`,
       detailedMessages: { change }
     });
   }
 
-  static handleError(error: Error) { // Log
+  static handleDBChangeStreamError(error: Error) { // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
-      module: 'MongoDBStorageNotification',
-      method: 'watchCollection', action: 'Watch',
+      action: Action.DB_WATCH,
+      module: 'MongoDBStorageNotification', method: 'handleDBChangeStreamError',
       message: `Error occurred in watching database: ${error}`,
       detailedMessages: { error }
     });
@@ -84,24 +83,27 @@ export default class MongoDBStorageNotification {
       });
 
       dbChangeStream.on('error', (error: Error) => {
-        MongoDBStorageNotification.handleError(error);
+        MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
+        module: 'MongoDBStorageNotification', method: 'start',
+        action: Action.STARTUP,
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
+        module: 'MongoDBStorageNotification', method: 'start',
+        action: Action.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is active`
       });
     } else {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
+        module: 'MongoDBStorageNotification', method: 'start',
+        action: Action.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
       });
     }
@@ -175,7 +177,7 @@ export default class MongoDBStorageNotification {
       // Notify
       this.centralRestServer.notifyTransaction(tenantID, action, notification);
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, 'transactions', changeEvent);
+      MongoDBStorageNotification.handleDBInvalidChange(tenantID, 'transactions', changeEvent);
     }
   }
 
@@ -192,7 +194,7 @@ export default class MongoDBStorageNotification {
         this.centralRestServer.notifyTransaction(tenantID, Action.UPDATE, notification);
       }
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, 'meterValues', changeEvent);
+      MongoDBStorageNotification.handleDBInvalidChange(tenantID, 'meterValues', changeEvent);
     }
   }
 
@@ -203,7 +205,7 @@ export default class MongoDBStorageNotification {
         'id': configurationID
       });
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, 'configurations', changeEvent);
+      MongoDBStorageNotification.handleDBInvalidChange(tenantID, 'configurations', changeEvent);
     }
   }
 }

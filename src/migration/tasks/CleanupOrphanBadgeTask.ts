@@ -5,6 +5,7 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import { Action } from '../../types/Authorization';
 
 export default class CleanupOrphanBadgeTask extends MigrationTask {
   async migrate() {
@@ -31,8 +32,8 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
     if (counter > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'CleanupOrphanBadgeTask', method: 'migrateTenant',
-        action: 'CleanupOrphanBadge',
         message: `${counter} Tags(s) have been deleted in Tenant '${tenant.name}'`
       });
     }

@@ -1,5 +1,6 @@
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 import { ConnectorCurrentLimitSource } from '../../types/ChargingStation';
 import global from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
@@ -43,8 +44,8 @@ export default class AddLimitToConsumptionsTask extends MigrationTask {
     if (modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'AddLimitToConsumptionsTask', method: 'migrateTenant',
-        action: 'AddLimitToConsumptions',
         message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
       });
     }

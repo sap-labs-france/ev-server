@@ -4,6 +4,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 
 export default class AddTagTypeTask extends MigrationTask {
   async migrate() {
@@ -26,8 +27,8 @@ export default class AddTagTypeTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
+        action: Action.MIGRATION,
         module: 'AddTagTypeTask', method: 'migrateTenant',
-        action: 'AddTagType',
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

@@ -8,6 +8,7 @@ import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIServi
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
 import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import OCPIServices from './OCPIServices';
+import { Action } from '../../types/Authorization';
 
 const MODULE_NAME = 'OCPIServer';
 
@@ -32,7 +33,7 @@ export default class OCPIServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: 'HttpRequestLog',
+                action: Action.EXPRESS_SERVER,
                 message: message
               });
             }

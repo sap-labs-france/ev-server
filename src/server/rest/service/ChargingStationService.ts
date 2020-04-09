@@ -845,7 +845,7 @@ export default class ChargingStationService {
     bucketStream.on('error', (error) => {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'FirmwareDownload',
+        action: Action.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: 'ChargingStationService', method: 'handleGetFirmware',
         detailedMessages: { error },
@@ -856,7 +856,7 @@ export default class ChargingStationService {
     bucketStream.on('end', () => {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: 'FirmwareDownload',
+        action: Action.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
         module: 'ChargingStationService', method: 'handleGetFirmware',
       });

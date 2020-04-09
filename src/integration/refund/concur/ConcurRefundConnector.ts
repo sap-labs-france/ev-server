@@ -9,20 +9,20 @@ import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
 import Company from '../../../types/Company';
 import Connection from '../../../types/Connection';
 import { HTTPError } from '../../../types/HTTPError';
-import { ConcurLocation, ConcurRefundType, RefundStatus } from '../../../types/Refund';
+import { ConcurLocation, RefundStatus } from '../../../types/Refund';
 import { ConcurRefundSetting } from '../../../types/Setting';
 import Site from '../../../types/Site';
 import Transaction from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import RefundConnector from '../RefundConnector';
-import I18nManager from '../../../utils/I18nManager';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -203,7 +203,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
-            module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+            action: Action.SYNCHRONIZE_REFUND,
+            module: 'ConcurRefundConnector', method: 'updateRefundStatus',
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
@@ -211,7 +212,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         }
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          action: Action.SYNCHRONIZE_REFUND,
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has not been updated`,
           user: transaction.userID
         });
@@ -221,7 +223,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          action: Action.SYNCHRONIZE_REFUND,
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });

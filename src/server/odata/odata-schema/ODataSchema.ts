@@ -1,10 +1,11 @@
 import auth from 'basic-auth';
-import fs from 'fs';
-import CentralServiceApi from '../client/CentralServiceApi';
-import Constants from '../../../utils/Constants';
-import global from '../../../types/GlobalType';
-import Logging from '../../../utils/Logging';
 import { NextFunction, Request, Response } from 'express';
+import fs from 'fs';
+import { Action } from '../../../types/Authorization';
+import global from '../../../types/GlobalType';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import CentralServiceApi from '../client/CentralServiceApi';
 
 export default class ODataSchema {
 
@@ -40,9 +41,8 @@ export default class ODataSchema {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'ODataServer',
-        source: 'ODataServer',
-        method: 'securePing',
-        action: 'SecurePing',
+        source: 'ODataServer', method: 'getSchema',
+        action: Action.ODATA_SERVER,
         message: 'Unauthorized Access'
       });
       res.send(401);

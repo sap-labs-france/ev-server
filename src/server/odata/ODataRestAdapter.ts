@@ -1,6 +1,7 @@
 import auth from 'basic-auth';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 import TenantComponents from '../../types/TenantComponents';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -97,10 +98,8 @@ export default class ODataRestAdapter {
       // Add logging
       Logging.logError({
         tenantID: req.user.tenantID,
-        module: MODULE_NAME,
-        source: MODULE_NAME,
-        method: 'query',
-        action: 'query',
+        module: MODULE_NAME, method: 'query',
+        action: Action.ODATA_SERVER,
         message: error.message,
         detailedMessages: { error }
       });
