@@ -15,6 +15,7 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
 import { ActionsResponse } from '../../../types/GlobalType';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -238,6 +239,23 @@ export default class SiteAreaService {
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
+    if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+          action: Action.UPDATE,
+          message: `An error occurred while trying to call smart charging`,
+          detailedMessages: { error }
+        });
+      }
+    }
     siteArea.maximumPower = filteredRequest.maximumPower;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
