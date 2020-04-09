@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import AppError from '../../exception/AppError';
-import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
-import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
 
 /**
  * OCPI Utils
@@ -218,5 +218,4 @@ export default class OCPIUtils {
     // Return in Base64
     return OCPIUtils.btoa(JSON.stringify(newToken));
   }
-
 }

@@ -7,6 +7,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
+import { Action } from '../../types/Authorization';
 
 export default class CheckUserAccountInactivityTask extends SchedulerTask {
 
@@ -36,7 +37,7 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'CheckUserAccountInactivityTask', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.USER_ACCOUNT_INACTIVITY, error);
     }
   }
 }

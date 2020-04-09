@@ -3,10 +3,10 @@ import global from '../../types/GlobalType';
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
+import { DataResult } from '../../types/DataResult';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
@@ -20,6 +20,7 @@ export default class OCPPStorage {
       .insertOne({
         _id: Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`),
         tagID: authorize.idTag,
+        authorizationId: authorize.authorizationId,
         chargeBoxID: authorize.chargeBoxID,
         userID: authorize.user ? Utils.convertToObjectID(authorize.user.id) : null,
         timestamp: timestamp,
@@ -27,6 +28,77 @@ export default class OCPPStorage {
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
+  }
+
+  static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string}, dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getAuthorizes');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: any = {};
+    // Date from provided?
+    if (params.dateFrom) {
+      filters.timestamp = {};
+      filters.timestamp.$gte = new Date(params.dateFrom);
+    }
+    // Charging Station
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Tag ID
+    if (params.tagID) {
+      filters.tagID = params.tagID;
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Count Records
+    const authorizesCountMDB = await global.database.getCollection<any>(tenantID, 'authorizes')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Sort
+    if (dbParams.sort) {
+      // Sort
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: {
+          _id: 1
+        }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+    // Read DB
+    const authorizesMDB = await global.database.getCollection<any>(tenantID, 'authorizes')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getAuthorizes', uniqueTimerID);
+    // Ok
+    return {
+      count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
+      result: authorizesMDB
+    };
   }
 
   static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
@@ -379,53 +451,22 @@ export default class OCPPStorage {
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      const meterValue: any = {};
-      // Id
       const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
-      meterValue._id = Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`);
-      // Set
-      Database.updateMeterValue(meterValueToSave, meterValue, false);
+      const meterValueMDB = {
+        _id: Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
+        chargeBoxID: meterValueToSave.chargeBoxID,
+        connectorId: Utils.convertToInt(meterValueToSave.connectorId),
+        transactionId: Utils.convertToInt(meterValueToSave.transactionId),
+        timestamp,
+        value: meterValueToSave.attribute.format === 'SignedData' ?  meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
+        attribute: meterValueToSave.attribute,
+      };
       // Add
-      meterValuesMDB.push(meterValue);
+      meterValuesMDB.push(meterValueMDB);
     }
     // Execute
     await global.database.getCollection<any>(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
-  }
-
-  static async getMeterValues(tenantID: string, transactionID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { transactionId: Utils.convertToInt(transactionID) }
-    });
-    // Read DB
-    const meterValuesMDB = await global.database.getCollection<any>(tenantID, 'metervalues')
-      .aggregate(aggregation, { allowDiskUse: true })
-      .toArray();
-    // Convert to date
-    for (const meterValueMDB of meterValuesMDB) {
-      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
-    }
-    // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
-    // Create
-    const meterValues = [];
-    for (const meterValueMDB of meterValuesMDB) {
-      const meterValue: any = {};
-      // Copy
-      Database.updateMeterValue(meterValueMDB, meterValue);
-      // Add
-      meterValues.push(meterValue);
-    }
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, { transactionID });
-    return meterValues;
   }
 }

@@ -1,46 +1,41 @@
 import global from '../../types/GlobalType';
+import { Migration } from '../../types/Migration';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class MigrationStorage {
-  static async getMigrations() {
+  static async getMigrations(): Promise<Migration[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('MigrationStorage', 'getMigrations');
+    const aggregation = [];
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const migrationsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
-      .find({})
+    const migrationsMDB = await global.database.getCollection<Migration>(Constants.DEFAULT_TENANT, 'migrations')
+      .aggregate(aggregation)
       .toArray();
-    const migrations = [];
-    // Check
-    if (migrationsMDB && migrationsMDB.length > 0) {
-      for (const migrationMDB of migrationsMDB) {
-        const migration: any = {};
-        // Set values
-        Database.updateMigration(migrationMDB, migration, false);
-        // Add
-        migrations.push(migration);
-      }
-    }
     // Debug
     Logging.traceEnd('MigrationStorage', 'getMigrations', uniqueTimerID);
-    // Ok
-    return migrations;
+    return migrationsMDB;
   }
 
-  static async saveMigration(migrationToSave) {
+  static async saveMigration(migrationToSave: Migration) {
     // Debug
     const uniqueTimerID = Logging.traceStart('MigrationStorage', 'saveMigration');
-
     // Transfer
-    const migration: any = {};
-    Database.updateMigration(migrationToSave, migration, false);
-    // Set the ID
-    migration._id = migration.name + '~' + migration.version;
+    const migrationMDB = {
+      _id: `${migrationToSave.name}~${migrationToSave.version}`,
+      timestamp: Utils.convertToDate(migrationToSave.timestamp),
+      name: migrationToSave.name,
+      version: migrationToSave.version,
+      durationSecs: Utils.convertToFloat(migrationToSave.durationSecs)
+    };
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
-      .insertOne(migration);
+      .insertOne(migrationMDB);
     // Debug
-    Logging.traceEnd('MigrationStorage', 'saveMigration', uniqueTimerID, { migration });
+    Logging.traceEnd('MigrationStorage', 'saveMigration', uniqueTimerID);
   }
 }

@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
+import { Action } from '../../types/Authorization';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   async migrate() {
@@ -162,7 +163,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       // Update current Chargers
       ChargingStationStorage.updateChargingStationTemplatesFromFile();
     } catch (error) {
-      Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, 'UpdateChargingStationTemplatesTask', error);
+      Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATE, error);
     }
   }
 

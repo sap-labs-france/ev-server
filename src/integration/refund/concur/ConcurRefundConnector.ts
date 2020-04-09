@@ -13,7 +13,7 @@ import { Action } from '../../../types/Authorization';
 import Company from '../../../types/Company';
 import Connection from '../../../types/Connection';
 import { HTTPError } from '../../../types/HTTPError';
-import { RefundStatus, ConcurRefundType, ConcurLocation } from '../../../types/Refund';
+import { ConcurLocation, ConcurRefundType, RefundStatus } from '../../../types/Refund';
 import { ConcurRefundSetting } from '../../../types/Setting';
 import Site from '../../../types/Site';
 import Transaction from '../../../types/Transaction';
