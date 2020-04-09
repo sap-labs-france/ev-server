@@ -380,7 +380,7 @@ export default class OCPPService {
             tenantID: headers.tenantID,
             source: chargingStation.id,
             action: Action.METER_VALUES,
-            module: MODULE_NAME,  method: 'handleMeterValues',
+            module: MODULE_NAME, method: 'handleMeterValues',
             message: `Connector '${meterValues.connectorId}' > Meter Values are ignored as it is not linked to a transaction`,
             detailedMessages: { meterValues }
           });
@@ -566,7 +566,7 @@ export default class OCPPService {
               if (smartCharging) {
                 await smartCharging.computeAndApplyChargingProfiles(siteArea);
               }
-            }            
+            }
           } catch (error) {
             Logging.logError({
               tenantID: tenant.id,
@@ -756,7 +756,7 @@ export default class OCPPService {
       if (transaction.stop) {
         throw new BackendError({
           source: chargingStation.id,
-          module: MODULE_NAME,  method: 'handleStopTransaction',
+          module: MODULE_NAME, method: 'handleStopTransaction',
           message: `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
           action: Action.STOP_TRANSACTION,
           user: (alternateUser ? alternateUser : user),
@@ -805,6 +805,29 @@ export default class OCPPService {
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
       await this.notifyStopTransaction(headers.tenantID, chargingStation, transaction, user, alternateUser);
+      // Handle Smart Charging
+      const tenant = await TenantStorage.getTenant(headers.tenantID);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+        try {
+          // Get Site Area
+          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
+          if (siteArea.smartCharging) {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          }
+        } catch (error) {
+          Logging.logError({
+            tenantID: tenant.id,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'handleStopTransaction',
+            action: Action.STOP_TRANSACTION,
+            message: `An error occurred while trying to call smart charging`,
+            detailedMessages: { error }
+          });
+        }
+      }
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID,
@@ -992,7 +1015,7 @@ export default class OCPPService {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
-          module: MODULE_NAME,  method: 'updateOCPIStatus',
+          module: MODULE_NAME, method: 'updateOCPIStatus',
           action: Action.OCPI_PATCH_STATUS,
           message: `An error occurred while patching the charging station status of ${chargingStation.id}`,
           detailedMessages: { error }
@@ -1138,7 +1161,7 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isConsumptionMeterValue(meterValue)) {
+        OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         if (consumption) {
