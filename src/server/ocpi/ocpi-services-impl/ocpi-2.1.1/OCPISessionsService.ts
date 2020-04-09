@@ -20,7 +20,7 @@ const MODULE_NAME = 'EMSPSessionsEndpoint';
 
 export default class OCPISessionsService {
 
-  public static async updateSession(tenantId: string, session: OCPISession) {
+  public static async updateTransaction(tenantId: string, session: OCPISession) {
     if (!OCPISessionsService.validateSession(session)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -83,6 +83,7 @@ export default class OCPISessionsService {
         });
       }
       transaction = {
+        issuer: false,
         userID: user.id,
         tagID: session.auth_id,
         timestamp: session.start_datetime,

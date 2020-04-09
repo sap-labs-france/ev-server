@@ -254,7 +254,7 @@ export default class EmspOCPIClient extends OCPIClient {
       }
       for (const session of response.data.data) {
         try {
-          await OCPISessionsService.updateSession(this.tenant.id, session);
+          await OCPISessionsService.updateTransaction(this.tenant.id, session);
           sendResult.success++;
           sendResult.logs.push(
             `Session ${session.id} successfully updated`

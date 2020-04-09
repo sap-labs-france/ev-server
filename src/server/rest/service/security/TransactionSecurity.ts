@@ -49,6 +49,9 @@ export default class TransactionSecurity {
 
   public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
@@ -63,6 +66,9 @@ export default class TransactionSecurity {
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
+    if (request.Issuer) {
+      filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
+    }
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
