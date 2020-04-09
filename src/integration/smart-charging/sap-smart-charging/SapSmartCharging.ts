@@ -154,7 +154,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Instantiate initial arrays for request
     const cars: OptimizerCar[] = [];
     const carAssignments: OptimizerCarAssignment[] = [];
-    const chargingStations: OptimizerChargingStation[] = [];
     // Create indices to generate IDs in number format
     let fuseID = 1; // Start at 1 because root fuse will have ID=0
     let connectorIndex = 0; // Connector Index to give IDs of format: number
@@ -198,7 +197,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
         cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId));
         // Build Charging Station
         const chargingStationOptimizer = this.buildChargingStation(connectorIndex, connector);
-        chargingStations.push(chargingStationOptimizer);
         chargingStationChildren.push(chargingStationOptimizer);
         // Assign Car to Charging Station
         carAssignments.push(this.buildCarAssignment(connectorIndex));
@@ -230,7 +228,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       fuseTree: optimizerFuseTree,
       cars: cars,
       currentTimeSeconds: currentTimeSeconds,
-      chargingStations: chargingStations,
       // Property: maximumSiteLimitKW: siteArea.maximumPower, not useful in this case
       carAssignments: carAssignments,
     };
@@ -262,8 +259,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       maxCapacity: 75 * 1000 / 230, // Not usable on DC chargers?
       minLoadingState: 75 * 1000 / 230 * 0.5,
       startCapacity: 0,
-      minCurrent: 18,
-      minCurrentPerPhase: 6,
+      minCurrent: 0,
+      minCurrentPerPhase: 0,
       maxCurrent: 96,
       maxCurrentPerPhase: 32,
       suspendable: true,
