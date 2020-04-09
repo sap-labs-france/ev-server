@@ -6,6 +6,8 @@ import { SmartChargingSetting } from '../../types/Setting';
 import SiteArea from '../../types/SiteArea';
 import Logging from '../../utils/Logging';
 
+const MODULE_NAME = 'SmartCharging';
+
 export default abstract class SmartCharging<T extends SmartChargingSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
@@ -20,7 +22,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       tenantID: this.tenantID,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles is being called',
-      module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
+      module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
       detailedMessages: { siteArea }
     });
     // Call the charging plans
@@ -28,7 +30,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     if (!chargingProfiles) {
       throw new BackendError({
         action: Action.CHARGING_PROFILE_UPDATE,
-        module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
+        module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
     }
@@ -43,9 +45,9 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
           tenantID: this.tenantID,
           source: chargingProfile.chargingStationID,
           action: Action.CHARGING_PROFILE_UPDATE,
-          module: 'SmartCharging', method: 'computeAndApplyChargingProfiles',
+          module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -53,7 +55,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       tenantID: this.tenantID,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles has been called',
-      module: 'SmartCharging', method: 'computeAndApplyChargingProfiles'
+      module: MODULE_NAME, method: 'computeAndApplyChargingProfiles'
     });
   }
 

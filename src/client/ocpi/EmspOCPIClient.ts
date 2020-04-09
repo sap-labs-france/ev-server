@@ -367,7 +367,7 @@ export default class EmspOCPIClient extends OCPIClient {
       action: Action.OCPI_PULL_LOCATIONS,
       message: `Processing location ${location.name} with id ${location.id}`,
       module: MODULE_NAME, method: 'processLocation',
-      detailedMessage: location
+      detailedMessages: location
     });
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name
@@ -434,7 +434,7 @@ export default class EmspOCPIClient extends OCPIClient {
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Missing evse uid of location ${location.name}`,
             module: MODULE_NAME, method: 'processLocation',
-            detailedMessage: location
+            detailedMessages: location
           });
         } else if (evse.status === OCPIEvseStatus.REMOVED) {
           Logging.logDebug({
@@ -442,7 +442,7 @@ export default class EmspOCPIClient extends OCPIClient {
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
             module: MODULE_NAME, method: 'processLocation',
-            detailedMessage: location
+            detailedMessages: location
           });
           await ChargingStationStorage.deleteChargingStation(this.tenant.id, chargingStationId);
         } else {
@@ -451,7 +451,7 @@ export default class EmspOCPIClient extends OCPIClient {
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Update evse ${chargingStationId} of location ${location.name}`,
             module: MODULE_NAME, method: 'processLocation',
-            detailedMessage: location
+            detailedMessages: location
           });
           const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
           chargingStation.siteAreaID = siteArea.id;

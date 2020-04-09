@@ -2,6 +2,7 @@ import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
 import BackendError from '../../exception/BackendError';
+import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
@@ -12,6 +13,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
+
+const MODULE_NAME = 'EMailNotificationTask';
 
 export default class EMailNotificationTask implements NotificationTask {
   private server: any;
@@ -132,8 +135,8 @@ export default class EMailNotificationTask implements NotificationTask {
         // Error
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'EMailNotificationTask',
-          method: 'prepareAndSendEmail',
+          action: Action.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No User is provided for '${templateName}'`
         });
       }
@@ -143,8 +146,8 @@ export default class EMailNotificationTask implements NotificationTask {
         throw new BackendError({
           actionOnUser: user,
           source: Constants.CENTRAL_SERVER,
-          module: 'EMailNotificationTask',
-          method: 'prepareAndSendEmail',
+          action: Action.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No email is provided for User for '${templateName}'`
         });
       }
@@ -154,8 +157,8 @@ export default class EMailNotificationTask implements NotificationTask {
         // Error
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'EMailNotificationTask',
-          method: 'prepareAndSendEmail',
+          action: Action.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
           message: `No Email template found for '${templateName}'`
         });
       }
@@ -246,11 +249,11 @@ export default class EMailNotificationTask implements NotificationTask {
       Logging.logError({
         tenantID: tenant.id,
         source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-        module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
-        action: 'SendEmail',
+        action: Action.EMAIL_NOTIFICATION,
+        module: MODULE_NAME, method: 'prepareAndSendEmail',
         message: 'Error in preparing email for user',
         actionOnUser: user,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -285,8 +288,8 @@ export default class EMailNotificationTask implements NotificationTask {
           Logging.logError({
             tenantID: tenant.id,
             source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-            module: 'EMailNotificationTask', method: 'sendEmail',
-            action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+            action: Action.EMAIL_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendEmail',
             message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
             actionOnUser: user,
             detailedMessages: [
@@ -315,8 +318,8 @@ export default class EMailNotificationTask implements NotificationTask {
         Logging.logInfo({
           tenantID: tenant.id,
           source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-          module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
-          action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+          action: Action.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
           actionOnUser: user,
           message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [

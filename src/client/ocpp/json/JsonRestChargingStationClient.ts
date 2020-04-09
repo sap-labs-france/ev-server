@@ -10,6 +10,7 @@ import ChargingStationClient from '../ChargingStationClient';
 import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
+
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
@@ -89,10 +90,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Log
     Logging.logInfo({
       tenantID: this.tenantID,
-      module: MODULE_NAME,
       source: this.chargingStation.id,
-      method: 'onOpen',
-      action: 'WSRestClientConnectionOpen',
+      action: Action.WS_REST_CLIENT_CONNECTION_OPENED,
+      module: MODULE_NAME, method: 'onOpen',
       message: `Try to connect to '${this.serverURL}', CF Instance '${this.chargingStation.cfApplicationIDAndInstanceIndex}'`
     });
     // Create Promise
@@ -122,10 +122,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         Logging.logInfo({
           tenantID: this.tenantID,
-          module: MODULE_NAME,
           source: this.chargingStation.id,
-          method: 'onOpen',
-          action: 'WSRestClientConnectionOpened',
+          action: Action.WS_REST_CLIENT_CONNECTION_OPENED,
+          module: MODULE_NAME, method: 'onOpen',
           message: `Connection opened to '${this.serverURL}'`
         });
         // Connection is opened and ready to use
@@ -136,10 +135,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         Logging.logInfo({
           tenantID: this.tenantID,
-          module: MODULE_NAME,
           source: this.chargingStation.id,
-          method: 'onClose',
-          action: 'WSRestClientConnectionClosed',
+          action: Action.WS_REST_CLIENT_CONNECTION_CLOSED,
+          module: MODULE_NAME, method: 'onClose',
           message: `Connection closed from '${this.serverURL}'`
         });
       };
@@ -158,10 +156,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           // Log
           Logging.logDebug({
             tenantID: this.tenantID,
-            module: MODULE_NAME,
             source: this.chargingStation.id,
-            method: 'onMessage',
-            action: 'WSRestClientMessage',
+            action: Action.WS_REST_CLIENT_MESSAGE,
+            module: MODULE_NAME, method: 'onMessage',
             message: `Received message '${message.data}'`,
             detailedMessages: { messageJson }
           });
@@ -172,10 +169,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,
-                module: MODULE_NAME,
                 source: this.chargingStation.id,
-                method: 'onMessage',
-                action: 'WSRestClientErrorResponse',
+                action: Action.WS_REST_CLIENT_ERROR_RESPONSE,
+                module: MODULE_NAME, method: 'onMessage',
                 message: `${messageJson[3]}`,
                 detailedMessages: { messageJson }
               });
@@ -223,10 +219,9 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         Logging.logDebug({
           tenantID: this.tenantID,
-          module: MODULE_NAME,
           source: this.chargingStation.id,
-          method: 'SendMessage',
-          action: 'WSRestClientSendMessage',
+          action: Action.WS_REST_CLIENT_SEND_MESSAGE,
+          module: MODULE_NAME, method: 'SendMessage',
           message: `Send message '${request[2]}'`,
           detailedMessages: { request }
         });

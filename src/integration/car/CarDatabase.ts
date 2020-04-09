@@ -6,6 +6,8 @@ import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 
+const MODULE_NAME = 'CarDatabase';
+
 export default abstract class CarDatabase {
   public abstract async getCars(): Promise<Car[]>;
   public async synchronizeCars(): Promise<ActionsResponse> {
@@ -30,7 +32,7 @@ export default abstract class CarDatabase {
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
-            module: 'CarDatabase', method: 'synchronizeCars',
+            module: MODULE_NAME, method: 'synchronizeCars',
             message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been created successfully`,
           });
         } else if (Cypher.hash(JSON.stringify(car)) !== carDB.hash) {
@@ -44,7 +46,7 @@ export default abstract class CarDatabase {
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CARS,
-            module: 'CarDatabase', method: 'synchronizeCars',
+            module: MODULE_NAME, method: 'synchronizeCars',
             message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} has been updated successfully`,
           });
         }
@@ -55,9 +57,9 @@ export default abstract class CarDatabase {
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
           action: Action.SYNCHRONIZE_CARS,
-          module: 'CarDatabase', method: 'synchronizeCars',
+          module: MODULE_NAME, method: 'synchronizeCars',
           message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} got synchronization error`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -67,7 +69,7 @@ export default abstract class CarDatabase {
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_CARS,
-        module: 'CarDatabase', method: 'synchronizeCars',
+        module: MODULE_NAME, method: 'synchronizeCars',
         message: `${actionsDone.inSuccess} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
       });
     } else {
@@ -75,7 +77,7 @@ export default abstract class CarDatabase {
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
         action: Action.SYNCHRONIZE_CARS,
-        module: 'CarDatabase', method: 'synchronizeCars',
+        module: MODULE_NAME, method: 'synchronizeCars',
         message: 'All the cars are up to date'
       });
     }

@@ -1,3 +1,4 @@
+import { Action } from '../../types/Authorization';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
@@ -12,6 +13,8 @@ import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
 import moment = require('moment');
+
+const MODULE_NAME = 'TransactionStorage';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -983,8 +986,8 @@ export default class TransactionStorage {
       if (existingTransaction) {
         Logging.logWarning({
           tenantID: tenantID,
-          module: 'TransactionStorage',
-          method: '_findAvailableID', action: 'nextID',
+          module: MODULE_NAME, method: '_findAvailableID',
+          action: Action.TRANSACTION_STARTED,
           message: `Transaction ID '${id}' already exists, generating a new one...`
         });
       } else {

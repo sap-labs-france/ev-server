@@ -17,6 +17,9 @@ import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
+import { Action } from '../types/Authorization';
+
+const MODULE_NAME = 'SchedulerManager';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -27,8 +30,8 @@ export default class SchedulerManager {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'Scheduler', method: 'init',
-        action: 'Scheduler',
+        action: Action.SCHEDULER,
+        module: MODULE_NAME, method: 'init',
         message: 'The Scheduler is active'
       });
       // Yes: init
@@ -37,8 +40,8 @@ export default class SchedulerManager {
         if (!task.active) {
           Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT,
-            module: 'Scheduler', method: 'init',
-            action: 'Scheduler',
+            action: Action.SCHEDULER,
+            module: MODULE_NAME, method: 'init',
             message: `The task '${task.name}' is inactive`
           });
           continue;
@@ -94,8 +97,8 @@ export default class SchedulerManager {
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
-              module: 'Scheduler', method: 'init',
-              action: 'Scheduler',
+              action: Action.SCHEDULER,
+              module: MODULE_NAME, method: 'init',
               message: `The task '${task.name}' is unknown`
             });
         }
@@ -103,8 +106,8 @@ export default class SchedulerManager {
           cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
-            module: 'Scheduler', method: 'init',
-            action: 'Scheduler',
+            action: Action.SCHEDULER,
+            module: MODULE_NAME, method: 'init',
             message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
           });
         }
@@ -113,8 +116,8 @@ export default class SchedulerManager {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'Scheduler', method: 'init',
-        action: 'Scheduler',
+        action: Action.SCHEDULER,
+        module: MODULE_NAME, method: 'init',
         message: 'The Scheduler is inactive'
       });
     }

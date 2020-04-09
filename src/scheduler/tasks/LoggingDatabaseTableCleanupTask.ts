@@ -6,6 +6,8 @@ import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 
+const MODULE_NAME = 'LoggingDatabaseTableCleanupTask';
+
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: LoggingDatabaseTableCleanupTaskConfig): Promise<void> {
     try {
@@ -18,16 +20,16 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
         // Ok
         Logging.logSecurityInfo({
           tenantID: tenant.id,
-          module: 'LoggingDatabaseTableCleanupTask',
-          method: 'run', action: 'LogsCleanup',
+          action: Action.LOGS_CLEANUP,
+          module: MODULE_NAME, method: 'run',
           message: `${result.n} Log(s) have been deleted before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
         });
       } else {
         // Error
         Logging.logError({
           tenantID: tenant.id,
-          module: 'LoggingDatabaseTableCleanupTask',
-          method: 'run', action: 'LogsCleanup',
+          action: Action.LOGS_CLEANUP,
+          module: MODULE_NAME, method: 'run',
           message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
           detailedMessages: { result }
         });
@@ -41,16 +43,16 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
         // Ok
         Logging.logSecurityInfo({
           tenantID: tenant.id,
-          module: 'LoggingDatabaseTableCleanupTask',
-          method: 'run', action: 'LogsCleanup',
+          action: Action.LOGS_CLEANUP,
+          module: MODULE_NAME, method: 'run',
           message: `${result.n} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`
         });
       } else {
         // Error
         Logging.logSecurityError({
           tenantID: tenant.id,
-          module: 'LoggingDatabaseTableCleanupTask',
-          method: 'run', action: 'LogsCleanup',
+          action: Action.LOGS_CLEANUP,
+          module: MODULE_NAME, method: 'run',
           message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format('DD/MM/YYYY h:mm A')}'`,
           detailedMessages: { result }
         });

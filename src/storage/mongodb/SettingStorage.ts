@@ -10,6 +10,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'SettingStorage';
+
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<SettingDB> {
     // Debug
@@ -37,7 +39,7 @@ export default class SettingStorage {
       // ID must be provided!
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'SettingStorage',
+        module: MODULE_NAME,
         method: 'saveSetting',
         message: 'Setting has no ID and no Identifier'
       });
@@ -204,7 +206,7 @@ export default class SettingStorage {
           (!billingSettingsToSave.stripe.immediateBillingAllowed && billingSettingsToSave.stripe.periodicBillingAllowed && !billingSettingsToSave.stripe.advanceBillingAllowed)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'SettingStorage',
+          module: MODULE_NAME,
           method: 'saveBillingSettings',
           message: 'One or several mandatory fields are missing'
         });

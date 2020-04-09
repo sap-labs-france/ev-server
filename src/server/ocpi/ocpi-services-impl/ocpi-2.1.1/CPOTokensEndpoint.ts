@@ -72,7 +72,11 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
-    Logging.logDebug(`Updating token ${tokenId} for eMSP ${countryCode}/${partyId}`);
+    Logging.logDebug({
+      tenantID: tenant.id,
+      module: MODULE_NAME, method: 'putToken',
+      message: `Updating token ${tokenId} for eMSP ${countryCode}/${partyId}`
+    });
     const updatedToken = req.body as OCPIToken;
     if (!updatedToken) {
       throw new AppError({
@@ -132,7 +136,11 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const tokenId = urlSegment.shift();
-    Logging.logDebug(`Patching token ${tokenId} for eMSP ${countryCode}/${partyId}`);
+    Logging.logDebug({
+      tenantID: tenant.id,
+      module: MODULE_NAME, method: 'patchToken',
+      message: `Patching token ${tokenId} for eMSP ${countryCode}/${partyId}`
+    });
     const patchedTag = req.body as Partial<OCPIToken>;
     if (!patchedTag) {
       throw new AppError({

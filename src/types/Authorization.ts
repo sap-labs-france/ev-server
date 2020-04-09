@@ -73,11 +73,15 @@ export enum Action {
 
   LOGS_CLEANUP = 'LogsCleanup',
 
+  SCHEDULER = 'Scheduler',
+
+  REMOTE_PUSH_NOTIFICATION = 'RemotePushNotification',
+  EMAIL_NOTIFICATION = 'EmailNotification',
+
   SYNCHRONIZE_REFUND = 'RefundSynchronize',
 
   OCPI_REGISTER = 'OCPIRegister',
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
-  OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_PATCH_LOCATIONS = 'OCPIPatchLocations',
   OCPI_PATCH_STATUS = 'OCPIPatchStatus',
   OCPI_PUSH_TOKENS = 'OCPIPushTokens',
@@ -88,10 +92,25 @@ export enum Action {
   OCPI_PULL_SESSIONS = 'OCPIPullSessions',
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
   OCPI_GET_VERSIONS = 'OCPIGetVersions',
+  OCPI_GET_LOCATIONS = 'OCPIGetLocations',
+  OCPI_GET_SESSIONS = 'OCPIGetSessions',
+  OCPI_GET_TOKENS = 'OCPIGetTokens',
+  OCPI_GET_CDRS = 'OCPIGetCdrs',
   OCPI_POST_CREDENTIALS = 'OCPIPostCredentials',
   OCPI_DELETE_CREDENTIALS = 'OCPIDeleteCredentials',
 
   OCPP_SERVICE = 'OCPPService',
+
+  AUTHORIZATIONS = 'Authorizations',
+
+  DB_WATCH = 'DBWatch',
+
+  EXPRESS_SERVER = 'ExpressServer',
+  ODATA_SERVER = 'ODataServer',
+
+  LOCKING = 'Locking',
+
+  STARTUP = 'Startup',
 
   HEARTBEAT = 'Heartbeat',
 
@@ -101,7 +120,23 @@ export enum Action {
 
   CONSUMPTION = 'Consumption',
 
+  WS_ERROR = 'WSError',
+  WS_CLIENT_ERROR = 'WSClientError',
+  WS_CLIENT_INFO = 'WSClientInfo',
+
   WS_CONNECTION = 'WSConnection',
+  WS_JSON_CONNECTION_OPENED = 'WSJsonConnectionOpened',
+  WS_JSON_CONNECTION_CLOSED = 'WSJsonConnectionClosed',
+
+  WS_REST_CONNECTION_OPENED = 'WSRestServerConnectionOpened',
+  WS_REST_CONNECTION_CLOSED = 'WSRestServerConnectionClosed',
+  WS_REST_CONNECTION_ERROR = 'WSRestServerConnectionError',
+
+  WS_REST_CLIENT_ERROR_RESPONSE = 'WSRestClientErrorResponse',
+  WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
+  WS_REST_CLIENT_SEND_MESSAGE = 'WSRestClientSendMessage',
+  WS_REST_CLIENT_CONNECTION_CLOSED = 'WSRestClientConnectionClosed',
+  WS_REST_CLIENT_CONNECTION_OPENED = 'WSRestClientConnectionOpened',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
@@ -139,13 +174,16 @@ export enum Action {
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+
   CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
+  CAR_SYNCHRONIZATION = 'CarSynchronization',
+
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
 
-  UPDATE_CHARGING_STATION_TEMPLATE = 'UpdateChargingStationTemplates',
+  UPDATE_CHARGING_STATION_WITH_TEMPLATE = 'UpdateChargingStationWithTemplate',
+  UPDATE_CHARGING_STATION_TEMPLATES = 'UpdateChargingStationTemplates',
 
-  WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
-  WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
+  MIGRATION = 'Migration',
 
   SESSION_HASH_SERVICE = 'SessionHashService',
 

@@ -12,6 +12,8 @@ import Utils from '../../../utils/Utils';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'CompanyService';
+
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -29,7 +31,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleDeleteCompany',
         value: companyID
       });
@@ -44,7 +46,7 @@ export default class CompanyService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { company }
@@ -69,7 +71,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.READ,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompany',
         value: filteredRequest.ID
       });
@@ -101,7 +103,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.READ,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompanyLogo',
         value: companyID
       });
@@ -127,7 +129,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.COMPANIES,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompanies'
       });
     }
@@ -163,7 +165,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleCreateCompany'
       });
     }
@@ -183,7 +185,7 @@ export default class CompanyService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
       action: action,
       detailedMessages: { company: newCompany }
@@ -206,7 +208,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleUpdateCompany',
         value: filteredRequest.id
       });
@@ -229,7 +231,7 @@ export default class CompanyService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
       action: action,
       detailedMessages: { company }
