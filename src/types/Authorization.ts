@@ -45,18 +45,12 @@ export enum Action {
   LOGOUT = 'Logout',
   LOGIN = 'Login',
   LIST = 'List',
-  RESET = 'Reset',
   AUTHORIZE = 'Authorize',
-  CLEAR_CACHE = 'ClearCache',
   DATA_TRANSFER = 'DataTransfer',
   STOP_TRANSACTION = 'StopTransaction',
   UPDATE_TRANSACTION = 'UpdateTransaction',
-  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
   START_TRANSACTION = 'StartTransaction',
-  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
   REFUND_TRANSACTION = 'RefundTransaction',
-  UNLOCK_CONNECTOR = 'UnlockConnector',
-  GET_CONFIGURATION = 'GetConfiguration',
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
   PING = 'Ping',
   TRIGGER_JOB = 'TriggerJob',
@@ -68,13 +62,18 @@ export enum Action {
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
-  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   EXPORT_PARAMS = 'ExportParams',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
   CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
   VERIFY_EMAIL = 'VerifyEmail',
   FIRMWARE_DOWNLOAD = 'FirmwareDownload',
+
+  OFFLINE_CHARGING_STATION = 'OfflineChargingStation',
+
+  LOGS_CLEANUP = 'LogsCleanup',
+
+  SYNCHRONIZE_REFUND = 'RefundSynchronize',
 
   OCPI_REGISTER = 'OCPIRegister',
   OCPI_AUTHORIZE_TOKEN = 'OCPIAuthorizeToken',
@@ -94,17 +93,73 @@ export enum Action {
 
   OCPP_SERVICE = 'OCPPService',
 
+  HEARTBEAT = 'Heartbeat',
+
+  STATUS_NOTIFICATION = 'StatusNotification',
+
+  EXTRA_INACTIVITY = 'ExtraInactivity',
+
+  CONSUMPTION = 'Consumption',
+
   WS_CONNECTION = 'WSConnection',
 
   BOOT_NOTIFICATION = 'BootNotification',
 
+  METER_VALUES = 'MeterValues',
+
+  CLEAR_CACHE = 'ClearCache',
+  GET_CONFIGURATION = 'GetConfiguration',
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
+  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
+  UNLOCK_CONNECTOR = 'UnlockConnector',
+  RESET = 'Reset',
+  SET_CHARGING_PROFILE = 'SetChargingProfile',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
+  GET_DIAGNOSTICS = 'GetDiagnostics',
+  CHANGE_AVAILABILITY = 'ChangeAvailability',
+  UPDATE_FIRMWARE = 'UpdateFirmware',
+
+  NOTIFICATION = 'Notification',
+  CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
+  CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
+  END_OF_CHARGE = 'EndOfCharge',
+  OPTIMAL_CHARGE_REACHED = 'OptimalChargeReached',
+  END_OF_SESSION = 'EndOfSession',
+  REQUEST_PASSWORD = 'RequestPassword',
+  USER_ACCOUNT_STATUS_CHANGED = 'UserAccountStatusChanged',
+  NEW_REGISTERED_USER = 'NewRegisteredUser',
+  UNKNOWN_USER_BADGED = 'UnknownUserBadged',
+  TRANSACTION_STARTED = 'TransactionStarted',
+  VERIFICATION_EMAIL = 'VerificationEmail',
+  AUTH_EMAIL_ERROR = 'AuthentificationErrorEmailServer',
+  PATCH_EVSE_STATUS_ERROR = 'PatchEVSEStatusError',
+  USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
+  PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
+  OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
+  BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
+  CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
+  SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
+
+  UPDATE_CHARGING_STATION_TEMPLATE = 'UpdateChargingStationTemplates',
+
+  WS_REST_CONNECTION_CLOSED = 'WSRestConnectionClosed',
+  WS_REST_CLIENT_MESSAGE = 'WSRestClientMessage',
+
+  SESSION_HASH_SERVICE = 'SessionHashService',
+
+  CLEANUP_TRANSACTION = 'CleanupTransaction',
+  
+  DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
+
+  FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
+  
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
   ADD_BUILDING_TO_SITE_AREA = 'AddBuildingsToSiteArea',
 
   REFUND = 'Refund',
-
-  CHANGE_CONFIGURATION = 'ChangeConfiguration',
 
   USER_READ = 'UserRead',
   USER_INVOICE = 'UserInvoice',

@@ -21,7 +21,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPChargingStationCommand, OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
@@ -864,7 +864,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleAction(command: OCPPChargingStationCommand | Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(command: Action, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
@@ -875,7 +875,7 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector
-    if (command === OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION) {
+    if (command === Action.REMOTE_STOP_TRANSACTION) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
@@ -920,7 +920,7 @@ export default class ChargingStationService {
       // Ok: Execute it
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
       // Remote Start Transaction
-    } else if (command === OCPPChargingStationCommand.REMOTE_START_TRANSACTION) {
+    } else if (command === Action.REMOTE_START_TRANSACTION) {
       // Check Tag ID
       if (!filteredRequest.args || !filteredRequest.args.tagID) {
         throw new AppError({
@@ -938,7 +938,7 @@ export default class ChargingStationService {
         req.user.tenantID, chargingStation, filteredRequest.args.tagID);
       // Ok: Execute it
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-    } else if (command === OCPPChargingStationCommand.GET_COMPOSITE_SCHEDULE) {
+    } else if (command === Action.GET_COMPOSITE_SCHEDULE) {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
@@ -978,7 +978,7 @@ export default class ChargingStationService {
         });
       }
       // Execute it
-      result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command as OCPPChargingStationCommand, filteredRequest.args);
+      result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
     }
     // Return
     res.json(result);
@@ -1312,7 +1312,7 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-    command: OCPPChargingStationCommand, params: any): Promise<any> {
+    command: Action, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -1328,19 +1328,19 @@ export default class ChargingStationService {
       // Handle Requests
       switch (command) {
         // Reset
-        case OCPPChargingStationCommand.RESET:
+        case Action.RESET:
           result = await chargingStationClient.reset({ type: params.type });
           break;
         // Clear cache
-        case OCPPChargingStationCommand.CLEAR_CACHE:
+        case Action.CLEAR_CACHE:
           result = await chargingStationClient.clearCache();
           break;
         // Get Configuration
-        case OCPPChargingStationCommand.GET_CONFIGURATION:
+        case Action.GET_CONFIGURATION:
           result = await chargingStationClient.getConfiguration({ key: params.key });
           break;
         // Set Configuration
-        case OCPPChargingStationCommand.CHANGE_CONFIGURATION:
+        case Action.CHANGE_CONFIGURATION:
           // Change the config
           result = await chargingStationClient.changeConfiguration({
             key: params.key,
@@ -1369,31 +1369,31 @@ export default class ChargingStationService {
           }
           break;
         // Unlock Connector
-        case OCPPChargingStationCommand.UNLOCK_CONNECTOR:
+        case Action.UNLOCK_CONNECTOR:
           result = await chargingStationClient.unlockConnector({ connectorId: params.connectorId });
           break;
         // Start Transaction
-        case OCPPChargingStationCommand.REMOTE_START_TRANSACTION:
+        case Action.REMOTE_START_TRANSACTION:
           result = await chargingStationClient.remoteStartTransaction({
             connectorId: params.connectorId,
             idTag: params.tagID
           });
           break;
         // Stop Transaction
-        case OCPPChargingStationCommand.REMOTE_STOP_TRANSACTION:
+        case Action.REMOTE_STOP_TRANSACTION:
           result = await chargingStationClient.remoteStopTransaction({
             transactionId: params.transactionId
           });
           break;
         // Change availability
-        case OCPPChargingStationCommand.CHANGE_AVAILABILITY:
+        case Action.CHANGE_AVAILABILITY:
           result = await chargingStationClient.changeAvailability({
             connectorId: params.connectorId,
             type: params.type
           });
           break;
         // Get diagnostic
-        case OCPPChargingStationCommand.GET_DIAGNOSTICS:
+        case Action.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
             location: params.location,
             retries: params.retries,
@@ -1403,7 +1403,7 @@ export default class ChargingStationService {
           });
           break;
         // Update Firmware
-        case OCPPChargingStationCommand.UPDATE_FIRMWARE:
+        case Action.UPDATE_FIRMWARE:
           result = await chargingStationClient.updateFirmware({
             location: params.location,
             retries: params.retries,

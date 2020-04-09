@@ -107,12 +107,11 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, 'WsConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
-
+      Logging.logException(error, Action.WS_CONNECTION , this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'WSConnection',
-        method: 'initialize',
+        action: Action.WS_CONNECTION,
+        module: 'WSConnection', method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`
       });
     }
