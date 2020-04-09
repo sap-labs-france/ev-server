@@ -6,6 +6,8 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 
+const MODULE_NAME = 'AddActivePropertyToTagsTask';
+
 export default class AddActivePropertyToTagsTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -25,7 +27,7 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'AddActivePropertyToTagsTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         action: Action.MIGRATION,
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });

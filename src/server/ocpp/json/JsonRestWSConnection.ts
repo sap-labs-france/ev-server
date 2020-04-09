@@ -67,7 +67,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Error
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${commandName}' not found`,
         action: commandName
@@ -78,7 +78,7 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
         action: commandName
@@ -100,7 +100,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Error
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
         action: commandName

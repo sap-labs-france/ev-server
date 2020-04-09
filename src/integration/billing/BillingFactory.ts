@@ -9,6 +9,8 @@ import Utils from '../../utils/Utils';
 import Billing from './Billing';
 import StripeBilling from './stripe/StripeBilling';
 
+const MODULE_NAME = 'BillingFactory';
+
 export default class BillingFactory {
   static async getBillingImpl(tenantID: string): Promise<Billing<BillingSetting>> {
     // Prevent default user from generating billing
@@ -32,7 +34,7 @@ export default class BillingFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'BillingFactory',
+        module: MODULE_NAME,
         method: 'getBillingImpl',
         message: 'Billing settings are not configured'
       });

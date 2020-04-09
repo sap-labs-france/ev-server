@@ -15,6 +15,8 @@ import OCPIUtils from '../../ocpi/OCPIUtils';
 import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'OCPIEndpointService';
+
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
@@ -27,7 +29,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleDeleteOcpiEndpoint',
         value: filteredRequest.ID
       });
@@ -41,7 +43,7 @@ export default class OCPIEndpointService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'OCPIEndpointService', method: 'handleDeleteOcpiEndpoint',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { ocpiEndpoint }
@@ -62,7 +64,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.READ,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleGetOcpiEndpoint',
         value: endpointID
       });
@@ -84,7 +86,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.OCPI_ENDPOINTS,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleGetOcpiEndpoints'
       });
     }
@@ -114,7 +116,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleCreateOcpiEndpoint'
       });
     }
@@ -132,7 +134,7 @@ export default class OCPIEndpointService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'OCPIEndpointService', method: 'handleCreateOcpiEndpoint',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateOcpiEndpoint',
       message: `Ocpi Endpoint '${filteredRequest.name}' has been created successfully`,
       action: action,
       detailedMessages: { endpoint: filteredRequest }
@@ -154,7 +156,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleUpdateOcpiEndpoint',
         value: filteredRequest.id
       });
@@ -171,7 +173,7 @@ export default class OCPIEndpointService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'OCPIEndpointService', method: 'handleUpdateOcpiEndpoint',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateOcpiEndpoint',
       message: `Ocpi Endpoint '${ocpiEndpoint.name}' has been updated successfully`,
       action: action,
       detailedMessages: { endpoint: ocpiEndpoint }
@@ -189,7 +191,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.PING,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handlePingOcpiEndpoint'
       });
     }
@@ -207,7 +209,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' can be reached successfully`,
         action: action,
         detailedMessages: { pingResult }
@@ -217,7 +219,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityError({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handlePingOcpiEndpoint',
         message: `Ocpi Endpoint '${filteredRequest.name}' cannot be reached`,
         action: action,
         detailedMessages: { pingResult }
@@ -235,7 +237,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleTriggerJobsEndpoint'
       });
     }
@@ -264,7 +266,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handlePullLocationsEndpoint'
       });
     }
@@ -292,7 +294,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handlePullLocationsEndpoint'
       });
     }
@@ -320,7 +322,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handlePullTokensEndpoint'
       });
     }
@@ -348,7 +350,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handlePullCdrsEndpoint'
       });
     }
@@ -376,7 +378,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleSendEVSEStatusesOcpiEndpoint'
       });
     }
@@ -405,7 +407,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.TRIGGER_JOB,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleSendTokensOcpiEndpoint'
       });
     }
@@ -434,7 +436,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.REGISTER,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleUnregisterOcpiEndpoint'
       });
     }
@@ -455,7 +457,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleUnregisterOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
         action: action,
         detailedMessages: { result }
@@ -465,7 +467,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityError({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleUnregisterOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handleUnregisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
         action: action,
         detailedMessages: { result }
@@ -483,7 +485,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.REGISTER,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleRegisterOcpiEndpoint'
       });
     }
@@ -504,7 +506,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' can be reached successfully`,
         action: action,
         detailedMessages: { result }
@@ -514,7 +516,7 @@ export default class OCPIEndpointService {
       // Log
       Logging.logSecurityError({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
+        user: req.user, module: MODULE_NAME, method: 'handleRegisterOcpiEndpoint',
         message: `Ocpi Endpoint '${ocpiEndpoint.name}' cannot be reached`,
         action: action,
         detailedMessages: { result }
@@ -532,7 +534,7 @@ export default class OCPIEndpointService {
         user: req.user,
         action: Action.GENERATE_LOCAL_TOKEN,
         entity: Entity.OCPI_ENDPOINT,
-        module: 'OCPIEndpointService',
+        module: MODULE_NAME,
         method: 'handleGenerateLocalTokenOcpiEndpoint'
       });
     }
@@ -543,7 +545,7 @@ export default class OCPIEndpointService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'OCPIEndpointService', method: 'handleGenerateLocalTokenOcpiEndpoint',
+      user: req.user, module: MODULE_NAME, method: 'handleGenerateLocalTokenOcpiEndpoint',
       message: `Local Token for Ocpi Endpoint '${filteredRequest.name}' has been generatd successfully`,
       action: action,
       detailedMessages: { token: filteredRequest }

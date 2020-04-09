@@ -34,6 +34,8 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'ChargingStationService';
+
 export default class ChargingStationService {
 
   public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -50,7 +52,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Charging Station\'s IDs must be provided',
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleAssignChargingStationsToSiteArea',
         user: req.user
       });
@@ -66,7 +68,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleAssignChargingStationsToSiteArea',
         value: filteredRequest.siteAreaID
       });
@@ -84,7 +86,7 @@ export default class ChargingStationService {
           user: req.user,
           action: Action.UPDATE,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
+          module: MODULE_NAME,
           method: 'handleAssignChargingStationsToSiteArea',
           value: chargingStationID
         });
@@ -100,7 +102,7 @@ export default class ChargingStationService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
-      module: 'ChargingStationService',
+      module: MODULE_NAME,
       method: 'handleAssignChargingStationsToSiteArea',
       message: 'Site Area\'s Charging Stations have been assigned successfully',
       action: action
@@ -131,7 +133,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleUpdateChargingStationParams',
         value: chargingStation.id
       });
@@ -196,7 +198,7 @@ export default class ChargingStationService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.id, action: action,
-      user: req.user, module: 'ChargingStationService',
+      user: req.user, module: MODULE_NAME,
       method: 'handleUpdateChargingStationParams',
       message: 'Parameters have been updated successfully',
       detailedMessages: {
@@ -218,7 +220,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Limitation to ${filteredRequest.ampLimitValue}A is too low, min required is ${StaticLimitAmps.MIN_LIMIT}A`,
-        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         user: req.user
       });
     }
@@ -240,7 +242,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         value: chargingStation.id
       });
     }
@@ -251,7 +253,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: 'Charging Station does not support power limitation',
-        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         user: req.user
       });
     }
@@ -263,7 +265,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
-        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         user: req.user
       });
     }
@@ -297,7 +299,7 @@ export default class ChargingStationService {
             user: req.user,
             errorCode: HTTPError.GENERAL_ERROR,
             message: `Cannot change the current limitation to ${filteredRequest.ampLimitValue}A because of an existing charging plan!`,
-            module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+            module: MODULE_NAME, method: 'handleChargingStationLimitPower',
             detailedMessages: { result: chargingProfiles.result[index] }
           });
         }
@@ -307,7 +309,7 @@ export default class ChargingStationService {
           source: chargingStation.id,
           action: action,
           user: req.user,
-          module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+          module: MODULE_NAME, method: 'handleChargingStationLimitPower',
           message: `Adjust the Charging Plan power limit to ${filteredRequest.ampLimitValue}A`,
           detailedMessages: { chargingProfile: chargingProfiles.result[index] }
         });
@@ -324,7 +326,7 @@ export default class ChargingStationService {
         source: chargingStation.id,
         action: action,
         errorCode: HTTPError.LIMIT_POWER_ERROR,
-        module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
         message: `Cannot limit the charger's power to ${filteredRequest.ampLimitValue}A: '${result.status}'`,
         detailedMessages: { result },
         user: req.user
@@ -335,7 +337,7 @@ export default class ChargingStationService {
       source: chargingStation.id,
       action: action,
       user: req.user,
-      module: 'ChargingStationService', method: 'handleChargingStationLimitPower',
+      module: MODULE_NAME, method: 'handleChargingStationLimitPower',
       message: `The charger's power limit has been successfully set to ${filteredRequest.ampLimitValue}A`,
       detailedMessages: { result }
     });
@@ -356,7 +358,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingProfiles',
         value: filteredRequest.ChargeBoxID
       });
@@ -390,7 +392,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleUpdateChargingProfile',
         value: chargingStation.id
       });
@@ -402,7 +404,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
         user: req.user,
-        module: 'ChargingStationService', method: 'handleUpdateChargingProfile',
+        module: MODULE_NAME, method: 'handleUpdateChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support Charging Profiles`,
       });
     }
@@ -438,7 +440,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
+        module: MODULE_NAME, method: 'handleDeleteChargingProfile',
         value: chargingStation.id
       });
     }
@@ -451,7 +453,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profile',
-        module: 'ChargingStationService', method: 'handleDeleteChargingProfile',
+        module: MODULE_NAME, method: 'handleDeleteChargingProfile',
         user: req.user, actionOnUser: req.user
       });
     }
@@ -477,7 +479,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationOcppParameters',
         value: chargingStation.id
       });
@@ -500,7 +502,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleRequestChargingStationOcppParameters',
         value: filteredRequest.chargeBoxID
       });
@@ -543,7 +545,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleDeleteChargingStation',
         value: chargingStationID
       });
@@ -555,7 +557,7 @@ export default class ChargingStationService {
         action: action,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Charging Station with ID '${chargingStationID}' is already deleted`,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleDeleteChargingStation',
         user: req.user
       });
@@ -569,7 +571,7 @@ export default class ChargingStationService {
             action: action,
             errorCode: HTTPError.EXISTING_TRANSACTION_ERROR,
             message: `Charging Station '${chargingStation.id}' can't be deleted due to existing active transactions`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleDeleteChargingStation',
             user: req.user
           });
@@ -596,7 +598,7 @@ export default class ChargingStationService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteChargingStation',
       message: `Charging Station '${chargingStation.id}' has been deleted successfully`,
       action: action,
       detailedMessages: { chargingStation }
@@ -618,7 +620,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStation',
         value: filteredRequest.ID
       });
@@ -634,7 +636,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStation',
         user: req.user
       });
@@ -665,7 +667,7 @@ export default class ChargingStationService {
           user: req.user,
           action: Action.EXPORT_PARAMS,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService',
+          module: MODULE_NAME,
           method: 'handleChargingStationsOCPPParamsExport',
         });
       }
@@ -731,7 +733,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStations'
       });
     }
@@ -780,7 +782,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetStatusNotifications'
       });
     }
@@ -804,7 +806,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetBootNotifications'
       });
     }
@@ -828,7 +830,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The firmware FileName is mandatory',
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetFirmware'
       });
     }
@@ -847,7 +849,7 @@ export default class ChargingStationService {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
-        module: 'ChargingStationService', method: 'handleGetFirmware',
+        module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error },
       });
       res.sendStatus(404);
@@ -858,7 +860,7 @@ export default class ChargingStationService {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
-        module: 'ChargingStationService', method: 'handleGetFirmware',
+        module: MODULE_NAME, method: 'handleGetFirmware',
       });
       res.end();
     });
@@ -882,7 +884,7 @@ export default class ChargingStationService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Transaction ID is mandatory',
-          module: 'ChargingStationService',
+          module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
           action: command as unknown as Action,
@@ -900,7 +902,7 @@ export default class ChargingStationService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
           message: 'The user does not have any badge',
-          module: 'ChargingStationService',
+          module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
           action: command as unknown as Action,
@@ -927,7 +929,7 @@ export default class ChargingStationService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_NO_BADGE_ERROR,
           message: 'The user does not have any badge',
-          module: 'ChargingStationService',
+          module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
           action: command as unknown as Action,
@@ -946,7 +948,7 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService', method: 'handleAction',
+          module: MODULE_NAME, method: 'handleAction',
           value: chargingStation.id
         });
       }
@@ -958,7 +960,7 @@ export default class ChargingStationService {
           action: command as unknown as Action,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
           message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
-          module: 'ChargingStationService', method: 'handleAction',
+          module: MODULE_NAME, method: 'handleAction',
           user: req.user
         });
       }
@@ -973,7 +975,7 @@ export default class ChargingStationService {
           user: req.user,
           action: command as unknown as Action,
           entity: Entity.CHARGING_STATION,
-          module: 'ChargingStationService', method: 'handleAction',
+          module: MODULE_NAME, method: 'handleAction',
           value: chargingStation.id
         });
       }
@@ -997,7 +999,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: 'The Action is mandatory',
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleIsAuthorized',
         user: req.user,
         action: action
@@ -1015,7 +1017,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: 'The Charging Station ID is mandatory',
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleIsAuthorized',
             user: req.user,
             action: action
@@ -1030,7 +1032,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleIsAuthorized',
             user: req.user,
             action: action
@@ -1065,7 +1067,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: 'The Charging Station ID is mandatory',
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleIsAuthorized',
             user: req.user,
             action: action
@@ -1080,7 +1082,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleIsAuthorized',
             user: req.user,
             action: action
@@ -1095,7 +1097,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
             message: `User with ID '${filteredRequest.Arg1}' does not exist`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'handleIsAuthorized',
             user: req.user,
             action: action
@@ -1119,7 +1121,7 @@ export default class ChargingStationService {
             source: chargingStation.id,
             errorCode: HTTPError.CHARGER_WITH_NO_SITE_AREA_ERROR,
             message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'checkConnectorsActionAuthorizations',
             user: user
           });
@@ -1132,7 +1134,7 @@ export default class ChargingStationService {
             source: chargingStation.id,
             errorCode: HTTPError.SITE_AREA_WITH_NO_SITE_ERROR,
             message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-            module: 'ChargingStationService',
+            module: MODULE_NAME,
             method: 'checkConnectorsActionAuthorizations',
             user: user
           });
@@ -1181,7 +1183,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Transaction ID '${filteredRequest.Arg2}' does not exist`,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'isStopTransactionAuthorized',
         user: user
       });
@@ -1192,7 +1194,7 @@ export default class ChargingStationService {
         source: Constants.CENTRAL_SERVER,
         errorCode: 565,
         message: `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.chargeBoxID}' that differs from '${chargingStation.id}'`,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'isStopTransactionAuthorized',
         user: user
       });
@@ -1208,7 +1210,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStations',
       });
     }
@@ -1254,7 +1256,7 @@ export default class ChargingStationService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SETTING,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleCheckSmartChargingConnection'
       });
     }
@@ -1320,7 +1322,7 @@ export default class ChargingStationService {
       throw new BackendError({
         source: chargingStation.id,
         action: command as unknown as Action,
-        module: 'ChargingStationService', method: 'handleChargingStationCommand',
+        module: MODULE_NAME, method: 'handleChargingStationCommand',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -1353,8 +1355,10 @@ export default class ChargingStationService {
             if (result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
               Logging.logWarning({
                 tenantID: tenantID,
-                source: chargingStation.id, user: user, action: command,
-                module: 'ChargingStationService', method: 'handleChargingStationCommand',
+                source: chargingStation.id,
+                user: user,
+                action: command,
+                module: MODULE_NAME, method: 'handleChargingStationCommand',
                 message: `Reboot is required due to change of param '${params.key}' to '${params.value}'`,
                 detailedMessages: { result }
               });
@@ -1417,8 +1421,10 @@ export default class ChargingStationService {
         // OCPP Command with status
         if (Utils.objectHasProperty(result, 'status') && result.status !== OCPPStatus.ACCEPTED) {
           Logging.logError({
-            tenantID: tenantID, source: chargingStation.id, user: user,
-            module: 'ChargingStationService', method: 'handleChargingStationCommand',
+            tenantID: tenantID,
+            source: chargingStation.id,
+            user: user,
+            module: MODULE_NAME, method: 'handleChargingStationCommand',
             action: command,
             message: `OCPP Command '${command}' has failed`,
             detailedMessages: { params, result }
@@ -1426,8 +1432,10 @@ export default class ChargingStationService {
         } else {
           // OCPP Command with no status
           Logging.logInfo({
-            tenantID: tenantID, source: chargingStation.id, user: user,
-            module: 'ChargingStationService', method: 'handleChargingStationCommand',
+            tenantID: tenantID,
+            source: chargingStation.id,
+            user: user,
+            module: MODULE_NAME, method: 'handleChargingStationCommand',
             action: command,
             message: `OCPP Command '${command}' has been executed successfully`,
             detailedMessages: { params, result }
@@ -1441,7 +1449,7 @@ export default class ChargingStationService {
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
-        module: 'ChargingStationService',
+        module: MODULE_NAME,
         method: 'handleChargingStationCommand',
         user: user,
       });
@@ -1451,7 +1459,7 @@ export default class ChargingStationService {
         action: command as unknown as Action,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
-        module: 'ChargingStationService', method: 'handleChargingStationCommand',
+        module: MODULE_NAME, method: 'handleChargingStationCommand',
         user: user,
         detailedMessages: { params, error }
       });

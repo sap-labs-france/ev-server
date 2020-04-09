@@ -22,9 +22,9 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
 
+const MODULE_NAME = 'UserStorage';
+
 export default class UserStorage {
-
-
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
@@ -222,7 +222,7 @@ export default class UserStorage {
     if (!userToSave.id && !userToSave.email) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'UserStorage',
+        module: MODULE_NAME,
         method: 'saveUser',
         message: 'User has no ID and no Email'
       });
@@ -486,7 +486,7 @@ export default class UserStorage {
       // ID must be provided!
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'UserStorage',
+        module: MODULE_NAME,
         method: 'saveUserImage',
         message: 'User Image has no ID'
       });

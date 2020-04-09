@@ -6,6 +6,8 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import CarDatabase from '../CarDatabase';
 
+const MODULE_NAME = 'EVDabaseCar';
+
 export default class EVDabaseCar extends CarDatabase {
   public async getCars(): Promise<Car[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
@@ -13,7 +15,7 @@ export default class EVDabaseCar extends CarDatabase {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         message: 'No configuration is provided to access the EVDatabase system',
-        module: 'EVDabaseCar', method: 'getCars',
+        module: MODULE_NAME, method: 'getCars',
         action: Action.SYNCHRONIZE_CARS,
       });
     }
@@ -23,7 +25,7 @@ export default class EVDabaseCar extends CarDatabase {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         message: 'Error occurred while trying to retrieve the cars from EVDatabase',
-        module: 'EVDabaseCar', method: 'getCars',
+        module: MODULE_NAME, method: 'getCars',
         action: Action.SYNCHRONIZE_CARS,
       });
     }

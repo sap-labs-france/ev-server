@@ -17,6 +17,8 @@ import UtilsService from './UtilsService';
 import { ActionsResponse } from '../../../types/GlobalType';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 
+const MODULE_NAME = 'SiteAreaService';
+
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -38,7 +40,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleDeleteSiteArea',
         value: siteAreaID
       });
@@ -48,7 +50,7 @@ export default class SiteAreaService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { siteArea }
@@ -80,7 +82,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteArea',
         value: filteredRequest.ID
       });
@@ -112,7 +114,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreaImage',
         value: siteAreaID
       });
@@ -137,7 +139,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.SITE_AREAS,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreas'
       });
     }
@@ -178,7 +180,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleCreateSiteArea'
       });
     }
@@ -197,7 +199,7 @@ export default class SiteAreaService {
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
       action: action,
       detailedMessages: { siteArea: newSiteArea }
@@ -224,7 +226,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteArea',
         value: filteredRequest.id
       });
@@ -249,7 +251,7 @@ export default class SiteAreaService {
         Logging.logError({
           tenantID: req.user.tenantID,
           source: Constants.CENTRAL_SERVER,
-          module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+          module: MODULE_NAME, method: 'handleUpdateSiteArea',
           action: Action.UPDATE,
           message: `An error occurred while trying to call smart charging`,
           detailedMessages: { error }
@@ -271,7 +273,7 @@ export default class SiteAreaService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
       action: action,
       detailedMessages: { siteArea }
@@ -282,7 +284,7 @@ export default class SiteAreaService {
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profiles for Site Area',
-        module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
         user: req.user, actionOnUser: req.user
       });
     }

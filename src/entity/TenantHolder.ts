@@ -3,6 +3,8 @@ import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Constants from '../utils/Constants';
 
+const MODULE_NAME = 'TenantHolder';
+
 export default abstract class TenantHolder {
   private tenant: Tenant;
   private readonly tenantID: string;
@@ -24,7 +26,7 @@ export default abstract class TenantHolder {
       if (!this.tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'TenantHolder',
+          module: MODULE_NAME,
           method: 'getTenant',
           message: 'TenantStorage.getTenant did not return Tenant'
         });

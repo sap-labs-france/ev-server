@@ -109,7 +109,8 @@ export default class OCPPValidation extends SchemaValidator {
       (connector) => connector.connectorId === meterValues.connectorId);
     if (!foundConnector) {
       Logging.logWarning({
-        tenantID: tenantID, source: chargingStation.id,
+        tenantID: tenantID,
+        source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: Action.METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
@@ -126,7 +127,8 @@ export default class OCPPValidation extends SchemaValidator {
         if (chargerTransactionId > 0) {
           // No: Log that the transaction ID will be reused
           Logging.logWarning({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
             action: Action.METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
@@ -139,7 +141,8 @@ export default class OCPPValidation extends SchemaValidator {
     } else if (chargerTransactionId > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
-        tenantID: tenantID, source: chargingStation.id,
+        tenantID: tenantID,
+        source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
         action: Action.METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`

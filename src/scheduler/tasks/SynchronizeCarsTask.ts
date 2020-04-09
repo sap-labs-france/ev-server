@@ -7,6 +7,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
 
+const MODULE_NAME = 'SynchronizeCarsTask';
+
 export default class SynchronizeCarsTask extends SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     try {
@@ -23,7 +25,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
     } catch (error) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'SynchronizeCarsTask', method: 'run',
+        module: MODULE_NAME, method: 'run',
         action: Action.SYNCHRONIZE_CARS,
         message: `Error while running the task '${name}': ${error.message}`,
         detailedMessages: { error }

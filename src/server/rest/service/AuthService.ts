@@ -42,6 +42,8 @@ if (_centralSystemRestConfig) {
   ));
 }
 
+const MODULE_NAME = 'AuthService';
+
 export default class AuthService {
 
   public static initialize(): Handler {
@@ -62,7 +64,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn',
         action: action
       });
@@ -74,7 +76,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -83,7 +85,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Password is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -92,7 +94,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -102,7 +104,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -111,7 +113,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' is logically deleted`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -125,7 +127,7 @@ export default class AuthService {
           Logging.logSecurityInfo({
             tenantID: req.user.tenantID,
             actionOnUser: user,
-            module: 'AuthService', method: 'handleLogIn', action: action,
+            module: MODULE_NAME, method: 'handleLogIn', action: action,
             message: 'User has been unlocked after a period of time can try to login again'
           });
           // Save User Status
@@ -143,7 +145,7 @@ export default class AuthService {
             source: Constants.CENTRAL_SERVER,
             errorCode: HTTPError.USER_LOCKED_ERROR,
             message: 'User is locked',
-            module: 'AuthService',
+            module: MODULE_NAME,
             method: 'handleLogIn'
           });
         }
@@ -170,7 +172,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleGetEndUserLicenseAgreement'
       });
     }
@@ -181,7 +183,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EULA_ERROR,
         message: 'The End-user License Agreement is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleLogIn'
       });
     }
@@ -191,7 +193,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     }
@@ -203,7 +205,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     } else if (response.data.score < 0.5) {
@@ -211,7 +213,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha score is too low',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     }
@@ -224,7 +226,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: 'Email already exists',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     }
@@ -290,7 +292,7 @@ export default class AuthService {
     Logging.logSecurityInfo({
       tenantID: tenantID,
       user: newUser, action: action,
-      module: 'AuthService',
+      module: MODULE_NAME,
       method: 'handleRegisterUser',
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: { params: req.body }
@@ -325,7 +327,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset'
       });
     }
@@ -338,7 +340,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The reCaptcha is invalid',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     } else if (response.data.score < 0.5) {
@@ -346,7 +348,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleRegisterUser'
       });
     }
@@ -358,7 +360,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' does not exist`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset'
       });
     }
@@ -368,7 +370,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with Email '${filteredRequest.email}' is logically deleted`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset'
       });
     }
@@ -379,7 +381,7 @@ export default class AuthService {
     Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
-      module: 'AuthService',
+      module: MODULE_NAME,
       method: 'handleUserPasswordReset',
       message: `User with Email '${req.body.email}' will receive an email to reset his password`
     });
@@ -411,7 +413,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with password reset hash '${filteredRequest.hash}' does not exist`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset'
       });
     }
@@ -421,7 +423,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset'
       });
     }
@@ -439,7 +441,7 @@ export default class AuthService {
     Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
-      module: 'AuthService',
+      module: MODULE_NAME,
       method: 'handleUserPasswordReset',
       message: 'User\'s password has been reset successfully',
       detailedMessages: { params: req.body }
@@ -459,7 +461,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleUserPasswordReset',
         action: action
       });
@@ -483,7 +485,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleCheckEndUserLicenseAgreement'
       });
     }
@@ -494,7 +496,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Tenant is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleCheckEndUserLicenseAgreement'
       });
     }
@@ -504,7 +506,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleCheckEndUserLicenseAgreement'
       });
     }
@@ -540,7 +542,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService', method: 'handleGetEndUserLicenseAgreement',
+        module: MODULE_NAME, method: 'handleGetEndUserLicenseAgreement',
         action: action
       });
     }
@@ -564,7 +566,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.Tenant}'!`
       });
     }
@@ -574,7 +576,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'Cannot verify email in the Super Tenant'
       });
     }
@@ -584,7 +586,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'The email is mandatory'
       });
     }
@@ -594,7 +596,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'Verification token is mandatory'
       });
     }
@@ -606,7 +608,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: `The user with email '${filteredRequest.Email}' does not exist`
       });
     }
@@ -616,7 +618,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         action: action,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'The user is logically deleted'
       });
     }
@@ -627,7 +629,7 @@ export default class AuthService {
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         action: action,
         user: user,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'Account is already active'
       });
     }
@@ -638,7 +640,7 @@ export default class AuthService {
         errorCode: HTTPError.INVALID_TOKEN_ERROR,
         action: action,
         user: user,
-        module: 'AuthService', method: 'handleVerifyEmail',
+        module: MODULE_NAME, method: 'handleVerifyEmail',
         message: 'Wrong Verification Token'
       });
     }
@@ -652,7 +654,7 @@ export default class AuthService {
         await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
         Logging.logInfo({
           tenantID: tenantID,
-          module: 'AuthService', method: 'handleVerifyEmail',
+          module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
           message: 'User has been created successfully in the billing system'
@@ -660,7 +662,7 @@ export default class AuthService {
       } catch (error) {
         Logging.logError({
           tenantID: tenantID,
-          module: 'AuthService', method: 'handleVerifyEmail',
+          module: MODULE_NAME, method: 'handleVerifyEmail',
           action: action,
           user: user,
           message: 'User cannot be created in the billing system',
@@ -675,7 +677,7 @@ export default class AuthService {
     Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user, action: action,
-      module: 'AuthService', method: 'handleVerifyEmail',
+      module: MODULE_NAME, method: 'handleVerifyEmail',
       message: 'User account has been successfully verified and activated',
       detailedMessages: { params: req.query }
     });
@@ -695,7 +697,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -706,7 +708,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot request a verification Email in the Super Tenant',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -717,7 +719,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Email is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -728,7 +730,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is mandatory',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -742,7 +744,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is invalid',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -751,7 +753,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The captcha is too low',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -764,7 +766,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.email}' does not exist`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -775,7 +777,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The user with Email '${filteredRequest.email}' is logically deleted`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action
       });
@@ -786,7 +788,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         message: 'Account is already active',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'handleResendVerificationEmail',
         action: action,
         user: user
@@ -811,7 +813,7 @@ export default class AuthService {
       tenantID: tenantID,
       user: user,
       action: action,
-      module: 'AuthService',
+      module: MODULE_NAME,
       method: 'handleResendVerificationEmail',
       message: `User with Email '${filteredRequest.email}' has been created successfully`,
       detailedMessages: { params: req.body }
@@ -863,7 +865,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_LOCKED_ERROR,
         message: 'User is locked',
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'checkUserLogin',
         action: action,
         user: user
@@ -876,7 +878,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'checkUserLogin',
         action: action,
         user: user
@@ -889,7 +891,7 @@ export default class AuthService {
     Logging.logSecurityInfo({
       tenantID: tenantID,
       user: user,
-      module: 'AuthService', method: 'checkUserLogin',
+      module: MODULE_NAME, method: 'checkUserLogin',
       action: action, message: 'User logged in successfully'
     });
     // Set Eula Info on Login Only
@@ -943,7 +945,7 @@ export default class AuthService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
-        module: 'AuthService',
+        module: MODULE_NAME,
         method: 'checkUserLogin',
         user: user
       });
@@ -961,7 +963,7 @@ export default class AuthService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
           message: 'Account is pending! User must activate his account in his email',
-          module: 'AuthService',
+          module: MODULE_NAME,
           method: 'checkUserLogin',
           user: user
         });
@@ -972,7 +974,7 @@ export default class AuthService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
           message: `Account is not active ('${user.status}')`,
-          module: 'AuthService',
+          module: MODULE_NAME,
           method: 'checkUserLogin',
           user: user
         });

@@ -7,6 +7,8 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
 
+const MODULE_NAME = 'CleanupOrphanBadgeTask';
+
 export default class CleanupOrphanBadgeTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -33,7 +35,7 @@ export default class CleanupOrphanBadgeTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'CleanupOrphanBadgeTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${counter} Tags(s) have been deleted in Tenant '${tenant.name}'`
       });
     }

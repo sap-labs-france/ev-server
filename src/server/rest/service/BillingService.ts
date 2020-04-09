@@ -13,6 +13,7 @@ import Logging from '../../../utils/Logging';
 import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
 
@@ -22,7 +23,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.BILLING, action: Action.BILLING_CHECK_CONNECTION,
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleGetBillingConnection',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -35,7 +36,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleGetBillingConnection',
         action: action,
         user: req.user
       });
@@ -45,7 +46,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot connect to the billing service, check your configuration',
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleGetBillingConnection',
         action: action,
         user: req.user
       });
@@ -60,7 +61,7 @@ export default class BillingService {
       Logging.logError({
         tenantID: tenant.id,
         user: req.user,
-        module: 'BillingService', method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleGetBillingConnection',
         message: 'Billing connection failed',
         action: action,
         detailedMessages: { error }
@@ -76,7 +77,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.USERS, action: Action.BILLING_SYNCHRONIZE,
-        module: 'BillingService', method: 'handleSynchronizeUsers',
+        module: MODULE_NAME, method: 'handleSynchronizeUsers',
       });
     }
     // Check if component is active
@@ -89,7 +90,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleSynchronizeUsers',
+        module: MODULE_NAME, method: 'handleSynchronizeUsers',
         action: action,
         user: req.user
       });
@@ -108,7 +109,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
-        module: 'BillingService', method: 'handleSynchronizeUser',
+        module: MODULE_NAME, method: 'handleSynchronizeUser',
       });
     }
     // Check if component is active
@@ -121,7 +122,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleSynchronizeUser',
+        module: MODULE_NAME, method: 'handleSynchronizeUser',
         action: action,
         user: req.user
       });
@@ -144,7 +145,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE,
-        module: 'BillingService', method: 'handleForceSynchronizeUser',
+        module: MODULE_NAME, method: 'handleForceSynchronizeUser',
       });
     }
     // Check if component is active
@@ -157,7 +158,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleForceSynchronizeUser',
+        module: MODULE_NAME, method: 'handleForceSynchronizeUser',
         action: action,
         user: req.user
       });
@@ -179,7 +180,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.TAXES, action: Action.LIST,
-        module: 'BillingService', method: 'handleGetBillingTaxes',
+        module: MODULE_NAME, method: 'handleGetBillingTaxes',
       });
     }
     // Check if component is active
@@ -193,7 +194,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleGetBillingTaxes',
+        module: MODULE_NAME, method: 'handleGetBillingTaxes',
         action: action,
         user: req.user
       });
@@ -213,7 +214,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.INVOICES, action: Action.LIST,
-        module: 'BillingService', method: 'handleGetUserInvoices',
+        module: MODULE_NAME, method: 'handleGetUserInvoices',
       });
     }
     // Check if component is active
@@ -226,7 +227,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: 'BillingService', method: 'handleGetUserInvoices',
+        module: MODULE_NAME, method: 'handleGetUserInvoices',
         action: action,
         user: req.user
       });

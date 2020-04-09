@@ -19,6 +19,8 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
 
+const MODULE_NAME = 'ChargingStationStorage';
+
 export default class ChargingStationStorage {
 
   public static async updateChargingStationTemplatesFromFile() {
@@ -367,7 +369,7 @@ export default class ChargingStationStorage {
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'ChargingStationStorage',
+          module: MODULE_NAME,
           method: 'getChargingStationsInError',
           message: 'Organization is not active whereas filter is on missing site.'
         });

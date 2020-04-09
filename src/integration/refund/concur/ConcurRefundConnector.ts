@@ -185,7 +185,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     Logging.logInfo({
       tenantID: this.tenantID,
       user: userId,
-      source: MODULE_NAME, action: Action.REFUND,
+      action: Action.REFUND,
       module: MODULE_NAME, method: 'Refund',
       message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
     });
@@ -204,7 +204,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           Logging.logDebug({
             tenantID: tenantID,
             action: Action.SYNCHRONIZE_REFUND,
-            module: 'ConcurRefundConnector', method: 'updateRefundStatus',
+            module: MODULE_NAME, method: 'updateRefundStatus',
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
@@ -213,7 +213,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         Logging.logDebug({
           tenantID: tenantID,
           action: Action.SYNCHRONIZE_REFUND,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus',
+          module: MODULE_NAME, method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has not been updated`,
           user: transaction.userID
         });
@@ -224,7 +224,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         Logging.logDebug({
           tenantID: tenantID,
           action: Action.SYNCHRONIZE_REFUND,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus',
+          module: MODULE_NAME, method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
@@ -305,7 +305,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createQuickExpense',
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -356,7 +356,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReportEntry',
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -389,7 +389,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReport',
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -477,7 +477,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });

@@ -7,6 +7,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 
+const MODULE_NAME = 'MigrateCoordinatesTask';
+
 export default class MigrateCoordinatesTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -46,7 +48,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -79,7 +81,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -112,7 +114,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -145,7 +147,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -178,7 +180,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
       });
     }

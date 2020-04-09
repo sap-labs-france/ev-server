@@ -8,6 +8,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 
+const MODULE_NAME = 'AddLastChangePropertiesToBadgeTask';
+
 export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -49,7 +51,7 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'AddLastChangePropertiesToBadgeTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
       });
     }

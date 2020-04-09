@@ -11,6 +11,8 @@ import Constants from '../../../utils/Constants';
 import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 import BackendError from '../../../exception/AppError';
 
+const MODULE_NAME = 'CarService';
+
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
@@ -24,7 +26,7 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCars'
       });
     }
@@ -60,7 +62,7 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCar'
       });
     }
@@ -94,7 +96,7 @@ export default class CarService {
         user: req.user,
         action: Action.SYNCHRONIZE_CARS,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -104,7 +106,7 @@ export default class CarService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car service is not configured',
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -125,7 +127,7 @@ export default class CarService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCarMakers'
       });
     }

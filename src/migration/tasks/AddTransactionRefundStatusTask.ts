@@ -7,6 +7,8 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 
+const MODULE_NAME = 'AddTransactionRefundStatusTask';
+
 export default class AddTransactionRefundStatusTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -30,7 +32,7 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'AddTransactionRefundStatusTask', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${result.modifiedCount} Refunded Transaction(s) has been updated in Tenant '${tenant.name}'`
       });
     }

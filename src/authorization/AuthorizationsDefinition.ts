@@ -282,6 +282,8 @@ const GRANTS = {
   },
 };
 
+const MODULE_NAME = 'AuthorizationsDefinition';
+
 export default class AuthorizationsDefinition {
 
   private static _instance: AuthorizationsDefinition;
@@ -293,7 +295,7 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load authorization grants',
         detailedMessages: { error }
@@ -321,7 +323,7 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
         detailedMessages: { error }
@@ -337,7 +339,7 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
         detailedMessages: { error }

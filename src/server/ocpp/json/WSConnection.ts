@@ -65,7 +65,7 @@ export default class WSConnection {
       // Error
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'WSConnection',
+        module: MODULE_NAME,
         method: 'constructor',
         message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
       });
@@ -74,7 +74,7 @@ export default class WSConnection {
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
       throw new BackendError({
         source: this.chargingStationID,
-        module: 'WSConnection',
+        module: MODULE_NAME,
         method: 'constructor',
         message: 'The Charging Station ID is invalid'
       });
@@ -111,7 +111,7 @@ export default class WSConnection {
       throw new BackendError({
         source: this.getChargingStationID(),
         action: Action.WS_CONNECTION,
-        module: 'WSConnection', method: 'initialize',
+        module: MODULE_NAME, method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`
       });
     }
@@ -147,7 +147,7 @@ export default class WSConnection {
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
-              module: 'WSConnection',
+              module: MODULE_NAME,
               method: 'onMessage',
               message: `Response request for unknown message id ${messageId} is not iterable`,
               action: commandName
@@ -157,7 +157,7 @@ export default class WSConnection {
             // Error
             throw new BackendError({
               source: this.getChargingStationID(),
-              module: 'WSConnection',
+              module: MODULE_NAME,
               method: 'onMessage',
               message: `Response for unknown message id ${messageId}`,
               action: commandName
@@ -181,7 +181,7 @@ export default class WSConnection {
             // Error
             throw new BackendError({
               source: this.getChargingStationID(),
-              module: 'WSConnection',
+              module: MODULE_NAME,
               method: 'onMessage',
               message: `Error for unknown message id ${messageId}`,
               action: commandName
@@ -194,7 +194,7 @@ export default class WSConnection {
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
-              module: 'WSConnection',
+              module: MODULE_NAME,
               method: 'onMessage',
               message: `Error request for unknown message id ${messageId} is not iterable`,
               action: commandName
@@ -216,7 +216,7 @@ export default class WSConnection {
           // Error
           throw new BackendError({
             source: this.getChargingStationID(),
-            module: 'WSConnection',
+            module: MODULE_NAME,
             method: 'onMessage',
             message: `Wrong message type ${messageType}`,
             action: commandName

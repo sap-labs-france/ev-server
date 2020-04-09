@@ -20,6 +20,8 @@ import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
+const MODULE_NAME = 'TenantService';
+
 export default class TenantService {
 
   public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -33,7 +35,7 @@ export default class TenantService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleDeleteTenant',
         value: id
       });
@@ -48,7 +50,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleDeleteTenant',
         user: req.user,
         action: action
@@ -61,7 +63,7 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: 'TenantService', method: 'handleDeleteTenant',
+      module: MODULE_NAME, method: 'handleDeleteTenant',
       message: `Tenant '${tenant.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { tenant }
@@ -82,7 +84,7 @@ export default class TenantService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleGetTenant',
         value: tenantID
       });
@@ -108,7 +110,7 @@ export default class TenantService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TENANTS,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleGetTenants'
       });
     }
@@ -135,7 +137,7 @@ export default class TenantService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleCreateTenant'
       });
     }
@@ -146,7 +148,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with name '${filteredRequest.name}' already exists`,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleCreateTenant',
         user: req.user,
         action: action
@@ -159,7 +161,7 @@ export default class TenantService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.USER_EMAIL_ALREADY_EXIST_ERROR,
         message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleCreateTenant',
         user: req.user,
         action: action
@@ -210,7 +212,7 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: 'TenantService', method: 'handleCreateTenant',
+      module: MODULE_NAME, method: 'handleCreateTenant',
       message: `Tenant '${filteredRequest.name}' has been created successfully`,
       action: action,
       detailedMessages: { params: filteredRequest }
@@ -230,7 +232,7 @@ export default class TenantService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleUpdateTenant',
         value: tenantUpdate.id
       });
@@ -249,7 +251,7 @@ export default class TenantService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.SMART_CHARGING_STILL_ACTIVE_FOR_SITE_AREA,
           message: 'Site Area(s) is/are still enabled for Smart Charging. Please deactivate it/them to disable Smart Charging in Tenant',
-          module: 'SettingService',
+          module: MODULE_NAME,
           method: 'handleUpdateSetting',
           user: req.user,
           detailedMessages: { siteAreas: siteAreas.result.map((siteArea) => `${siteArea.name} (${siteArea.id})`) },
@@ -267,7 +269,7 @@ export default class TenantService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,
-      module: 'TenantService', method: 'handleUpdateTenant',
+      module: MODULE_NAME, method: 'handleUpdateTenant',
       message: `Tenant '${tenantUpdate.name}' has been updated successfully`,
       action: action,
       detailedMessages: { tenant: tenantUpdate }

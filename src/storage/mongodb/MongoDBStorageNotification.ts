@@ -10,6 +10,8 @@ const _options = {
   'fullDocument': 'default'
 };
 
+const MODULE_NAME = 'MongoDBStorageNotification';
+
 export default class MongoDBStorageNotification {
   public dbConfig: StorageConfiguration;
   public centralRestServer: CentralRestServer;
@@ -39,7 +41,7 @@ export default class MongoDBStorageNotification {
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: Action.DB_WATCH,
-      module: 'MongoDBStorageNotification', method: 'handleDBInvalidChange',
+      module: MODULE_NAME, method: 'handleDBInvalidChange',
       message: `Invalid change received on collection ${tenantID}.${collection}`,
       detailedMessages: { change }
     });
@@ -49,7 +51,7 @@ export default class MongoDBStorageNotification {
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: Action.DB_WATCH,
-      module: 'MongoDBStorageNotification', method: 'handleDBChangeStreamError',
+      module: MODULE_NAME, method: 'handleDBChangeStreamError',
       message: `Error occurred in watching database: ${error}`,
       detailedMessages: { error }
     });
@@ -88,21 +90,21 @@ export default class MongoDBStorageNotification {
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start',
+        module: MODULE_NAME, method: 'start',
         action: Action.STARTUP,
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start',
+        module: MODULE_NAME, method: 'start',
         action: Action.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is active`
       });
     } else {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MongoDBStorageNotification', method: 'start',
+        module: MODULE_NAME, method: 'start',
         action: Action.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
       });

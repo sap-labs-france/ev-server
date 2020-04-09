@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CentralServiceApi from '../client/CentralServiceApi';
 
+const MODULE_NAME = 'ODataSchema';
+
 export default class ODataSchema {
 
   public static restServerUrl = '';
@@ -40,7 +42,7 @@ export default class ODataSchema {
       // Add logging: login info
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'ODataServer',
+        module: MODULE_NAME,
         source: 'ODataServer', method: 'getSchema',
         action: Action.ODATA_SERVER,
         message: 'Unauthorized Access'

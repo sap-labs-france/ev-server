@@ -219,7 +219,8 @@ export default class OCPPUtils {
         if (!templateConnector) {
           // Log
           Logging.logWarning({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
             message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
@@ -245,7 +246,8 @@ export default class OCPPUtils {
       }
       // Log
       Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id,
+        tenantID: tenantID, 
+        source: chargingStation.id,
         action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
         message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
@@ -255,7 +257,8 @@ export default class OCPPUtils {
     }
     // Log
     Logging.logWarning({
-      tenantID: tenantID, source: chargingStation.id,
+      tenantID: tenantID,
+      source: chargingStation.id,
       action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
       message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
@@ -514,7 +517,8 @@ export default class OCPPUtils {
       const ocppConfiguration = await chargingStationClient.getConfiguration({});
       // Log
       Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id,
+        tenantID: tenantID,
+        source: chargingStation.id,
         action: Action.CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Command sent with success',
@@ -561,7 +565,8 @@ export default class OCPPUtils {
     let oneOCPPParameterUpdated = false;
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id,
+        tenantID: tenantID,
+        source: chargingStation.id,
         action: Action.CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
         message: 'Charging Station has no Standard/Vendor OCPP Parameters to change'
@@ -589,7 +594,8 @@ export default class OCPPUtils {
         if (!currentOcppParam) {
           // Not Found in Charging Station!
           Logging.logError({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             action: Action.CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
@@ -599,7 +605,8 @@ export default class OCPPUtils {
         if (ocppParameter.value === currentOcppParam.value) {
           // Ok: Already the good value
           Logging.logInfo({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             action: Action.CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' has the correct value '${currentOcppParam.value}'`
@@ -616,14 +623,16 @@ export default class OCPPUtils {
           oneOCPPParameterUpdated = true;
           // Value is different: Update it
           Logging.logInfo({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             action: Action.CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
           });
         } else {
           Logging.logError({
-            tenantID: tenantID, source: chargingStation.id,
+            tenantID: tenantID,
+            source: chargingStation.id,
             action: Action.CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
@@ -631,7 +640,8 @@ export default class OCPPUtils {
         }
       } catch (error) {
         Logging.logError({
-          tenantID: tenantID, source: chargingStation.id,
+          tenantID: tenantID,
+          source: chargingStation.id,
           action: Action.CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
           message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,

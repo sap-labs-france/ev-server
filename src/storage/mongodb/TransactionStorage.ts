@@ -14,6 +14,8 @@ import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
 import moment = require('moment');
 
+const MODULE_NAME = 'TransactionStorage';
+
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
     await this.deleteTransactions(tenantID, [transaction.id]);
@@ -984,7 +986,7 @@ export default class TransactionStorage {
       if (existingTransaction) {
         Logging.logWarning({
           tenantID: tenantID,
-          module: 'TransactionStorage', method: '_findAvailableID',
+          module: MODULE_NAME, method: '_findAvailableID',
           action: Action.TRANSACTION_STARTED,
           message: `Transaction ID '${id}' already exists, generating a new one...`
         });

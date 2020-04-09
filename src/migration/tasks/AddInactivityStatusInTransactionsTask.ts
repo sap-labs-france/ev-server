@@ -9,6 +9,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 
+const MODULE_NAME = 'AddInactivityStatusInTransactionsTask';
+
 export default class AddInactivityStatusInTransactionsTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
@@ -59,7 +61,7 @@ export default class AddInactivityStatusInTransactionsTask extends MigrationTask
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.MIGRATION,
-        module: 'AddInactivityStatusInTransactions', method: 'migrateTenant',
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${modifiedCount} Transactions' inactivity status have been updated in Tenant '${tenant.name}'`
       });
     }
