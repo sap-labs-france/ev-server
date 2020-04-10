@@ -51,6 +51,7 @@ export default class TransactionStorage {
     // Transfer
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
+      issuer: transactionToSave.issuer,
       siteID: Utils.convertToObjectID(transactionToSave.siteID),
       siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
@@ -224,7 +225,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; issuer?: boolean; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
@@ -273,6 +274,10 @@ export default class TransactionStorage {
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Issuer
+    if (params.issuer === true || params.issuer === false) {
+      filterMatch.issuer = params.issuer;
     }
     // Charge Box
     if (params.userIDs) {
@@ -670,7 +675,7 @@ export default class TransactionStorage {
 
   static async getTransactionsInError(tenantID,
     params: {
-      search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
+      search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
       siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
       errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE)[];
     },
@@ -692,6 +697,10 @@ export default class TransactionStorage {
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
+    }
+    // Issuer
+    if (params.issuer === true || params.issuer === false) {
+      match.issuer = params.issuer;
     }
     // User / Site Admin
     if (params.userIDs) {

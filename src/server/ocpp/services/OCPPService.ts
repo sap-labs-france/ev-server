@@ -566,6 +566,7 @@ export default class OCPPService {
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
       const transaction: Transaction = {
+        issuer: true,
         chargeBoxID: startTransaction.chargeBoxID,
         tagID: startTransaction.idTag,
         timezone: startTransaction.timezone,

@@ -466,6 +466,7 @@ export default class TransactionService {
     const filter: any = { stop: { $exists: false } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -519,6 +520,7 @@ export default class TransactionService {
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -586,6 +588,7 @@ export default class TransactionService {
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -849,6 +852,7 @@ export default class TransactionService {
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }

@@ -178,7 +178,7 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_LOCATIONS,
-          message: `Invalid response from Get locations`,
+          message: 'Invalid response from Get locations',
           module: MODULE_NAME, method: 'pullLocations',
           detailedMessages: { response: response.data }
         });
@@ -247,14 +247,14 @@ export default class EmspOCPIClient extends OCPIClient {
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_SESSIONS,
-          message: `Invalid response from Get sessions`,
+          message: 'Invalid response from Get sessions',
           module: MODULE_NAME, method: 'pullSessions',
           detailedMessages: { response: response.data }
         });
       }
       for (const session of response.data.data) {
         try {
-          await OCPISessionsService.updateSession(this.tenant.id, session);
+          await OCPISessionsService.updateTransaction(this.tenant.id, session);
           sendResult.success++;
           sendResult.logs.push(
             `Session ${session.id} successfully updated`
@@ -310,39 +310,26 @@ export default class EmspOCPIClient extends OCPIClient {
       if (response.status !== 200 || !response.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_CDRS,
-          message: `Invalid response code ${response.status} from Get cdrs`,
+          message: `Get cdrs failed with status ${response.status}`,
           module: MODULE_NAME, method: 'pullCdrs',
+          detailedMessages: { response: response.data }
         });
       }
       if (!response.data.data) {
         throw new BackendError({
           action: Action.OCPI_PULL_CDRS,
-          message: `Invalid response from Get cdrs`,
+          message: 'Invalid response from Get cdrs',
           module: MODULE_NAME, method: 'pullCdrs',
           detailedMessages: { response: response.data }
         });
       }
       for (const cdr of response.data.data) {
         try {
-          const transaction: Transaction = await TransactionStorage.getOCPITransaction(this.tenant.id, cdr.id);
-          if (!transaction) {
-            Logging.logError({
-              tenantID: this.tenant.id,
-              action: Action.OCPI_PULL_CDRS,
-              message: `No transaction found for cdr with id ${cdr.id}`,
-              module: MODULE_NAME, method: 'pullCdrs',
-              detailedMessages: { cdr },
-            });
-            sendResult.failure++;
-          }
-          if (!transaction.ocpiCdr) {
-            transaction.ocpiCdr = cdr;
-            await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-            sendResult.success++;
-            sendResult.logs.push(
-              `Cdr ${cdr.id} successfully updated`
-            );
-          }
+          await OCPISessionsService.processCdr(this.tenant.id, cdr);
+          sendResult.success++;
+          sendResult.logs.push(
+            `Cdr ${cdr.id} successfully updated`
+          );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
@@ -490,8 +477,9 @@ export default class EmspOCPIClient extends OCPIClient {
     if (!response.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_TOKENS,
-        message: `Invalid response from put token ${JSON.stringify(response)}`,
+        message: `Push token failed with status ${JSON.stringify(response)}`,
         module: MODULE_NAME, method: 'pushToken',
+        detailedMessages: { response: response.data }
       });
     }
   }

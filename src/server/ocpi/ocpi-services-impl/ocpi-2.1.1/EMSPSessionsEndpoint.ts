@@ -111,7 +111,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    await OCPISessionsService.updateSession(tenant.id, session);
+    await OCPISessionsService.updateTransaction(tenant.id, session);
     return OCPIUtils.success({});
   }
 
@@ -181,7 +181,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
-    await OCPISessionsService.updateSession(tenant.id, transaction.ocpiSession);
+    await OCPISessionsService.updateTransaction(tenant.id, transaction.ocpiSession);
     return OCPIUtils.success({});
   }
 }
