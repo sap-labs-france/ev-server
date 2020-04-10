@@ -77,7 +77,7 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(Constants.DEFAULT_TENANT, 'cars')
+    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(Constants.DEFAULT_TENANT, 'carscatalog')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -115,7 +115,7 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const cars = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+    const cars = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carscatalog')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -262,7 +262,7 @@ export default class CarStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars').findOneAndReplace(
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carscatalog').findOneAndReplace(
       { _id: carToSave.id },
       carMDB,
       { upsert: true }
@@ -407,7 +407,7 @@ export default class CarStorage {
         carMaker: 1
       }
     });
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carscatalog')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
