@@ -258,21 +258,23 @@ export default class SiteAreaService {
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Regtrigger Smart Charging
     if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
-      try {
-        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-        if (smartCharging) {
-          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+      setTimeout(async () => {
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          }
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'handleUpdateSiteArea',
+            action: Action.UPDATE,
+            message: `An error occurred while trying to call smart charging`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
         }
-      } catch (error) {
-        Logging.logError({
-          tenantID: req.user.tenantID,
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'handleUpdateSiteArea',
-          action: Action.UPDATE,
-          message: `An error occurred while trying to call smart charging`,
-          detailedMessages: { error: error.message, stack: error.stack }
-        });
-      }
+      }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log
     Logging.logSecurityInfo({

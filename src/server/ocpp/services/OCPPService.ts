@@ -203,7 +203,7 @@ export default class OCPPService {
         // Get config and save it
         await OCPPUtils.requestAndSaveChargingStationOcppParameters(
           headers.tenantID, chargingStation, chargingStationTemplateUpdated);
-      }, 3000);
+      }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
       // Return the result
       return {
         'currentTime': bootNotification.timestamp.toISOString(),
@@ -663,7 +663,7 @@ export default class OCPPService {
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
-        }, 3000);
+        }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
       }
       // Log
       if (user) {
@@ -870,7 +870,7 @@ export default class OCPPService {
               detailedMessages: { error: error.message, stack: error.stack }
             });
           }
-        }, 3000);
+        }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
       }
       // Log
       Logging.logInfo({
