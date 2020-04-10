@@ -242,6 +242,21 @@ export default class SiteAreaService {
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
+    siteArea.maximumPower = filteredRequest.maximumPower;
+    let actionsResponse: ActionsResponse;
+    if (siteArea.smartCharging && !filteredRequest.smartCharging) {
+      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+        req.user.tenantID, siteArea,
+        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
+    }
+    siteArea.smartCharging = filteredRequest.smartCharging;
+    siteArea.accessControl = filteredRequest.accessControl;
+    siteArea.siteID = filteredRequest.siteID;
+    siteArea.lastChangedBy = { 'id': req.user.id };
+    siteArea.lastChangedOn = new Date();
+    // Update Site Area
+    await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
+    // Regtrigger Smart Charging
     if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
@@ -259,20 +274,6 @@ export default class SiteAreaService {
         });
       }
     }
-    siteArea.maximumPower = filteredRequest.maximumPower;
-    let actionsResponse: ActionsResponse;
-    if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
-        req.user.tenantID, siteArea,
-        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
-    }
-    siteArea.smartCharging = filteredRequest.smartCharging;
-    siteArea.accessControl = filteredRequest.accessControl;
-    siteArea.siteID = filteredRequest.siteID;
-    siteArea.lastChangedBy = { 'id': req.user.id };
-    siteArea.lastChangedOn = new Date();
-    // Update Site Area
-    await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

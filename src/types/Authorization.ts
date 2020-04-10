@@ -220,7 +220,7 @@ export enum Action {
   EMPTY_ACTION = '',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
-  SAP_SMART_CHARGING = 'SAPSmartCharging',
+  SMART_CHARGING = 'SmartCharging',
 }
 
 export interface AuthorizationContext {

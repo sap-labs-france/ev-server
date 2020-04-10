@@ -320,7 +320,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { priority: 'high', timeToLive: 60 * 60 * 24 }
     ).then((response) => {
       // Response is a message ID string.
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
         action: Action.REMOTE_PUSH_NOTIFICATION,

@@ -641,25 +641,28 @@ export default class OCPPService {
       // Handle Smart Charging
       // Must be handled at the end to get the Transaction ID
       if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-        try {
-          // Get Site Area
-          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
-          if (siteArea.smartCharging) {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
-            if (smartCharging) {
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        // Call async because the Charging Station should get the Transaction ID first
+        setTimeout(async () => {
+          try {
+            // Get Site Area
+            const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
+            if (siteArea.smartCharging) {
+              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
+              if (smartCharging) {
+                await smartCharging.computeAndApplyChargingProfiles(siteArea);
+              }
             }
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenant.id,
+              source: chargingStation.id,
+              module: MODULE_NAME, method: 'handleStartTransaction',
+              action: Action.START_TRANSACTION,
+              message: `An error occurred while trying to call smart charging`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
           }
-        } catch (error) {
-          Logging.logError({
-            tenantID: tenant.id,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStartTransaction',
-            action: Action.START_TRANSACTION,
-            message: `An error occurred while trying to call smart charging`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
+        }, 3000);
       }
       // Log
       if (user) {
@@ -843,26 +846,30 @@ export default class OCPPService {
       await this.notifyStopTransaction(headers.tenantID, chargingStation, transaction, user, alternateUser);
       // Handle Smart Charging
       const tenant = await TenantStorage.getTenant(headers.tenantID);
+      // Recompute the Smart Charging Plan
       if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-        try {
-          // Get Site Area
-          const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
-          if (siteArea.smartCharging) {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
-            if (smartCharging) {
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        // Call async because the Transaction ID on the connector should be cleared
+        setTimeout(async () => {
+          try {
+            // Get Site Area
+            const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, chargingStation.siteAreaID);
+            if (siteArea.smartCharging) {
+              const smartCharging = await SmartChargingFactory.getSmartChargingImpl(headers.tenantID);
+              if (smartCharging) {
+                await smartCharging.computeAndApplyChargingProfiles(siteArea);
+              }
             }
+          } catch (error) {
+            Logging.logError({
+              tenantID: tenant.id,
+              source: chargingStation.id,
+              module: MODULE_NAME, method: 'handleStopTransaction',
+              action: Action.STOP_TRANSACTION,
+              message: `An error occurred while trying to call smart charging`,
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
           }
-        } catch (error) {
-          Logging.logError({
-            tenantID: tenant.id,
-            source: chargingStation.id,
-            module: MODULE_NAME, method: 'handleStopTransaction',
-            action: Action.STOP_TRANSACTION,
-            message: `An error occurred while trying to call smart charging`,
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
+        }, 3000);
       }
       // Log
       Logging.logInfo({
