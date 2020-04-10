@@ -76,7 +76,7 @@ export default class OCPPStorage {
       // Default
       aggregation.push({
         $sort: {
-          _id: 1
+          timestamp: -1
         }
       });
     }

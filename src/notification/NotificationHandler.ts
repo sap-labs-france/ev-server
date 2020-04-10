@@ -45,7 +45,7 @@ export default class NotificationHandler {
     // Success
     if (user) {
       // User
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',
@@ -55,7 +55,7 @@ export default class NotificationHandler {
       });
     } else {
       // Admin
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
         module: MODULE_NAME, method: 'saveNotification',

@@ -356,6 +356,7 @@ export default class OCPPUtils {
       action: Action.CHARGING_PROFILE_DELETE,
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
       message: 'Charging Profile has been deleted successfully',
+      detailedMessages: { chargingProfile }
     });
     Logging.logDebug({
       tenantID: tenantID,
@@ -363,7 +364,7 @@ export default class OCPPUtils {
       action: Action.CHARGING_PROFILE_DELETE,
       message: 'Clear and Delete Charging Profile has been called',
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-      detailedMessages: { tenantID, chargingProfile }
+      detailedMessages: { chargingProfile }
     });
   }
 
@@ -374,7 +375,7 @@ export default class OCPPUtils {
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Set and Save Charging Profile is being called',
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-      detailedMessages: { tenantID, chargingProfile, user }
+      detailedMessages: { chargingProfile, user }
     });
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
@@ -414,7 +415,6 @@ export default class OCPPUtils {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        user: user,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
@@ -423,10 +423,9 @@ export default class OCPPUtils {
     // Save
     await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
-      tenantID: user.tenantID,
+      tenantID: tenantID,
       source: chargingStation.id,
       action: Action.CHARGING_PROFILE_UPDATE,
-      user: user,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }

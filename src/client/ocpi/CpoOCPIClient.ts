@@ -162,8 +162,9 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: Action.OCPI_AUTHORIZE_TOKEN,
-        message: `Invalid response code ${response.status} from Post Authorize`,
+        message: `Post authorize failed with status ${response.status}`,
         module: MODULE_NAME, method: 'authorizeToken',
+        detailedMessages: { payload: response.data }
       });
     }
     if (!response.data.data) {
@@ -179,7 +180,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: Action.OCPI_AUTHORIZE_TOKEN,
       message: `Authorization response retrieved from ${tokensUrl}`,
       module: MODULE_NAME, method: 'authorizeToken',
-      detailedMessages: { response: response.data.data }
+      detailedMessages: { response: response.data }
     });
     const authorizationInfo = response.data.data as OCPIAuthorizationInfo;
     if (authorizationInfo.allowed !== OCPIAllowed.ALLOWED) {
@@ -220,7 +221,7 @@ export default class CpoOCPIClient extends OCPIClient {
         'id': authorizationId,
         'start_datetime': transaction.timestamp,
         'kwh': 0,
-        'total_cost': transaction.roundedPrice,
+        'total_cost': transaction.currentCumulatedPrice,
         'auth_method': OCPIAuthMethod.AUTH_REQUEST,
         'auth_id': ocpiToken.auth_id,
         'location': ocpiLocation,
@@ -233,7 +234,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Put session start at ${sessionsUrl}`,
+      message: `Start session at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'startSession',
       detailedMessages: { payload: ocpiSession }
     });
@@ -250,25 +251,18 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response code ${response.status} from Put Session`,
-        module: MODULE_NAME, method: 'startSession'
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: Action.OCPI_PUSH_SESSIONS,
-        message: 'Invalid response from Put Session',
+        message: `Start session failed with status ${response.status}`,
         module: MODULE_NAME, method: 'startSession',
-        detailedMessages: { data: response.data }
+        detailedMessages: { payload: response.data }
       });
     }
     transaction.ocpiSession = ocpiSession;
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Push session response retrieved from ${sessionsUrl}`,
+      message: `Start session response received from ${sessionsUrl}`,
       module: MODULE_NAME, method: 'startSession',
-      detailedMessages: { response: response.data.data }
+      detailedMessages: { response: response.data }
     });
   }
 
@@ -285,20 +279,28 @@ export default class CpoOCPIClient extends OCPIClient {
     const sessionsUrl = `${this.getEndpointUrl('sessions', Action.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(Action.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(Action.OCPI_PUSH_SESSIONS)}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.currentTotalConsumption / 1000;
     transaction.ocpiSession.last_updated = transaction.lastUpdate;
-    transaction.ocpiSession.total_cost = transaction.roundedPrice;
+    transaction.ocpiSession.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiSession.currency = transaction.priceUnit;
     transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
+
+    const patchBody: Partial<OCPISession> = {
+      kwh: transaction.ocpiSession.kwh,
+      last_updated: transaction.ocpiSession.last_updated,
+      total_cost: transaction.ocpiSession.total_cost,
+      currency: transaction.ocpiSession.currency,
+      status: transaction.ocpiSession.status
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Put session update at ${sessionsUrl}`,
+      message: `Patch session at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'updateSession',
-      detailedMessages: { payload: transaction.ocpiSession }
+      detailedMessages: { payload: patchBody }
     });
     // Call IOP
     // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(sessionsUrl, transaction.ocpiSession,
+    const response = await axios.patch(sessionsUrl, patchBody,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -309,24 +311,17 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response code ${response.status} from Update Session`,
-        module: MODULE_NAME, method: 'updateSession'
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: Action.OCPI_PUSH_SESSIONS,
-        message: 'Invalid response from Put Session',
+        message: `Patch Session failed with status ${response.status}`,
         module: MODULE_NAME, method: 'updateSession',
-        detailedMessages: { data: response.data }
+        detailedMessages: { payload: response.data }
       });
     }
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Push session response retrieved from ${sessionsUrl}`,
+      message: `Patch session response received from ${sessionsUrl}`,
       module: MODULE_NAME, method: 'updateSession',
-      detailedMessages: { response: response.data.data }
+      detailedMessages: { response: response.data }
     });
   }
 
@@ -358,7 +353,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_SESSIONS,
-      message: `Put session stop at ${tokensUrl}`,
+      message: `Stop session at ${tokensUrl}`,
       module: MODULE_NAME, method: 'stopSession',
       detailedMessages: { payload: transaction.ocpiSession }
     });
@@ -375,16 +370,9 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_SESSIONS,
-        message: `Invalid response code ${response.status} from Stop Session`,
+        message: `Stop Session failed with status ${response.status}`,
         module: MODULE_NAME, method: 'stopSession',
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: Action.OCPI_PUSH_SESSIONS,
-        message: 'Invalid response from Put Session',
-        module: MODULE_NAME, method: 'stopSession',
-        detailedMessages: { data: response.data }
+        detailedMessages: { payload: response.data }
       });
     }
     Logging.logDebug({
@@ -392,7 +380,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: Action.OCPI_PUSH_SESSIONS,
       message: `Push session response retrieved from ${tokensUrl}`,
       module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { response: response.data.data }
+      detailedMessages: { response: response.data }
     });
   }
 
@@ -462,16 +450,9 @@ export default class CpoOCPIClient extends OCPIClient {
     if (response.status !== 200 || !response.data) {
       throw new BackendError({
         action: Action.OCPI_PUSH_CDRS,
-        message: `Invalid response code ${response.status} from Post Cdr`,
+        message: `Post cdr failed with status ${response.status}`,
         module: MODULE_NAME, method: 'postCdr',
-      });
-    }
-    if (!response.data.data) {
-      throw new BackendError({
-        action: Action.OCPI_PUSH_CDRS,
-        message: 'Invalid response from Post Cdr',
-        module: MODULE_NAME, method: 'postCdr',
-        detailedMessages: { data: response.data }
+        detailedMessages: { payload: response.data }
       });
     }
     Logging.logDebug({
@@ -479,7 +460,7 @@ export default class CpoOCPIClient extends OCPIClient {
       action: Action.OCPI_PUSH_CDRS,
       message: `Push cdr response retrieved from ${cdrsUrl}`,
       module: MODULE_NAME, method: 'postCdr',
-      detailedMessages: { response: response.data.data }
+      detailedMessages: { response: response.data }
     });
   }
 
@@ -543,7 +524,7 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PATCH_STATUS,
-      message: `Patch location at ${fullUrl}`,
+      message: `Patch evse status at ${fullUrl}`,
       module: MODULE_NAME, method: 'patchEVSEStatus',
       detailedMessages: { payload }
     });
@@ -560,7 +541,7 @@ export default class CpoOCPIClient extends OCPIClient {
     if (!response.data) {
       throw new BackendError({
         action: Action.OCPI_PATCH_STATUS,
-        message: 'Invalid response from PATCH',
+        message: `Patch EVSE Status failed with status ${response.status}`,
         module: MODULE_NAME, method: 'patchEVSEStatus',
       });
     }

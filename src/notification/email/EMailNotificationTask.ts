@@ -315,7 +315,7 @@ export default class EMailNotificationTask implements NotificationTask {
         }
       } else {
         // Email sent successfully
-        Logging.logInfo({
+        Logging.logDebug({
           tenantID: tenant.id,
           source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
           action: Action.EMAIL_NOTIFICATION,

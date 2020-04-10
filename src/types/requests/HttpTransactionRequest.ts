@@ -18,6 +18,7 @@ export interface HttpTransactionRequest {
 
 export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ChargeBoxID: string;
+  Issuer: boolean;
   ConnectorId: number;
   SiteAreaID?: string;
   SiteID?: string;
