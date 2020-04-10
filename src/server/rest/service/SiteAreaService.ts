@@ -242,6 +242,7 @@ export default class SiteAreaService {
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
+    const siteAreaMaxPowerHasChanged = siteArea.maximumPower !== filteredRequest.maximumPower;
     siteArea.maximumPower = filteredRequest.maximumPower;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
@@ -257,7 +258,7 @@ export default class SiteAreaService {
     // Update Site Area
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Regtrigger Smart Charging
-    if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
+    if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
       setTimeout(async () => {
         try {
           const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
