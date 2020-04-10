@@ -13,6 +13,8 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import LoggingSecurity from './security/LoggingSecurity';
 
+const MODULE_NAME = 'LoggingService';
+
 export default class LoggingService {
   static async handleGetLoggings(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
@@ -23,7 +25,7 @@ export default class LoggingService {
           user: req.user,
           action: Action.LIST,
           entity: Entity.LOGGINGS,
-          module: 'LoggingService',
+          module: MODULE_NAME,
           method: 'handleGetLoggings'
         });
       }
@@ -90,7 +92,7 @@ export default class LoggingService {
           user: req.user,
           action: Action.LIST,
           entity: Entity.LOGGINGS,
-          module: 'LoggingService',
+          module: MODULE_NAME,
           method: 'handleGetLoggingsExport'
         });
       }
@@ -151,7 +153,7 @@ export default class LoggingService {
           user: req.user,
           action: Action.READ,
           entity: Entity.LOGGING,
-          module: 'LoggingService',
+          module: MODULE_NAME,
           method: 'handleGetLogging'
         });
       }

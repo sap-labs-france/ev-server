@@ -1,9 +1,12 @@
-import Constants from '../../utils/Constants';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+
+const MODULE_NAME = 'AddActivePropertyToTagsTask';
 
 export default class AddActivePropertyToTagsTask extends MigrationTask {
   async migrate() {
@@ -24,8 +27,8 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'AddActivePropertyToTagsTask', method: 'migrateTenant',
-        action: 'AddActivePropertyToTags',
+        module: MODULE_NAME, method: 'migrateTenant',
+        action: Action.MIGRATION,
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

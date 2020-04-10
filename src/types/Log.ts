@@ -1,3 +1,4 @@
+import { Action } from './Authorization';
 import User from './User';
 import UserToken from './UserToken';
 
@@ -11,7 +12,7 @@ export interface Log {
   module: string;
   method: string;
   timestamp?: Date;
-  action?: string;
+  action?: Action;
   type?: LogType;
   message: string|object;
   user?: User|UserToken|string;

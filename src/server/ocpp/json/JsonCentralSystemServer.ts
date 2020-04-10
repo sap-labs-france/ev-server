@@ -47,9 +47,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
-        method: 'verifyClient',
-        action: 'WSVerifyClient',
+        module: this._MODULE_NAME, method: 'verifyClient',
+        action: Action.EXPRESS_SERVER,
         message: `Invalid connection URL ${info.req.url}`
       });
       return false;
@@ -73,9 +72,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME,
-        method: 'handleProtocols',
-        action: 'WSVerifyClient',
+        module: this._MODULE_NAME, method: 'handleProtocols',
+        action: Action.EXPRESS_SERVER,
         message: `Invalid protocol ${protocols}`
       });
       return false;

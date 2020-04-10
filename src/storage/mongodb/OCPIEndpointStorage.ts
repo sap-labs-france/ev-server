@@ -9,6 +9,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'OCPIEndpointStorage';
+
 export default class OCPIEndpointStorage {
 
   static async getOcpiEndpoint(tenantID: string, id: string): Promise<OCPIEndpoint> {
@@ -41,7 +43,7 @@ export default class OCPIEndpointStorage {
       // Name must be provided!
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'OCPIEndpointStorage',
+        module: MODULE_NAME,
         method: 'saveOcpiEndpoint',
         message: 'OCPIEndpoint has no Name'
       });

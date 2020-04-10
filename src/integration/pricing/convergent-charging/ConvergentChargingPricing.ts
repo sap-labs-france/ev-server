@@ -18,6 +18,8 @@ import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/Ra
 import { RateResult } from './model/RateResult';
 import StatefulChargingService from './StatefulChargingService';
 
+const MODULE_NAME = 'ConvergentCharging';
+
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSetting> {
   public statefulChargingService: StatefulChargingService;
 
@@ -149,8 +151,9 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantID,this.transaction.chargeBoxID);
     Logging.logError({
       tenantID: this.tenantID,
-      source: chargingStation.id, module: 'ConvergentCharging',
-      method: 'handleError', action: action,
+      source: chargingStation.id,
+      module: MODULE_NAME, method: 'handleError',
+      action: action,
       message: chargingResult.message,
       detailedMessages: {
         consumptionData: consumptionData,
@@ -165,7 +168,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
           throw new BackendError({
             source: chargingStation.id,
             action: action,
-            module: 'ConvergentCharging', method: 'handleError',
+            module: MODULE_NAME, method: 'handleError',
             message: 'Charging Station is not connected to the backend',
           });
         }

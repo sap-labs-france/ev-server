@@ -9,6 +9,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'TenantStorage';
+
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {
     // Debug
@@ -39,7 +41,7 @@ export default class TenantStorage {
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'TenantStorage',
+        module: MODULE_NAME,
         method: 'saveTenant',
         message: 'Tenant has no ID and no Name'
       });

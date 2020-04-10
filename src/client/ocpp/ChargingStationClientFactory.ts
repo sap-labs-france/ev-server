@@ -6,6 +6,8 @@ import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
 
+const MODULE_NAME = 'ChargingStationClientFactory';
+
 export default class ChargingStationClientFactory {
   public static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
     let chargingClient = null;
@@ -34,7 +36,7 @@ export default class ChargingStationClientFactory {
     if (!chargingClient) {
       throw new BackendError({
         source: chargingStation.id,
-        module: 'ChargingStationClientFactory',
+        module: MODULE_NAME,
         method: 'getChargingStationClient',
         message: 'Client has not been found'
       });

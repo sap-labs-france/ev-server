@@ -39,6 +39,7 @@ import passwordGenerator = require('password-generator');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
+const MODULE_NAME = 'Utils';
 
 export default class Utils {
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
@@ -254,7 +255,7 @@ export default class Utils {
   //     user, actionOnUser, action,
   //     tenantID: tenantID,
   //     source: transaction.chargeBoxID,
-  //     module: 'Utils', method: 'pushTransactionToRevenueCloud',
+  //     module: MODULE_NAME, method: 'pushTransactionToRevenueCloud',
   //     message: `Transaction ID '${transaction.id}' has been refunded successfully`,
   //     detailedMessages: { data: result.data }
   //   });
@@ -289,7 +290,7 @@ export default class Utils {
     if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
       throw new BackendError({
         source: headers.chargeBoxIdentity,
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'normalizeAndCheckSOAPParams',
         message: 'The Charging Station ID is invalid'
       });
@@ -307,7 +308,7 @@ export default class Utils {
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkTenant',
         message: 'The Tenant ID is mandatory'
       });
@@ -321,7 +322,7 @@ export default class Utils {
       if (!ObjectID.isValid(tenantID)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Utils',
+          module: MODULE_NAME,
           method: 'checkTenant',
           message: `Invalid Tenant ID '${tenantID}'`
         });
@@ -331,7 +332,7 @@ export default class Utils {
       if (!tenant) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Utils',
+          module: MODULE_NAME,
           method: 'checkTenant',
           message: `Invalid Tenant ID '${tenantID}'`
         });
@@ -781,7 +782,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint ID is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid'
       });
     }
@@ -790,7 +791,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint name is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
       });
@@ -800,7 +801,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint role is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
       });
@@ -810,7 +811,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint base URL is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
       });
@@ -820,7 +821,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint local token is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
       });
@@ -830,7 +831,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The OCPI Endpoint token is mandatory',
-        module: 'Utils',
+        module: MODULE_NAME,
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
       });
@@ -844,7 +845,7 @@ export default class Utils {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -856,7 +857,7 @@ export default class Utils {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -866,7 +867,7 @@ export default class Utils {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile\'s Schedule',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -876,7 +877,7 @@ export default class Utils {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -886,7 +887,7 @@ export default class Utils {
     //     action: Action.CHARGING_PROFILE_UPDATE,
     //     errorCode: HTTPError.GENERAL_ERROR,
     //     message: 'Charging Profile\'s start date must not be in the past',
-    //     module: 'Utils', method: 'checkIfChargingProfileIsValid',
+    //     module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
     //     user: req.user.id
     //   });
     // }
@@ -899,7 +900,7 @@ export default class Utils {
         action: Action.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule should not exeed 24 hours',
-        module: 'Utils', method: 'checkIfChargingProfileIsValid',
+        module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
         user: req.user.id
       });
     }
@@ -911,7 +912,7 @@ export default class Utils {
           action: Action.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
-          module: 'Utils', method: 'checkIfChargingProfileIsValid',
+          module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
           user: req.user.id,
           detailedMessages: { chargingSchedulePeriod }
         });
@@ -925,7 +926,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: '_checkIfSiteValid',
         user: req.user.id
       });
@@ -935,7 +936,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: '_checkIfSiteValid',
         user: req.user.id
       });
@@ -945,7 +946,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: '_checkIfSiteValid',
         user: req.user.id
       });
@@ -958,7 +959,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: '_checkIfSiteAreaValid',
         user: req.user.id
       });
@@ -968,7 +969,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: '_checkIfSiteAreaValid',
         user: req.user.id
       });
@@ -978,7 +979,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: '_checkIfSiteAreaValid',
         user: req.user.id
       });
@@ -990,7 +991,7 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-          module: 'SiteAreaService',
+          module: MODULE_NAME,
           method: '_checkIfSiteAreaValid',
           user: req.user.id
         });
@@ -1004,7 +1005,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory',
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'checkIfCompanyValid',
         user: req.user.id
       });
@@ -1014,7 +1015,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company Name is mandatory',
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'checkIfCompanyValid',
         user: req.user.id
       });
@@ -1032,7 +1033,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Building ID is mandatory',
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'checkIfBuildingValid',
         user: req.user.id
       });
@@ -1042,7 +1043,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Building Name is mandatory',
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'checkIfBuildingValid',
         user: req.user.id
       });
@@ -1052,7 +1053,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Building Site Area is mandatory',
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'checkIfBuildingValid',
         user: req.user.id
       });
@@ -1071,7 +1072,7 @@ export default class Utils {
               source: Constants.CENTRAL_SERVER,
               errorCode: HTTPError.USER_TAG_ID_ALREADY_USED_ERROR,
               message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-              module: 'Utils',
+              module: MODULE_NAME,
               method: 'checkIfUserTagsAreValid',
               user: req.user.id
             });
@@ -1088,7 +1089,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Tenant is mandatory',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id
       });
@@ -1099,7 +1100,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID is mandatory',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id
       });
@@ -1122,7 +1123,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1134,7 +1135,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User cannot have the Super Admin role in this Tenant',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1147,7 +1148,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1158,7 +1159,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Last Name is mandatory',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1169,7 +1170,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Email is mandatory',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1180,7 +1181,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Email ${filteredRequest.email} is not valid`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1191,7 +1192,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User Password is not valid',
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1202,7 +1203,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Phone ${filteredRequest.phone} is not valid`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1213,7 +1214,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Mobile ${filteredRequest.mobile} is not valid`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id
@@ -1225,7 +1226,7 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `User Tags ${filteredRequest.tags} is/are not valid`,
-          module: 'UserService',
+          module: MODULE_NAME,
           method: 'checkIfUserValid',
           user: req.user.id,
           actionOnUser: filteredRequest.id
@@ -1237,7 +1238,7 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User Plate ID ${filteredRequest.plateID} is not valid`,
-        module: 'UserService',
+        module: MODULE_NAME,
         method: 'checkIfUserValid',
         user: req.user.id,
         actionOnUser: filteredRequest.id

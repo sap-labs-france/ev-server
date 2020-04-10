@@ -2,9 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import { ActionsResponse } from '../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
@@ -14,7 +17,8 @@ import Utils from '../../../utils/Utils';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import UtilsService from './UtilsService';
-import { ActionsResponse } from '../../../types/GlobalType';
+
+const MODULE_NAME = 'SiteAreaService';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -37,7 +41,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleDeleteSiteArea',
         value: siteAreaID
       });
@@ -47,7 +51,7 @@ export default class SiteAreaService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteSiteArea',
       message: `Site Area '${siteArea.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { siteArea }
@@ -79,7 +83,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteArea',
         value: filteredRequest.ID
       });
@@ -111,7 +115,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreaImage',
         value: siteAreaID
       });
@@ -136,7 +140,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.SITE_AREAS,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreas'
       });
     }
@@ -177,7 +181,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleCreateSiteArea'
       });
     }
@@ -196,7 +200,7 @@ export default class SiteAreaService {
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
       action: action,
       detailedMessages: { siteArea: newSiteArea }
@@ -223,7 +227,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteArea',
         value: filteredRequest.id
       });
@@ -241,7 +245,9 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
-      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(req.user.tenantID, siteArea, req.user);
+      actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
+        req.user.tenantID, siteArea,
+        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -250,10 +256,30 @@ export default class SiteAreaService {
     siteArea.lastChangedOn = new Date();
     // Update Site Area
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
+    // Regtrigger Smart Charging
+    if (siteArea.maximumPower !== filteredRequest.maximumPower && filteredRequest.smartCharging) {
+      setTimeout(async () => {
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          }
+        } catch (error) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'handleUpdateSiteArea',
+            action: Action.UPDATE,
+            message: `An error occurred while trying to call smart charging`,
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteArea',
       message: `Site Area '${siteArea.name}' has been updated successfully`,
       action: action,
       detailedMessages: { siteArea }
@@ -264,7 +290,7 @@ export default class SiteAreaService {
         action: action,
         errorCode: HTTPError.CLEAR_CHARGING_PROFILE_NOT_SUCCESSFUL,
         message: 'Error occurred while clearing Charging Profiles for Site Area',
-        module: 'SiteAreaService', method: 'handleUpdateSiteArea',
+        module: MODULE_NAME, method: 'handleUpdateSiteArea',
         user: req.user, actionOnUser: req.user
       });
     }

@@ -4,7 +4,7 @@ import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { Action } from '../../types/Authorization';
-import { ChargingProfile } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
@@ -18,6 +18,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+
+const MODULE_NAME = 'ChargingStationStorage';
 
 export default class ChargingStationStorage {
 
@@ -35,7 +37,7 @@ export default class ChargingStationStorage {
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATE, error);
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
       }
     }
     // Debug
@@ -367,7 +369,7 @@ export default class ChargingStationStorage {
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), TenantComponents.ORGANIZATION) && params.errorType.includes(ChargingStationInErrorType.MISSING_SITE_AREA)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'ChargingStationStorage',
+          module: MODULE_NAME,
           method: 'getChargingStationsInError',
           message: 'Organization is not active whereas filter is on missing site.'
         });
@@ -697,6 +699,7 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -712,11 +715,21 @@ export default class ChargingStationStorage {
     if (params.chargingProfileID) {
       filters._id = params.chargingProfileID;
     } else {
+      // Charger
       if (params.chargingStationID) {
         filters.chargingStationID = params.chargingStationID;
       }
+      // Connector
       if (params.connectorID) {
         filters.connectorID = params.connectorID;
+      }
+      // Purpose Type
+      if (params.profilePurposeType) {
+        filters['profile.chargingProfilePurpose'] = params.profilePurposeType;
+      }
+      // Transaction ID
+      if (params.transactionId) {
+        filters['profile.transactionId'] = params.transactionId;
       }
     }
     // Create Aggregation
