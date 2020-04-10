@@ -326,7 +326,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       for (let i = Math.floor(currentTimeMinutes / 15); i < Math.floor(currentTimeMinutes / 15) + 3; i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlot * 15 * 60,
-          limit: car.currentPlan[i] * 3
+          limit: Math.trunc(car.currentPlan[i] * 3)
         });
         currentTimeSlot++;
       }
@@ -357,7 +357,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       };
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
-        id: car.name,
         chargingStationID: chargingStationId,
         connectorID: connectorId,
         profile: profile
