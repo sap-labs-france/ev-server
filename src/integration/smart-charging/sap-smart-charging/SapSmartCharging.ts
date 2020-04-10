@@ -261,8 +261,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       id: connectorIndex,
       timestampArrival: 0,
       carType: 'BEV',
-      maxCapacity: 75 * 1000 / 230, // Not usable on DC chargers?
-      minLoadingState: 75 * 1000 / 230 * 0.5,
+      maxCapacity: 100 * 1000 / 230, // Not usable on DC chargers?
+      minLoadingState: 100 * 1000 / 230 * 0.5,
       startCapacity: 0,
       minCurrent: 0,
       minCurrentPerPhase: 0,
