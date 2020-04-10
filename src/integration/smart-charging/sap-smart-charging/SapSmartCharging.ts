@@ -71,7 +71,13 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const currentTimeSeconds = moment().diff(mmtMidnight, 'seconds');
     // Get the Charging Stations of the site area with status charging and preparing
     const chargingStations = await ChargingStationStorage.getChargingStations(this.tenantID,
-      { siteAreaIDs: [siteArea.id], connectorStatuses: [ChargePointStatus.PREPARING, ChargePointStatus.CHARGING] }, Constants.DB_PARAMS_MAX_LIMIT);
+      { siteAreaIDs: [siteArea.id], connectorStatuses: [
+        ChargePointStatus.PREPARING,
+        ChargePointStatus.CHARGING,
+        ChargePointStatus.SUSPENDED_EV,
+        ChargePointStatus.SUSPENDED_EVSE,
+        ChargePointStatus.OCCUPIED,
+      ] }, Constants.DB_PARAMS_MAX_LIMIT);
     siteArea.chargingStations = chargingStations.result;
     try {
       const request = this.buildRequest(siteArea, currentTimeSeconds);
