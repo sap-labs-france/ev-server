@@ -5,7 +5,7 @@ import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
 import DbParams from '../../types/database/DbParams';
-import { DataResult, ImageResult } from '../../types/DataResult';
+import { DataResult, Image } from '../../types/DataResult';
 import Eula from '../../types/Eula';
 import global from '../../types/GlobalType';
 import { UserInError, UserInErrorType } from '../../types/InError';
@@ -27,7 +27,7 @@ const MODULE_NAME = 'UserStorage';
 export default class UserStorage {
   public static async getEndUserLicenseAgreement(tenantID: string, language = 'en'): Promise<Eula> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getEndUserLicenseAgreement');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     let languageFound = false;
@@ -69,11 +69,11 @@ export default class UserStorage {
         await global.database.getCollection<Eula>(tenantID, 'eulas')
           .insertOne(eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
+        Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, { language });
         return eula;
       }
       // Debug
-      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
+      Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, { language });
       return eulaMDB;
     }
     // Create Default
@@ -87,7 +87,7 @@ export default class UserStorage {
     // Create
     await global.database.getCollection<Eula>(tenantID, 'eulas').insertOne(eula);
     // Debug
-    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
+    Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreement', uniqueTimerID, { language });
     // Return
     return eula;
   }
@@ -98,11 +98,11 @@ export default class UserStorage {
       return null;
     }
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByTagId');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByTagId');
     // Get user
     const user = await UserStorage.getUsers(tenantID, { tagID: tagID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
+    Logging.traceEnd(MODULE_NAME, 'getUserByTagId', uniqueTimerID, { tagID });
     return user.count > 0 ? user.result[0] : null;
   }
 
@@ -112,54 +112,54 @@ export default class UserStorage {
       return null;
     }
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByEmail');
     // Get user
     const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
+    Logging.traceEnd(MODULE_NAME, 'getUserByEmail', uniqueTimerID, { email });
     return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string): Promise<User> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByPasswordResetHash');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByPasswordResetHash');
     // Get user
     const user = await UserStorage.getUsers(tenantID, { passwordResetHash: passwordResetHash }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
+    Logging.traceEnd(MODULE_NAME, 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
     return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUser(tenantID: string, id: string): Promise<User> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
     const user = await UserStorage.getUsers(tenantID, { userID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUserByBillingID(tenantID: string, billingID: string): Promise<User> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByBillingID');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByBillingID');
     // Get user
     const user = await UserStorage.getUsers(tenantID, { billingCustomer: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
+    Logging.traceEnd(MODULE_NAME, 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
     return user.count > 0 ? user.result[0] : null;
   }
 
-  public static async getUserImage(tenantID: string, id: string): Promise<ImageResult> {
+  public static async getUserImage(tenantID: string, id: string): Promise<Image> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const userImageMDB: { _id: string; image: string } = await global.database.getCollection(tenantID, 'userimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getUserImage', uniqueTimerID, { id });
     return {
       id: id, image: (userImageMDB ? userImageMDB.image : null)
     };
@@ -167,7 +167,7 @@ export default class UserStorage {
 
   public static async removeSitesFromUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'removeSitesFromUser');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeSitesFromUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -182,12 +182,12 @@ export default class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID, { userID, siteIDs });
+    Logging.traceEnd(MODULE_NAME, 'removeSitesFromUser', uniqueTimerID, { userID, siteIDs });
   }
 
   public static async addSitesToUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'addSitesToUser');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addSitesToUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -210,12 +210,12 @@ export default class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
+    Logging.traceEnd(MODULE_NAME, 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
   }
 
   public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage = false): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUser');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID or email is provided
@@ -281,13 +281,13 @@ export default class UserStorage {
       await UserStorage.saveUserImage(tenantID, userMDB._id.toHexString(), userToSave.image);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveUser', uniqueTimerID, { userToSave });
     return userMDB._id.toHexString();
   }
 
   public static async saveUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const tagMDB = {
@@ -309,12 +309,12 @@ export default class UserStorage {
       { $set: tagMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'saveUserTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async deleteUserTag(tenantID: string, userID: string, tag: Tag): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUserTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUserTag');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete
@@ -324,7 +324,7 @@ export default class UserStorage {
         'userID': Utils.convertToObjectID(userID)
       });
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
+    Logging.traceEnd(MODULE_NAME, 'deleteUserTag', uniqueTimerID, { id: userID, tag: tag });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
@@ -333,7 +333,7 @@ export default class UserStorage {
       passwordBlockedUntil?: Date;
     }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserPassword');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -341,12 +341,12 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserPassword', uniqueTimerID);
   }
 
   public static async saveUserStatus(tenantID: string, userID: string, status: UserStatus): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserStatus');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserStatus');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -354,13 +354,13 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { status } });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserStatus', uniqueTimerID);
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
     params: { mobileToken: string; mobileOs: string; mobileLastChangedOn: Date }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserMobileToken');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -368,12 +368,12 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserMobileToken', uniqueTimerID);
   }
 
   public static async saveUserRole(tenantID: string, userID: string, role: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserRole');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -381,13 +381,13 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { role } });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserRole', uniqueTimerID);
   }
 
   public static async saveUserEULA(tenantID: string, userID: string,
     params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserRole');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -395,13 +395,13 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserRole', uniqueTimerID);
   }
 
   public static async saveUserAccountVerification(tenantID: string, userID: string,
     params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAccountVerification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserAccountVerification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
@@ -409,13 +409,13 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserAccountVerification', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserAccountVerification', uniqueTimerID);
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
     params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserAdminData');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
@@ -435,13 +435,13 @@ export default class UserStorage {
       { '_id': Utils.convertToObjectID(userID) },
       { $set: updatedUserMDB });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveUserAdminData', uniqueTimerID);
   }
 
   public static async saveUserBillingData(tenantID: string, userID: string,
     billingData: BillingUserData): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserBillingData');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserBillingData');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
@@ -472,13 +472,13 @@ export default class UserStorage {
         { '_id': Utils.convertToObjectID(userID) },
         { $set: updatedUserMDB });
       // Debug
-      Logging.traceEnd('UserStorage', 'saveUserBillingData', uniqueTimerID);
+      Logging.traceEnd(MODULE_NAME, 'saveUserBillingData', uniqueTimerID);
     }
   }
 
   public static async saveUserImage(tenantID: string, userID: string, userImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserImage');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -497,7 +497,7 @@ export default class UserStorage {
       { $set: { image: userImageToSave } },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userID });
+    Logging.traceEnd(MODULE_NAME, 'saveUserImage', uniqueTimerID, { userID });
   }
 
   public static async getUsers(tenantID: string,
@@ -509,7 +509,7 @@ export default class UserStorage {
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -712,7 +712,7 @@ export default class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, {
       params,
       limit,
       skip,
@@ -728,16 +728,16 @@ export default class UserStorage {
 
   public static async getTag(tenantID: string, id: string): Promise<Tag> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getTag');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTag');
     // Get tag
     const tag = await UserStorage.getTags(tenantID, { tagID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getTag', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getTag', uniqueTimerID, { id });
     return tag.count > 0 ? tag.result[0] : null;
   }
 
   public static async getTags(tenantID: string, params: { issuer?: boolean; tagID?: string; userID?: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -828,7 +828,7 @@ export default class UserStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd('UserStorage', 'getTags', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getTags', uniqueTimerID);
     // Ok
     return {
       count: (tagsCountMDB.length > 0 ?
@@ -841,7 +841,7 @@ export default class UserStorage {
     params: { search?: string; roles?: string[]; errorTypes?: string[] },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserInError>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -947,7 +947,7 @@ export default class UserStorage {
       delete (userMDB as any).sites;
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, {
       params,
       limit,
       skip,
@@ -963,7 +963,7 @@ export default class UserStorage {
 
   public static async deleteUser(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete User from sites
@@ -979,14 +979,14 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'users')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteUser', uniqueTimerID, { id });
   }
 
   public static async getSites(tenantID: string,
     params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -1088,7 +1088,7 @@ export default class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });
+    Logging.traceEnd(MODULE_NAME, 'UserStorage', uniqueTimerID, { userID: params.userID });
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
@@ -1193,7 +1193,7 @@ export default class UserStorage {
   private static getEndUserLicenseAgreementFromFile(language = 'en'): string {
     const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreementFromFile');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getEndUserLicenseAgreementFromFile');
     let eulaText = null;
     try {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
@@ -1211,7 +1211,7 @@ export default class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
+    Logging.traceEnd(MODULE_NAME, 'getEndUserLicenseAgreementFromFile', uniqueTimerID, { language });
     return eulaText;
   }
 }

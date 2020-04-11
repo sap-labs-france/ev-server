@@ -1,9 +1,10 @@
-import Axios from 'axios';
+import { default as Axios, default as axios } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 import { Car, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import CarDatabase from '../CarDatabase';
 
 const MODULE_NAME = 'EVDabaseCar';
@@ -195,11 +196,62 @@ export default class EVDabaseCar extends CarDatabase {
         euroNCAPSA: data.EuroNCAP_SA,
         relatedVehicleIDSuccesor: data.Related_Vehicle_ID_Succesor,
         eVDBDetailURL: data.EVDB_Detail_URL,
-        images: data.Images,
+        imageURLs: data.Images,
+        images: [],
         videos: data.Videos,
       };
       cars.push(car);
     }
     return cars;
+  }
+
+  public async getCarThumb(car: Car): Promise<string> {
+    let image: string;
+    // Create the car thumb using the first image URL
+    if (car.imageURLs && car.imageURLs.length > 0) {
+      try {
+        const imageURL = this.convertToThumbImage(car.imageURLs[0]);
+        const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
+        const base64Image = Buffer.from(response.data).toString('base64');
+        image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+      } catch (error) {
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_CARS,
+          module: MODULE_NAME, method: 'getCarThumb',
+          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} - Cannot retrieve image from URL '${car.imageURLs[0]}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    return image;
+  }
+
+  public async getCarImages(car: Car): Promise<string[]> {
+    const images: string[] = [];
+    // Retrieve all images
+    for (const imageURL of car.imageURLs) {
+      try {
+        const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
+        const base64Image = Buffer.from(response.data).toString('base64');
+        const encodedImage = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
+        images.push(encodedImage);
+      } catch (error) {
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          source: Constants.CENTRAL_SERVER,
+          action: Action.SYNCHRONIZE_CARS,
+          module: MODULE_NAME, method: 'getCarImages',
+          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    return images;
+  }
+
+  private convertToThumbImage(image: string): string {
+    return [image.slice(0, image.length - 7), '-thumb', image.slice(image.length - 7)].join('');
   }
 }

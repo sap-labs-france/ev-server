@@ -107,12 +107,13 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarImagesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.CarID, 'CarService', 'handleGetCarImages', req.user);
-
     // Get the car
-    const car = await CarStorage.getCarImages({ carID: filteredRequest.CarID }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip });
-
+    const carImages = await CarStorage.getCarImages(
+      { carID: filteredRequest.CarID },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
+    );
     // Return
-    res.json(car);
+    res.json(carImages);
     next();
   }
 

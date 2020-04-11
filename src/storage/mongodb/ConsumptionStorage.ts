@@ -4,10 +4,12 @@ import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
+const MODULE_NAME = 'ConsumptionStorage';
+
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID: string, consumptionToSave: Consumption): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'saveConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveConsumption');
     // Check
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -48,26 +50,26 @@ export default class ConsumptionStorage {
       { $set: consumptionMDB },
       { upsert: true });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
     // Return
     return consumptionMDB._id;
   }
 
   static async deleteConsumptions(tenantID: string, transactionIDs: number[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'deleteConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // DeleFte
     await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': { $in: transactionIDs } });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionIDs });
+    Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
   static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getConsumption');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -134,7 +136,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(MODULE_NAME, 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
   }
 }
