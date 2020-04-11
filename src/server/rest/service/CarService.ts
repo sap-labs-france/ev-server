@@ -10,6 +10,7 @@ import CarStorage from '../../../storage/mongodb/CarStorage';
 import Constants from '../../../utils/Constants';
 import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 import BackendError from '../../../exception/AppError';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'CarService';
 
@@ -109,7 +110,7 @@ export default class CarService {
     UtilsService.assertIdIsProvided(action, filteredRequest.CarID, 'CarService', 'handleGetCarImages', req.user);
     // Get the car
     const carImages = await CarStorage.getCarImages(
-      { carID: filteredRequest.CarID },
+      filteredRequest.CarID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
     // Return
