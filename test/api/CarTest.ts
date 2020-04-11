@@ -97,7 +97,7 @@ describe('Car Service', function() {
         it('Should not be able to get car debug object', async () => {
           const response = await testData.centralService.carApi.readById(carID);
           expect(response.status).to.equal(200);
-          expect(response.data).to.not.have.property('carObject');
+          expect(response.data).to.not.have.property('hash');
         });
       });
     });
@@ -126,7 +126,7 @@ describe('Car Service', function() {
       it('Should be able to get car debug object', async () => {
         const response = await testData.centralService.carApiSuperTenant.readById(carID);
         expect(response.status).to.equal(200);
-        expect(response.data).to.have.property('carObject');
+        expect(response.data).to.have.property('hash');
       });
 
       it('Should be able to get cars', async () => {

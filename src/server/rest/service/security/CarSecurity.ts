@@ -82,12 +82,12 @@ export default class CarSecurity {
         miscTurningCircle: car.miscTurningCircle,
         miscSegment: car.miscSegment,
         miscIsofixSeats: car.miscIsofixSeats,
-        chargeStandardTables: car.chargeStandardTables
+        chargeStandardTables: car.chargeStandardTables,
+        image: car.image,
       } as Car;
     }
     // Created By / Last Changed By
-    UtilsSecurity.filterCreatedAndLastChanged(
-      filteredCar, car, loggedUser);
+    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
   }
 
