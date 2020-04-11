@@ -8,12 +8,14 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'BuildingStorage';
+
 export default class BuildingStorage {
 
   public static async getBuilding(tenantID: string, id: string,
     params: { withSiteArea?: boolean} = {}): Promise<Building> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuilding');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBuilding');
     // Reuse
     const buildingsMDB = await BuildingStorage.getBuildings(
       tenantID,
@@ -29,7 +31,7 @@ export default class BuildingStorage {
       building = buildingsMDB.result[0];
     }
     // Debug
-    Logging.traceEnd('BuildingStorage', 'getBuilding', uniqueTimerID,
+    Logging.traceEnd(MODULE_NAME, 'getBuilding', uniqueTimerID,
       {
         id,
         withSiteArea: params.withSiteArea
@@ -39,14 +41,14 @@ export default class BuildingStorage {
 
   public static async getBuildingImage(tenantID: string, id: string): Promise<{ id: string; image: string }> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildingImage');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBuildingImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const buildingImageMDB = await global.database.getCollection<{ _id: ObjectID; image: string }>(tenantID, 'buildingimages')
       .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('BuildingStorage', 'getBuildingImage', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getBuildingImage', uniqueTimerID, { id });
     return {
       id: id,
       image: buildingImageMDB ? buildingImageMDB.image : null
@@ -55,7 +57,7 @@ export default class BuildingStorage {
 
   public static async saveBuilding(tenantID: string, buildingToSave: Building, saveImage = true): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'saveBuilding');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBuilding');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -81,7 +83,7 @@ export default class BuildingStorage {
       await BuildingStorage._saveBuildingImage(tenantID, buildingMDB._id.toHexString(), buildingToSave.image);
     }
     // Debug
-    Logging.traceEnd('BuildingStorage', 'saveBuilding', uniqueTimerID, { buildingToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveBuilding', uniqueTimerID, { buildingToSave });
     return buildingMDB._id.toHexString();
   }
 
@@ -90,7 +92,7 @@ export default class BuildingStorage {
       withNoSiteArea?: boolean; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Building>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'getBuildings');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBuildings');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -196,7 +198,7 @@ export default class BuildingStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd('BuildingStorage', 'getBuildings', uniqueTimerID,
+    Logging.traceEnd(MODULE_NAME, 'getBuildings', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
@@ -208,7 +210,7 @@ export default class BuildingStorage {
 
   public static async deleteBuilding(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'deleteBuilding');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteBuilding');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete the Building
@@ -218,12 +220,12 @@ export default class BuildingStorage {
     await global.database.getCollection<any>(tenantID, 'buildingimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('BuildingStorage', 'deleteBuilding', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteBuilding', uniqueTimerID, { id });
   }
 
   public static async addBuildingsToSiteArea(tenantID: string, siteAreaID: string, buildingIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'addBuildingsToSiteArea');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addBuildingsToSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site Area provided?
@@ -243,7 +245,7 @@ export default class BuildingStorage {
       }
     }
     // Debug
-    Logging.traceEnd('BuildingStorage', 'addBuildingsToSiteArea', uniqueTimerID, {
+    Logging.traceEnd(MODULE_NAME, 'addBuildingsToSiteArea', uniqueTimerID, {
       siteAreaID,
       buildingIDs
     });
@@ -251,7 +253,7 @@ export default class BuildingStorage {
 
   public static async removeBuildingsFromSiteArea(tenantID: string, siteAreaID: string, buildingIDs: string[]): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'removeBuildingsFromSiteArea');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeBuildingsFromSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Site Area provided?
@@ -272,7 +274,7 @@ export default class BuildingStorage {
       }
     }
     // Debug
-    Logging.traceEnd('BuildingStorage', 'removeBuildingsFromSiteArea', uniqueTimerID, {
+    Logging.traceEnd(MODULE_NAME, 'removeBuildingsFromSiteArea', uniqueTimerID, {
       siteAreaID,
       buildingIDs
     });
@@ -280,7 +282,7 @@ export default class BuildingStorage {
 
   private static async _saveBuildingImage(tenantID: string, buildingID: string, buildingImageToSave: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('BuildingStorage', 'saveBuildingImage');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBuildingImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -289,6 +291,6 @@ export default class BuildingStorage {
       { $set: { image: buildingImageToSave } },
       { upsert: true });
     // Debug
-    Logging.traceEnd('BuildingStorage', 'saveBuildingImage', uniqueTimerID, {});
+    Logging.traceEnd(MODULE_NAME, 'saveBuildingImage', uniqueTimerID, {});
   }
 }

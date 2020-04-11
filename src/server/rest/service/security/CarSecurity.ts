@@ -1,8 +1,7 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarByIDRequest, HttpCarImagesRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
@@ -28,10 +27,19 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarRequest(request: any): HttpByIDRequest {
-    const filteredRequest: HttpByIDRequest = {
-      ID: sanitize(request.CarID),
-    } as HttpByIDRequest;
+  public static filterCarImagesRequest(request: any): HttpCarImagesRequest {
+    const filteredRequest: HttpCarImagesRequest = {
+      CarID: sanitize(request.CarID),
+    } as HttpCarImagesRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  public static filterCarRequest(request: any): HttpCarByIDRequest {
+    const filteredRequest: HttpCarByIDRequest = {
+      ID: +sanitize(request.CarID),
+    } as HttpCarByIDRequest;
     return filteredRequest;
   }
 
@@ -57,7 +65,6 @@ export default class CarSecurity {
         rangeReal: car.rangeReal,
         rangeWLTP: car.rangeWLTP,
         efficiencyReal: car.efficiencyReal,
-        images: car.images,
         chargeStandardChargeSpeed: car.chargeStandardChargeSpeed,
         drivetrainPropulsion: car.drivetrainPropulsion,
         drivetrainTorque: car.drivetrainTorque,
@@ -132,7 +139,7 @@ export default class CarSecurity {
           rangeReal: car.rangeReal,
           rangeWLTP: car.rangeWLTP,
           efficiencyReal: car.efficiencyReal,
-          images: car.images,
+          image: car.image,
           chargeStandardChargeSpeed: car.chargeStandardChargeSpeed
         });
       }
