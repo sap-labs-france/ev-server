@@ -28,5 +28,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building and pushing the Docker image...
-      - make DOCKER_ECR_REGION=$AWS_DEFAULT_REGION server-standalone-docker-ecr-push
-      - echo Build finished on `date`
+      - make DOCKER_ECR_ACCOUNT_ID=$AWS_ACCOUNT_ID DOCKER_ECR_REGION=$AWS_DEFAULT_REGION DOCKER_ECR_REGISTRY_NAME=$IMAGE_REPO_NAME DOCKER_ECR_TAG=$IMAGE_TAG server-standalone-docker-push-ecr
+  post_build:
+    commands:
+      - echo Build and push completed on `date`
