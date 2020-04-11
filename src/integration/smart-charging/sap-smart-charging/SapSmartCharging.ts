@@ -71,7 +71,13 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const currentTimeSeconds = moment().diff(mmtMidnight, 'seconds');
     // Get the Charging Stations of the site area with status charging and preparing
     const chargingStations = await ChargingStationStorage.getChargingStations(this.tenantID,
-      { siteAreaIDs: [siteArea.id], connectorStatuses: [ChargePointStatus.PREPARING, ChargePointStatus.CHARGING] }, Constants.DB_PARAMS_MAX_LIMIT);
+      { siteAreaIDs: [siteArea.id], connectorStatuses: [
+        ChargePointStatus.PREPARING,
+        ChargePointStatus.CHARGING,
+        ChargePointStatus.SUSPENDED_EV,
+        ChargePointStatus.SUSPENDED_EVSE,
+        ChargePointStatus.OCCUPIED,
+      ] }, Constants.DB_PARAMS_MAX_LIMIT);
     siteArea.chargingStations = chargingStations.result;
     try {
       const request = this.buildRequest(siteArea, currentTimeSeconds);
@@ -255,8 +261,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       id: connectorIndex,
       timestampArrival: 0,
       carType: 'BEV',
-      maxCapacity: 75 * 1000 / 230, // Not usable on DC chargers?
-      minLoadingState: 75 * 1000 / 230 * 0.5,
+      maxCapacity: 100 * 1000 / 230, // Not usable on DC chargers?
+      minLoadingState: 100 * 1000 / 230 * 0.5,
       startCapacity: 0,
       minCurrent: 0,
       minCurrentPerPhase: 0,
@@ -326,7 +332,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       for (let i = Math.floor(currentTimeMinutes / 15); i < Math.floor(currentTimeMinutes / 15) + 3; i++) {
         chargingSchedule.chargingSchedulePeriod.push({
           startPeriod: currentTimeSlot * 15 * 60,
-          limit: car.currentPlan[i] * 3
+          limit: Math.trunc(car.currentPlan[i] * 3)
         });
         currentTimeSlot++;
       }
@@ -357,7 +363,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       };
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
-        id: car.name,
         chargingStationID: chargingStationId,
         connectorID: connectorId,
         profile: profile
