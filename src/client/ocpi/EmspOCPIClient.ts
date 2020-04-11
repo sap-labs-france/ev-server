@@ -1,37 +1,42 @@
-import OCPIClient from './OCPIClient';
-import Tenant from '../../types/Tenant';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import Constants from '../../utils/Constants';
-import { OcpiSetting } from '../../types/Setting';
-import Logging from '../../utils/Logging';
 import axios from 'axios';
 import _ from 'lodash';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
-import { OCPILocation } from '../../types/ocpi/OCPILocation';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import CompanyStorage from '../../storage/mongodb/CompanyStorage';
-import Company from '../../types/Company';
-import Site from '../../types/Site';
-import SiteArea from '../../types/SiteArea';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import moment from 'moment';
+import BackendError from '../../exception/BackendError';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
-import Transaction from '../../types/Transaction';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import { Action } from '../../types/Authorization';
+import Company from '../../types/Company';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { OcpiSetting } from '../../types/Setting';
+import Site from '../../types/Site';
+import SiteArea from '../../types/SiteArea';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import OCPIClient from './OCPIClient';
+
+const MODULE_NAME = 'EmspOCPIClient';
 
 export default class EmspOCPIClient extends OCPIClient {
   constructor(tenant: Tenant, settings: OcpiSetting, ocpiEndpoint: OCPIEndpoint) {
     super(tenant, settings, ocpiEndpoint, OCPIRole.EMSP);
-
     if (ocpiEndpoint.role !== OCPIRole.EMSP) {
-      throw new Error(`EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`);
+      throw new BackendError({
+        message: `EmspOCPIClient requires Ocpi Endpoint with role ${OCPIRole.EMSP}`,
+        module: MODULE_NAME, method: 'constructor',
+      });
     }
   }
 
@@ -45,13 +50,10 @@ export default class EmspOCPIClient extends OCPIClient {
       tokenIDsInFailure: [],
       tokenIDsInSuccess: []
     };
-
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
-
     // Get all tokens
     const tokensResult = await OCPIMapping.getAllTokens(this.tenant, 0, 0);
-
     for (const token of tokensResult.result) {
       sendResult.total++;
       try {
@@ -69,7 +71,6 @@ export default class EmspOCPIClient extends OCPIClient {
         );
       }
     }
-
     // Log error if any
     if (sendResult.failure > 0) {
       // Log error if failure
@@ -78,9 +79,7 @@ export default class EmspOCPIClient extends OCPIClient {
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done with errors (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'sendTokens'
+        module: MODULE_NAME, method: 'sendTokens'
       });
     } else if (sendResult.success > 0) {
       // Log info
@@ -89,15 +88,11 @@ export default class EmspOCPIClient extends OCPIClient {
         action: Action.OCPI_PUSH_TOKENS,
         message: `Patching of ${sendResult.logs.length} tokens has been done successfully (see details)`,
         detailedMessages: { logs: sendResult.logs },
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'sendTokens'
+        module: MODULE_NAME, method: 'sendTokens'
       });
     }
-
     // Save result in ocpi endpoint
     this.ocpiEndpoint.lastPatchJobOn = startDate;
-
     // Set result
     if (sendResult) {
       this.ocpiEndpoint.lastPatchJobResult = {
@@ -116,10 +111,8 @@ export default class EmspOCPIClient extends OCPIClient {
         'tokenIDsInSuccess': []
       };
     }
-
     // Save
     await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
-
     // Return result
     return sendResult;
   }
@@ -147,31 +140,25 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get locations endpoint url
-    let locationsUrl = this.getEndpointUrl('locations');
+    let locationsUrl = this.getEndpointUrl('locations', Action.OCPI_PULL_LOCATIONS);
     if (partial) {
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
       locationsUrl = `${locationsUrl}?date_from=${momentFrom.format()}&limit=5`;
     } else {
       locationsUrl = `${locationsUrl}?limit=5`;
     }
-
     const company = await this.getCompany();
     const sites = await SiteStorage.getSites(this.tenant.id, { companyIDs: [company.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
-
     let nextResult = true;
-
     while (nextResult) {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_LOCATIONS,
         message: `Retrieve locations at ${locationsUrl}`,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'pullLocations'
+        module: MODULE_NAME, method: 'pullLocations'
       });
-
       // Call IOP
       const response = await axios.get(locationsUrl,
         {
@@ -180,15 +167,22 @@ export default class EmspOCPIClient extends OCPIClient {
           },
           timeout: 10000
         });
-
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get locations`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_LOCATIONS,
+          message: `Invalid response code ${response.status} from Get locations`,
+          module: MODULE_NAME, method: 'pullLocations',
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get locations: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_LOCATIONS,
+          message: 'Invalid response from Get locations',
+          module: MODULE_NAME, method: 'pullLocations',
+          detailedMessages: { response: response.data }
+        });
       }
-
       for (const location of response.data.data) {
         try {
           await this.processLocation(location, company, sites.result);
@@ -203,7 +197,6 @@ export default class EmspOCPIClient extends OCPIClient {
           );
         }
       }
-
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== locationsUrl) {
         locationsUrl = nextUrl;
@@ -223,23 +216,18 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get sessions endpoint url
-    let sessionsUrl = this.getEndpointUrl('sessions');
+    let sessionsUrl = this.getEndpointUrl('sessions', Action.OCPI_PULL_SESSIONS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     sessionsUrl = `${sessionsUrl}?date_from=${momentFrom.format()}&limit=20`;
-
     let nextResult = true;
-
     while (nextResult) {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_SESSIONS,
         message: `Retrieve sessions at ${sessionsUrl}`,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'pullSessions'
+        module: MODULE_NAME, method: 'pullSessions'
       });
-
       // Call IOP
       const response = await axios.get(sessionsUrl,
         {
@@ -248,18 +236,25 @@ export default class EmspOCPIClient extends OCPIClient {
           },
           timeout: 10000
         });
-
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get sessions`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_SESSIONS,
+          message: `Invalid response code ${response.status} from Get sessions`,
+          module: MODULE_NAME, method: 'pullSessions',
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get sessions: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_SESSIONS,
+          message: 'Invalid response from Get sessions',
+          module: MODULE_NAME, method: 'pullSessions',
+          detailedMessages: { response: response.data }
+        });
       }
-
       for (const session of response.data.data) {
         try {
-          await OCPISessionsService.updateSession(this.tenant.id, session);
+          await OCPISessionsService.updateTransaction(this.tenant.id, session);
           sendResult.success++;
           sendResult.logs.push(
             `Session ${session.id} successfully updated`
@@ -271,7 +266,6 @@ export default class EmspOCPIClient extends OCPIClient {
           );
         }
       }
-
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== sessionsUrl) {
         sessionsUrl = nextUrl;
@@ -292,23 +286,18 @@ export default class EmspOCPIClient extends OCPIClient {
       logs: []
     };
     // Get cdrs endpoint url
-    let cdrsUrl = this.getEndpointUrl('cdrs');
+    let cdrsUrl = this.getEndpointUrl('cdrs', Action.OCPI_PULL_CDRS);
     const momentFrom = moment().utc().subtract(2, 'days').startOf('day');
     cdrsUrl = `${cdrsUrl}?date_from=${momentFrom.format()}&limit=20`;
-
     let nextResult = true;
-
     while (nextResult) {
       // Log
       Logging.logDebug({
         tenantID: this.tenant.id,
         action: Action.OCPI_PULL_CDRS,
         message: `Retrieve cdrs at ${cdrsUrl}`,
-        source: 'OCPI Client',
-        module: 'OCPIClient',
-        method: 'pullCdrs'
+        module: MODULE_NAME, method: 'pullCdrs'
       });
-
       // Call IOP
       const response = await axios.get(cdrsUrl,
         {
@@ -317,39 +306,30 @@ export default class EmspOCPIClient extends OCPIClient {
           },
           timeout: 10000
         });
-
       // Check response
       if (response.status !== 200 || !response.data) {
-        throw new Error(`Invalid response code ${response.status} from Get cdrs`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_CDRS,
+          message: `Get cdrs failed with status ${response.status}`,
+          module: MODULE_NAME, method: 'pullCdrs',
+          detailedMessages: { response: response.data }
+        });
       }
       if (!response.data.data) {
-        throw new Error(`Invalid response from Get cdrs: ${JSON.stringify(response.data)}`);
+        throw new BackendError({
+          action: Action.OCPI_PULL_CDRS,
+          message: 'Invalid response from Get cdrs',
+          module: MODULE_NAME, method: 'pullCdrs',
+          detailedMessages: { response: response.data }
+        });
       }
-
       for (const cdr of response.data.data) {
         try {
-          const transaction: Transaction = await TransactionStorage.getOCPITransaction(this.tenant.id, cdr.id);
-
-          if (!transaction) {
-            Logging.logError({
-              tenantID: this.tenant.id,
-              action: Action.OCPI_PULL_CDRS,
-              message: `No transaction found for cdr with id ${cdr.id}`,
-              source: 'OCPI Client',
-              module: 'OCPIClient',
-              method: 'pullCdrs',
-              detailedMessages: { cdr },
-            });
-            sendResult.failure++;
-          }
-          if (!transaction.ocpiCdr) {
-            transaction.ocpiCdr = cdr;
-            await TransactionStorage.saveTransaction(this.tenant.id, transaction);
-            sendResult.success++;
-            sendResult.logs.push(
-              `Cdr ${cdr.id} successfully updated`
-            );
-          }
+          await OCPISessionsService.processCdr(this.tenant.id, cdr);
+          sendResult.success++;
+          sendResult.logs.push(
+            `Cdr ${cdr.id} successfully updated`
+          );
         } catch (error) {
           sendResult.failure++;
           sendResult.logs.push(
@@ -357,7 +337,6 @@ export default class EmspOCPIClient extends OCPIClient {
           );
         }
       }
-
       const nextUrl = OCPIUtils.getNextUrl(response.headers.link);
       if (nextUrl && nextUrl.length > 0 && nextUrl !== cdrsUrl) {
         cdrsUrl = nextUrl;
@@ -374,10 +353,8 @@ export default class EmspOCPIClient extends OCPIClient {
       tenantID: this.tenant.id,
       action: Action.OCPI_PULL_LOCATIONS,
       message: `Processing location ${location.name} with id ${location.id}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'processLocation',
-      detailedMessage: location
+      module: MODULE_NAME, method: 'processLocation',
+      detailedMessages: location
     });
     let site: Site;
     const siteName = location.operator && location.operator.name ? location.operator.name
@@ -403,11 +380,9 @@ export default class EmspOCPIClient extends OCPIClient {
           Number.parseFloat(location.coordinates.latitude)
         ];
       }
-
       site.id = await SiteStorage.saveSite(this.tenant.id, site, false);
       sites.push(site);
     }
-
     const locationName = site.name + '-' + location.id;
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.tenant.id, {
       siteIDs: [site.id],
@@ -435,10 +410,8 @@ export default class EmspOCPIClient extends OCPIClient {
           Number.parseFloat(location.coordinates.latitude)
         ];
       }
-
       siteArea.id = await SiteAreaStorage.saveSiteArea(this.tenant.id, siteArea, false);
     }
-
     if (location.evses && location.evses.length > 0) {
       for (const evse of location.evses) {
         const chargingStationId = OCPIUtils.buildChargingStationId(location.id, evse.uid);
@@ -447,20 +420,16 @@ export default class EmspOCPIClient extends OCPIClient {
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Missing evse uid of location ${location.name}`,
-            source: 'OCPI Client',
-            module: 'OCPIClient',
-            method: 'processLocation',
-            detailedMessage: location
+            module: MODULE_NAME, method: 'processLocation',
+            detailedMessages: location
           });
         } else if (evse.status === OCPIEvseStatus.REMOVED) {
           Logging.logDebug({
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Delete removed evse ${chargingStationId} of location ${location.name}`,
-            source: 'OCPI Client',
-            module: 'OCPIClient',
-            method: 'processLocation',
-            detailedMessage: location
+            module: MODULE_NAME, method: 'processLocation',
+            detailedMessages: location
           });
           await ChargingStationStorage.deleteChargingStation(this.tenant.id, chargingStationId);
         } else {
@@ -468,10 +437,8 @@ export default class EmspOCPIClient extends OCPIClient {
             tenantID: this.tenant.id,
             action: Action.OCPI_PULL_LOCATIONS,
             message: `Update evse ${chargingStationId} of location ${location.name}`,
-            source: 'OCPI Client',
-            module: 'OCPIClient',
-            method: 'processLocation',
-            detailedMessage: location
+            module: MODULE_NAME, method: 'processLocation',
+            detailedMessages: location
           });
           const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
           chargingStation.siteAreaID = siteArea.id;
@@ -483,26 +450,20 @@ export default class EmspOCPIClient extends OCPIClient {
 
   async pushToken(token: OCPIToken) {
     // Get tokens endpoint url
-    const tokensUrl = this.getEndpointUrl('tokens');
-
+    const tokensUrl = this.getEndpointUrl('tokens', Action.OCPI_PUSH_TOKENS);
     // Read configuration to retrieve
-    const countryCode = this.getLocalCountryCode();
-    const partyID = this.getLocalPartyID();
-
+    const countryCode = this.getLocalCountryCode(Action.OCPI_PUSH_TOKENS);
+    const partyID = this.getLocalPartyID(Action.OCPI_PUSH_TOKENS);
     // Build url to IOP
     const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${token.uid}`;
-
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: Action.OCPI_PUSH_TOKENS,
       message: `Put token at ${fullUrl}`,
-      source: 'OCPI Client',
-      module: 'OCPIClient',
-      method: 'pushToken',
+      module: MODULE_NAME, method: 'pushToken',
       detailedMessages: { token }
     });
-
     // Call IOP
     const response = await axios.put(fullUrl, token,
       {
@@ -512,19 +473,21 @@ export default class EmspOCPIClient extends OCPIClient {
         },
         timeout: 10000
       });
-
     // Check response
     if (!response.data) {
-      throw new Error(`Invalid response from put token ${JSON.stringify(response)}`);
+      throw new BackendError({
+        action: Action.OCPI_PUSH_TOKENS,
+        message: `Push token failed with status ${JSON.stringify(response)}`,
+        module: MODULE_NAME, method: 'pushToken',
+        detailedMessages: { response: response.data }
+      });
     }
   }
 
   async remoteStartSession() {
-
   }
 
   async remoteStopSession() {
-
   }
 
   async triggerJobs() {

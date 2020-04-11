@@ -29,6 +29,7 @@ export default interface Transaction {
   id?: number;
   siteID?: string;
   siteAreaID?: string;
+  issuer: boolean;
   connectorId: number;
   tagID: string;
   userID: string;

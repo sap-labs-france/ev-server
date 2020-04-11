@@ -10,6 +10,9 @@ import CarStorage from '../../../storage/mongodb/CarStorage';
 import Constants from '../../../utils/Constants';
 import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 import BackendError from '../../../exception/AppError';
+import Utils from '../../../utils/Utils';
+
+const MODULE_NAME = 'CarService';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -24,7 +27,7 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCars'
       });
     }
@@ -60,7 +63,7 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCar'
       });
     }
@@ -105,12 +108,13 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarImagesRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.CarID, 'CarService', 'handleGetCarImages', req.user);
-
     // Get the car
-    const car = await CarStorage.getCarImages({ carID: filteredRequest.CarID }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip });
-
+    const carImages = await CarStorage.getCarImages(
+      filteredRequest.CarID,
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
+    );
     // Return
-    res.json(car);
+    res.json(carImages);
     next();
   }
 
@@ -122,7 +126,7 @@ export default class CarService {
         user: req.user,
         action: Action.SYNCHRONIZE_CARS,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -132,7 +136,7 @@ export default class CarService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car service is not configured',
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -153,7 +157,7 @@ export default class CarService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCarMakers'
       });
     }

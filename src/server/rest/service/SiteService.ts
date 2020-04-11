@@ -16,6 +16,8 @@ import SiteSecurity from './security/SiteSecurity';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'SiteService';
+
 export default class SiteService {
 
   public static async handleAddUsersToSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -31,7 +33,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleAddUsersToSite',
         value: filteredRequest.siteID
       });
@@ -42,7 +44,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User\'s IDs must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'filterAssignSiteUsers',
         user: req.user
       });
@@ -54,7 +56,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleAddUsersToSite',
         user: req.user
       });
@@ -67,7 +69,7 @@ export default class SiteService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `The User with ID '${userID}' does not exist`,
-          module: 'SiteService',
+          module: MODULE_NAME,
           method: 'handleAddUsersToSite',
           user: req.user
         });
@@ -78,7 +80,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
+      user: req.user, module: MODULE_NAME, method: 'handleAddUsersToSite',
       message: 'Site\'s Users have been added successfully', action: action
     });
     // Ok
@@ -98,7 +100,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
@@ -108,7 +110,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
@@ -118,7 +120,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Admin value must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user
       });
@@ -128,7 +130,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot change the site Admin on the logged user',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -140,7 +142,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         value: filteredRequest.siteID
       });
@@ -152,7 +154,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -165,7 +167,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.userID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -177,7 +179,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Only Users with Basic role can be Site Admin',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserAdmin',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -188,7 +190,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserAdmin',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserAdmin',
       message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.name}'`,
       action: action
     });
@@ -204,7 +206,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteOwner'
       });
     }
@@ -219,7 +221,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The User ID must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteOwner',
         user: req.user
       });
@@ -229,7 +231,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site ID must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteOwner',
         user: req.user
       });
@@ -239,7 +241,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site Owner value must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserOwner',
         user: req.user
       });
@@ -251,7 +253,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserOwner',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -264,7 +266,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The User with ID '${filteredRequest.userID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSiteUserOwner',
         user: req.user,
         actionOnUser: filteredRequest.userID
@@ -275,7 +277,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserOwner',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSiteUserOwner',
       message: `The User '${Utils.buildUserFullName(user)}' has been granted Site Owner on site '${site.name}'`,
       action: action
     });
@@ -296,7 +298,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleRemoveUsersFromSite',
         value: filteredRequest.siteID
       });
@@ -308,7 +310,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleRemoveUsersFromSite',
         user: req.user
       });
@@ -322,7 +324,7 @@ export default class SiteService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
           message: `The User with ID '${userID}' does not exist`,
-          module: 'SiteService',
+          module: MODULE_NAME,
           method: 'handleRemoveUsersFromSite',
           user: req.user
         });
@@ -333,7 +335,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleRemoveUsersFromSite',
+      user: req.user, module: MODULE_NAME, method: 'handleRemoveUsersFromSite',
       message: 'Site\'s Users have been removed successfully', action: action
     });
     // Ok
@@ -354,7 +356,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Site\'s ID must be provided',
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetUsersFromSite',
         user: req.user
       });
@@ -366,7 +368,7 @@ export default class SiteService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
         message: `The Site with ID '${filteredRequest.SiteID}' does not exist`,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetUsersFromSite',
         user: req.user
       });
@@ -378,7 +380,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetUsersFromSite',
         value: site.id
       });
@@ -423,7 +425,7 @@ export default class SiteService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleDeleteSite',
         value: siteID
       });
@@ -437,7 +439,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleDeleteSite',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteSite',
       message: `Site '${site.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { site }
@@ -461,7 +463,7 @@ export default class SiteService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetSite',
         value: filteredRequest.ID
       });
@@ -489,7 +491,7 @@ export default class SiteService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.SITES,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetSites'
       });
     }
@@ -540,7 +542,7 @@ export default class SiteService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleGetSiteImage',
         value: siteID
       });
@@ -567,7 +569,7 @@ export default class SiteService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleCreateSite'
       });
     }
@@ -591,7 +593,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleCreateSite',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateSite',
       message: `Site '${site.name}' has been created successfully`,
       action: action,
       detailedMessages: { site }
@@ -616,7 +618,7 @@ export default class SiteService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE,
-        module: 'SiteService',
+        module: MODULE_NAME,
         method: 'handleUpdateSite',
         value: filteredRequest.id
       });
@@ -637,7 +639,7 @@ export default class SiteService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteService', method: 'handleUpdateSite',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSite',
       message: `Site '${site.name}' has been updated successfully`,
       action: action,
       detailedMessages: { site }

@@ -114,6 +114,7 @@ export interface Car extends CreatedUpdatedProps{
   euroNCAPSA?: number;
   relatedVehicleIDSuccesor?: number;
   eVDBDetailURL?: string;
+  imageURLs?: string[];
   images?: string[];
   image?: string;
   videos?: string[];

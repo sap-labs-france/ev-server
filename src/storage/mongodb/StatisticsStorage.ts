@@ -5,10 +5,12 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'StatisticsStorage';
+
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getChargingStationStats');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -123,13 +125,13 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, { filter, groupBy });
+    Logging.traceEnd(MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filter, groupBy });
     return transactionStatsMDB;
   }
 
   static async getUserStats(tenantID, filter, groupBy) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getUserStats');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -257,13 +259,13 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, groupBy });
+    Logging.traceEnd(MODULE_NAME, 'getUserStats', uniqueTimerID, { filter, groupBy });
     return transactionStatsMDB;
   }
 
   static async getCurrentMetrics(tenantID, filteredRequest) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getCurrentMetrics');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCurrentMetrics');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Filter results of last 6 months
@@ -614,7 +616,7 @@ export default class StatisticsStorage {
     }
 
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getcurrentMetrics', uniqueTimerID, { filteredRequest });
+    Logging.traceEnd(MODULE_NAME, 'getcurrentMetrics', uniqueTimerID, { filteredRequest });
     return currentMetrics;
   }
 

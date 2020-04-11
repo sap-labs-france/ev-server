@@ -3,6 +3,7 @@ import HttpStatus from 'http-status-codes';
 import AppError from '../../../exception/AppError';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action } from '../../../types/Authorization';
 import global from '../../../types/GlobalType';
 import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
@@ -10,6 +11,8 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+
+const MODULE_NAME = 'SessionHashService';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
@@ -28,7 +31,7 @@ export default class SessionHashService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HttpStatus.FORBIDDEN,
           message: 'User has been updated and will be logged off',
-          module: 'SessionHashService',
+          module: MODULE_NAME,
           method: 'isSessionHashUpdated',
           user: req.user
         });
@@ -39,14 +42,14 @@ export default class SessionHashService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HttpStatus.FORBIDDEN,
           message: 'Tenant has been updated and all users will be logged off',
-          module: 'SessionHashService',
+          module: MODULE_NAME,
           method: 'isSessionHashUpdated',
           user: req.user
         });
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse('SessionHashService', err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(Action.SESSION_HASH_SERVICE, err, req, res, next);
       return true;
     }
     return false;

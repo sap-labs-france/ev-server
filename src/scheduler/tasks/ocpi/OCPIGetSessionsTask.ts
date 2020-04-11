@@ -10,6 +10,9 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
+import { Action } from '../../../types/Authorization';
+
+const MODULE_NAME = 'OCPIGetSessionsTask';
 
 export default class OCPIGetSessionsTask extends SchedulerTask {
 
@@ -19,8 +22,8 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
-          module: 'OCPIGetSessionsTask',
-          method: 'run', action: 'OcpiGetSessions',
+          module: MODULE_NAME, method: 'run',
+          action: Action.OCPI_GET_SESSIONS,
           message: 'OCPI Inactive for this tenant. The task \'OCPIGetSessionsTask\' is skipped.'
         });
         // Skip execution
@@ -33,7 +36,7 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'OCPIGetSessionsTask', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_GET_SESSIONS, error);
     }
   }
 
@@ -43,24 +46,24 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
     if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIGetSessionsTask',
-        method: 'run', action: 'OcpiGetSessions',
+        module: MODULE_NAME, method: 'run',
+        action: Action.OCPI_GET_SESSIONS,
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
       return;
     } else if (!ocpiEndpoint.backgroundPatchJob) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIGetSessionsTask',
-        method: 'run', action: 'OcpiGetSessions',
+        module: MODULE_NAME, method: 'run',
+        action: Action.OCPI_GET_SESSIONS,
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
       return;
     }
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIGetSessionsTask',
-      method: 'patch', action: 'OcpiGetSessions',
+      module: MODULE_NAME, method: 'patch',
+      action: Action.OCPI_GET_SESSIONS,
       message: `The get sessions process for endpoint ${ocpiEndpoint.name} is being processed`
     });
     // Build OCPI Client
@@ -69,8 +72,8 @@ export default class OCPIGetSessionsTask extends SchedulerTask {
     const result = await ocpiClient.pullSessions();
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIGetSessionsTask',
-      method: 'patch', action: 'OcpiGetSessions',
+      module: MODULE_NAME, method: 'patch',
+      action: Action.OCPI_GET_SESSIONS,
       message: `The get sessions process for endpoint ${ocpiEndpoint.name} is completed)`,
       detailedMessages: { result }
     });

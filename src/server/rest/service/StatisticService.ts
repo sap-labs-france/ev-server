@@ -6,14 +6,15 @@ import AppAuthError from '../../../exception/AppAuthError';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
-import I18nManager from '../../../utils/I18nManager';
 import Utils from '../../../utils/Utils';
 import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
-import TenantComponents from '../../../types/TenantComponents';
+
+const MODULE_NAME = 'StatisticService';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
@@ -27,7 +28,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationConsumptionStatistics'
       });
     }
@@ -56,7 +57,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationUsageStatistics'
       });
     }
@@ -85,7 +86,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationInactivityStatistics'
       });
     }
@@ -114,7 +115,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationTransactionsStatistics'
       });
     }
@@ -143,7 +144,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationPricingStatistics'
       });
     }
@@ -172,7 +173,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetUserConsumptionStatistics'
       });
     }
@@ -201,7 +202,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetUserUsageStatistics'
       });
     }
@@ -230,7 +231,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetUserInactivityStatistics'
       });
     }
@@ -259,7 +260,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetUserTransactionsStatistics'
       });
     }
@@ -288,7 +289,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetUserPricingStatistics'
       });
     }
@@ -314,7 +315,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetCurrentMetrics'
       });
     }
@@ -338,7 +339,7 @@ export default class StatisticService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'StatisticService',
+        module: MODULE_NAME,
         method: 'handleGetStatisticsExport'
       });
     }

@@ -29,7 +29,7 @@ export default class CarSecurity {
 
   public static filterCarImagesRequest(request: any): HttpCarImagesRequest {
     const filteredRequest: HttpCarImagesRequest = {
-      CarID: +sanitize(request.CarID),
+      CarID: sanitize(request.CarID),
     } as HttpCarImagesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -44,13 +44,14 @@ export default class CarSecurity {
   }
 
   public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
-    let filteredCar;
-
+    let filteredCar: Car;
     if (!car) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadCar(loggedUser)) {
+    if (Authorizations.isSuperAdmin(loggedUser)) {
+      filteredCar = car;
+    } else if (Authorizations.canReadCar(loggedUser)) {
       filteredCar = {
         id: car.id,
         vehicleModel: car.vehicleModel,
@@ -82,14 +83,11 @@ export default class CarSecurity {
         miscSegment: car.miscSegment,
         miscIsofixSeats: car.miscIsofixSeats,
         chargeStandardTables: car.chargeStandardTables
-      };
-      if (Authorizations.isSuperAdmin(loggedUser)) {
-        filteredCar.carObject = car;
-      }
-      // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredCar, car, loggedUser);
+      } as Car;
     }
+    // Created By / Last Changed By
+    UtilsSecurity.filterCreatedAndLastChanged(
+      filteredCar, car, loggedUser);
     return filteredCar;
   }
 

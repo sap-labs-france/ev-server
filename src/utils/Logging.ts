@@ -3,12 +3,13 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import { NextFunction, Request, Response } from 'express';
 import os from 'os';
-import { PerformanceObserver, performance } from 'perf_hooks';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import { Action } from '../types/Authorization';
 import { HTTPError } from '../types/HTTPError';
 import { Log, LogLevel, LogType } from '../types/Log';
 import User from '../types/User';
@@ -16,7 +17,6 @@ import UserToken from '../types/UserToken';
 import Configuration from '../utils/Configuration';
 import Constants from './Constants';
 import Utils from './Utils';
-
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -53,12 +53,7 @@ obs.observe({ entryTypes: ['measure'] });
 
 export default class Logging {
   // Log Debug
-  public static logDebug(log): void {
-    if (typeof log !== 'object') {
-      log = {
-        simpleMessage: log
-      };
-    }
+  public static logDebug(log: Log): void {
     // Log
     log.level = LogLevel.DEBUG;
     // Log it
@@ -143,7 +138,7 @@ export default class Logging {
   }
 
   // Log
-  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: string, payload: any): void {
+  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: Action, payload: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -155,7 +150,7 @@ export default class Logging {
   }
 
   // Log
-  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: string, args: any): void {
+  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: Action, args: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -167,7 +162,7 @@ export default class Logging {
   }
 
   // Log
-  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: string, detailedMessages: any): void {
+  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: Action, detailedMessages: any): void {
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
         tenantID: tenantID,
@@ -190,7 +185,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error: Error, action: string, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
+  public static logException(error: Error, action: Action, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -204,7 +199,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessage(tenantID: string, action: string, exception: Error): void {
+  public static logActionExceptionMessage(tenantID: string, action: Action, exception: Error): void {
     // Log App Error
     if (exception instanceof AppError) {
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
@@ -220,7 +215,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
+  public static logActionExceptionMessageAndSendResponse(action: Action, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
     if (action === 'Login' && req.body.password) {
       req.body.password = '####';
@@ -259,7 +254,7 @@ export default class Logging {
     return LoggingStorage.getLogs(tenantID, params, dbParams);
   }
 
-  private static _logActionExceptionMessage(tenantID: string, action: string, exception: any): void {
+  private static _logActionExceptionMessage(tenantID: string, action: Action, exception: any): void {
     // Log
     Logging.logError({
       tenantID: tenantID,
@@ -269,14 +264,11 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        'error': exception.detailedMessages,
-        'stack': exception.stack
-      }]
+      detailedMessages: { stack: exception.stack }
     });
   }
 
-  private static _logActionAppExceptionMessage(tenantID: string, action: string, exception: AppError): void {
+  private static _logActionAppExceptionMessage(tenantID: string, action: Action, exception: AppError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -302,7 +294,7 @@ export default class Logging {
     });
   }
 
-  private static _logActionBackendExceptionMessage(tenantID: string, action: string, exception: BackendError): void {
+  private static _logActionBackendExceptionMessage(tenantID: string, action: Action, exception: BackendError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -329,24 +321,7 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionBadRequestExceptionMessage(tenantID: string, action: string, exception: any): void {
-    Logging.logSecurityError({
-      tenantID: tenantID,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
-      module: exception.module,
-      method: exception.method,
-      action: action,
-      message: exception.message,
-      detailedMessages: [{
-        'details': exception.details,
-        'stack': exception.stack
-      }]
-    });
-  }
-
-  // Used to check URL params (not in catch)
-  private static _logActionAppAuthExceptionMessage(tenantID: string, action: string, exception: AppAuthError): void {
+  private static _logActionAppAuthExceptionMessage(tenantID: string, action: Action, exception: AppAuthError): void {
     // Log
     Logging.logSecurityError({
       tenantID: tenantID,
@@ -362,7 +337,7 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action: string, source: string, module: string,
+  private static _buildLog(error, action: Action, source: string, module: string,
     method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
@@ -398,41 +373,16 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _format(detailedMessages: any): string {
-    // Check
-    if (Array.isArray(detailedMessages)) {
-      for (let index = 0; index < detailedMessages.length; index++) {
-        // Override
-        detailedMessages[index] = this._format(detailedMessages[index]);
-      }
-      // Serialize
-      detailedMessages = JSON.stringify(detailedMessages, null, ' ');
-    } else {
-      // JSON?
-      if (typeof detailedMessages === 'object') {
-        // Error?
-        if (detailedMessages instanceof Error) {
-          detailedMessages = {
-            error: detailedMessages.message,
-            stack: detailedMessages.stack
-          };
-        } else {
-          // Check each JSon property
-          for (const key in detailedMessages) {
-            // Error?
-            if (detailedMessages[key] instanceof Error) {
-              detailedMessages[key] = {
-                error: detailedMessages[key].message,
-                stack: detailedMessages[key].stack
-              };
-            } else if (typeof detailedMessages[key] === 'object') {
-              detailedMessages[key] = this._format(detailedMessages[key]);
-            }
-          }
-        }
+  private static _format(detailedMessage: any): string {
+    // JSON?
+    if (typeof detailedMessage === 'object') {
+      try {
+        // Check that every detailedMessages is parsed
+        return JSON.stringify(detailedMessage, null, ' ');
+      } catch (err) {
+        // Do nothing
       }
     }
-    return detailedMessages;
   }
 
   // Log
@@ -540,7 +490,7 @@ export default class Logging {
         log.detailedMessages = [log.detailedMessages];
       }
       // Format
-      log.detailedMessages = Logging._format(JSON.parse(JSON.stringify(log.detailedMessages)));
+      log.detailedMessages = Logging._format(log.detailedMessages);
     }
     // Check Type
     if (!log.type) {

@@ -1,6 +1,7 @@
 import cfenv from 'cfenv';
 import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
+import { Action } from '../types/Authorization';
 import Lock from '../types/Lock';
 import Configuration from './Configuration';
 import Constants from './Constants';
@@ -21,9 +22,8 @@ export default class RunLock {
       const logMsg = 'RunLock must have a unique name';
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'constructor',
-        action: 'Locking',
+        module: MODULE_NAME, method: 'constructor',
+        action: Action.LOCKING,
         message: logMsg
       });
       // eslint-disable-next-line no-console
@@ -62,9 +62,8 @@ export default class RunLock {
       const logMsg = `RunLock ${this._runLock.name} is not acquired`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'release',
-        action: 'LockingError',
+        module: MODULE_NAME, method: 'release',
+        action: Action.LOCKING,
         message: logMsg
       });
       // eslint-disable-next-line no-console

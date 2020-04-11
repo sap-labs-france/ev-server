@@ -18,6 +18,9 @@ export default class Constants {
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
 
+  public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
+  public static readonly DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS = 3000;
+
   public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
   public static readonly STATS_GROUP_BY_USAGE = 'U';
   public static readonly STATS_GROUP_BY_INACTIVITY = 'I';

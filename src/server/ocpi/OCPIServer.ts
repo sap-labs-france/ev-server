@@ -1,15 +1,17 @@
-import morgan from 'morgan';
-import Constants from '../../utils/Constants';
-import expressTools from '../ExpressTools';
-import Logging from '../../utils/Logging';
-import OCPIServices from './OCPIServices';
 import { Application, NextFunction, Request, Response } from 'express';
+import morgan from 'morgan';
 import { Configuration } from '../../types/configuration/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import expressTools from '../ExpressTools';
 import AbstractOCPIService, { TenantIdHoldingRequest } from './AbstractOCPIService';
-import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
+import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
+import OCPIServices from './OCPIServices';
+import { Action } from '../../types/Authorization';
 
 const MODULE_NAME = 'OCPIServer';
+
 export default class OCPIServer {
   private ocpiRestConfig: Configuration['OCPIService'];
   private express: Application;
@@ -30,9 +32,8 @@ export default class OCPIServer {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME,
-                method: 'constructor',
-                action: 'HttpRequestLog',
+                module: MODULE_NAME, method: 'constructor',
+                action: Action.EXPRESS_SERVER,
                 message: message
               });
             }

@@ -14,6 +14,8 @@ import Utils from '../../../utils/Utils';
 import BuildingSecurity from './security/BuildingSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'BuildingService';
+
 export default class BuildingService {
 
   public static async handleAssignBuildingsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -28,7 +30,7 @@ export default class BuildingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'The Building\'s IDs must be provided',
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleAssignBuildingsToSiteArea',
         user: req.user
       });
@@ -44,7 +46,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SITE_AREA,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleAssignBuildingsToSiteArea',
         value: filteredRequest.siteAreaID
       });
@@ -62,7 +64,7 @@ export default class BuildingService {
           user: req.user,
           action: Action.UPDATE,
           entity: Entity.BUILDING,
-          module: 'BuildingService',
+          module: MODULE_NAME,
           method: 'handleAssignBuildingsToSiteArea',
           value: buildingID
         });
@@ -78,7 +80,7 @@ export default class BuildingService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user,
-      module: 'BuildingService',
+      module: MODULE_NAME,
       method: 'handleAssignBuildingsToSiteArea',
       message: 'Site Area\'s Buildings have been assigned successfully',
       action: action
@@ -103,7 +105,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.BUILDING,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleDeleteBuilding',
         value: filteredRequest.ID
       });
@@ -119,7 +121,7 @@ export default class BuildingService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'BuildingService', method: 'handleDeleteBuilding',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteBuilding',
       message: `Building '${building.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { building }
@@ -144,7 +146,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.READ,
         entity: Entity.BUILDING,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleGetBuilding',
         value: filteredRequest.ID
       });
@@ -177,7 +179,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.READ,
         entity: Entity.BUILDING,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleGetBuildingImage',
         value: buildingID
       });
@@ -203,7 +205,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.BUILDINGS,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleGetBuildings'
       });
     }
@@ -238,7 +240,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.BUILDING,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleCreateBuilding'
       });
     }
@@ -263,7 +265,7 @@ export default class BuildingService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'BuildingService', method: 'handleCreateBuilding',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateBuilding',
       message: `Building '${newBuilding.id}' has been created successfully`,
       action: action,
       detailedMessages: { building: newBuilding }
@@ -286,7 +288,7 @@ export default class BuildingService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.BUILDING,
-        module: 'BuildingService',
+        module: MODULE_NAME,
         method: 'handleUpdateBuilding',
         value: filteredRequest.id
       });
@@ -316,7 +318,7 @@ export default class BuildingService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'BuildingService', method: 'handleUpdateBuilding',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateBuilding',
       message: `Building '${building.name}' has been updated successfully`,
       action: action,
       detailedMessages: { building }
