@@ -13,6 +13,7 @@ import Constants from '../../../../utils/Constants';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
+import OCPISessionsService from './OCPISessionsService';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -79,75 +80,10 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
    */
   private async postCdrRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
     const cdr: OCPICdr = req.body as OCPICdr;
-    if (!this.validateCdr(cdr)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cdr object is invalid',
-        detailedMessages: { cdr },
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    if (!cdr.total_cost) {
-      cdr.total_cost = 0;
-    }
-    if (!cdr.total_energy) {
-      cdr.total_energy = 0;
-    }
-    if (!cdr.total_time) {
-      cdr.total_time = 0;
-    }
-    if (!cdr.total_parking_time) {
-      cdr.total_parking_time = 0;
-    }
-    const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, cdr.id);
-    if (!transaction) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `No transaction found for ocpi session ${cdr.id}`,
-        detailedMessages: { cdr },
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    if (transaction.ocpiCdr) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME, method: 'postCdrRequest',
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: `A cdr already exists for the session ${cdr.id}`,
-        detailedMessages: { cdr },
-        ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
-      });
-    }
-    transaction.ocpiCdr = cdr;
-    await TransactionStorage.saveTransaction(tenant.id, transaction);
+
+    await OCPISessionsService.processCdr(tenant.id, cdr);
+
     res.setHeader('Location', OCPIUtils.buildLocationUrl(req, this.getBaseUrl(req), cdr.id));
     return OCPIUtils.success({});
-  }
-
-  private validateCdr(cdr: OCPICdr): boolean {
-    if (!cdr.id
-      || !cdr.start_date_time
-      || !cdr.stop_date_time
-      || !cdr.auth_id
-      || !cdr.auth_method
-      || !cdr.location
-      || !cdr.currency
-      || !cdr.charging_periods
-      || !cdr.last_updated
-    ) {
-      return false;
-    }
-    return this.validateLocation(cdr.location);
-  }
-
-  private validateLocation(location: OCPILocation): boolean {
-    if (!location.evses || location.evses.length !== 1 || !location.evses[0].evse_id) {
-      return false;
-    }
-    return true;
   }
 }

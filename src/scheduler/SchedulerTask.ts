@@ -1,17 +1,20 @@
 import moment from 'moment';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import { Action } from '../types/Authorization';
 import { TaskConfig } from '../types/TaskConfig';
 import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
+
+const MODULE_NAME = 'SchedulerTask';
 
 export default abstract class SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     const startMigrationTime = moment();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      module: 'SchedulerTask', method: 'run',
-      action: 'Scheduler',
+      action: Action.SCHEDULER,
+      module: MODULE_NAME, method: 'run',
       message: `The task '${name}' is running...`
     });
     // Get the Tenants
@@ -22,8 +25,8 @@ export default abstract class SchedulerTask {
         const startMigrationTimeInTenant = moment();
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'SchedulerTask', method: 'run',
-          action: 'Scheduler',
+          action: Action.SCHEDULER,
+          module: MODULE_NAME, method: 'run',
           message: `The task '${name}' is running...`
         });
         // Process
@@ -32,17 +35,17 @@ export default abstract class SchedulerTask {
         const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'SchedulerTask', method: 'run',
-          action: 'Scheduler',
+          action: Action.SCHEDULER,
+          module: MODULE_NAME, method: 'run',
           message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
         });
       } catch (error) {
         Logging.logError({
           tenantID: tenant.id,
-          module: 'SchedulerTask', method: 'run',
-          action: 'Scheduler',
+          action: Action.SCHEDULER,
+          module: MODULE_NAME, method: 'run',
           message: `Error while running the task '${name}': ${error.message}`,
-          detailedMessages: { error }
+          detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
@@ -50,8 +53,8 @@ export default abstract class SchedulerTask {
     const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      module: 'SchedulerTask', method: 'run',
-      action: 'Scheduler',
+      action: Action.SCHEDULER,
+      module: MODULE_NAME, method: 'run',
       message: `The task '${name}' has been run in ${totalMigrationTimeSecs} secs over ${tenants.count} tenant(s)`
     });
   }

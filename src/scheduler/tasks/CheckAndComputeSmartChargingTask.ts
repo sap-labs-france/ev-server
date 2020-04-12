@@ -8,6 +8,8 @@ import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
 
+const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
+
 export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
   async processTenant(tenant: Tenant): Promise<void> {
     if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION) &&
@@ -25,7 +27,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             // Log
             Logging.logError({
               tenantID: tenant.id,
-              module: 'CheckAndComputeSmartChargingTask', method: 'run',
+              module: MODULE_NAME, method: 'run',
               action: Action.CHECK_AND_APPLY_SMART_CHARGING,
               message: 'No implementation available for the Smart Charging',
             });
@@ -36,10 +38,10 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
           // Log error
           Logging.logError({
             tenantID: tenant.id,
-            module: 'CheckAndComputeSmartChargingTask', method: 'run',
+            module: MODULE_NAME, method: 'run',
             action: Action.CHECK_AND_APPLY_SMART_CHARGING,
             message: `Error while running the task '${name}': ${error.message}`,
-            detailedMessages: { error }
+            detailedMessages: { error: error.message, stack: error.stack }
           });
         }
       }

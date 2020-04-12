@@ -9,14 +9,16 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'TenantStorage';
+
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenant');
     // Delegate querying
     const tenantsMDB = await TenantStorage.getTenants({ tenantID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getTenant', uniqueTimerID, { id });
     return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
   }
 
@@ -34,12 +36,12 @@ export default class TenantStorage {
 
   public static async saveTenant(tenantToSave: Partial<Tenant>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveTenant');
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'TenantStorage',
+        module: MODULE_NAME,
         method: 'saveTenant',
         message: 'Tenant has no ID and no Name'
       });
@@ -67,18 +69,18 @@ export default class TenantStorage {
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
     return tenantFilter._id.toHexString();
   }
 
   public static async createTenantDB(tenantID: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'createTenantDB');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'createTenantDB');
     // Create DB
     await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
-    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID, { tenantID });
+    Logging.traceEnd(MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }
 
   // Delegate
@@ -86,7 +88,7 @@ export default class TenantStorage {
     params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenants');
     // Check Limit
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -172,7 +174,7 @@ export default class TenantStorage {
       .toArray();
 
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd(MODULE_NAME, 'getTenants', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ?
@@ -183,22 +185,22 @@ export default class TenantStorage {
 
   public static async deleteTenant(id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteTenant');
     // Delete
     await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteTenant', uniqueTimerID, { id });
   }
 
   public static async deleteTenantDB(id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenantDB');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteTenantDB');
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteTenantDB', uniqueTimerID, { id });
   }
 }

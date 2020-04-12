@@ -31,6 +31,8 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'TransactionService';
+
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
@@ -40,7 +42,7 @@ export default class TransactionService {
           user: req.user,
           action: Action.UPDATE,
           entity: Entity.TRANSACTION,
-          module: 'TransactionService',
+          module: MODULE_NAME,
           method: 'handleSynchronizeRefundedTransactions'
         });
       }
@@ -68,7 +70,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleRefundTransactions',
         user: req.user,
         action: action
@@ -81,7 +83,7 @@ export default class TransactionService {
         Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: 'TransactionService', method: 'handleRefundTransactions',
+          module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' does not exist`,
           action: action,
           detailedMessages: { transaction }
@@ -92,7 +94,7 @@ export default class TransactionService {
         Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: 'TransactionService', method: 'handleRefundTransactions',
+          module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' is already refunded`,
           action: action,
           detailedMessages: { transaction }
@@ -106,7 +108,7 @@ export default class TransactionService {
           user: req.user,
           action: Action.REFUND_TRANSACTION,
           entity: Entity.TRANSACTION,
-          module: 'TransactionService',
+          module: MODULE_NAME,
           method: 'handleRefundTransactions',
           value: transaction.id.toString()
         });
@@ -123,7 +125,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleRefundTransactions',
         user: req.user,
         action: action
@@ -152,7 +154,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetUnassignedTransactionsCount'
       });
     }
@@ -163,7 +165,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'UserID must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetUnassignedTransactionsCount',
         user: req.user,
         action: action
@@ -188,7 +190,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleAssignTransactionsToUser'
       });
     }
@@ -200,7 +202,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleAssignTransactionsToUser',
         user: req.user,
         action: action
@@ -226,7 +228,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService', method: 'handleDeleteTransaction',
+        module: MODULE_NAME, method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
     }
@@ -250,7 +252,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         value: transactionsIds.toString()
       });
     }
@@ -272,7 +274,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleTransactionSoftStop',
         value: transactionId.toString()
       });
@@ -310,9 +312,10 @@ export default class TransactionService {
     );
     // Log
     Logging.logSecurityInfo({
-      tenantID: req.user.tenantID, source: chargingStation.id,
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
       user: req.user, actionOnUser: user,
-      module: 'TransactionService', method: 'handleTransactionSoftStop',
+      module: MODULE_NAME, method: 'handleTransactionSoftStop',
       message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
       action: action,
       detailedMessages: { result }
@@ -339,7 +342,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetConsumptionFromTransaction',
         value: transaction.id.toString()
       });
@@ -350,7 +353,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetConsumptionFromTransaction',
         user: req.user,
         action: action
@@ -386,7 +389,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransaction',
         value: filteredRequest.ID.toString()
       });
@@ -407,7 +410,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationTransactions'
       });
     }
@@ -456,13 +459,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsActive'
       });
     }
     const filter: any = { stop: { $exists: false } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -509,13 +513,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsCompleted'
       });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -576,13 +581,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsToRefund'
       });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -640,7 +646,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetRefundReports'
       });
     }
@@ -681,7 +687,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsExport'
       });
     }
@@ -755,7 +761,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsToRefundExport'
       });
     }
@@ -839,13 +845,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsInError'
       });
     }
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -976,7 +983,7 @@ export default class TransactionService {
       Logging.logError({
         tenantID: loggedUser.tenantID,
         user: loggedUser,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
         action: action,
         detailedMessages: { errorDetails }
@@ -985,7 +992,7 @@ export default class TransactionService {
       Logging.logInfo({
         tenantID: loggedUser.tenantID,
         user: loggedUser,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully`,
         action: action
       });

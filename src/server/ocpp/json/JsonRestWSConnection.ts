@@ -6,8 +6,10 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import WSConnection from './WSConnection';
+import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'JsonRestWSConnection';
+
 export default class JsonRestWSConnection extends WSConnection {
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
@@ -24,9 +26,9 @@ export default class JsonRestWSConnection extends WSConnection {
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'initialize',
         source: this.getChargingStationID(),
-        action: 'WSRestServerConnectionOpened',
+        action: Action.WS_REST_CONNECTION_OPENED,
+        module: MODULE_NAME, method: 'initialize',
         message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
@@ -36,9 +38,8 @@ export default class JsonRestWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      module: MODULE_NAME,
-      method: 'onError',
-      action: 'WSRestServerErrorReceived',
+      module: MODULE_NAME, method: 'onError',
+      action: Action.WS_REST_CONNECTION_ERROR,
       message: event
     });
   }
@@ -47,10 +48,9 @@ export default class JsonRestWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
-      method: 'onClose',
-      action: 'WSRestServerConnectionClosed',
+      module: MODULE_NAME, method: 'onClose',
+      action: Action.WS_REST_CONNECTION_CLOSED,
       message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });
     // Remove the connection
@@ -67,7 +67,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Error
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${commandName}' not found`,
         action: commandName
@@ -78,7 +78,7 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: 'Charging Station is not connected to the backend',
         action: commandName
@@ -100,7 +100,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Error
       throw new BackendError({
         source: this.getChargingStationID(),
-        module: 'JsonRestWSConnection',
+        module: MODULE_NAME,
         method: 'handleRequest',
         message: `'${actionMethod}' is not implemented`,
         action: commandName

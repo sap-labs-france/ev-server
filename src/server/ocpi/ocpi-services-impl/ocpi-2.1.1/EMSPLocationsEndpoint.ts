@@ -97,7 +97,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         message: `Patching of location ${locationId} is not supported currently`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'patchLocationRequest',
-        detailedMessage: location
+        detailedMessages: location
       });
     }
     return OCPIUtils.success();
@@ -210,7 +210,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         message: `Delete removed evse ${evseUid} of location ${locationId}`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',
-        detailedMessage: location
+        detailedMessages: location
       });
       await ChargingStationStorage.deleteChargingStation(tenant.id, chargingStationId);
     } else {
@@ -220,7 +220,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
         message: `Update evse ${evseUid} of location ${locationId}`,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateLocation',
-        detailedMessage: location
+        detailedMessages: location
       });
       const chargingStation = OCPIMapping.convertEvseToChargingStation(chargingStationId, evse, location);
       await ChargingStationStorage.saveChargingStation(Action.OCPI_PATCH_LOCATIONS, tenant.id, chargingStation);

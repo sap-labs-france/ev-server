@@ -8,10 +8,12 @@ import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 import { DataResult } from '../../types/DataResult';
 
+const MODULE_NAME = 'OCPPStorage';
+
 export default class OCPPStorage {
   static async saveAuthorize(tenantID: string, authorize: OCPPAuthorizeRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveAuthorize');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveAuthorize');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(authorize.timestamp);
@@ -27,12 +29,12 @@ export default class OCPPStorage {
         timezone: authorize.timezone
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveAuthorize', uniqueTimerID);
   }
 
   static async getAuthorizes(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; tagID?: string}, dbParams: DbParams): Promise<DataResult<OCPPAuthorizeRequestExtended>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getAuthorizes');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAuthorizes');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -76,7 +78,7 @@ export default class OCPPStorage {
       // Default
       aggregation.push({
         $sort: {
-          _id: 1
+          timestamp: -1
         }
       });
     }
@@ -93,7 +95,7 @@ export default class OCPPStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getAuthorizes', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getAuthorizes', uniqueTimerID);
     // Ok
     return {
       count: (authorizesCountMDB.length > 0 ? authorizesCountMDB[0].count : 0),
@@ -103,7 +105,7 @@ export default class OCPPStorage {
 
   static async saveHeartbeat(tenantID: string, heartbeat: OCPPHeartbeatRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveHeartbeat');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveHeartbeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(heartbeat.timestamp);
@@ -116,12 +118,12 @@ export default class OCPPStorage {
         timezone: heartbeat.timezone
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveHeartbeat', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveHeartbeat', uniqueTimerID);
   }
 
   static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -194,7 +196,7 @@ export default class OCPPStorage {
       statusNotifications.push(statusNotification);
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getStatusNotifications', uniqueTimerID);
     // Ok
     return {
       count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
@@ -204,7 +206,7 @@ export default class OCPPStorage {
 
   static async getLastStatusNotifications(tenantID: string, params: {dateBefore?: string; chargeBoxID?: string; connectorId?: number; status?: string}) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getLastStatusNotifications');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLastStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the filters
@@ -253,14 +255,14 @@ export default class OCPPStorage {
       statusNotifications.push(statusNotification);
     }
     // Debug
-    Logging.traceEnd('OCPPStorage', 'getLastStatusNotifications', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getLastStatusNotifications', uniqueTimerID);
     // Ok
     return statusNotifications;
   }
 
   static async saveStatusNotification(tenantID: string, statusNotificationToSave: OCPPStatusNotificationRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveStatusNotification');
     // Set
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     // Check Tenant
@@ -281,12 +283,12 @@ export default class OCPPStorage {
     await global.database.getCollection<any>(tenantID, 'statusnotifications')
       .insertOne(statusNotificationMDB);
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveStatusNotification', uniqueTimerID);
   }
 
   static async saveDataTransfer(tenantID: string, dataTransfer: OCPPDataTransferRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDataTransfer');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDataTransfer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -303,12 +305,12 @@ export default class OCPPStorage {
         timezone: dataTransfer.timezone
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveDataTransfer', uniqueTimerID);
   }
 
   static async saveBootNotification(tenantID: string, bootNotification: OCPPBootNotificationRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveBootNotification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBootNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Insert
@@ -328,12 +330,12 @@ export default class OCPPStorage {
         timestamp: timestamp
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveBootNotification', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveBootNotification', uniqueTimerID);
   }
 
   public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string}, { limit, skip, sort }: DbParams) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getBootNotifications');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -396,7 +398,7 @@ export default class OCPPStorage {
       bootNotifications.push(bootNotificationMDB);
     }
     // Debug
-    Logging.traceEnd('OCPPStorage', 'getBootNotifications', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getBootNotifications', uniqueTimerID);
     // Ok
     return {
       count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
@@ -406,7 +408,7 @@ export default class OCPPStorage {
 
   static async saveDiagnosticsStatusNotification(tenantID: string, diagnosticsStatusNotification: OCPPDiagnosticsStatusNotificationRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDiagnosticsStatusNotification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveDiagnosticsStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
@@ -420,12 +422,12 @@ export default class OCPPStorage {
         timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
   static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification: OCPPFirmwareStatusNotificationRequestExtended) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveFirmwareStatusNotification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveFirmwareStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -440,12 +442,12 @@ export default class OCPPStorage {
         timezone: firmwareStatusNotification.timezone
       });
     // Debug
-    Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
   static async saveMeterValues(tenantID: string, meterValuesToSave: OCPPNormalizedMeterValues) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMeterValues');
     // Check
     await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
@@ -467,6 +469,6 @@ export default class OCPPStorage {
     // Execute
     await global.database.getCollection<any>(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
   }
 }

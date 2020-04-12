@@ -2,7 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 /*eslint-disable*/
 export interface Car extends CreatedUpdatedProps{
-  id: string;
+  id: number;
   vehicleMake: string;
   vehicleModel: string;
   vehicleModelVersion?: string;
@@ -114,7 +114,9 @@ export interface Car extends CreatedUpdatedProps{
   euroNCAPSA?: number;
   relatedVehicleIDSuccesor?: number;
   eVDBDetailURL?: string;
+  imageURLs?: string[];
   images?: string[];
+  image?: string;
   videos?: string[];
   hash?: string;
 }

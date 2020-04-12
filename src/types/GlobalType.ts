@@ -12,6 +12,11 @@ export interface KeyValue {
   readonly?: boolean;
 }
 
+export interface Image {
+  id: string;
+  image: string;
+}
+
 export interface ActionsResponse {
   inSuccess: number;
   inError: number;

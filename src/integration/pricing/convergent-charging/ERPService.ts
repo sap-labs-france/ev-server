@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
 
+const MODULE_NAME = 'ERPService';
+
 export default class ERPService extends AbstractSoapClient {
   public execute: any;
 
@@ -37,7 +39,7 @@ export default class ERPService extends AbstractSoapClient {
     if (!connection) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'ERPService',
+        module: MODULE_NAME,
         method: 'createInvoice',
         message: 'Convergent Invoicing connection is missing',
         action: Action.BILLING,
@@ -50,7 +52,7 @@ export default class ERPService extends AbstractSoapClient {
       if (result.data.status === 'error') {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'ERPService',
+          module: MODULE_NAME,
           method: 'createInvoice',
           message: result.data.message,
           action: Action.BILLING,
@@ -63,7 +65,7 @@ export default class ERPService extends AbstractSoapClient {
         }
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'ERPService',
+          module: MODULE_NAME,
           method: 'createInvoice',
           message: 'Unable to create invoice',
           action: Action.BILLING,
@@ -73,7 +75,7 @@ export default class ERPService extends AbstractSoapClient {
       }
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'ERPService',
+        module: MODULE_NAME,
         method: 'createInvoice',
         message: 'Unable to create invoice',
         action: Action.BILLING,

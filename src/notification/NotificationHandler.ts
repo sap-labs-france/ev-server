@@ -13,6 +13,8 @@ import RemotePushNotificationTask from './remote-push-notification/RemotePushNot
 import moment = require('moment');
 import { Action } from '../types/Authorization';
 
+const MODULE_NAME = 'NotificationHandler';
+
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
   private static notificationSources: NotificationSource[] = [
@@ -29,7 +31,7 @@ export default class NotificationHandler {
   ];
 
   static async saveNotification(tenantID: string, channel: string, notificationID: string,
-    sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
+    sourceDescr: Action, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
@@ -43,19 +45,20 @@ export default class NotificationHandler {
     // Success
     if (user) {
       // User
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'NotificationHandler', method: 'saveNotification',
-        action: sourceDescr, actionOnUser: user,
+        module: MODULE_NAME, method: 'saveNotification',
+        action: sourceDescr,
+        actionOnUser: user,
         message: `User is being notified (${channel})`
       });
     } else {
       // Admin
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'NotificationHandler', method: 'saveNotification',
+        module: MODULE_NAME, method: 'saveNotification',
         action: sourceDescr,
         message: `Admin users are being notified (${channel})`
       });

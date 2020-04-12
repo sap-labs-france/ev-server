@@ -9,6 +9,8 @@ import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPCl
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
+const MODULE_NAME = 'ChargingStationVendor';
+
 export default abstract class ChargingStationVendor {
   protected chargingStation: ChargingStation;
 
@@ -23,7 +25,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.POWER_LIMITATION,
       message: 'Set Power limitation is being called',
-      module: 'ChargingStationVendor', method: 'setPowerLimitation',
+      module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { connectorID, maxAmps }
     });
     // Check if feature is supported
@@ -31,7 +33,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
-        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station does not support static power limitation'
       });
     }
@@ -39,7 +41,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
-        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
       });
     }
@@ -47,7 +49,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
-        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
     }
@@ -55,7 +57,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
-        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'The Charging Station has no connector',
         detailedMessages: { maxAmps }
       });
@@ -68,7 +70,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.POWER_LIMITATION,
-        module: 'ChargingStationVendor', method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -103,7 +105,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.POWER_LIMITATION,
       message: 'Set Power limitation has been called',
-      module: 'ChargingStationVendor', method: 'setPowerLimitation',
+      module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { result }
     });
     return result;
@@ -116,7 +118,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.OCPP_PARAM_UPDATE,
       message: 'Check update of OCPP Params is being called',
-      module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams',
+      module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
       detailedMessages: { ocppParamName, ocppParamValue }
     });
     if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
@@ -131,7 +133,7 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.OCPP_PARAM_UPDATE,
         message: 'Charging Station power limit has been updated following an OCPP parameter update',
-        module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams',
+        module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
         detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
       });
     }
@@ -140,7 +142,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.OCPP_PARAM_UPDATE,
       message: 'Check update of OCPP Params has been called',
-      module: 'ChargingStationVendor', method: 'checkUpdateOfOCPPParams'
+      module: MODULE_NAME, method: 'checkUpdateOfOCPPParams'
     });
   }
 
@@ -151,7 +153,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Set Charging Profile is being called',
-      module: 'ChargingStationVendor', method: 'setChargingProfile',
+      module: MODULE_NAME, method: 'setChargingProfile',
       detailedMessages: { chargingProfile }
     });
     // Check if feature is supported
@@ -159,7 +161,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station does not support charging profiles'
       });
     }
@@ -169,7 +171,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
-        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -197,7 +199,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
-            module: 'ChargingStationVendor', method: 'clearChargingProfile',
+            module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { result }
           });
           const results = [] as OCPPSetChargingProfileCommandResult[];
@@ -213,7 +215,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile has been called',
-            module: 'ChargingStationVendor', method: 'setChargingProfile',
+            module: MODULE_NAME, method: 'setChargingProfile',
             detailedMessages: { results }
           });
           return results;
@@ -223,7 +225,7 @@ export default abstract class ChargingStationVendor {
           source: chargingStation.id,
           action: Action.CHARGING_PROFILE_UPDATE,
           message: 'Set Charging Profile has been called',
-          module: 'ChargingStationVendor', method: 'setChargingProfile',
+          module: MODULE_NAME, method: 'setChargingProfile',
           detailedMessages: { result }
         });
         return result;
@@ -238,7 +240,7 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         message: 'Set Charging Profile has been called',
-        module: 'ChargingStationVendor', method: 'setChargingProfile',
+        module: MODULE_NAME, method: 'setChargingProfile',
         detailedMessages: { result }
       });
       return result;
@@ -248,8 +250,8 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
-        module: 'ChargingStationVendor', method: 'setChargingProfile',
-        detailedMessages: { error }
+        module: MODULE_NAME, method: 'setChargingProfile',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       if (!error.status) {
         throw error;
@@ -267,7 +269,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.CHARGING_PROFILE_DELETE,
       message: 'Clear Charging Profile is being called',
-      module: 'ChargingStationVendor', method: 'clearChargingProfile',
+      module: MODULE_NAME, method: 'clearChargingProfile',
       detailedMessages: { chargingProfile }
     });
     // Check if feature is supported
@@ -275,7 +277,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_DELETE,
-        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station does not support charging profiles'
       });
     }
@@ -285,7 +287,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_DELETE,
-        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -302,7 +304,7 @@ export default abstract class ChargingStationVendor {
             tenantID: tenantID,
             source: chargingStation.id,
             action: Action.CHARGING_PROFILE_DELETE,
-            module: 'ChargingStationVendor', method: 'clearChargingProfile',
+            module: MODULE_NAME, method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
           });
@@ -322,7 +324,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.CHARGING_PROFILE_DELETE,
             message: 'Clear Charging Profile has been called',
-            module: 'ChargingStationVendor', method: 'clearChargingProfile',
+            module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { results }
           });
           return results;
@@ -337,7 +339,7 @@ export default abstract class ChargingStationVendor {
           source: chargingStation.id,
           action: Action.CHARGING_PROFILE_DELETE,
           message: 'Clear Charging Profile has been called',
-          module: 'ChargingStationVendor', method: 'clearChargingProfile',
+          module: MODULE_NAME, method: 'clearChargingProfile',
           detailedMessages: { result }
         });
         return result;
@@ -357,7 +359,7 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_DELETE,
         message: 'Clear Charging Profile has been called',
-        module: 'ChargingStationVendor', method: 'clearChargingProfile',
+        module: MODULE_NAME, method: 'clearChargingProfile',
         detailedMessages: { result }
       });
       return result;
@@ -367,8 +369,8 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
-        module: 'ChargingStationVendor', method: 'clearChargingProfile',
-        detailedMessages: { error }
+        module: MODULE_NAME, method: 'clearChargingProfile',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       throw error;
     }
@@ -381,7 +383,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.GET_COMPOSITE_SCHEDULE,
       message: 'Get Composite Schedule is being called',
-      module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+      module: MODULE_NAME, method: 'getCompositeSchedule',
       detailedMessages: { connectorID, durationSecs }
     });
     // Check if feature is supported
@@ -389,7 +391,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.GET_COMPOSITE_SCHEDULE,
-        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station does not support charging profiles'
       });
     }
@@ -399,7 +401,7 @@ export default abstract class ChargingStationVendor {
       throw new BackendError({
         source: chargingStation.id,
         action: Action.GET_COMPOSITE_SCHEDULE,
-        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -419,7 +421,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule on Connector ID 0 has been rejected, will try connector per connector',
-            module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+            module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { result }
           });
           const results = [] as OCPPGetCompositeScheduleCommandResult[];
@@ -437,7 +439,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule has been called',
-            module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+            module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { results }
           });
           return results;
@@ -447,7 +449,7 @@ export default abstract class ChargingStationVendor {
           source: chargingStation.id,
           action: Action.GET_COMPOSITE_SCHEDULE,
           message: 'Get Composite Schedule has been called',
-          module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+          module: MODULE_NAME, method: 'getCompositeSchedule',
           detailedMessages: { result }
         });
         return result;
@@ -464,7 +466,7 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.GET_COMPOSITE_SCHEDULE,
         message: 'Get Composite Schedule has been called',
-        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
+        module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { result }
       });
       return result;
@@ -474,8 +476,8 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
-        module: 'ChargingStationVendor', method: 'getCompositeSchedule',
-        detailedMessages: { error }
+        module: MODULE_NAME, method: 'getCompositeSchedule',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
       if (!error.status) {
         throw error;
@@ -493,7 +495,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.GET_CONNECTOR_CURRENT_LIMIT,
       message: 'Get Current Connector Limit is being called',
-      module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+      module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { connectorID }
     });
     // Default
@@ -505,7 +507,7 @@ export default abstract class ChargingStationVendor {
         throw new BackendError({
           source: chargingStation.id,
           action: Action.GET_CONNECTOR_CURRENT_LIMIT,
-          module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+          module: MODULE_NAME, method: 'getCurrentConnectorLimit',
           message: 'Cannot get the current connector limit on Connector ID 0',
         });
       }
@@ -534,7 +536,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.GET_CONNECTOR_CURRENT_LIMIT,
             message: 'Get Current Connector Limit has been called',
-            module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+            module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
           });
           return result;
@@ -562,7 +564,7 @@ export default abstract class ChargingStationVendor {
             source: chargingStation.id,
             action: Action.GET_CONNECTOR_CURRENT_LIMIT,
             message: 'Get Current Connector Limit has been called',
-            module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+            module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
           });
           return result;
@@ -574,8 +576,8 @@ export default abstract class ChargingStationVendor {
         source: chargingStation.id,
         action: Action.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
-        module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
-        detailedMessages: { error }
+        module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     // Default on current connector
@@ -589,7 +591,7 @@ export default abstract class ChargingStationVendor {
       source: chargingStation.id,
       action: Action.GET_CONNECTOR_CURRENT_LIMIT,
       message: 'Get Current Connector Limit has been called',
-      module: 'ChargingStationVendor', method: 'getCurrentConnectorLimit',
+      module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });
     return result;
