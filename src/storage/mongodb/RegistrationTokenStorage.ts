@@ -8,10 +8,12 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'RegistrationTokenStorage';
+
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenantID: string, registrationToken: RegistrationToken): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'saveRegistrationToken');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveRegistrationToken');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
@@ -31,7 +33,7 @@ export default class RegistrationTokenStorage {
       { upsert: true, returnOriginal: false }
     );
     // Debug
-    Logging.traceEnd('RegistrationTokenStorage', 'saveRegistrationToken', uniqueTimerID, { registrationToken });
+    Logging.traceEnd(MODULE_NAME, 'saveRegistrationToken', uniqueTimerID, { registrationToken });
     return registrationTokenMDB._id.toHexString();
   }
 
@@ -39,7 +41,7 @@ export default class RegistrationTokenStorage {
     params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
     Promise<DataResult<RegistrationToken>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'getRegistrationTokens');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationTokens');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -134,7 +136,7 @@ export default class RegistrationTokenStorage {
       .toArray();
 
     // Debug
-    Logging.traceEnd('RegistrationTokenStorage', 'getRegistrationTokens', uniqueTimerID,
+    Logging.traceEnd(MODULE_NAME, 'getRegistrationTokens', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
@@ -146,7 +148,7 @@ export default class RegistrationTokenStorage {
 
   static async getRegistrationToken(tenantID: string, id: string): Promise<RegistrationToken> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'getRegistrationToken');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationToken');
     // Reuse
     const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     let registrationToken: RegistrationToken = null;
@@ -155,16 +157,16 @@ export default class RegistrationTokenStorage {
       registrationToken = registrationTokens.result[0];
     }
     // Debug
-    Logging.traceEnd('RegistrationTokenStorage', 'getRegistrationToken', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getRegistrationToken', uniqueTimerID, { id });
     return registrationToken;
   }
 
   static async deleteRegistrationToken(tenantID: string, id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'deleteRegistrationToken');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteRegistrationToken');
     await global.database.getCollection<any>(tenantID, 'registrationtokens')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('RegistrationTokenStorage', 'deleteRegistrationToken', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteRegistrationToken', uniqueTimerID, { id });
   }
 }

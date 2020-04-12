@@ -25,31 +25,67 @@ describe('Car Service', function() {
   });
   describe('Success cases', () => {
     describe('Where admin user', () => {
-      it('Should be able to get cars', async () => {
-        const response = await testData.centralService.carApi.readAll({});
-        carID = response.data.result[0].id;
-        expect(response.status).to.equal(200);
-      });
+      describe('Where car component is not active', () => {
+        before(async function() {
 
-      it('Should be able to get car by ID', async () => {
-        const response = await testData.centralService.carApi.readById(carID);
-        expect(response.status).to.equal(200);
-      });
+          testData.centralService = new CentralServerService('utbuilding', {
+            email: config.get('admin.username'),
+            password: config.get('admin.password')
+          });
 
-      it('Should not be able to get a detailed car without ID', async () => {
-        const response = await testData.centralService.carApi.readById();
-        expect(response.status).to.equal(500);
-      });
+        });
+        it('Should not be able to get cars', async () => {
+          const response = await testData.centralService.carApi.readAll({});
+          expect(response.status).to.equal(500);
+        });
 
-      it('Should not be able to get car debug object', async () => {
-        const response = await testData.centralService.carApi.readById(carID);
-        expect(response.status).to.equal(200);
-        expect(response.data).to.not.have.property('carObject');
-      });
+        it('Should not be able to get car by ID', async () => {
+          const response = await testData.centralService.carApi.readById();
+          expect(response.status).to.equal(500);
+        });
 
-      describe('Where Super admin user', () => {
+        it('Should not be able to get image of a car', async () => {
+          const response = await testData.centralService.carApi.readCarImages();
+          expect(response.status).to.equal(500);
+        });
+
+        it('Should not be able to get car makers', async () => {
+          const response = await testData.centralService.carApi.readCarMakers({});
+          expect(response.status).to.equal(500);
+        });
+
+        it('Should not be able to get a detailed car', async () => {
+          const response = await testData.centralService.carApi.readById();
+          expect(response.status).to.equal(500);
+        });
+      });
+      describe('Where car component is active', () => {
+        before(async function() {
+
+          testData.centralService = new CentralServerService('utcar', {
+            email: config.get('admin.username'),
+            password: config.get('admin.password')
+          });
+
+        });
+        it('Should be able to get cars', async () => {
+          const response = await testData.centralService.carApi.readAll({});
+          carID = response.data.result[0].id;
+          expect(response.status).to.equal(200);
+        });
+
         it('Should be able to get car by ID', async () => {
-          const response = await testData.centralService.carApiSuperTenant.readById(carID);
+          const response = await testData.centralService.carApi.readById(carID);
+          expect(response.status).to.equal(200);
+        });
+
+        it('Should be able to get image of a car', async () => {
+          const response = await testData.centralService.carApi.readCarImages(carID);
+          expect(response.status).to.equal(200);
+        });
+
+        it('Should be able to get car makers', async () => {
+          const response = await testData.centralService.carApi.readCarMakers({});
           expect(response.status).to.equal(200);
         });
 
@@ -58,16 +94,44 @@ describe('Car Service', function() {
           expect(response.status).to.equal(500);
         });
 
-        it('Should be able to get car debug object', async () => {
-          const response = await testData.centralService.carApiSuperTenant.readById(carID);
+        it('Should not be able to get car debug object', async () => {
+          const response = await testData.centralService.carApi.readById(carID);
           expect(response.status).to.equal(200);
-          expect(response.data).to.have.property('carObject');
+          expect(response.data).to.not.have.property('hash');
         });
+      });
+    });
 
-        it('Should be able to get cars', async () => {
-          const response = await testData.centralService.carApiSuperTenant.readAll({});
-          expect(response.status).to.equal(200);
-        });
+    describe('Where Super admin user', () => {
+      it('Should be able to get car by ID', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readById(carID);
+        expect(response.status).to.equal(200);
+      });
+
+      it('Should be able to get image of a car', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readCarImages(carID);
+        expect(response.status).to.equal(200);
+      });
+
+      it('Should be able to get car makers', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readCarMakers({});
+        expect(response.status).to.equal(200);
+      });
+
+      it('Should not be able to get a detailed car without ID', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readById();
+        expect(response.status).to.equal(500);
+      });
+
+      it('Should be able to get car debug object', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readById(carID);
+        expect(response.status).to.equal(200);
+        expect(response.data).to.have.property('hash');
+      });
+
+      it('Should be able to get cars', async () => {
+        const response = await testData.centralService.carApiSuperTenant.readAll({});
+        expect(response.status).to.equal(200);
       });
     });
   });

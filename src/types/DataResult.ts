@@ -6,16 +6,6 @@ export interface DataResult<T> {
 }
 
 
-export interface ImageResult {
-  id: string;
-  image: string;
-}
-
-export interface LogoResult {
-  id: string;
-  logo: string;
-}
-
 export interface TransactionDataResult {
   count: number;
   result: Transaction[];

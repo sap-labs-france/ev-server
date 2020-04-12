@@ -8,13 +8,15 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'NotificationStorage';
+
 export default class NotificationStorage {
 
   static async getNotifications(tenantID: string,
     params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object; chargeBoxID?: string },
     dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -126,7 +128,7 @@ export default class NotificationStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('NotificationStorage', 'getNotifications', uniqueTimerID, params);
+    Logging.traceEnd(MODULE_NAME, 'getNotifications', uniqueTimerID, params);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
@@ -136,7 +138,7 @@ export default class NotificationStorage {
 
   static async saveNotification(tenantID: string, notificationToSave: Notification): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('NotificationStorage', 'saveNotification');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
@@ -155,6 +157,6 @@ export default class NotificationStorage {
     await global.database.getCollection<any>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notificationToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveNotification', uniqueTimerID, { notificationToSave });
   }
 }

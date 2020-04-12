@@ -1,8 +1,7 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { Car, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarByIDRequest, HttpCarImagesRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
@@ -28,21 +27,31 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  public static filterCarRequest(request: any): HttpByIDRequest {
-    const filteredRequest: HttpByIDRequest = {
-      ID: sanitize(request.CarID),
-    } as HttpByIDRequest;
+  public static filterCarImagesRequest(request: any): HttpCarImagesRequest {
+    const filteredRequest: HttpCarImagesRequest = {
+      CarID: sanitize(request.CarID),
+    } as HttpCarImagesRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  public static filterCarRequest(request: any): HttpCarByIDRequest {
+    const filteredRequest: HttpCarByIDRequest = {
+      ID: +sanitize(request.CarID),
+    } as HttpCarByIDRequest;
     return filteredRequest;
   }
 
   public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
-    let filteredCar;
-
+    let filteredCar: Car;
     if (!car) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadCar(loggedUser)) {
+    if (Authorizations.isSuperAdmin(loggedUser)) {
+      filteredCar = car;
+    } else if (Authorizations.canReadCar(loggedUser)) {
       filteredCar = {
         id: car.id,
         vehicleModel: car.vehicleModel,
@@ -57,7 +66,6 @@ export default class CarSecurity {
         rangeReal: car.rangeReal,
         rangeWLTP: car.rangeWLTP,
         efficiencyReal: car.efficiencyReal,
-        images: car.images,
         chargeStandardChargeSpeed: car.chargeStandardChargeSpeed,
         drivetrainPropulsion: car.drivetrainPropulsion,
         drivetrainTorque: car.drivetrainTorque,
@@ -74,15 +82,12 @@ export default class CarSecurity {
         miscTurningCircle: car.miscTurningCircle,
         miscSegment: car.miscSegment,
         miscIsofixSeats: car.miscIsofixSeats,
-        chargeStandardTables: car.chargeStandardTables
-      };
-      if (Authorizations.isSuperAdmin(loggedUser)) {
-        filteredCar.carObject = car;
-      }
-      // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredCar, car, loggedUser);
+        chargeStandardTables: car.chargeStandardTables,
+        image: car.image,
+      } as Car;
     }
+    // Created By / Last Changed By
+    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
     return filteredCar;
   }
 
@@ -132,7 +137,7 @@ export default class CarSecurity {
           rangeReal: car.rangeReal,
           rangeWLTP: car.rangeWLTP,
           efficiencyReal: car.efficiencyReal,
-          images: car.images,
+          image: car.image,
           chargeStandardChargeSpeed: car.chargeStandardChargeSpeed
         });
       }

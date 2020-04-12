@@ -10,6 +10,8 @@ import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'LoggingStorage';
+
 export default class LoggingStorage {
   public static async deleteLogs(tenantID, deleteUpToDate: Date) {
     // Check Tenant
@@ -80,13 +82,13 @@ export default class LoggingStorage {
 
   public static async getLog(tenantID: string, id: string): Promise<Log> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('LoggingStorage', 'getLog');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLog');
     // Query single Site
     const logsMDB = await LoggingStorage.getLogs(tenantID,
       { logID: id },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('LoggingStorage', 'getLog', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getLog', uniqueTimerID, { id });
     return logsMDB.count > 0 ? logsMDB.result[0] : null;
   }
 
