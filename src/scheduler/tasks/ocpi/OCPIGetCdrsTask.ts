@@ -1,5 +1,6 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
+import { Action } from '../../../types/Authorization';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -11,6 +12,8 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchedulerTask from '../../SchedulerTask';
 
+const MODULE_NAME = 'OCPIGetCdrsTask';
+
 export default class OCPIGetCdrsTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
@@ -19,8 +22,8 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
-          module: 'OCPIGetCdrsTask',
-          method: 'run', action: 'OcpiGetCdrs',
+          action: Action.OCPI_GET_CDRS,
+          module: MODULE_NAME, method: 'run',
           message: 'OCPI Inactive for this tenant. The task \'OCPIGetCdrsTask\' is skipped.'
         });
         // Skip execution
@@ -33,7 +36,7 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'OcpiGetCdrs', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_PULL_CDRS, error);
     }
   }
 
@@ -43,24 +46,24 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
     if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIGetCdrsTask',
-        method: 'run', action: 'OcpiGetSessions',
+        action: Action.OCPI_GET_CDRS,
+        module: MODULE_NAME, method: 'run',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
       return;
     } else if (!ocpiEndpoint.backgroundPatchJob) {
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'OCPIGetCdrsTask',
-        method: 'run', action: 'OcpiGetCdrs',
+        action: Action.OCPI_GET_CDRS,
+        module: MODULE_NAME, method: 'run',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
       return;
     }
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIGetCdrsTask',
-      method: 'patch', action: 'OcpiGetCdrs',
+      action: Action.OCPI_GET_CDRS,
+      module: MODULE_NAME, method: 'patch',
       message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is being processed`
     });
     // Build OCPI Client
@@ -69,8 +72,8 @@ export default class OCPIGetCdrsTask extends SchedulerTask {
     const result = await ocpiClient.pullCdrs();
     Logging.logInfo({
       tenantID: tenant.id,
-      module: 'OCPIGetCdrsTask',
-      method: 'patch', action: 'OcpiGetCdrs',
+      action: Action.OCPI_GET_CDRS,
+      module: MODULE_NAME, method: 'patch',
       message: `The get cdrs process for endpoint ${ocpiEndpoint.name} is completed)`,
       detailedMessages: { result }
     });

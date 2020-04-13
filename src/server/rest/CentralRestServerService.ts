@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
-import { OCPPChargingStationCommand } from '../../types/ocpp/OCPPClient';
 import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
 import AssetService from './service/AssetService';
+import CarService from './service/CarService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectionService from './service/ConnectionService';
@@ -20,7 +20,6 @@ import TenantService from './service/TenantService';
 import TransactionService from './service/TransactionService';
 import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
-import CarService from './service/CarService';
 
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
@@ -37,7 +36,7 @@ class RequestMapper {
             // Keep the action (remove ChargingStation)
             action = action.slice(15) as Action;
             // Type it
-            const chargingStationCommand: OCPPChargingStationCommand = action as unknown as OCPPChargingStationCommand;
+            const chargingStationCommand: Action = action;
             // Delegate
             await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
@@ -107,6 +106,7 @@ class RequestMapper {
           Cars: CarService.handleGetCars.bind(this),
           Car: CarService.handleGetCar.bind(this),
           CarMakers: CarService.handleGetCarMakers.bind(this),
+          CarImages: CarService.handleGetCarImages.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
@@ -301,7 +301,7 @@ export default {
     // Check HTTP Verbs
     if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
-        'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
+        null, new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
     try {

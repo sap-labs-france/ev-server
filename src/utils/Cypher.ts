@@ -6,13 +6,14 @@ import Constants from './Constants';
 
 const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;
+const MODULE_NAME = 'Cypher';
 
 export default class Cypher {
   public static getConfiguration() {
     if (!_configuration) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'Cypher',
+        module: MODULE_NAME,
         method: 'getConfiguration',
         message: 'Crypto configuration is missing'
       });
@@ -46,7 +47,7 @@ export default class Cypher {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'Cypher',
+        module: MODULE_NAME,
         method: 'encryptSensitiveDataInJSON',
         message: `The parameter ${obj} is not an object`
       });
@@ -56,7 +57,7 @@ export default class Cypher {
       if (!Array.isArray(obj.sensitiveData)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Cypher',
+          module: MODULE_NAME,
           method: 'encryptSensitiveDataInJSON',
           message: 'The property \'sensitiveData\' is not an array'
         });
@@ -80,7 +81,7 @@ export default class Cypher {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'Cypher',
+        module: MODULE_NAME,
         method: 'decryptSensitiveDataInJSON',
         message: `The parameter ${obj} is not an object`
       });
@@ -90,7 +91,7 @@ export default class Cypher {
       if (!Array.isArray(obj.sensitiveData)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Cypher',
+          module: MODULE_NAME,
           method: 'decryptSensitiveDataInJSON',
           message: 'The property \'sensitiveData\' is not an array'
         });
@@ -112,7 +113,7 @@ export default class Cypher {
     if (typeof obj !== 'object') {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'Cypher',
+        module: MODULE_NAME,
         method: 'hashSensitiveDataInJSON',
         message: `The parameter ${obj} is not an object`
       });
@@ -122,7 +123,7 @@ export default class Cypher {
       if (!Array.isArray(obj.sensitiveData)) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'Cypher',
+          module: MODULE_NAME,
           method: 'hashSensitiveDataInJSON',
           message: 'The property \'sensitiveData\' is not an array'
         });

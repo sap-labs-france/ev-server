@@ -8,14 +8,15 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import TenantComponents from '../../../types/TenantComponents';
 
+const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
-  static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
+  static handleUnknownAction(action: Action, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
-        'N/A', new Error('No Action has been provided'), req, res, next);
+        null, new Error('No Action has been provided'), req, res, next);
     } else {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(

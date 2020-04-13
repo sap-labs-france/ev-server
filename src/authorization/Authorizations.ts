@@ -25,6 +25,8 @@ import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 
+const MODULE_NAME = 'Authorizations';
+
 export default class Authorizations {
 
   private static configuration: AuthorizationConfiguration;
@@ -603,9 +605,8 @@ export default class Authorizations {
         throw new AppError({
           source: chargingStation.id,
           errorCode: HTTPError.CHARGER_WITH_NO_SITE_AREA_ERROR,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-          module: 'Authorizations',
-          method: 'isTagIDAuthorizedOnChargingStation'
         });
       }
 
@@ -623,9 +624,8 @@ export default class Authorizations {
         throw new AppError({
           source: chargingStation.id,
           errorCode: HTTPError.SITE_AREA_WITH_NO_SITE_ERROR,
+          module: MODULE_NAME, method: 'isTagIDAuthorizedOnChargingStation',
           message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-          module: 'Authorizations',
-          method: 'isTagIDAuthorizedOnChargingStation'
         });
       }
     }
@@ -646,7 +646,7 @@ export default class Authorizations {
           source: chargingStation.id,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
-          module: 'Authorizations',
+          module: MODULE_NAME,
           method: 'isTagIDAuthorizedOnChargingStation',
           user: user
         });
@@ -657,7 +657,7 @@ export default class Authorizations {
         throw new BackendError({
           source: chargingStation.id,
           message: `Tag ID '${tagID}' of user '${user.id}' is deactivated'`,
-          module: 'Authorizations',
+          module: MODULE_NAME,
           method: 'isTagIDAuthorizedOnChargingStation',
           user: user
         });
@@ -682,7 +682,7 @@ export default class Authorizations {
             action: action,
             entity: Entity.CHARGING_STATION,
             value: chargingStation.id,
-            module: 'Authorizations',
+            module: MODULE_NAME,
             method: 'isTagIDAuthorizedOnChargingStation',
           });
         }
@@ -698,7 +698,7 @@ export default class Authorizations {
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
-  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string): Promise<User> {
+  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: Action): Promise<User> {
     let user = await UserStorage.getUserByTagId(tenantID, tagID);
     // Found?
     if (!user) {
@@ -741,13 +741,13 @@ export default class Authorizations {
           evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           evseDashboardUserURL: await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      ).catch((err) => Logging.logError(err));
+      )
       // Not authorized
       throw new AppError({
         source: chargingStation.id,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `User with Tag ID '${tagID}' not found but saved as inactive user`,
-        module: 'Authorizations',
+        module: MODULE_NAME,
         method: 'checkAndGetUserTagIDOnChargingStation',
         user: user
       });
@@ -779,7 +779,7 @@ export default class Authorizations {
       // Log
       Logging.logSecurityInfo({
         tenantID: tenantID, user: user,
-        module: 'Authorizations', method: 'checkAndGetUserTagIDOnChargingStation',
+        module: MODULE_NAME, method: 'checkAndGetUserTagIDOnChargingStation',
         message: `User with ID '${user.id}' with Tag ID '${tagID}' has been restored`,
         action: action
       });
@@ -842,9 +842,9 @@ export default class Authorizations {
     if (!authorized && Authorizations.getConfiguration().debug) {
       Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
-        module: 'Authorizations', method: 'canPerformAction',
+        action: Action.AUTHORIZATIONS,
+        module: MODULE_NAME, method: 'canPerformAction',
         message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
-        action: 'Authorizations'
       });
     }
     return authorized;

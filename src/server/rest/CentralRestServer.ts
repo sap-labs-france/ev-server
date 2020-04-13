@@ -1,23 +1,22 @@
-import { NextFunction, Request, Response } from 'express';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
-import ChangeNotification from '../../types/ChangeNotification';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
-import { Entity } from '../../types/Authorization';
-import Logging from '../../utils/Logging';
-import SessionHashService from '../rest/service/SessionHashService';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
-import UserToken from '../../types/UserToken';
-
 import cluster from 'cluster';
-import express from 'express';
-import expressTools from '../ExpressTools';
-import morgan from 'morgan';
+import express, { NextFunction, Request, Response } from 'express';
 import sanitize from 'express-sanitizer';
+import morgan from 'morgan';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
 import util from 'util';
+import { Action, Entity } from '../../types/Authorization';
+import ChangeNotification from '../../types/ChangeNotification';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
+import UserToken from '../../types/UserToken';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import expressTools from '../ExpressTools';
+import SessionHashService from '../rest/service/SessionHashService';
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
+
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -52,9 +51,8 @@ export default class CentralRestServer {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME,
-                method: 'constructor',
-                action: 'HttpRequestLog',
+                module: MODULE_NAME, method: 'constructor',
+                action: Action.EXPRESS_SERVER,
                 message: message
               });
             }
@@ -86,8 +84,8 @@ export default class CentralRestServer {
     this.express.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'constructor', action: 'Express catchall',
+        module: MODULE_NAME, method: 'constructor',
+        action: Action.EXPRESS_SERVER,
         message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
         detailedMessages: 'Request: ' + util.inspect(req)
       });
@@ -107,8 +105,8 @@ export default class CentralRestServer {
     const logMsg = 'Starting REST SocketIO Server...';
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      module: MODULE_NAME,
-      method: 'start', action: 'Startup',
+      module: MODULE_NAME, method: 'startSocketIO',
+      action: Action.STARTUP,
       message: logMsg
     });
     // eslint-disable-next-line no-console
@@ -119,7 +117,7 @@ export default class CentralRestServer {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: 'start', action: 'Startup',
+        method: 'start', action: Action.STARTUP,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketHandshake: socket.handshake }
       });
@@ -137,7 +135,7 @@ export default class CentralRestServer {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME,
-          method: 'start', action: 'Startup',
+          method: 'start', action: Action.STARTUP,
           message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
         });
@@ -146,7 +144,7 @@ export default class CentralRestServer {
         Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME,
-          method: 'start', action: 'Startup',
+          method: 'start', action: Action.STARTUP,
           message: 'SocketIO client is connected to tenant ' + userToken.tenantID,
           detailedMessages: { socketHandshake: socket.handshake }
         });

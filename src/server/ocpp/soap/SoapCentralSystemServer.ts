@@ -3,6 +3,7 @@ import sanitize from 'express-sanitizer';
 import fs from 'fs';
 import morgan from 'morgan';
 import { soap } from 'strong-soap';
+import { Action } from '../../../types/Authorization';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../types/GlobalType';
@@ -40,7 +41,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: 'HttpRequestLog',
+                action: Action.EXPRESS_SERVER,
                 message: message
               });
             }
@@ -112,7 +113,8 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-      method: 'start', action: 'StrongSoapDebug',
+      method: 'start',
+      action: Action.EXPRESS_SERVER,
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
     });
@@ -124,7 +126,8 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       // Log
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-        method: 'start', action: 'StrongSoapDebug',
+        method: 'start',
+        action: Action.EXPRESS_SERVER,
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }
       });

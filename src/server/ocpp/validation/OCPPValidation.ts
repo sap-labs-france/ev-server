@@ -8,6 +8,8 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
 
+const MODULE_NAME = 'OCPPValidation';
+
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;
 
@@ -68,8 +70,7 @@ export default class OCPPValidation extends SchemaValidator {
       (connector) => connector.connectorId === startTransaction.connectorId)) {
       throw new BackendError({
         source: chargingStation.id,
-        module: 'OCPPValidation',
-        method: 'validateStartTransaction',
+        module: MODULE_NAME, method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
         action: Action.START_TRANSACTION
       });
@@ -95,8 +96,10 @@ export default class OCPPValidation extends SchemaValidator {
       // KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
         tenantID: tenantID,
-        source: chargingStation.id, module: 'OCPPValidation', method: 'validateMeterValues',
-        action: 'MeterValues', message: 'Connector ID must not be \'0\' and has been reset to \'1\''
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'validateMeterValues',
+        action: Action.METER_VALUES,
+        message: 'Connector ID must not be \'0\' and has been reset to \'1\''
       });
       // Set to 1 (KEBA has only one connector)
       meterValues.connectorId = 1;
@@ -106,8 +109,10 @@ export default class OCPPValidation extends SchemaValidator {
       (connector) => connector.connectorId === meterValues.connectorId);
     if (!foundConnector) {
       Logging.logWarning({
-        tenantID: tenantID, source: chargingStation.id,
-        module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'validateMeterValues',
+        action: Action.METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
@@ -122,8 +127,10 @@ export default class OCPPValidation extends SchemaValidator {
         if (chargerTransactionId > 0) {
           // No: Log that the transaction ID will be reused
           Logging.logWarning({
-            tenantID: tenantID, source: chargingStation.id,
-            module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
+            tenantID: tenantID,
+            source: chargingStation.id,
+            module: MODULE_NAME, method: 'validateMeterValues',
+            action: Action.METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
           });
         }
@@ -134,8 +141,10 @@ export default class OCPPValidation extends SchemaValidator {
     } else if (chargerTransactionId > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
-        tenantID: tenantID, source: chargingStation.id,
-        module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: MODULE_NAME, method: 'validateMeterValues',
+        action: Action.METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
       });
       // Override it

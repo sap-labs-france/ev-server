@@ -1,6 +1,7 @@
 import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { Action } from '../../types/Authorization';
 import { CheckOfflineChargingStationsTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -33,7 +34,7 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'CheckOfflineChargingStationsTask', error);
+      Logging.logActionExceptionMessage(tenant.id, Action.OFFLINE_CHARGING_STATION, error);
     }
   }
 }

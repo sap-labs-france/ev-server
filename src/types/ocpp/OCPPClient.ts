@@ -2,22 +2,6 @@ import { ChargingProfile, ChargingSchedule, Profile } from '../../types/Charging
 import { KeyValue } from '../GlobalType';
 import { PowerLimitUnits } from '../ChargingStation';
 
-export enum OCPPChargingStationCommand {
-  CLEAR_CACHE = 'ClearCache',
-  GET_CONFIGURATION = 'GetConfiguration',
-  CHANGE_CONFIGURATION = 'ChangeConfiguration',
-  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
-  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
-  UNLOCK_CONNECTOR = 'UnlockConnector',
-  RESET = 'Reset',
-  SET_CHARGING_PROFILE = 'SetChargingProfile',
-  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
-  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
-  GET_DIAGNOSTICS = 'GetDiagnostics',
-  CHANGE_AVAILABILITY = 'ChangeAvailability',
-  UPDATE_FIRMWARE = 'UpdateFirmware',
-}
-
 export interface OCPPCommandParam {
 }
 

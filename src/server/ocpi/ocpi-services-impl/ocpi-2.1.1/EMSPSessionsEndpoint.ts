@@ -1,19 +1,19 @@
-import AbstractEndpoint from '../AbstractEndpoint';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
-import AppError from '../../../../exception/AppError';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import { OCPISession } from '../../../../types/ocpi/OCPISession';
-import Transaction from '../../../../types/Transaction';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import OCPISessionsService from './OCPISessionsService';
 import HttpStatusCodes from 'http-status-codes';
+import AppError from '../../../../exception/AppError';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPISession } from '../../../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../../../types/Tenant';
+import Transaction from '../../../../types/Transaction';
+import Constants from '../../../../utils/Constants';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPISessionsService from './OCPISessionsService';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -50,17 +50,14 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const sessionId = urlSegment.shift();
-
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
@@ -70,15 +67,13 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     return OCPIUtils.success(transaction.ocpiSession);
   }
 
@@ -91,40 +86,32 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // Remove action
     urlSegment.shift();
-
     // Get filters
     const countryCode = urlSegment.shift();
     const partyId = urlSegment.shift();
     const sessionId = urlSegment.shift();
-
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'putSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const session: OCPISession = req.body as OCPISession;
-
     if (!session.id) {
       session.id = sessionId;
     } else if (session.id !== sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'putSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'putSessionRequest',
         errorCode: HttpStatusCodes.BAD_REQUEST,
         message: `Session id ${session.id} does not match request parameter ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
-    await OCPISessionsService.updateSession(tenant.id, session);
-
+    await OCPISessionsService.updateTransaction(tenant.id, session);
     return OCPIUtils.success({});
   }
 
@@ -145,29 +132,24 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
 
     if (!countryCode || !partyId || !sessionId) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, sessionId);
     if (!transaction) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: `No transaction found for ocpi session ${sessionId}`,
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-
     let patched = false;
-
     const sessionPatched: Partial<OCPISession> = req.body as Partial<OCPISession>;
     if (sessionPatched.status) {
       transaction.ocpiSession.status = sessionPatched.status;
@@ -189,20 +171,17 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
       transaction.ocpiSession.total_cost = sessionPatched.total_cost;
       patched = true;
     }
-
     if (!patched) {
       throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'getSessionRequest',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'getSessionRequest',
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Missing request parameters',
         detailedMessages: { sessionPatched },
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
-
-    await OCPISessionsService.updateSession(tenant.id, transaction.ocpiSession);
+    await OCPISessionsService.updateTransaction(tenant.id, transaction.ocpiSession);
     return OCPIUtils.success({});
   }
 }

@@ -1,21 +1,23 @@
 import { NextFunction, Request, Response } from 'express';
-import { Action, Entity } from '../../../types/Authorization';
-import TenantComponents from '../../../types/TenantComponents';
-import UtilsService from './UtilsService';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import CarSecurity from './security/CarSecurity';
-import CarStorage from '../../../storage/mongodb/CarStorage';
-import Constants from '../../../utils/Constants';
-import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
 import BackendError from '../../../exception/AppError';
+import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
+import CarStorage from '../../../storage/mongodb/CarStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import CarSecurity from './security/CarSecurity';
+import UtilsService from './UtilsService';
+
+const MODULE_NAME = 'CarService';
 
 export default class CarService {
   public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS, 'CarService', 'handleGetCars');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS, MODULE_NAME, 'handleGetCars');
     }
     // Check auth
     if (!Authorizations.canListCars(req.user)) {
@@ -24,7 +26,7 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCars'
       });
     }
@@ -38,7 +40,7 @@ export default class CarService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
-        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'chargeStandardChargeSpeed',
+        'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image', 'chargeStandardChargeSpeed',
         'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
@@ -51,7 +53,7 @@ export default class CarService {
   public static async handleGetCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, 'CarService', 'handleGetCars');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCars');
     }
     // Check auth
     if (!Authorizations.canReadCar(req.user)) {
@@ -60,20 +62,20 @@ export default class CarService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCar'
       });
     }
     // Filter
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'CarService', 'handleGetCar', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
 
     let car;
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car
       car = await CarStorage.getCar(filteredRequest.ID,
         ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
-          'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'images', 'drivetrainPropulsion',
+          'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation', 'drivetrainPowerHP',
           'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
           'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase']);
@@ -86,6 +88,35 @@ export default class CarService {
     next();
   }
 
+  public static async handleGetCarImages(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCarImages');
+    }
+    // Check auth
+    if (!Authorizations.canReadCar(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.READ,
+        entity: Entity.CAR,
+        module: MODULE_NAME,
+        method: 'handleGetCarImages'
+      });
+    }
+    // Filter
+    const filteredRequest = CarSecurity.filterCarImagesRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, MODULE_NAME, 'handleGetCarImages', req.user);
+    // Get the car
+    const carImages = await CarStorage.getCarImages(
+      filteredRequest.CarID,
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
+    );
+    // Return
+    res.json(carImages);
+    next();
+  }
+
   public static async handleSynchronizeCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canSynchronizeCars(req.user)) {
@@ -94,7 +125,7 @@ export default class CarService {
         user: req.user,
         action: Action.SYNCHRONIZE_CARS,
         entity: Entity.CARS,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -104,7 +135,7 @@ export default class CarService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car service is not configured',
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleSynchronizeCars'
       });
     }
@@ -116,7 +147,7 @@ export default class CarService {
   public static async handleGetCarMakers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, 'CarService', 'handleGetCarMakers');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCarMakers');
     }
     // Check auth
     if (!Authorizations.canReadCar(req.user)) {
@@ -125,7 +156,7 @@ export default class CarService {
         user: req.user,
         action: Action.READ,
         entity: Entity.CAR,
-        module: 'CarService',
+        module: MODULE_NAME,
         method: 'handleGetCarMakers'
       });
     }
