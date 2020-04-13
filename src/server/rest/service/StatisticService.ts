@@ -20,7 +20,7 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -49,7 +49,7 @@ export default class StatisticService {
   static async handleGetChargingStationUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -78,7 +78,7 @@ export default class StatisticService {
   static async handleGetChargingStationInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -107,7 +107,7 @@ export default class StatisticService {
   static async handleGetChargingStationTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -136,7 +136,7 @@ export default class StatisticService {
   static async handleGetChargingStationPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -165,7 +165,7 @@ export default class StatisticService {
   static async handleGetUserConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -194,7 +194,7 @@ export default class StatisticService {
   static async handleGetUserUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -223,7 +223,7 @@ export default class StatisticService {
   static async handleGetUserInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -252,7 +252,7 @@ export default class StatisticService {
   static async handleGetUserTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -281,7 +281,7 @@ export default class StatisticService {
   static async handleGetUserPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -331,7 +331,7 @@ export default class StatisticService {
   static async handleGetStatisticsExport(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
-      Action.LIST, Entity.TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
+      Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetStatisticsExport');
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({

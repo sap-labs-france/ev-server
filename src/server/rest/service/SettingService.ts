@@ -19,7 +19,7 @@ export default class SettingService {
   public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
@@ -35,7 +35,7 @@ export default class SettingService {
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
     UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`,
-      'SettingService', 'handleDeleteSetting', req.user);
+      MODULE_NAME, 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
@@ -54,7 +54,7 @@ export default class SettingService {
   public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -70,7 +70,7 @@ export default class SettingService {
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`,
-      'SettingService', 'handleGetSetting', req.user);
+      MODULE_NAME, 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -150,7 +150,7 @@ export default class SettingService {
   public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -166,7 +166,7 @@ export default class SettingService {
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' doesn't exist anymore`,
-      'SettingService', 'handleUpdateSetting', req.user);
+      MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
     if (settingUpdate.sensitiveData) {
