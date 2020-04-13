@@ -1,5 +1,6 @@
 version: 0.2
-
+parameter-store:
+  build_ssh_key: "/CodeBuild/emobility_build_ssh_key"
 phases:
   pre_build:
     commands:
@@ -26,9 +27,9 @@ phases:
       - git submodule update --init --recursive
   build:
     commands:
-      - echo Build started on `date`
+      - echo Build and push started on `date`
       - echo Building and pushing the Docker image...
-      - make DOCKER_ECR_ACCOUNT_ID=$AWS_ACCOUNT_ID DOCKER_ECR_REGION=$AWS_DEFAULT_REGION DOCKER_ECR_REGISTRY_NAME=$IMAGE_REPO_NAME DOCKER_ECR_TAG=$IMAGE_TAG server-standalone-docker-push-ecr
+      - cd docker && make DOCKER_ECR_ACCOUNT_ID=$AWS_ACCOUNT_ID DOCKER_ECR_REGION=$AWS_DEFAULT_REGION DOCKER_ECR_REGISTRY_NAME=$IMAGE_REPO_NAME DOCKER_ECR_TAG=$IMAGE_TAG server-standalone-docker-push-ecr
   post_build:
     commands:
       - echo Build and push completed on `date`
