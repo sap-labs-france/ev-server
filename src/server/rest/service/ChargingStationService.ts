@@ -42,11 +42,11 @@ export default class ChargingStationService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.CHARGING_STATION, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea');
+      Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check mandatory fields
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -60,7 +60,7 @@ export default class ChargingStationService {
     // Get the Site Area (before auth to get siteID)
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
@@ -78,7 +78,7 @@ export default class ChargingStationService {
       // Check the charging station
       const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
       UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' doesn't exist anymore.`,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID)) {
         throw new AppAuthError({
@@ -119,7 +119,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -228,7 +228,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Check
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
-      'ChargingStationService', 'handleChargingStationLimitPower', req.user);
+      MODULE_NAME, 'handleChargingStationLimitPower', req.user);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -350,7 +350,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingProfiles', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingProfiles', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -378,7 +378,7 @@ export default class ChargingStationService {
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
-      'ChargingStationService', 'handleUpdateChargingProfile', req.user);
+      MODULE_NAME, 'handleUpdateChargingProfile', req.user);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -421,11 +421,11 @@ export default class ChargingStationService {
     // Get Profile
     const chargingProfile = await ChargingStationStorage.getChargingProfile(req.user.tenantID, chargingProfileID);
     UtilsService.assertObjectExists(action, chargingProfile, `Charging Profile ID '${chargingProfileID}' doesn't exist.`,
-      'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+      MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // Get Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingProfile.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingProfile.chargingStationID}' doesn't exist.`,
-      'ChargingStationService', 'handleDeleteChargingProfile', req.user);
+      MODULE_NAME, 'handleDeleteChargingProfile', req.user);
     // Check Component
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
@@ -467,12 +467,12 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationOcppParametersRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationOcppParameters', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingStationOcppParameters', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -495,7 +495,7 @@ export default class ChargingStationService {
   public static async handleRequestChargingStationOcppParameters(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterRequestChargingStationOcppParametersRequest(req.body);
-    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleRequestChargingStationOcppParameters', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -512,7 +512,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist anymore.`,
-      'ChargingStationService', 'handleRequestChargingStationOcppParameters', req.user);
+      MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
     // Get the Config
     const result = await OCPPUtils.requestAndSaveChargingStationOcppParameters(
       req.user.tenantID, chargingStation, filteredRequest.forceUpdateOCPPParamsFromTemplate);
@@ -525,13 +525,13 @@ export default class ChargingStationService {
     // Filter
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, chargingStationID, 'ChargingStationService',
+    UtilsService.assertIdIsProvided(action, chargingStationID, MODULE_NAME,
       'handleDeleteChargingStation', req.user);
     // Get
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
     // Check
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${chargingStationID}' does not exist`,
-      'ChargingStationService', 'handleDeleteChargingStation', req.user);
+      MODULE_NAME, 'handleDeleteChargingStation', req.user);
 
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
@@ -613,7 +613,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query);
     // Check
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'ChargingStationService', 'handleGetChargingStation', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetChargingStation', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError({
@@ -630,7 +630,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID);
     // Check
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.ID}' does not exist`,
-      'ChargingStationService', 'handleGetChargingStation', req.user);
+      MODULE_NAME, 'handleGetChargingStation', req.user);
     // Deleted?
     if (chargingStation.deleted) {
       throw new AppError({
@@ -743,7 +743,7 @@ export default class ChargingStationService {
     // Check component
     if (filteredRequest.SiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
+        Action.READ, Entity.CHARGING_STATIONS, MODULE_NAME, 'handleGetChargingStations');
     }
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
@@ -871,11 +871,11 @@ export default class ChargingStationService {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
-    UtilsService.assertIdIsProvided(command, filteredRequest.chargeBoxID, 'ChargingStationService', 'handleAction', req.user);
+    UtilsService.assertIdIsProvided(command, filteredRequest.chargeBoxID, MODULE_NAME, 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(command, chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleAction', req.user);
+      MODULE_NAME, 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector
     if (command === Action.REMOTE_STOP_TRANSACTION) {
@@ -894,7 +894,7 @@ export default class ChargingStationService {
       // Get Transaction
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
       UtilsService.assertObjectExists(command as unknown as Action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
-        'ChargingStationService', 'handleAction', req.user);
+        MODULE_NAME, 'handleAction', req.user);
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
@@ -1249,7 +1249,7 @@ export default class ChargingStationService {
   static async handleCheckSmartChargingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
-      action, Entity.CHARGING_STATION, 'ChargingStationService', 'handleCheckSmartChargingConnection');
+      action, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({

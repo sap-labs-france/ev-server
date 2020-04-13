@@ -238,7 +238,7 @@
       <xs:element name="STR_SUPPL2" type="xs:string" minOccurs="0"/>
       <xs:element name="STR_SUPPL3" type="xs:string" minOccurs="0"/>
       <xs:element name="LOCATION" type="xs:string" minOccurs="0"/>
-      <xs:element name="BUILDING" type="xs:string" minOccurs="0"/>
+      <xs:element name="ASSET" type="xs:string" minOccurs="0"/>
       <xs:element name="FLOOR" type="xs:string" minOccurs="0"/>
       <xs:element name="ROOM_NO" type="xs:string" minOccurs="0"/>
       <xs:element name="COUNTRY" type="xs:string" minOccurs="0"/>

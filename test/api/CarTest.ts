@@ -28,7 +28,7 @@ describe('Car Service', function() {
       describe('Where car component is not active', () => {
         before(async function() {
 
-          testData.centralService = new CentralServerService('utbuilding', {
+          testData.centralService = new CentralServerService('utasset', {
             email: config.get('admin.username'),
             password: config.get('admin.password')
           });

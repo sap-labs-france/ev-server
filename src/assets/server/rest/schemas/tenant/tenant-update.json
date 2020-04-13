@@ -83,7 +83,7 @@
                         "type": { "type": "string", "sanitize": "mongo" }
                     }
                 },
-                "building": {
+                "asset": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean", "sanitize": "mongo" }

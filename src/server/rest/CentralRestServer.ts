@@ -265,18 +265,18 @@ export default class CentralRestServer {
     });
   }
 
-  notifyBuilding(tenantID: string, action: string, data) {
+  notifyAsset(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.BUILDING,
+      'entity': Entity.ASSET,
       'action': action,
       'data': data
     });
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.BUILDINGS
+      'entity': Entity.ASSETS
     });
   }
 

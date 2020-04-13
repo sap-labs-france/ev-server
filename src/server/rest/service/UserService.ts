@@ -77,7 +77,7 @@ export default class UserService {
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' doesn't exist anymore.`,
-      'UserService', 'handleAssignSitesToUser', req.user);
+      MODULE_NAME, 'handleAssignSitesToUser', req.user);
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
       if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
@@ -163,7 +163,7 @@ export default class UserService {
     // Check user
     const user = await UserStorage.getUser(req.user.tenantID, id);
     UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
-      'UserService', 'handleDeleteUser', req.user);
+      MODULE_NAME, 'handleDeleteUser', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -356,7 +356,7 @@ export default class UserService {
     // Get User
     let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
-      'UserService', 'handleUpdateUser', req.user);
+      MODULE_NAME, 'handleUpdateUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -591,7 +591,7 @@ export default class UserService {
     // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
-      'UserService', 'handleUpdateUserMobileToken', req.user);
+      MODULE_NAME, 'handleUpdateUserMobileToken', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -657,7 +657,7 @@ export default class UserService {
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
     UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
-      'UserService', 'handleGetUser', req.user);
+      MODULE_NAME, 'handleGetUser', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -708,7 +708,7 @@ export default class UserService {
     // Get the logged user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, user, `User '${filteredRequest.ID}' doesn't exist anymore.`,
-      'UserService', 'handleGetUserImage', req.user);
+      MODULE_NAME, 'handleGetUserImage', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -730,7 +730,7 @@ export default class UserService {
 
   public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.USER, 'UserService', 'handleGetSites');
+      Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
     const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
     // Check Mandatory fields
@@ -812,7 +812,7 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, 'UserService', 'handleGetUsers');
+        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
@@ -855,7 +855,7 @@ export default class UserService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-        Action.READ, Entity.USER, 'UserService', 'handleGetUsersInError');
+        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsersInError');
     }
     // Get users
     const users = await UserStorage.getUsersInError(req.user.tenantID,
@@ -1075,7 +1075,7 @@ export default class UserService {
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
     UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
-      'UserService', 'handleGetUserInvoice', req.user);
+      MODULE_NAME, 'handleGetUserInvoice', req.user);
     // Deleted?
     if (user.deleted) {
       throw new AppError({
@@ -1093,7 +1093,7 @@ export default class UserService {
     if (!pricingSetting || !pricingSetting.convergentCharging) {
       Logging.logException(
         new Error('Convergent Charging setting is missing'),
-        Action.USER_INVOICE, Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
+        Action.USER_INVOICE, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
 
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
