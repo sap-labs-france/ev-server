@@ -27,7 +27,7 @@ export default class TenantService {
   public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, id, 'TenantService', 'handleDeleteTenant', req.user);
+    UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError({
@@ -43,7 +43,7 @@ export default class TenantService {
     // Get
     const tenant = await TenantStorage.getTenant(id);
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${id}' does not exist`,
-      'TenantService', 'handleDeleteTenant', req.user);
+      MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
       throw new AppError({
@@ -76,7 +76,7 @@ export default class TenantService {
   public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, tenantID, 'TenantService', 'handleGetTenant', req.user);
+    UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError({
@@ -92,7 +92,7 @@ export default class TenantService {
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantID}' does not exist`,
-      'TenantService', 'handleGetTenant', req.user);
+      MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -240,7 +240,7 @@ export default class TenantService {
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
     UtilsService.assertObjectExists(action, tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`,
-      'TenantService', 'handleUpdateTenant', req.user);
+      MODULE_NAME, 'handleUpdateTenant', req.user);
     // Check if smart charging is deactivated in all site areas when deactivated in super tenant
     if (tenantUpdate.components && tenantUpdate.components.smartCharging &&
         tenant.components && tenant.components.smartCharging &&

@@ -8,6 +8,7 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import TenantComponents from '../../../types/TenantComponents';
 
+const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
   static handleUnknownAction(action: Action, req: Request, res: Response, next: NextFunction) {

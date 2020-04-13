@@ -1,18 +1,18 @@
 import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
-export interface HttpBuildingRequest extends HttpByIDRequest {
+export interface HttpAssetRequest extends HttpByIDRequest {
   WithSiteArea?: boolean;
 }
 
-export interface HttpBuildingsRequest extends HttpDatabaseRequest {
+export interface HttpAssetsRequest extends HttpDatabaseRequest {
   Search?: string;
   SiteAreaID?: string;
   WithSiteArea?: boolean;
   WithNoSiteArea?: boolean;
 }
 
-export interface HttpAssignBuildingsToSiteAreaRequest {
+export interface HttpAssignAssetsToSiteAreaRequest {
   siteAreaID: string;
-  buildingIDs: string[];
+  assetIDs: string[];
 }

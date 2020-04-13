@@ -30,7 +30,7 @@ export default class TenantContext {
     this.ocppRequestHandler = ocppRequestHandler;
     this.context = {
       companies: [],
-      buildings: [],
+      assets: [],
       users: [],
       siteContexts: [],
       chargingStations: [],

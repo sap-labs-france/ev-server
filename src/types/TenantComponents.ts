@@ -6,7 +6,7 @@ enum TenantComponents {
   STATISTICS = 'statistics',
   ANALYTICS = 'analytics',
   BILLING = 'billing',
-  BUILDING = 'building',
+  ASSET = 'asset',
   SMART_CHARGING = 'smartCharging',
   CAR = 'car',
 }

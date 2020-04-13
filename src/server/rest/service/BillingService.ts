@@ -29,7 +29,7 @@ export default class BillingService {
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, 'BillingService', 'handleGetBillingConnection');
+      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleGetBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -82,7 +82,7 @@ export default class BillingService {
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUsers');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUsers');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -114,7 +114,7 @@ export default class BillingService {
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleSynchronizeUser');
+      Action.BILLING_SYNCHRONIZE, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -130,7 +130,7 @@ export default class BillingService {
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
-      'BillingService', 'handleSynchronizeUser', req.user);
+      MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
     // Ok
@@ -150,7 +150,7 @@ export default class BillingService {
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, 'BillingService', 'handleForceSynchronizeUser');
+      Action.BILLING_FORCE_SYNCHRONIZE, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -166,7 +166,7 @@ export default class BillingService {
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
     UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
-      'BillingService', 'handleSynchronizeUser', req.user);
+      MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
     // Ok
@@ -185,7 +185,7 @@ export default class BillingService {
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.TAXES, 'BillingService', 'handleGetBillingTaxes');
+      Action.LIST, Entity.TAXES, MODULE_NAME, 'handleGetBillingTaxes');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
@@ -219,7 +219,7 @@ export default class BillingService {
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.LIST, Entity.INVOICES, 'BillingService', 'handleGetUserInvoices');
+      Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetUserInvoices');
     // Get Billing implementation from factory
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
@@ -236,7 +236,7 @@ export default class BillingService {
     // Get user
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
     UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
-      'BillingService', 'handleGetUserInvoices', req.user);
+      MODULE_NAME, 'handleGetUserInvoices', req.user);
     // Get invoices
     const invoices = await billingImpl.getUserInvoices(billingUser, {
       status: filteredRequest.status,

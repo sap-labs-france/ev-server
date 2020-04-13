@@ -124,9 +124,9 @@ export default class MongoDBStorageNotification {
       case 'companylogos':
         this.centralRestServer.notifyCompany(tenantID, action, { id: documentID });
         break;
-      case 'buildings':
-      case 'buildingimages':
-        this.centralRestServer.notifyBuilding(tenantID, action, { id: documentID });
+      case 'assets':
+      case 'assetimages':
+        this.centralRestServer.notifyAsset(tenantID, action, { id: documentID });
         break;
       case 'siteareas':
       case 'siteareaimages':

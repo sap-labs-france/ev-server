@@ -118,7 +118,7 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`,
-      'TransactionService', 'handleRefundTransactions', req.user);
+      MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
     if (!refundConnector) {
       throw new AppError({
@@ -174,7 +174,7 @@ export default class TransactionService {
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      'TransactionService', 'handleAssignTransactionsToUser', req.user);
+      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
     // Return
@@ -211,7 +211,7 @@ export default class TransactionService {
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      'TransactionService', 'handleAssignTransactionsToUser', req.user);
+      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -235,7 +235,7 @@ export default class TransactionService {
     // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${transactionId}' does not exist`,
-      'TransactionService', 'handleDeleteTransaction', req.user);
+      MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -266,7 +266,7 @@ export default class TransactionService {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
+    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -282,18 +282,18 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID ${transactionId} does not exist`,
-      'TransactionService', 'handleTransactionSoftStop', req.user);
+      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`,
-      'TransactionService', 'handleTransactionSoftStop', req.user);
+      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check User
     let user: User;
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
       UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
-        'TransactionService', 'handleTransactionSoftStop', req.user);
+        MODULE_NAME, 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
@@ -329,12 +329,12 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, 'TransactionService',
+    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
-      'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
+      MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
@@ -377,11 +377,11 @@ export default class TransactionService {
   public static async handleGetTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
-      'TransactionService', 'handleGetTransaction', req.user);
+      MODULE_NAME, 'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
@@ -416,12 +416,12 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'TransactionService', 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorId, 'TransactionService', 'handleGetChargingStationTransactions:ConnectorId', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorId, MODULE_NAME, 'handleGetChargingStationTransactions:ConnectorId', req.user);
     // Get Charge Box
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
-      'TransactionService', 'handleGetChargingStationTransactions', req.user);
+      MODULE_NAME, 'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
       chargeBoxIDs: [chargingStation.id],
