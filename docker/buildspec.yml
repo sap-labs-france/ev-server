@@ -7,11 +7,6 @@ phases:
       docker: 19
   pre_build:
     commands:
-      - echo Build tools information
-      - make --version
-      - aws --version
-      - docker-compose --version
-      - docker --version
       - mkdir -p ~/.ssh
       - if [ -z ${build_ssh_key} ]; then echo "missing build_ssh_key store parameter, exiting"; exit 1; fi
       - echo "${build_ssh_key}" > ~/.ssh/id_rsa
