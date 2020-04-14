@@ -23,7 +23,7 @@ export interface SettingLink {
 
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | BuildingSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -180,12 +180,12 @@ export interface StripeBillingSetting extends BillingSetting {
   taxID: string;
 }
 
-export interface BuildingSettings extends Setting {
-  identifier: TenantComponents.BUILDING;
-  type: BuildingSettingsType;
+export interface AssetSettings extends Setting {
+  identifier: TenantComponents.ASSET;
+  type: AssetSettingsType;
 }
 
-export enum BuildingSettingsType {
+export enum AssetSettingsType {
 }
 
 export enum PricingContentType {

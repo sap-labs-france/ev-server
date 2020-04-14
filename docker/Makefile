@@ -1,8 +1,9 @@
 PROJECT_NAME?=evse
 NAME:=server
-DOCKER_ECR_REGISTRY?=166296450311.dkr.ecr.eu-west-3.amazonaws.com
+DOCKER_ECR_ACCOUNT_ID?=166296450311
 DOCKER_ECR_REGION?=eu-west-3
 DOCKER_ECR_REGISTRY_NAME?=ev_server
+DOCKER_ECR_TAG?=latest
 
 .PHONY: all
 
@@ -74,19 +75,20 @@ clean-$(NAME)-standalone: clean-$(NAME)-standalone-container clean-$(NAME)-stand
 
 clean: clean-containers clean-images
 
-$(NAME)-docker-ecr-tag:
-	docker tag $(PROJECT_NAME)_$(NAME):latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
+docker-login-ecr:
+	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME)
 
-$(NAME)-docker-ecr-push: $(NAME)-force $(NAME)-docker-ecr-tag
-	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
-	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
+$(NAME)-docker-tag-ecr:
+	docker tag $(PROJECT_NAME)_$(NAME):$(DOCKER_ECR_TAG) $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
-$(NAME)-standalone-docker-ecr-tag:
-	docker tag $(PROJECT_NAME)_$(NAME)-standalone:latest $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
+$(NAME)-docker-push-ecr: $(NAME)-force $(NAME)-docker-tag-ecr docker-login-ecr
+	docker push $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
-$(NAME)-standalone-docker-ecr-push: $(NAME)-standalone-force $(NAME)-standalone-docker-ecr-tag
-	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME)
-	docker push $(DOCKER_ECR_REGISTRY)/$(DOCKER_ECR_REGISTRY_NAME):latest
+$(NAME)-standalone-docker-tag-ecr:
+	docker tag $(PROJECT_NAME)_$(NAME)-standalone:$(DOCKER_ECR_TAG) $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
+
+$(NAME)-standalone-docker-push-ecr: $(NAME)-standalone-force $(NAME)-standalone-docker-tag-ecr docker-login-ecr
+	docker push $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
 dist-clean-images:
 	docker image prune -a -f

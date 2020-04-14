@@ -61,8 +61,8 @@ const GRANTS = {
       },
       { resource: 'Taxes', action: ['List'], attributes: ['*'] },
       { resource: 'Invoices', action: ['List'], attributes: ['*'] },
-      { resource: 'Building', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
@@ -85,8 +85,8 @@ const GRANTS = {
         resource: 'User', action: ['Read', 'Update'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
-      { resource: 'Building', action: 'Read', attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       {
         resource: 'Company', action: 'Read', attributes: ['*'],
@@ -182,8 +182,8 @@ const GRANTS = {
   demo: {
     grants: [
       { resource: 'User', action: 'Read', attributes: ['*'] },
-      { resource: 'Buildings', action: 'List', attributes: ['*'] },
-      { resource: 'Building', action: 'Read', attributes: ['*'] },
+      { resource: 'Assets', action: 'List', attributes: ['*'] },
+      { resource: 'Asset', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: 'Read', attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
@@ -282,6 +282,8 @@ const GRANTS = {
   },
 };
 
+const MODULE_NAME = 'AuthorizationsDefinition';
+
 export default class AuthorizationsDefinition {
 
   private static _instance: AuthorizationsDefinition;
@@ -293,10 +295,10 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load authorization grants',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -321,10 +323,10 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'getScopes',
         message: 'Unable to load available scopes',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
     return scopes;
@@ -337,10 +339,10 @@ export default class AuthorizationsDefinition {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'AuthorizationsDefinition',
+        module: MODULE_NAME,
         method: 'can',
         message: 'Unable to check authorization',
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

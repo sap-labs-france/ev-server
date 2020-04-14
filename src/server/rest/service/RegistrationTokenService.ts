@@ -17,6 +17,8 @@ import Utils from '../../../utils/Utils';
 import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'RegistrationTokenService';
+
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
@@ -26,7 +28,7 @@ export default class RegistrationTokenService {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
         UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
-          'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
+          MODULE_NAME, 'handleCreateRegistrationToken', req.user);
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
           throw new AppAuthError({
@@ -34,7 +36,7 @@ export default class RegistrationTokenService {
             user: req.user,
             action: Action.CREATE,
             entity: Entity.TOKEN,
-            module: 'RegistrationTokenService',
+            module: MODULE_NAME,
             method: 'handleCreateRegistrationToken'
           });
         }
@@ -45,7 +47,7 @@ export default class RegistrationTokenService {
           user: req.user,
           action: Action.CREATE,
           entity: Entity.TOKEN,
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleCreateRegistrationToken'
         });
       }
@@ -55,7 +57,7 @@ export default class RegistrationTokenService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'The description must be provided',
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleCreateRegistrationToken',
           user: req.user
         });
@@ -91,7 +93,7 @@ export default class RegistrationTokenService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleDeleteRegistrationToken',
           user: req.user
         });
@@ -103,7 +105,7 @@ export default class RegistrationTokenService {
           user: req.user,
           action: Action.DELETE,
           entity: Entity.TOKEN,
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleDeleteRegistrationToken',
           value: tokenID
         });
@@ -111,13 +113,13 @@ export default class RegistrationTokenService {
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
       UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
-        'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
+        MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
       await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user,
-        module: 'RegistrationTokenService', method: 'handleDeleteRegistrationToken',
+        module: MODULE_NAME, method: 'handleDeleteRegistrationToken',
         message: `Registration token with ID '${tokenID}' has been deleted successfully`,
         action: action
       });
@@ -139,7 +141,7 @@ export default class RegistrationTokenService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: 'Registration Token\'s ID must be provided',
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleRevokeRegistrationToken',
           user: req.user
         });
@@ -151,7 +153,7 @@ export default class RegistrationTokenService {
           user: req.user,
           action: Action.UPDATE,
           entity: Entity.TOKEN,
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleRevokeRegistrationToken',
           value: tokenID
         });
@@ -159,7 +161,7 @@ export default class RegistrationTokenService {
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
       UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
-        'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
+        MODULE_NAME, 'handleRevokeRegistrationToken', req.user);
       registrationToken.revocationDate = new Date();
       registrationToken.lastChangedBy = { 'id': req.user.id };
       registrationToken.lastChangedOn = new Date();
@@ -168,7 +170,7 @@ export default class RegistrationTokenService {
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user,
-        module: 'RegistrationTokenService', method: 'handleRevokeRegistrationToken',
+        module: MODULE_NAME, method: 'handleRevokeRegistrationToken',
         message: `Registration token with ID '${tokenID}' has been revoked successfully`,
         action: action
       });
@@ -191,7 +193,7 @@ export default class RegistrationTokenService {
           user: req.user,
           action: Action.LIST,
           entity: Entity.TOKENS,
-          module: 'RegistrationTokenService',
+          module: MODULE_NAME,
           method: 'handleGetRegistrationTokens'
         });
       }

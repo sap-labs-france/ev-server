@@ -3,7 +3,7 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import { NextFunction, Request, Response } from 'express';
 import os from 'os';
-import { performance, PerformanceObserver } from 'perf_hooks';
+import { PerformanceObserver, performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -53,12 +53,7 @@ obs.observe({ entryTypes: ['measure'] });
 
 export default class Logging {
   // Log Debug
-  public static logDebug(log): void {
-    if (typeof log !== 'object') {
-      log = {
-        simpleMessage: log
-      };
-    }
+  public static logDebug(log: Log): void {
     // Log
     log.level = LogLevel.DEBUG;
     // Log it
@@ -269,10 +264,7 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        'error': exception.detailedMessages,
-        'stack': exception.stack
-      }]
+      detailedMessages: { stack: exception.stack }
     });
   }
 
@@ -329,23 +321,6 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionBadRequestExceptionMessage(tenantID: string, action: Action, exception: any): void {
-    Logging.logSecurityError({
-      tenantID: tenantID,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
-      module: exception.module,
-      method: exception.method,
-      action: action,
-      message: exception.message,
-      detailedMessages: [{
-        'details': exception.details,
-        'stack': exception.stack
-      }]
-    });
-  }
-
-  // Used to check URL params (not in catch)
   private static _logActionAppAuthExceptionMessage(tenantID: string, action: Action, exception: AppAuthError): void {
     // Log
     Logging.logSecurityError({
@@ -398,41 +373,16 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _format(detailedMessages: any): string {
-    // Check
-    if (Array.isArray(detailedMessages)) {
-      for (let index = 0; index < detailedMessages.length; index++) {
-        // Override
-        detailedMessages[index] = this._format(detailedMessages[index]);
-      }
-      // Serialize
-      detailedMessages = JSON.stringify(detailedMessages, null, ' ');
-    } else {
-      // JSON?
-      if (typeof detailedMessages === 'object') {
-        // Error?
-        if (detailedMessages instanceof Error) {
-          detailedMessages = {
-            error: detailedMessages.message,
-            stack: detailedMessages.stack
-          };
-        } else {
-          // Check each JSon property
-          for (const key in detailedMessages) {
-            // Error?
-            if (detailedMessages[key] instanceof Error) {
-              detailedMessages[key] = {
-                error: detailedMessages[key].message,
-                stack: detailedMessages[key].stack
-              };
-            } else if (typeof detailedMessages[key] === 'object') {
-              detailedMessages[key] = this._format(detailedMessages[key]);
-            }
-          }
-        }
+  private static _format(detailedMessage: any): string {
+    // JSON?
+    if (typeof detailedMessage === 'object') {
+      try {
+        // Check that every detailedMessages is parsed
+        return JSON.stringify(detailedMessage, null, ' ');
+      } catch (err) {
+        // Do nothing
       }
     }
-    return detailedMessages;
   }
 
   // Log
@@ -540,7 +490,7 @@ export default class Logging {
         log.detailedMessages = [log.detailedMessages];
       }
       // Format
-      log.detailedMessages = Logging._format(JSON.parse(JSON.stringify(log.detailedMessages)));
+      log.detailedMessages = Logging._format(log.detailedMessages);
     }
     // Check Type
     if (!log.type) {

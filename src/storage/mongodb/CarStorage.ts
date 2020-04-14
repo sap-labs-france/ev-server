@@ -1,30 +1,33 @@
-import { Car, CarMaker } from '../../types/Car';
+import { Car, CarMaker, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../types/Car';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
+import global, { Image } from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'CarStorage';
+
 export default class CarStorage {
-  public static async getCar(id: string, projectFields?: string[]): Promise<Car> {
+  public static async getCar(id: number, projectFields?: string[]): Promise<Car> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCar');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
     // Query single Site
     const carsMDB = await CarStorage.getCars(
-      { carID: id },
+      { carID: Utils.convertToInt(id) },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
 
-    Logging.traceEnd('CarStorage', 'getCar', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { id });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(
-    params: { search?: string; carID?: string; carIDs?: string[]; carMaker?: string[] } = {},
+    params: { search?: string; carID?: number; carIDs?: number[]; carMaker?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCars');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCars');
     // Check Limit
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
@@ -32,7 +35,7 @@ export default class CarStorage {
     // Set the filters
     const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
     if (params.carID) {
-      filters._id = +params.carID;
+      filters._id = Utils.convertToInt(params.carID);
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -48,7 +51,7 @@ export default class CarStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.carIDs }
+          _id: { $in: params.carIDs.map((carID) => Utils.convertToInt(carID)) }
         }
       });
     }
@@ -74,7 +77,7 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(Constants.DEFAULT_TENANT, 'cars')
+    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -112,14 +115,14 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const cars = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+    const cars = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    Logging.traceEnd('CarStorage', 'getCars', uniqueTimerID,
+    Logging.traceEnd(MODULE_NAME, 'getCars', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
@@ -129,39 +132,39 @@ export default class CarStorage {
     };
   }
 
-  public static async saveCar(carToSave: Car): Promise<string> {
+  public static async saveCar(carToSave: Car, saveImage = false): Promise<number> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('CarStorage', 'saveCar');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCar');
     // Build Request
     // Properties to save
     const carMDB: any = {
-      _id: carToSave.id,
+      _id: Utils.convertToInt(carToSave.id),
       vehicleMake: carToSave.vehicleMake,
       vehicleModel: carToSave.vehicleModel,
       vehicleModelVersion: carToSave.vehicleModelVersion,
       availabilityStatus: carToSave.availabilityStatus,
       availabilityDateFrom: carToSave.availabilityDateFrom,
       availabilityDateTo: carToSave.availabilityDateTo,
-      priceFromDE: carToSave.priceFromDE,
+      priceFromDE: Utils.convertToFloat(carToSave.priceFromDE),
       priceFromDEEstimate: carToSave.priceFromDEEstimate,
-      priceFromNL: carToSave.priceFromNL,
+      priceFromNL: Utils.convertToFloat(carToSave.priceFromNL),
       priceFromNLEstimate: carToSave.priceFromNLEstimate,
-      priceFromUK: carToSave.priceFromUK,
-      priceGrantPICGUK: carToSave.priceGrantPICGUK,
+      priceFromUK: Utils.convertToFloat(carToSave.priceFromUK),
+      priceGrantPICGUK: Utils.convertToFloat(carToSave.priceGrantPICGUK),
       priceFromUKEstimate: carToSave.priceFromUKEstimate,
       drivetrainType: carToSave.drivetrainType,
       drivetrainFuel: carToSave.drivetrainFuel,
       drivetrainPropulsion: carToSave.drivetrainPropulsion,
-      drivetrainPower: carToSave.drivetrainPower,
-      drivetrainPowerHP: carToSave.drivetrainPowerHP,
-      drivetrainTorque: carToSave.drivetrainTorque,
-      performanceAcceleration: carToSave.performanceAcceleration,
-      performanceTopspeed: carToSave.performanceTopspeed,
-      rangeWLTP: carToSave.rangeWLTP,
+      drivetrainPower: Utils.convertToInt(carToSave.drivetrainPower),
+      drivetrainPowerHP: Utils.convertToInt(carToSave.drivetrainPowerHP),
+      drivetrainTorque: Utils.convertToInt(carToSave.drivetrainTorque),
+      performanceAcceleration: Utils.convertToFloat(carToSave.performanceAcceleration),
+      performanceTopspeed: Utils.convertToInt(carToSave.performanceTopspeed),
+      rangeWLTP: Utils.convertToInt(carToSave.rangeWLTP),
       rangeWLTPEstimate: carToSave.rangeWLTPEstimate,
-      rangeNEDC: carToSave.rangeNEDC,
+      rangeNEDC: Utils.convertToInt(carToSave.rangeNEDC),
       rangeNEDCEstimate: carToSave.rangeNEDCEstimate,
-      rangeReal: carToSave.rangeReal,
+      rangeReal: Utils.convertToInt(carToSave.rangeReal),
       rangeRealMode: carToSave.rangeRealMode,
       rangeRealWHwy: carToSave.rangeRealWHwy,
       rangeRealWCmb: carToSave.rangeRealWCmb,
@@ -169,105 +172,228 @@ export default class CarStorage {
       rangeRealBHwy: carToSave.rangeRealBHwy,
       rangeRealBCmb: carToSave.rangeRealBCmb,
       rangeRealBCty: carToSave.rangeRealBCty,
-      efficiencyWLTP: carToSave.efficiencyWLTP,
-      efficiencyWLTPFuelEq: carToSave.efficiencyWLTPFuelEq,
-      efficiencyWLTPV: carToSave.efficiencyWLTPV,
-      efficiencyWLTPFuelEqV: carToSave.efficiencyWLTPFuelEqV,
-      efficiencyWLTPCO2: carToSave.efficiencyWLTPCO2,
-      efficiencyNEDC: carToSave.efficiencyNEDC,
-      efficiencyNEDCFuelEq: carToSave.efficiencyNEDCFuelEq,
-      efficiencyNEDCV: carToSave.efficiencyNEDCV,
-      efficiencyNEDCFuelEqV: carToSave.efficiencyNEDCFuelEqV,
-      efficiencyNEDCCO2: carToSave.efficiencyNEDCCO2,
-      efficiencyReal: carToSave.efficiencyReal,
-      efficiencyRealFuelEqV: carToSave.efficiencyRealFuelEqV,
-      efficiencyRealCO2: carToSave.efficiencyRealCO2,
-      efficiencyRealWHwy: carToSave.efficiencyRealWHwy,
-      efficiencyRealWCmb: carToSave.efficiencyRealWCmb,
-      efficiencyRealWCty: carToSave.efficiencyRealWCty,
-      efficiencyRealBHwy: carToSave.efficiencyRealBHwy,
-      efficiencyRealBCmb: carToSave.efficiencyRealBCmb,
-      efficiencyRealBCty: carToSave.efficiencyRealBCty,
+      efficiencyWLTP: Utils.convertToFloat(carToSave.efficiencyWLTP),
+      efficiencyWLTPFuelEq: Utils.convertToFloat(carToSave.efficiencyWLTPFuelEq),
+      efficiencyWLTPV: Utils.convertToFloat(carToSave.efficiencyWLTPV),
+      efficiencyWLTPFuelEqV: Utils.convertToFloat(carToSave.efficiencyWLTPFuelEqV),
+      efficiencyWLTPCO2: Utils.convertToFloat(carToSave.efficiencyWLTPCO2),
+      efficiencyNEDC: Utils.convertToFloat(carToSave.efficiencyNEDC),
+      efficiencyNEDCFuelEq: Utils.convertToFloat(carToSave.efficiencyNEDCFuelEq),
+      efficiencyNEDCV: Utils.convertToFloat(carToSave.efficiencyNEDCV),
+      efficiencyNEDCFuelEqV: Utils.convertToFloat(carToSave.efficiencyNEDCFuelEqV),
+      efficiencyNEDCCO2: Utils.convertToFloat(carToSave.efficiencyNEDCCO2),
+      efficiencyReal: Utils.convertToFloat(carToSave.efficiencyReal),
+      efficiencyRealFuelEqV: Utils.convertToFloat(carToSave.efficiencyRealFuelEqV),
+      efficiencyRealCO2: Utils.convertToFloat(carToSave.efficiencyRealCO2),
+      efficiencyRealWHwy: Utils.convertToFloat(carToSave.efficiencyRealWHwy),
+      efficiencyRealWCmb: Utils.convertToFloat(carToSave.efficiencyRealWCmb),
+      efficiencyRealWCty: Utils.convertToFloat(carToSave.efficiencyRealWCty),
+      efficiencyRealBHwy: Utils.convertToFloat(carToSave.efficiencyRealBHwy),
+      efficiencyRealBCmb: Utils.convertToFloat(carToSave.efficiencyRealBCmb),
+      efficiencyRealBCty: Utils.convertToFloat(carToSave.efficiencyRealBCty),
       chargePlug: carToSave.chargePlug,
       chargePlugEstimate: carToSave.chargePlugEstimate,
       chargePlugLocation: carToSave.chargePlugLocation,
-      chargeStandardPower: carToSave.chargeStandardPower,
-      chargeStandardPhase: carToSave.chargeStandardPhase,
-      chargeStandardPhaseAmp: carToSave.chargeStandardPhaseAmp,
-      chargeStandardChargeTime: carToSave.chargeStandardChargeTime,
-      chargeStandardChargeSpeed: carToSave.chargeStandardChargeSpeed,
+      chargeStandardPower: Utils.convertToFloat(carToSave.chargeStandardPower),
+      chargeStandardPhase: Utils.convertToInt(carToSave.chargeStandardPhase),
+      chargeStandardPhaseAmp: Utils.convertToInt(carToSave.chargeStandardPhaseAmp),
+      chargeStandardChargeTime: Utils.convertToInt(carToSave.chargeStandardChargeTime),
+      chargeStandardChargeSpeed: Utils.convertToInt(carToSave.chargeStandardChargeSpeed),
       chargeStandardEstimate: carToSave.chargeStandardEstimate,
-      chargeStandardTables: carToSave.chargeStandardTables,
-      chargeAlternativePower: carToSave.chargeAlternativePower,
-      chargeAlternativePhase: carToSave.chargeAlternativePhase,
-      chargeAlternativePhaseAmp: carToSave.chargeAlternativePhaseAmp,
-      chargeAlternativeChargeTime: carToSave.chargeAlternativeChargeTime,
-      chargeAlternativeChargeSpeed: carToSave.chargeAlternativeChargeSpeed,
-      chargeAlternativeTables: carToSave.chargeAlternativeTables,
-      chargeOptionPower: carToSave.chargeOptionPower,
-      chargeOptionPhase: carToSave.chargeOptionPhase,
-      chargeOptionPhaseAmp: carToSave.chargeOptionPhaseAmp,
-      chargeOptionChargeTime: carToSave.chargeOptionChargeTime,
-      chargeOptionChargeSpeed: carToSave.chargeOptionChargeSpeed,
-      chargeOptionTables: carToSave.chargeOptionTables,
+      chargeStandardTables: carToSave.chargeStandardTables ?
+        carToSave.chargeStandardTables.map((chargeStandardTable: ChargeStandardTable): ChargeStandardTable => ({
+          type: chargeStandardTable.type,
+          evsePhaseVolt: Utils.convertToInt(chargeStandardTable.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeStandardTable.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeStandardTable.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeStandardTable.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeStandardTable.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeStandardTable.chargePhase),
+          chargePower: Utils.convertToFloat(chargeStandardTable.chargePower),
+          chargeTime: Utils.convertToInt(chargeStandardTable.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeStandardTable.chargeSpeed)
+        })) : [],
+      chargeAlternativePower: Utils.convertToInt(carToSave.chargeAlternativePower),
+      chargeAlternativePhase: Utils.convertToInt(carToSave.chargeAlternativePhase),
+      chargeAlternativePhaseAmp: Utils.convertToInt(carToSave.chargeAlternativePhaseAmp),
+      chargeAlternativeChargeTime: Utils.convertToInt(carToSave.chargeAlternativeChargeTime),
+      chargeAlternativeChargeSpeed: Utils.convertToInt(carToSave.chargeAlternativeChargeSpeed),
+      chargeAlternativeTables: carToSave.chargeAlternativeTables ?
+        carToSave.chargeAlternativeTables.map((chargeAlternativeTable: ChargeAlternativeTable): ChargeAlternativeTable => ({
+          type: chargeAlternativeTable.type,
+          evsePhaseVolt: Utils.convertToInt(chargeAlternativeTable.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeAlternativeTable.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeAlternativeTable.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeAlternativeTable.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeAlternativeTable.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeAlternativeTable.chargePhase),
+          chargePower: Utils.convertToFloat(chargeAlternativeTable.chargePower),
+          chargeTime: Utils.convertToInt(chargeAlternativeTable.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeAlternativeTable.chargeSpeed)
+        })) : [],
+      chargeOptionPower: Utils.convertToInt(carToSave.chargeOptionPower),
+      chargeOptionPhase: Utils.convertToInt(carToSave.chargeOptionPhase),
+      chargeOptionPhaseAmp: Utils.convertToInt(carToSave.chargeOptionPhaseAmp),
+      chargeOptionChargeTime: Utils.convertToInt(carToSave.chargeOptionChargeTime),
+      chargeOptionChargeSpeed: Utils.convertToInt(carToSave.chargeOptionChargeSpeed),
+      chargeOptionTables: carToSave.chargeOptionTables ?
+        carToSave.chargeOptionTables.map((chargeOptionTables: ChargeOptionTable): ChargeOptionTable => ({
+          type: chargeOptionTables.type,
+          evsePhaseVolt: Utils.convertToInt(chargeOptionTables.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeOptionTables.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeOptionTables.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeOptionTables.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeOptionTables.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeOptionTables.chargePhase),
+          chargePower: Utils.convertToFloat(chargeOptionTables.chargePower),
+          chargeTime: Utils.convertToInt(chargeOptionTables.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeOptionTables.chargeSpeed)
+        })) : [],
       fastChargePlug: carToSave.fastChargePlug,
       fastChargePlugEstimate: carToSave.fastChargePlugEstimate,
       fastChargePlugLocation: carToSave.fastChargePlugLocation,
-      fastChargePowerMax: carToSave.fastChargePowerMax,
-      fastChargePowerAvg: carToSave.fastChargePowerAvg,
-      fastChargeTime: carToSave.fastChargeTime,
-      fastChargeSpeed: carToSave.fastChargeSpeed,
+      fastChargePowerMax: Utils.convertToInt(carToSave.fastChargePowerMax),
+      fastChargePowerAvg: Utils.convertToInt(carToSave.fastChargePowerAvg),
+      fastChargeTime: Utils.convertToInt(carToSave.fastChargeTime),
+      fastChargeSpeed: Utils.convertToInt(carToSave.fastChargeSpeed),
       fastChargeOptional: carToSave.fastChargeOptional,
       fastChargeEstimate: carToSave.fastChargeEstimate,
-      batteryCapacityUseable: carToSave.batteryCapacityUseable,
-      batteryCapacityFull: carToSave.batteryCapacityFull,
+      batteryCapacityUseable: Utils.convertToFloat(carToSave.batteryCapacityUseable),
+      batteryCapacityFull: Utils.convertToFloat(carToSave.batteryCapacityFull),
       batteryCapacityEstimate: carToSave.batteryCapacityEstimate,
-      dimsLength: carToSave.dimsLength,
-      dimsWidth: carToSave.dimsWidth,
-      dimsHeight: carToSave.dimsHeight,
+      dimsLength: Utils.convertToInt(carToSave.dimsLength),
+      dimsWidth: Utils.convertToInt(carToSave.dimsWidth),
+      dimsHeight: Utils.convertToInt(carToSave.dimsHeight),
       dimsWheelbase: carToSave.dimsWheelbase,
-      dimsWeight: carToSave.dimsWeight,
-      dimsBootspace: carToSave.dimsBootspace,
-      dimsBootspaceMax: carToSave.dimsBootspaceMax,
-      dimsTowWeightUnbraked: carToSave.dimsTowWeightUnbraked,
-      dimsTowWeightBraked: carToSave.dimsTowWeightBraked,
-      dimsRoofLoadMax: carToSave.dimsRoofLoadMax,
+      dimsWeight: Utils.convertToInt(carToSave.dimsWeight),
+      dimsBootspace: Utils.convertToInt(carToSave.dimsBootspace),
+      dimsBootspaceMax: Utils.convertToInt(carToSave.dimsBootspaceMax),
+      dimsTowWeightUnbraked: Utils.convertToInt(carToSave.dimsTowWeightUnbraked),
+      dimsTowWeightBraked: Utils.convertToInt(carToSave.dimsTowWeightBraked),
+      dimsRoofLoadMax: Utils.convertToInt(carToSave.dimsRoofLoadMax),
       miscBody: carToSave.miscBody,
       miscSegment: carToSave.miscSegment,
-      miscSeats: carToSave.miscSeats,
+      miscSeats: Utils.convertToInt(carToSave.miscSeats),
       miscRoofrails: carToSave.miscRoofrails,
       miscIsofix: carToSave.miscIsofix,
       miscIsofixSeats: carToSave.miscIsofixSeats,
       miscTurningCircle: carToSave.miscTurningCircle,
-      euroNCAPRating: carToSave.euroNCAPRating,
+      euroNCAPRating: Utils.convertToInt(carToSave.euroNCAPRating),
       euroNCAPYear: carToSave.euroNCAPYear,
-      euroNCAPAdult: carToSave.euroNCAPAdult,
-      euroNCAPChild: carToSave.euroNCAPChild,
-      euroNCAPVRU: carToSave.euroNCAPVRU,
-      euroNCAPSA: carToSave.euroNCAPSA,
-      relatedVehicleIDSuccesor: carToSave.relatedVehicleIDSuccesor,
+      euroNCAPAdult: Utils.convertToInt(carToSave.euroNCAPAdult),
+      euroNCAPChild: Utils.convertToInt(carToSave.euroNCAPChild),
+      euroNCAPVRU: Utils.convertToInt(carToSave.euroNCAPVRU),
+      euroNCAPSA: Utils.convertToInt(carToSave.euroNCAPSA),
+      relatedVehicleIDSuccesor: Utils.convertToInt(carToSave.relatedVehicleIDSuccesor),
       eVDBDetailURL: carToSave.eVDBDetailURL,
-      images: carToSave.images,
       videos: carToSave.videos,
       hash: carToSave.hash,
+      imageURLs: carToSave.imageURLs,
+      image: carToSave.image
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);
     // Modify and return the modified document
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars').findOneAndReplace(
-      { _id: carToSave.id },
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs').findOneAndReplace(
+      { _id: Utils.convertToInt(carToSave.id) },
       carMDB,
       { upsert: true }
     );
+    if (saveImage) {
+      await CarStorage.saveCarImages(carToSave.id, carToSave.images);
+    }
     // Debug
-    Logging.traceEnd('CarStorage', 'saveCar', uniqueTimerID, { carToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveCar', uniqueTimerID, { carToSave });
     return carToSave.id;
+  }
+
+  public static async saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCarImages');
+    // Delete old images
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').deleteMany(
+      { carID: Utils.convertToInt(carID) }
+    );
+    // Save new images
+    for (const carImageToSave of carImagesToSave) {
+      await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages').findOneAndReplace(
+        { _id: Cypher.hash(`${carImageToSave}~${carID}`), },
+        { carID: Utils.convertToInt(carID), image: carImageToSave },
+        { upsert: true }
+      );
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'saveCarImages', uniqueTimerID, { carID });
+  }
+
+  public static async getCarImages(id: number, dbParams?: DbParams): Promise<DataResult<Image>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarImages');
+    // Check Limit
+    const limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters = {
+      carID: Utils.convertToInt(id)
+    };
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: filters
+    });
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const carImagesCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (carImagesCountMDB.length > 0 ? carImagesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Project
+    DatabaseUtils.projectFields(aggregation, ['image']);
+    // Read DB
+    const carImages = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogimages')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getCarImages', uniqueTimerID,
+      { id, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    // Ok
+    return {
+      count: (carImagesCountMDB.length > 0 ?
+        (carImagesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carImagesCountMDB[0].count) : 0),
+      result: carImages
+    };
   }
 
   public static async getCarMakers(
     params: { search?: string } = {}): Promise<DataResult<CarMaker>> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('CarStorage', 'getCarMakers');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarMakers');
     // Set the filters
     const filters: ({ $or?: any[] } | undefined) = {};
 
@@ -309,14 +435,14 @@ export default class CarStorage {
         carMaker: 1
       }
     });
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'cars')
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'carcatalogs')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
     // Debug
-    Logging.traceEnd('CarStorage', 'getCarMakers', uniqueTimerID, { result });
+    Logging.traceEnd(MODULE_NAME, 'getCarMakers', uniqueTimerID, { result });
     // Ok
     return {
       count: result.length,

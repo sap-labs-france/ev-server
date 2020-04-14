@@ -12,16 +12,18 @@ import Utils from '../../../utils/Utils';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'CompanyService';
+
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: Action, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.DELETE, Entity.COMPANY, 'CompanyService', 'handleDeleteCompany');
+      Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(action, companyID, 'CompanyService', 'handleDeleteCompany', req.user);
+    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleDeleteCompany', req.user);
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
       throw new AppAuthError({
@@ -29,7 +31,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleDeleteCompany',
         value: companyID
       });
@@ -38,13 +40,13 @@ export default class CompanyService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
     // Found?
     UtilsService.assertObjectExists(action, company, `Company with ID '${companyID}' does not exist`,
-      'CompanyService', 'handleDeleteCompany', req.user);
+      MODULE_NAME, 'handleDeleteCompany', req.user);
     // Delete
     await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteCompany',
       message: `Company '${company.name}' has been deleted successfully`,
       action: action,
       detailedMessages: { company }
@@ -57,11 +59,11 @@ export default class CompanyService {
   public static async handleGetCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompany');
+      Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
     // ID is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCompany', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
       throw new AppAuthError({
@@ -69,7 +71,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.READ,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompany',
         value: filteredRequest.ID
       });
@@ -77,7 +79,7 @@ export default class CompanyService {
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, company, `Company with ID '${filteredRequest.ID}' does not exist`,
-      'CompanyService', 'handleGetCompany', req.user);
+      MODULE_NAME, 'handleGetCompany', req.user);
     // Return
     res.json(
       // Filter
@@ -89,11 +91,11 @@ export default class CompanyService {
   public static async handleGetCompanyLogo(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.READ, Entity.COMPANY, 'CompanyService', 'handleGetCompanyLogo');
+      Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
     // Charge Box is mandatory
-    UtilsService.assertIdIsProvided(action, companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertIdIsProvided(action, companyID, MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
       throw new AppAuthError({
@@ -101,7 +103,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.READ,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompanyLogo',
         value: companyID
       });
@@ -110,7 +112,7 @@ export default class CompanyService {
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Check
     UtilsService.assertObjectExists(action, companyLogo, `Company with ID '${companyID}' does not exist`,
-      'CompanyService', 'handleGetCompanyLogo', req.user);
+      MODULE_NAME, 'handleGetCompanyLogo', req.user);
     // Return
     res.json({ id: companyLogo.id, logo: companyLogo.logo });
     next();
@@ -119,7 +121,7 @@ export default class CompanyService {
   public static async handleGetCompanies(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.COMPANIES, 'CompanyService', 'handleGetCompanies');
+      Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
       throw new AppAuthError({
@@ -127,7 +129,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.COMPANIES,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleGetCompanies'
       });
     }
@@ -155,7 +157,7 @@ export default class CompanyService {
   public static async handleCreateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.CREATE, Entity.COMPANY, 'CompanyService', 'handleCreateCompany');
+      Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
       throw new AppAuthError({
@@ -163,7 +165,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleCreateCompany'
       });
     }
@@ -183,7 +185,7 @@ export default class CompanyService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateCompany',
       message: `Company '${newCompany.id}' has been created successfully`,
       action: action,
       detailedMessages: { company: newCompany }
@@ -196,7 +198,7 @@ export default class CompanyService {
   public static async handleUpdateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.COMPANY, 'CompanyService', 'handleUpdateCompany');
+      Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     // Check auth
@@ -206,7 +208,7 @@ export default class CompanyService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.COMPANY,
-        module: 'CompanyService',
+        module: MODULE_NAME,
         method: 'handleUpdateCompany',
         value: filteredRequest.id
       });
@@ -215,7 +217,7 @@ export default class CompanyService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
     // Check
     UtilsService.assertObjectExists(action, company, `Site Area with ID '${filteredRequest.id}' does not exist`,
-      'CompanyService', 'handleUpdateCompany', req.user);
+      MODULE_NAME, 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
     // Update
@@ -229,7 +231,7 @@ export default class CompanyService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateCompany',
       message: `Company '${company.name}' has been updated successfully`,
       action: action,
       detailedMessages: { company }

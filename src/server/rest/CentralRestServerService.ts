@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
 import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
-import BuildingService from './service/BuildingService';
+import AssetService from './service/AssetService';
 import CarService from './service/CarService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
@@ -63,9 +63,9 @@ class RequestMapper {
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
           CompanyCreate: CompanyService.handleCreateCompany.bind(this),
-          AddBuildingsToSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
-          RemoveBuildingsFromSiteArea: BuildingService.handleAssignBuildingsToSiteArea.bind(this),
-          BuildingCreate: BuildingService.handleCreateBuilding.bind(this),
+          AddAssetsToSiteArea: AssetService.handleAssignAssetsToSiteArea.bind(this),
+          RemoveAssetsFromSiteArea: AssetService.handleAssignAssetsToSiteArea.bind(this),
+          AssetCreate: AssetService.handleCreateAsset.bind(this),
           TenantCreate: TenantService.handleCreateTenant.bind(this),
           SiteCreate: SiteService.handleCreateSite.bind(this),
           AddUsersToSite: SiteService.handleAddUsersToSite.bind(this),
@@ -106,6 +106,7 @@ class RequestMapper {
           Cars: CarService.handleGetCars.bind(this),
           Car: CarService.handleGetCar.bind(this),
           CarMakers: CarService.handleGetCarMakers.bind(this),
+          CarImages: CarService.handleGetCarImages.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
@@ -117,9 +118,9 @@ class RequestMapper {
           Companies: CompanyService.handleGetCompanies.bind(this),
           Company: CompanyService.handleGetCompany.bind(this),
           CompanyLogo: CompanyService.handleGetCompanyLogo.bind(this),
-          Buildings: BuildingService.handleGetBuildings.bind(this),
-          Building: BuildingService.handleGetBuilding.bind(this),
-          BuildingImage: BuildingService.handleGetBuildingImage.bind(this),
+          Assets: AssetService.handleGetAssets.bind(this),
+          Asset: AssetService.handleGetAsset.bind(this),
+          AssetImage: AssetService.handleGetAssetImage.bind(this),
           Sites: SiteService.handleGetSites.bind(this),
           Site: SiteService.handleGetSite.bind(this),
           SiteImage: SiteService.handleGetSiteImage.bind(this),
@@ -129,6 +130,7 @@ class RequestMapper {
           SiteAreas: SiteAreaService.handleGetSiteAreas.bind(this),
           SiteArea: SiteAreaService.handleGetSiteArea.bind(this),
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage.bind(this),
+          SiteAreaConsumption: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
           Users: UserService.handleGetUsers.bind(this),
           UserSites: UserService.handleGetSites.bind(this),
           UsersInError: UserService.handleGetUsersInError.bind(this),
@@ -159,8 +161,7 @@ class RequestMapper {
           UserPricingStatistics: StatisticService.handleGetUserPricingStatistics.bind(this),
           ChargingStationTransactions: TransactionService.handleGetChargingStationTransactions.bind(this),
           Transaction: TransactionService.handleGetTransaction.bind(this),
-          ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
-          ChargingStationConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction.bind(this),
+          TransactionConsumption: TransactionService.handleGetTransactionConsumption.bind(this),
           ChargingStationOcppParameters: ChargingStationService.handleGetChargingStationOcppParameters.bind(this),
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError.bind(this),
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
@@ -191,7 +192,7 @@ class RequestMapper {
           SiteUpdate: SiteService.handleUpdateSite.bind(this),
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
           CompanyUpdate: CompanyService.handleUpdateCompany.bind(this),
-          BuildingUpdate: BuildingService.handleUpdateBuilding.bind(this),
+          AssetUpdate: AssetService.handleUpdateAsset.bind(this),
           SiteUserAdmin: SiteService.handleUpdateSiteUserAdmin.bind(this),
           SiteOwner: SiteService.handleUpdateSiteOwner.bind(this),
           TransactionSoftStop: TransactionService.handleTransactionSoftStop.bind(this),
@@ -216,7 +217,7 @@ class RequestMapper {
           SiteDelete: SiteService.handleDeleteSite.bind(this),
           SiteAreaDelete: SiteAreaService.handleDeleteSiteArea.bind(this),
           CompanyDelete: CompanyService.handleDeleteCompany.bind(this),
-          BuildingDelete: BuildingService.handleDeleteBuilding.bind(this),
+          AssetDelete: AssetService.handleDeleteAsset.bind(this),
           ChargingStationDelete: ChargingStationService.handleDeleteChargingStation.bind(this),
           ChargingProfileDelete: ChargingStationService.handleDeleteChargingProfile.bind(this),
           TransactionDelete: TransactionService.handleDeleteTransaction.bind(this),

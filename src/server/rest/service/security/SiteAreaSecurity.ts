@@ -2,7 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import SiteArea from '../../../../types/SiteArea';
+import SiteArea, { SiteAreaConsumption, SiteAreaConsumptionValues } from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
@@ -38,6 +38,14 @@ export default class SiteAreaSecurity {
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
+  }
+
+  public static filterSiteAreaConsumptionRequest(request: any) {
+    return {
+      siteAreaId: sanitize(request.SiteAreaId),
+      startDate: sanitize(request.StartDate),
+      endDate: sanitize(request.EndDate)
+    };
   }
 
   public static filterSiteAreaUpdateRequest(request: any): Partial<SiteArea> {
@@ -124,5 +132,37 @@ export default class SiteAreaSecurity {
       }
     }
     siteAreas.result = filteredSiteAreas;
+  }
+
+  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[],
+    siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
+    // Create Site Area Consumption
+    const siteAreaConsumption: SiteAreaConsumption = {
+      siteAreaId: siteAreaId,
+      values: []
+    };
+    for (const siteAreaConsumptionValue of siteAreaConsumptionValues) {
+      siteAreaConsumption.values.push({ date: siteAreaConsumptionValue.date, instantPower: siteAreaConsumptionValue.instantPower, limitWatts: siteAreaLimit });
+    }
+    // Add Values where no Consumption is available
+    for (let i = 1; i < siteAreaConsumption.values.length; i++) {
+      if (siteAreaConsumption.values[i - 1].date.getTime() + 60000 !== siteAreaConsumption.values[i].date.getTime() && siteAreaConsumption.values[i]) {
+        const addedValue = JSON.parse(JSON.stringify(siteAreaConsumption.values[i]));
+        const newDate = new Date(siteAreaConsumption.values[i - 1].date.getTime() + 60000);
+        addedValue.date = newDate;
+        addedValue.instantPower = 0;
+        siteAreaConsumption.values.splice(i, 0, addedValue);
+        i++;
+      }
+      if (siteAreaConsumption.values[i].date.getTime() - 60000 !== siteAreaConsumption.values[i - 1].date.getTime() && siteAreaConsumption.values[i]) {
+        const addedValue = JSON.parse(JSON.stringify(siteAreaConsumption.values[i]));
+        const newDate = new Date(siteAreaConsumption.values[i].date.getTime() - 60000);
+        addedValue.date = newDate;
+        addedValue.instantPower = 0;
+        siteAreaConsumption.values.splice(i, 0, addedValue);
+        i++;
+      }
+    }
+    return siteAreaConsumption;
   }
 }

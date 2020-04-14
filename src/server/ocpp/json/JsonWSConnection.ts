@@ -2,6 +2,7 @@ import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
+import { Action } from '../../../types/Authorization';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
@@ -36,7 +37,7 @@ export default class JsonWSConnection extends WSConnection {
         // Error
         throw new BackendError({
           source: this.getChargingStationID(),
-          module: 'JsonWSConnection',
+          module: MODULE_NAME,
           method: 'constructor',
           message: `Protocol ${wsConnection.protocol} not supported`
         });
@@ -65,9 +66,9 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'initialize',
         source: this.getChargingStationID(),
-        action: 'WSJsonConnectionOpened',
+        action: Action.WS_JSON_CONNECTION_OPENED,
+        module: MODULE_NAME, method: 'initialize',
         message: `New Json connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
@@ -77,8 +78,8 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
+      action: Action.WS_ERROR,
       module: MODULE_NAME, method: 'onError',
-      action: 'WSJsonErrorReceived',
       message: event
     });
   }
@@ -87,9 +88,9 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
-      method: 'onClose', action: 'WSJsonConnectionClose',
+      action: Action.WS_JSON_CONNECTION_CLOSED,
+      module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });
     // Remove the connection
