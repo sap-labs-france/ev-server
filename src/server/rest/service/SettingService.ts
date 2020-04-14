@@ -13,11 +13,13 @@ import Logging from '../../../utils/Logging';
 import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'SettingService';
+
 export default class SettingService {
   public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
       throw new AppAuthError({
@@ -25,7 +27,7 @@ export default class SettingService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.SETTING,
-        module: 'SettingService',
+        module: MODULE_NAME,
         method: 'handleDeleteSetting',
         value: settingID
       });
@@ -33,13 +35,13 @@ export default class SettingService {
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
     UtilsService.assertObjectExists(action, setting, `Tenant with ID '${settingID}' does not exist`,
-      'SettingService', 'handleDeleteSetting', req.user);
+      MODULE_NAME, 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SettingService', method: 'handleDeleteSetting',
+      user: req.user, module: MODULE_NAME, method: 'handleDeleteSetting',
       message: `Setting '${setting.identifier}' has been deleted successfully`,
       action: action,
       detailedMessages: { setting }
@@ -52,7 +54,7 @@ export default class SettingService {
   public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(action, settingID, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
@@ -60,7 +62,7 @@ export default class SettingService {
         user: req.user,
         action: Action.READ,
         entity: Entity.SETTING,
-        module: 'SettingService',
+        module: MODULE_NAME,
         method: 'handleGetSetting',
         value: settingID
       });
@@ -68,7 +70,7 @@ export default class SettingService {
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingID}' does not exist`,
-      'SettingService', 'handleGetSetting', req.user);
+      MODULE_NAME, 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -88,7 +90,7 @@ export default class SettingService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.SETTINGS,
-        module: 'SettingService',
+        module: MODULE_NAME,
         method: 'handleGetSettings'
       });
     }
@@ -119,7 +121,7 @@ export default class SettingService {
         user: req.user,
         action: Action.CREATE,
         entity: Entity.SETTING,
-        module: 'SettingService',
+        module: MODULE_NAME,
         method: 'handleCreateSetting'
       });
     }
@@ -135,7 +137,7 @@ export default class SettingService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SettingService', method: 'handleCreateSetting',
+      user: req.user, module: MODULE_NAME, method: 'handleCreateSetting',
       message: `Setting '${filteredRequest.identifier}' has been created successfully`,
       action: action,
       detailedMessages: { params: filteredRequest }
@@ -148,7 +150,7 @@ export default class SettingService {
   public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(action, settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
+    UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       throw new AppAuthError({
@@ -156,7 +158,7 @@ export default class SettingService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.SETTING,
-        module: 'SettingService',
+        module: MODULE_NAME,
         method: 'handleUpdateSetting',
         value: settingUpdate.id
       });
@@ -164,7 +166,7 @@ export default class SettingService {
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
     UtilsService.assertObjectExists(action, setting, `Setting with ID '${settingUpdate.id}' doesn't exist anymore`,
-      'SettingService', 'handleUpdateSetting', req.user);
+      MODULE_NAME, 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
     if (settingUpdate.sensitiveData) {
@@ -173,7 +175,7 @@ export default class SettingService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
-          module: 'SettingService',
+          module: MODULE_NAME,
           method: 'handleUpdateSetting',
           user: req.user
         });
@@ -211,7 +213,7 @@ export default class SettingService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
+      user: req.user, module: MODULE_NAME, method: 'handleUpdateSetting',
       message: `Setting '${settingUpdate.id}' has been updated successfully`,
       action: action,
       detailedMessages: { settingUpdate }

@@ -1,5 +1,5 @@
 export interface ChargingProfile {
-  id: string;
+  id?: string;
   chargingStationID: string;
   connectorID?: number;
   profile: Profile;

@@ -1,10 +1,13 @@
-import Constants from '../../utils/Constants';
-import global from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
+import global from '../../types/GlobalType';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import MigrationTask from '../MigrationTask';
+
+const MODULE_NAME = 'MigrateCoordinatesTask';
 
 export default class MigrateCoordinatesTask extends MigrationTask {
   async migrate() {
@@ -44,8 +47,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinates',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -77,8 +80,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinates',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -110,8 +113,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinates',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -143,8 +146,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinates',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
       });
     }
@@ -176,8 +179,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'MigrateCoordinatesTask', method: 'migrateTenant',
-        action: 'MigrateCoordinates',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
       });
     }

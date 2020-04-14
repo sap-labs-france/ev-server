@@ -60,7 +60,7 @@ describe('Tenant Settings test', function() {
         smartCharging: { active: false, type: null },
         statistics: { active: false, type: null },
         analytics: { active: false, type: null },
-        building: { active: false, type: null }
+        asset: { active: false, type: null }
       }
     };
     const res = await testData.superAdminCentralService.updateEntity(
@@ -89,7 +89,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(
@@ -116,7 +116,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(
@@ -145,7 +145,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -167,7 +167,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(
@@ -196,7 +196,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -218,7 +218,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -246,7 +246,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: true, type: 'sapSmartCharging' },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
@@ -267,7 +267,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: true, type: 'sapSmartCharging' },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -294,7 +294,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -322,7 +322,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: true, type: 'sac' },
-          building: { active: false, type: null }
+          asset: { active: false, type: null }
         }
       };
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
@@ -334,8 +334,8 @@ describe('Tenant Settings test', function() {
       expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ANALYTICS, AnalyticsSettingsType.SAC);
     });
 
-    it('Building : Check that the setting has been created in the tenant after activation', async function() {
-      // Test only Building (should fail)
+    it('Asset : Check that the setting has been created in the tenant after activation', async function() {
+      // Test only Asset (should fail)
       testData.data = {
         id: testData.credentials.tenantId,
         name: 'ut-nothing',
@@ -350,13 +350,13 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: true, type: null }
+          asset: { active: true, type: null }
         }
       };
       let res = await testData.superAdminCentralService.updateEntity(
         testData.centralService.tenantApi, testData.data, false);
       expect(res.status).to.equal(500);
-      // Test Building with Organization
+      // Test Asset with Organization
       testData.data = {
         id: testData.credentials.tenantId,
         name: 'ut-nothing',
@@ -371,7 +371,7 @@ describe('Tenant Settings test', function() {
           smartCharging: { active: false, type: null },
           statistics: { active: false, type: null },
           analytics: { active: false, type: null },
-          building: { active: true, type: null }
+          asset: { active: true, type: null }
         }
       };
       res = await testData.superAdminCentralService.updateEntity(
@@ -379,7 +379,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.BUILDING, null);
+      expect(settings.data.result[0]).to.be.validatedSetting(TenantComponents.ASSET, null);
     });
   });
 });

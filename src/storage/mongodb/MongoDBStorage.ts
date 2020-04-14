@@ -10,6 +10,8 @@ import Utils from '../../utils/Utils';
 import RunLock from './../../utils/Locking';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'MongoDBStorage';
+
 export default class MongoDBStorage {
   private db: Db;
   private readonly dbConfig: StorageCfg;
@@ -23,7 +25,7 @@ export default class MongoDBStorage {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'MongoDBStorage',
+        module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
         action: Action.MONGO_DB
@@ -42,7 +44,7 @@ export default class MongoDBStorage {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'MongoDBStorage',
+        module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
         action: Action.MONGO_DB
@@ -107,7 +109,7 @@ export default class MongoDBStorage {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'MongoDBStorage',
+        module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
         action: Action.MONGO_DB
@@ -184,7 +186,7 @@ export default class MongoDBStorage {
       if (!this.db) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          module: 'MongoDBStorage',
+          module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
           action: Action.MONGO_DB
@@ -208,7 +210,7 @@ export default class MongoDBStorage {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'MongoDBStorage',
+        module: MODULE_NAME,
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
         action: Action.MONGO_DB
@@ -229,7 +231,7 @@ export default class MongoDBStorage {
     if (!this.db) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'MongoDBStorage',
+        module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
         action: Action.MONGO_DB

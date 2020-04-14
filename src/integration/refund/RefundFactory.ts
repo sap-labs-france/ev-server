@@ -9,6 +9,8 @@ import Utils from '../../utils/Utils';
 import ConcurRefundConnector from './concur/ConcurRefundConnector';
 import RefundConnector from './RefundConnector';
 
+const MODULE_NAME = 'RefundFactory';
+
 export default class RefundFactory {
   static async getRefundConnector(tenantID: string): Promise<RefundConnector<RefundSetting>> {
     // Get the tenant
@@ -27,7 +29,7 @@ export default class RefundFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
-        module: 'RefundFactory',
+        module: MODULE_NAME,
         method: 'getRefundConnector',
         message: 'Refund settings are not configured'
       });

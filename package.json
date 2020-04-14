@@ -177,7 +177,7 @@
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "test:billing": "cross-env TS_NODE_FILES=true mocha test/**/BillingTest.ts --exit",
-    "test:building": "cross-env TS_NODE_FILES=true mocha test/**/BuildingTest.ts --exit",
+    "test:asset": "cross-env TS_NODE_FILES=true mocha test/**/AssetTest.ts --exit",
     "test:car": "cross-env TS_NODE_FILES=true mocha test/**/CarTest.ts --exit",
     "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts --exit",
     "clinic:clean": "clinic clean",

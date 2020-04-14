@@ -7,3 +7,11 @@ export interface HttpCarsRequest extends HttpDatabaseRequest {
 export interface HttpCarMakersRequest extends HttpDatabaseRequest {
   Search?: string;
 }
+
+export interface HttpCarImagesRequest extends HttpDatabaseRequest {
+  CarID: number;
+}
+
+export interface HttpCarByIDRequest {
+  ID: number;
+}

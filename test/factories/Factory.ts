@@ -1,5 +1,5 @@
 import AddressFactory from './AddressFactory';
-import BuildingFactory from './BuildingFactory';
+import AssetFactory from './AssetFactory';
 import ChargingStationFactory from './ChargingStationFactory';
 import CompanyFactory from './CompanyFactory';
 import OcpiEndpointsFactory from './OcpiEndpointsFactory';
@@ -12,7 +12,7 @@ import UserFactory from './UserFactory';
 export default abstract class Factory {
   public static site = SiteFactory;
   public static company = CompanyFactory;
-  public static building = BuildingFactory;
+  public static asset = AssetFactory;
   public static user = UserFactory;
   public static chargingStation = ChargingStationFactory;
   public static address = AddressFactory;

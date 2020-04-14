@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import moment from 'moment';
 import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
-import BuildingStorage from '../../../src/storage/mongodb/BuildingStorage';
+import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
@@ -64,10 +64,16 @@ export default class ContextBuilder {
     }
     // Delete all tenants
     for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
-      console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
-      const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
+      console.log('Tenant to be deleted ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
+      let tenantEntity = await TenantStorage.getTenant(tenantContextDef.id);
+      if (!tenantEntity) {
+        tenantEntity = await TenantStorage.getTenantBySubdomain(tenantContextDef.subdomain);
+      }
       if (tenantEntity) {
+        console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
+      } else {
+        console.error('Tenant to be deleted not found ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       }
     }
   }
@@ -289,20 +295,21 @@ export default class ContextBuilder {
         }
         newTenantContext.addSiteContext(siteContext);
       }
-      // Check if the building tenant exists and is activated
-      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.BUILDING) &&
-      buildTenant.components[TenantComponents.BUILDING].active) {
-        // Create Building list
-        for (const buildingDef of CONTEXTS.TENANT_BUILDING_LIST) {
-          const dummyBuilding = Factory.building.build();
-          dummyBuilding.id = buildingDef.id;
-          dummyBuilding.createdBy = { id: adminUser.id };
-          dummyBuilding.createdOn = moment().toISOString();
-          dummyBuilding.issuer = true;
-          dummyBuilding.siteAreaID = buildingDef.siteAreaID;
-          console.log(`Building '${dummyBuilding.name}' created`);
-          await BuildingStorage.saveBuilding(buildTenant.id, dummyBuilding);
-          newTenantContext.getContext().buildings.push(dummyBuilding);
+      // Check if the asset tenant exists and is activated
+      if (Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
+      buildTenant.components[TenantComponents.ASSET].active) {
+        // Create Asset list
+        for (const assetDef of CONTEXTS.TENANT_ASSET_LIST) {
+          const dummyAsset = Factory.asset.build();
+          dummyAsset.id = assetDef.id;
+          dummyAsset.createdBy = { id: adminUser.id };
+          dummyAsset.createdOn = moment().toISOString();
+          dummyAsset.issuer = true;
+          dummyAsset.siteAreaID = assetDef.siteAreaID;
+          dummyAsset.assetType = 'CO';
+          console.log(`Asset '${dummyAsset.name}' created`);
+          await AssetStorage.saveAsset(buildTenant.id, dummyAsset);
+          newTenantContext.getContext().assets.push(dummyAsset);
         }
       }
     }

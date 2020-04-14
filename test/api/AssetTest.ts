@@ -20,13 +20,13 @@ class TestData {
   public createdSites: any[] = [];
   public newSiteArea: any;
   public createdSiteAreas: any[] = [];
-  public newBuilding: any;
-  public createdBuildings: any[] = [];
+  public newAsset: any;
+  public createdAssets: any[] = [];
 }
 
 const testData: TestData = new TestData();
 
-describe('Building Test', function() {
+describe('Asset Test', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -43,10 +43,10 @@ describe('Building Test', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Building (tenant ut-building)', () => {
+  describe('With component Asset (tenant ut-asset)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BUILDING);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.centralUserContext).to.not.be.null;
       testData.centralUserService = new CentralServerService(
@@ -83,15 +83,15 @@ describe('Building Test', function() {
         );
       });
       testData.createdSiteAreas = [];
-      // Delete any created building
-      testData.createdBuildings.forEach(async (building) => {
+      // Delete any created asset
+      testData.createdAssets.forEach(async (asset) => {
         await testData.centralUserService.deleteEntity(
-          testData.centralUserService.buildingApi,
-          building,
+          testData.centralUserService.assetApi,
+          asset,
           false
         );
       });
-      testData.createdBuildings = [];
+      testData.createdAssets = [];
     });
 
     describe('Where admin user', () => {
@@ -136,63 +136,66 @@ describe('Building Test', function() {
         expect(testData.newSiteArea).to.not.be.null;
       });
 
-      it('Should be able to create a new Building', async () => {
+      it('Should be able to create a new Asset', async () => {
         // Create
-        testData.newBuilding = await testData.userService.createEntity(
-          testData.userService.buildingApi,
-          Factory.building.build({ siteAreaID: testData.createdSiteAreas[0].id })
+        testData.newAsset = await testData.userService.createEntity(
+          testData.userService.assetApi,
+          Factory.asset.build({
+            siteAreaID: testData.createdSiteAreas[0].id,
+            assetType: 'PR'
+          })
         );
-        testData.createdBuildings.push(testData.newBuilding);
+        testData.createdAssets.push(testData.newAsset);
       });
 
-      it('Should find the created building by id', async () => {
+      it('Should find the created asset by id', async () => {
         // Check if the created entity can be retrieved with its id
         await testData.userService.getEntityById(
-          testData.userService.buildingApi,
-          testData.newBuilding
+          testData.userService.assetApi,
+          testData.newAsset
         );
       });
 
-      it('Should find the created building in the building list', async () => {
+      it('Should find the created asset in the asset list', async () => {
         // Check if the created entity is in the list
         await testData.userService.checkEntityInList(
-          testData.userService.buildingApi,
-          testData.newBuilding
+          testData.userService.assetApi,
+          testData.newAsset
         );
       });
 
-      it('Should be able to update the building', async () => {
+      it('Should be able to update the asset', async () => {
         // Change entity
-        testData.newBuilding.name = 'New Name';
+        testData.newAsset.name = 'New Name';
         // Update
         await testData.userService.updateEntity(
-          testData.userService.buildingApi,
-          testData.newBuilding
+          testData.userService.assetApi,
+          testData.newAsset
         );
       });
 
-      it('Should find the updated building by id', async () => {
+      it('Should find the updated asset by id', async () => {
         // Check if the updated entity can be retrieved with its id
-        const updatedBuilding = await testData.userService.getEntityById(
-          testData.userService.buildingApi,
-          testData.newBuilding
+        const updatedAsset = await testData.userService.getEntityById(
+          testData.userService.assetApi,
+          testData.newAsset
         );
-        expect(updatedBuilding.name).to.equal(testData.newBuilding.name);
+        expect(updatedAsset.name).to.equal(testData.newAsset.name);
       });
 
-      it('Should be able to delete the created building', async () => {
+      it('Should be able to delete the created asset', async () => {
         // Delete the created entity
         await testData.userService.deleteEntity(
-          testData.userService.buildingApi,
-          testData.newBuilding
+          testData.userService.assetApi,
+          testData.newAsset
         );
       });
 
-      it('Should not find the deleted building with its id', async () => {
+      it('Should not find the deleted asset with its id', async () => {
         // Check if the deleted entity cannot be retrieved with its id
         await testData.centralUserService.checkDeletedEntityById(
-          testData.userService.buildingApi,
-          testData.newBuilding
+          testData.userService.assetApi,
+          testData.newAsset
         );
       });
     });

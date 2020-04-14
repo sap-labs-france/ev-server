@@ -1,9 +1,11 @@
-import Constants from '../../utils/Constants';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+
+const MODULE_NAME = 'AddIssuerFieldTask';
 
 export default class AddIssuerFieldTask extends MigrationTask {
   async migrate() {
@@ -15,6 +17,7 @@ export default class AddIssuerFieldTask extends MigrationTask {
       await this.migrateTenant(tenant.id, tenant.name, 'sites');
       await this.migrateTenant(tenant.id, tenant.name, 'siteareas');
       await this.migrateTenant(tenant.id, tenant.name, 'users');
+      await this.migrateTenant(tenant.id, tenant.name, 'transactions');
     }
   }
 
@@ -31,15 +34,15 @@ export default class AddIssuerFieldTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'AddIssuerFieldTask', method: 'migrateTenant',
-        action: 'AddIssuerField',
+        action: Action.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
         message: `${result.modifiedCount} Object(s) has been updated in the collection '${collectionName}' of Tenant '${tenantName}'`
       });
     }
   }
 
   getVersion() {
-    return '1.2';
+    return '1.3';
   }
 
   getName() {

@@ -9,20 +9,20 @@ import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action } from '../../../types/Authorization';
 import Company from '../../../types/Company';
 import Connection from '../../../types/Connection';
 import { HTTPError } from '../../../types/HTTPError';
-import { ConcurLocation, ConcurRefundType, RefundStatus } from '../../../types/Refund';
+import { ConcurLocation, RefundStatus } from '../../../types/Refund';
 import { ConcurRefundSetting } from '../../../types/Setting';
 import Site from '../../../types/Site';
 import Transaction from '../../../types/Transaction';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import RefundConnector from '../RefundConnector';
-import I18nManager from '../../../utils/I18nManager';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
@@ -139,7 +139,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'GetAccessToken',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -177,15 +177,15 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           }
           await TransactionStorage.saveTransaction(tenantID, transaction);
           refundedTransactions.push(transaction);
-        } catch (exception) {
-          Logging.logException(exception, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenantID, userId);
+        } catch (error) {
+          Logging.logException(error, Action.REFUND, MODULE_NAME, MODULE_NAME, 'refund', this.tenantID, userId);
         }
       },
       { concurrency: 10 });
     Logging.logInfo({
       tenantID: this.tenantID,
       user: userId,
-      source: MODULE_NAME, action: Action.REFUND,
+      action: Action.REFUND,
       module: MODULE_NAME, method: 'Refund',
       message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
     });
@@ -203,7 +203,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
-            module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+            action: Action.SYNCHRONIZE_REFUND,
+            module: MODULE_NAME, method: 'updateRefundStatus',
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
@@ -211,7 +212,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         }
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          action: Action.SYNCHRONIZE_REFUND,
+          module: MODULE_NAME, method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has not been updated`,
           user: transaction.userID
         });
@@ -221,7 +223,8 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          action: Action.SYNCHRONIZE_REFUND,
+          module: MODULE_NAME, method: 'updateRefundStatus',
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
@@ -302,7 +305,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createQuickExpense',
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -315,7 +318,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'createQuickExpense',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -353,7 +356,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReportEntry',
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -366,7 +369,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -386,7 +389,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'createExpenseReport',
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -398,7 +401,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME, method: 'createExpenseReport',
         user: userId,
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -429,7 +432,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME,
         method: 'getExpenseReport',
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -450,7 +453,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         module: MODULE_NAME,
         method: 'getExpenseReports',
         action: Action.REFUND,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }
@@ -474,7 +477,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       Logging.logDebug({
         tenantID: this.tenantID,
         user: userId,
-        source: MODULE_NAME, action: Action.REFUND,
+        action: Action.REFUND,
         module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
@@ -491,7 +494,7 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
         method: 'refreshToken',
         action: Action.REFUND,
         user: userId,
-        detailedMessages: { error }
+        detailedMessages: { error: error.message, stack: error.stack }
       });
     }
   }

@@ -8,10 +8,12 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
 
+const MODULE_NAME = 'LockingStorage';
+
 export default class LockingStorage {
   public static async getLocks(): Promise<Lock[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLocks');
     const aggregation = [];
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
@@ -20,7 +22,7 @@ export default class LockingStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('LockingStorage', 'getLocks', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'getLocks', uniqueTimerID);
     // Ok
     return locksMDB;
   }
@@ -48,17 +50,17 @@ export default class LockingStorage {
 
   public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('LockingStorage', 'cleanLocks');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'cleanLocks');
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteMany({ hostname: hostname });
     // Debug
-    Logging.traceEnd('LockingStorage', 'cleanLocks', uniqueTimerID);
+    Logging.traceEnd(MODULE_NAME, 'cleanLocks', uniqueTimerID);
   }
 
   // pragma static async getRunLocks() {
   //   // Debug
-  //   const uniqueTimerID = Logging.traceStart('LockingStorage', 'getRunLocks');
+  //   const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRunLocks');
   //   // Read DB
   //   const runLocksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
   //     .find({ type: 'runLock' })
@@ -75,14 +77,14 @@ export default class LockingStorage {
   //     }
   //   }
   //   // Debug
-  //   Logging.traceEnd('LockingStorage', 'getRunLocks', uniqueTimerID);
+  //   Logging.traceEnd(MODULE_NAME, 'getRunLocks', uniqueTimerID);
   //   // Ok
   //   return runLocks;
   // }
 
   public static async saveRunLock(runLockToSave: Lock): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveRunLock');
     // Transfer
     const runLockMDB = {
       _id: runLockToSave.id ? runLockToSave.id : `${runLockToSave.name}~${runLockToSave.type}`,
@@ -95,17 +97,17 @@ export default class LockingStorage {
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLockMDB);
     // Debug
-    Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveRunningMigration', uniqueTimerID, { runLock: runLockToSave });
     return runLockMDB._id;
   }
 
   public static async deleteRunLock(id: string): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteRunLock');
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .findOneAndDelete({ '_id': id });
     // Debug
-    Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { id });
+    Logging.traceEnd(MODULE_NAME, 'deleteRunLock', uniqueTimerID, { id });
   }
 }

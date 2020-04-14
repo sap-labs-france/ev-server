@@ -31,6 +31,8 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TransactionSecurity from './security/TransactionSecurity';
 import UtilsService from './UtilsService';
 
+const MODULE_NAME = 'TransactionService';
+
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
     try {
@@ -40,7 +42,7 @@ export default class TransactionService {
           user: req.user,
           action: Action.UPDATE,
           entity: Entity.TRANSACTION,
-          module: 'TransactionService',
+          module: MODULE_NAME,
           method: 'handleSynchronizeRefundedTransactions'
         });
       }
@@ -68,7 +70,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Transaction IDs must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleRefundTransactions',
         user: req.user,
         action: action
@@ -81,7 +83,7 @@ export default class TransactionService {
         Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: 'TransactionService', method: 'handleRefundTransactions',
+          module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' does not exist`,
           action: action,
           detailedMessages: { transaction }
@@ -92,7 +94,7 @@ export default class TransactionService {
         Logging.logError({
           tenantID: req.user.tenantID,
           user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
-          module: 'TransactionService', method: 'handleRefundTransactions',
+          module: MODULE_NAME, method: 'handleRefundTransactions',
           message: `Transaction '${transaction.id}' is already refunded`,
           action: action,
           detailedMessages: { transaction }
@@ -106,7 +108,7 @@ export default class TransactionService {
           user: req.user,
           action: Action.REFUND_TRANSACTION,
           entity: Entity.TRANSACTION,
-          module: 'TransactionService',
+          module: MODULE_NAME,
           method: 'handleRefundTransactions',
           value: transaction.id.toString()
         });
@@ -116,14 +118,14 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`,
-      'TransactionService', 'handleRefundTransactions', req.user);
+      MODULE_NAME, 'handleRefundTransactions', req.user);
     const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'No Refund Implementation Found',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleRefundTransactions',
         user: req.user,
         action: action
@@ -152,7 +154,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetUnassignedTransactionsCount'
       });
     }
@@ -163,7 +165,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'UserID must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetUnassignedTransactionsCount',
         user: req.user,
         action: action
@@ -172,7 +174,7 @@ export default class TransactionService {
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      'TransactionService', 'handleAssignTransactionsToUser', req.user);
+      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Get unassigned transactions
     const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
     // Return
@@ -188,7 +190,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleAssignTransactionsToUser'
       });
     }
@@ -200,7 +202,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'User ID must be provided',
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleAssignTransactionsToUser',
         user: req.user,
         action: action
@@ -209,7 +211,7 @@ export default class TransactionService {
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(action, user, `User with ID '${filteredRequest.UserID}' does not exist`,
-      'TransactionService', 'handleAssignTransactionsToUser', req.user);
+      MODULE_NAME, 'handleAssignTransactionsToUser', req.user);
     // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -226,14 +228,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService', method: 'handleDeleteTransaction',
+        module: MODULE_NAME, method: 'handleDeleteTransaction',
         value: transactionId.toString()
       });
     }
     // Get
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${transactionId}' does not exist`,
-      'TransactionService', 'handleDeleteTransaction', req.user);
+      MODULE_NAME, 'handleDeleteTransaction', req.user);
     // Delete
     const result = await TransactionService.deleteTransactions(action, req.user, [transactionId]);
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
@@ -250,7 +252,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.DELETE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         value: transactionsIds.toString()
       });
     }
@@ -264,7 +266,7 @@ export default class TransactionService {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
+    UtilsService.assertIdIsProvided(action, transactionId, MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -272,7 +274,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.UPDATE,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleTransactionSoftStop',
         value: transactionId.toString()
       });
@@ -280,18 +282,18 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID ${transactionId} does not exist`,
-      'TransactionService', 'handleTransactionSoftStop', req.user);
+      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${transaction.chargeBoxID}' does not exist`,
-      'TransactionService', 'handleTransactionSoftStop', req.user);
+      MODULE_NAME, 'handleTransactionSoftStop', req.user);
     // Check User
     let user: User;
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
       UtilsService.assertObjectExists(action, user, `User with ID '${transaction.userID}' does not exist`,
-        'TransactionService', 'handleTransactionSoftStop', req.user);
+        MODULE_NAME, 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
@@ -310,9 +312,10 @@ export default class TransactionService {
     );
     // Log
     Logging.logSecurityInfo({
-      tenantID: req.user.tenantID, source: chargingStation.id,
+      tenantID: req.user.tenantID,
+      source: chargingStation.id,
       user: req.user, actionOnUser: user,
-      module: 'TransactionService', method: 'handleTransactionSoftStop',
+      module: MODULE_NAME, method: 'handleTransactionSoftStop',
       message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
       action: action,
       detailedMessages: { result }
@@ -326,12 +329,12 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
-    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, 'TransactionService',
+    UtilsService.assertIdIsProvided(action, filteredRequest.TransactionId, MODULE_NAME,
       'handleGetConsumptionFromTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
-      'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
+      MODULE_NAME, 'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
@@ -339,7 +342,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetConsumptionFromTransaction',
         value: transaction.id.toString()
       });
@@ -350,7 +353,7 @@ export default class TransactionService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetConsumptionFromTransaction',
         user: req.user,
         action: action
@@ -374,11 +377,11 @@ export default class TransactionService {
   public static async handleGetTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(action, transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`,
-      'TransactionService', 'handleGetTransaction', req.user);
+      MODULE_NAME, 'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError({
@@ -386,7 +389,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.READ,
         entity: Entity.TRANSACTION,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransaction',
         value: filteredRequest.ID.toString()
       });
@@ -407,18 +410,18 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetChargingStationTransactions'
       });
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, 'TransactionService', 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorId, 'TransactionService', 'handleGetChargingStationTransactions:ConnectorId', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingStationTransactions:ChargeBoxID', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ConnectorId, MODULE_NAME, 'handleGetChargingStationTransactions:ConnectorId', req.user);
     // Get Charge Box
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     UtilsService.assertObjectExists(action, chargingStation, `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
-      'TransactionService', 'handleGetChargingStationTransactions', req.user);
+      MODULE_NAME, 'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
       chargeBoxIDs: [chargingStation.id],
@@ -456,13 +459,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsActive'
       });
     }
     const filter: any = { stop: { $exists: false } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -509,13 +513,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsCompleted'
       });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = filteredRequest.Issuer;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -576,13 +581,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsToRefund'
       });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -640,7 +646,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetRefundReports'
       });
     }
@@ -681,7 +687,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsExport'
       });
     }
@@ -755,7 +761,7 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsToRefundExport'
       });
     }
@@ -839,13 +845,14 @@ export default class TransactionService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.TRANSACTIONS,
-        module: 'TransactionService',
+        module: MODULE_NAME,
         method: 'handleGetTransactionsInError'
       });
     }
     const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
+    filter.issuer = true;
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -976,7 +983,7 @@ export default class TransactionService {
       Logging.logError({
         tenantID: loggedUser.tenantID,
         user: loggedUser,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully and ${result.inError} encountered an error or cannot be deleted`,
         action: action,
         detailedMessages: { errorDetails }
@@ -985,7 +992,7 @@ export default class TransactionService {
       Logging.logInfo({
         tenantID: loggedUser.tenantID,
         user: loggedUser,
-        module: 'TransactionService', method: 'handleDeleteTransactions',
+        module: MODULE_NAME, method: 'handleDeleteTransactions',
         message: `${result.inSuccess} transaction(s) have been deleted successfully`,
         action: action
       });

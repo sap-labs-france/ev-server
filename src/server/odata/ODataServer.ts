@@ -1,11 +1,13 @@
-import morgan from 'morgan';
-import Configuration from '../../utils/Configuration';
 import express from 'express';
-import expressTools from '../ExpressTools';
+import morgan from 'morgan';
+import { Action } from '../../types/Authorization';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import ODataRestAdapter from './ODataRestAdapter';
-import ODataSchema from './odata-schema/ODataSchema';
+import expressTools from '../ExpressTools';
 import ODataServerFactory from '../odata/ODataServerFactory';
+import ODataSchema from './odata-schema/ODataSchema';
+import ODataRestAdapter from './ODataRestAdapter';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataServer {
@@ -27,9 +29,9 @@ export default class ODataServer {
             write: (message) => {
               // Log
               Logging.logDebug({
-                module: MODULE_NAME,
-                method: 'constructor',
-                action: 'HttpRequestLog',
+                tenantID: Constants.DEFAULT_TENANT,
+                module: MODULE_NAME, method: 'constructor',
+                action: Action.EXPRESS_SERVER,
                 message: message
               });
             }

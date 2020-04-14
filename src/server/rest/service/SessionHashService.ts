@@ -12,6 +12,8 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 
+const MODULE_NAME = 'SessionHashService';
+
 export default class SessionHashService {
   // Check if Session has been updated and require new login
   static isSessionHashUpdated(req: Request, res: Response, next: NextFunction) {
@@ -29,7 +31,7 @@ export default class SessionHashService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HttpStatus.FORBIDDEN,
           message: 'User has been updated and will be logged off',
-          module: 'SessionHashService',
+          module: MODULE_NAME,
           method: 'isSessionHashUpdated',
           user: req.user
         });
@@ -40,7 +42,7 @@ export default class SessionHashService {
           source: Constants.CENTRAL_SERVER,
           errorCode: HttpStatus.FORBIDDEN,
           message: 'Tenant has been updated and all users will be logged off',
-          module: 'SessionHashService',
+          module: MODULE_NAME,
           method: 'isSessionHashUpdated',
           user: req.user
         });
