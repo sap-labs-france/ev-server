@@ -173,8 +173,8 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.LIST, Entity.SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreaConsumption');
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, 'SiteAreaService',
+      Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, MODULE_NAME,
 
       'handleGetConsumptionFromTransaction', req.user);
     // Check auth
@@ -184,7 +184,7 @@ export default class SiteAreaService {
         user: req.user,
         action: Action.LIST,
         entity: Entity.SITE_AREAS,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreaConsumption'
       });
     }
@@ -195,7 +195,7 @@ export default class SiteAreaService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Start date and end date must be provided',
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreaConsumption',
         user: req.user,
         action: action
@@ -208,7 +208,7 @@ export default class SiteAreaService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `The requested start date '${new Date(filteredRequest.startDate).toISOString()}' is after the requested end date '${new Date(filteredRequest.endDate).toISOString()}' `,
-        module: 'SiteAreaService',
+        module: MODULE_NAME,
         method: 'handleGetSiteAreaConsumption',
         user: req.user,
         action: action
