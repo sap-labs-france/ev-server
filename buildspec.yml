@@ -29,6 +29,8 @@ phases:
 artifacts:
   type: zip
   files:
+    - LICENSE
+    - NOTICE
     - package.json
     - package-lock.json
     - appspec.yml
