@@ -232,7 +232,7 @@ export default abstract class OCPIClient {
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
       throw new BackendError({
         action: Action.OCPI_POST_CREDENTIALS,
-        message: `Invalid response from delete credentials`,
+        message: 'Invalid response from delete credentials',
         module: MODULE_NAME, method: 'deleteCredentials',
         detailedMessages: { response: respOcpiCredentials.data }
       });
@@ -268,7 +268,7 @@ export default abstract class OCPIClient {
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
       throw new BackendError({
         action: Action.OCPI_POST_CREDENTIALS,
-        message: `Invalid response from post credentials`,
+        message: 'Invalid response from post credentials',
         module: MODULE_NAME, method: 'postCredentials',
         detailedMessages: { response: respOcpiCredentials.data }
       });

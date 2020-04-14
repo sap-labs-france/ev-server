@@ -201,60 +201,54 @@ export default class CarStorage {
       chargeStandardChargeSpeed: Utils.convertToInt(carToSave.chargeStandardChargeSpeed),
       chargeStandardEstimate: carToSave.chargeStandardEstimate,
       chargeStandardTables: carToSave.chargeStandardTables ?
-        carToSave.chargeStandardTables.map((chargeStandardTable: ChargeStandardTable): ChargeStandardTable => {
-          return {
-            type: chargeStandardTable.type,
-            evsePhaseVolt: Utils.convertToInt(chargeStandardTable.evsePhaseVolt),
-            evsePhaseAmp: Utils.convertToInt(chargeStandardTable.evsePhaseAmp),
-            evsePhase: Utils.convertToInt(chargeStandardTable.evsePhase),
-            chargePhaseVolt: Utils.convertToInt(chargeStandardTable.chargePhaseVolt),
-            chargePhaseAmp: Utils.convertToInt(chargeStandardTable.chargePhaseAmp),
-            chargePhase: Utils.convertToInt(chargeStandardTable.chargePhase),
-            chargePower: Utils.convertToFloat(chargeStandardTable.chargePower),
-            chargeTime: Utils.convertToInt(chargeStandardTable.chargeTime),
-            chargeSpeed: Utils.convertToInt(chargeStandardTable.chargeSpeed)
-          };
-        }) : [],
+        carToSave.chargeStandardTables.map((chargeStandardTable: ChargeStandardTable): ChargeStandardTable => ({
+          type: chargeStandardTable.type,
+          evsePhaseVolt: Utils.convertToInt(chargeStandardTable.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeStandardTable.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeStandardTable.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeStandardTable.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeStandardTable.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeStandardTable.chargePhase),
+          chargePower: Utils.convertToFloat(chargeStandardTable.chargePower),
+          chargeTime: Utils.convertToInt(chargeStandardTable.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeStandardTable.chargeSpeed)
+        })) : [],
       chargeAlternativePower: Utils.convertToInt(carToSave.chargeAlternativePower),
       chargeAlternativePhase: Utils.convertToInt(carToSave.chargeAlternativePhase),
       chargeAlternativePhaseAmp: Utils.convertToInt(carToSave.chargeAlternativePhaseAmp),
       chargeAlternativeChargeTime: Utils.convertToInt(carToSave.chargeAlternativeChargeTime),
       chargeAlternativeChargeSpeed: Utils.convertToInt(carToSave.chargeAlternativeChargeSpeed),
       chargeAlternativeTables: carToSave.chargeAlternativeTables ?
-        carToSave.chargeAlternativeTables.map((chargeAlternativeTable: ChargeAlternativeTable): ChargeAlternativeTable => {
-          return {
-            type: chargeAlternativeTable.type,
-            evsePhaseVolt: Utils.convertToInt(chargeAlternativeTable.evsePhaseVolt),
-            evsePhaseAmp: Utils.convertToInt(chargeAlternativeTable.evsePhaseAmp),
-            evsePhase: Utils.convertToInt(chargeAlternativeTable.evsePhase),
-            chargePhaseVolt: Utils.convertToInt(chargeAlternativeTable.chargePhaseVolt),
-            chargePhaseAmp: Utils.convertToInt(chargeAlternativeTable.chargePhaseAmp),
-            chargePhase: Utils.convertToInt(chargeAlternativeTable.chargePhase),
-            chargePower: Utils.convertToFloat(chargeAlternativeTable.chargePower),
-            chargeTime: Utils.convertToInt(chargeAlternativeTable.chargeTime),
-            chargeSpeed: Utils.convertToInt(chargeAlternativeTable.chargeSpeed)
-          };
-        }) : [],
+        carToSave.chargeAlternativeTables.map((chargeAlternativeTable: ChargeAlternativeTable): ChargeAlternativeTable => ({
+          type: chargeAlternativeTable.type,
+          evsePhaseVolt: Utils.convertToInt(chargeAlternativeTable.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeAlternativeTable.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeAlternativeTable.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeAlternativeTable.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeAlternativeTable.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeAlternativeTable.chargePhase),
+          chargePower: Utils.convertToFloat(chargeAlternativeTable.chargePower),
+          chargeTime: Utils.convertToInt(chargeAlternativeTable.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeAlternativeTable.chargeSpeed)
+        })) : [],
       chargeOptionPower: Utils.convertToInt(carToSave.chargeOptionPower),
       chargeOptionPhase: Utils.convertToInt(carToSave.chargeOptionPhase),
       chargeOptionPhaseAmp: Utils.convertToInt(carToSave.chargeOptionPhaseAmp),
       chargeOptionChargeTime: Utils.convertToInt(carToSave.chargeOptionChargeTime),
       chargeOptionChargeSpeed: Utils.convertToInt(carToSave.chargeOptionChargeSpeed),
       chargeOptionTables: carToSave.chargeOptionTables ?
-        carToSave.chargeOptionTables.map((chargeOptionTables: ChargeOptionTable): ChargeOptionTable => {
-          return {
-            type: chargeOptionTables.type,
-            evsePhaseVolt: Utils.convertToInt(chargeOptionTables.evsePhaseVolt),
-            evsePhaseAmp: Utils.convertToInt(chargeOptionTables.evsePhaseAmp),
-            evsePhase: Utils.convertToInt(chargeOptionTables.evsePhase),
-            chargePhaseVolt: Utils.convertToInt(chargeOptionTables.chargePhaseVolt),
-            chargePhaseAmp: Utils.convertToInt(chargeOptionTables.chargePhaseAmp),
-            chargePhase: Utils.convertToInt(chargeOptionTables.chargePhase),
-            chargePower: Utils.convertToFloat(chargeOptionTables.chargePower),
-            chargeTime: Utils.convertToInt(chargeOptionTables.chargeTime),
-            chargeSpeed: Utils.convertToInt(chargeOptionTables.chargeSpeed)
-          };
-        }) : [],
+        carToSave.chargeOptionTables.map((chargeOptionTables: ChargeOptionTable): ChargeOptionTable => ({
+          type: chargeOptionTables.type,
+          evsePhaseVolt: Utils.convertToInt(chargeOptionTables.evsePhaseVolt),
+          evsePhaseAmp: Utils.convertToInt(chargeOptionTables.evsePhaseAmp),
+          evsePhase: Utils.convertToInt(chargeOptionTables.evsePhase),
+          chargePhaseVolt: Utils.convertToInt(chargeOptionTables.chargePhaseVolt),
+          chargePhaseAmp: Utils.convertToInt(chargeOptionTables.chargePhaseAmp),
+          chargePhase: Utils.convertToInt(chargeOptionTables.chargePhase),
+          chargePower: Utils.convertToFloat(chargeOptionTables.chargePower),
+          chargeTime: Utils.convertToInt(chargeOptionTables.chargeTime),
+          chargeSpeed: Utils.convertToInt(chargeOptionTables.chargeSpeed)
+        })) : [],
       fastChargePlug: carToSave.fastChargePlug,
       fastChargePlugEstimate: carToSave.fastChargePlugEstimate,
       fastChargePlugLocation: carToSave.fastChargePlugLocation,
@@ -313,7 +307,7 @@ export default class CarStorage {
     return carToSave.id;
   }
 
-  public static async   saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
+  public static async saveCarImages(carID: number, carImagesToSave: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveCarImages');
     // Delete old images

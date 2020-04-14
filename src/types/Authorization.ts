@@ -108,7 +108,7 @@ export enum Action {
   EXPRESS_SERVER = 'ExpressServer',
   ODATA_SERVER = 'ODataServer',
 
-  LOCKING = "Locking",
+  LOCKING = 'Locking',
 
   STARTUP = 'Startup',
 
@@ -174,10 +174,10 @@ export enum Action {
   PREPARING_SESSION_NOT_STARTED = 'PreparingSessionNotStarted',
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
-  
+
   CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
   CAR_SYNCHRONIZATION = 'CarSynchronization',
-  
+
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
 
   UPDATE_CHARGING_STATION_WITH_TEMPLATE = 'UpdateChargingStationWithTemplate',
@@ -188,11 +188,11 @@ export enum Action {
   SESSION_HASH_SERVICE = 'SessionHashService',
 
   CLEANUP_TRANSACTION = 'CleanupTransaction',
-  
+
   DIAGNOSTICS_STATUS_NOTIFICATION = 'DiagnosticsStatusNotification',
 
   FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
-  
+
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
 
   ADD_ASSET_TO_SITE_AREA = 'AddAssetsToSiteArea',

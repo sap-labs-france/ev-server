@@ -8,8 +8,15 @@
     "type": "git",
     "url": "https://github.com/LucasBrazi06/ev-server.git"
   },
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "description": "Backend for Electric Vehicle charging station",
-  "author": "LucasBrazi06 <sergefabiano@free.fr>",
+  "author": "SAP E-Mobility Labs France <e-mobility@sap.com>",
   "homepage": "https://github.com/LucasBrazi06/ev-server",
   "main": "dist/start.js",
   "dependencies": {
@@ -182,6 +189,5 @@
     "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
-  },
-  "license": "MIT"
+  }
 }

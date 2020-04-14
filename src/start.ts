@@ -139,7 +139,7 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         action: Action.STARTUP,
         module: MODULE_NAME, method: 'start',
-        message: `Unexpected exception`,
+        message: 'Unexpected exception',
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }

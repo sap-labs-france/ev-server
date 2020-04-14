@@ -246,7 +246,7 @@ export default class OCPPUtils {
       }
       // Log
       Logging.logInfo({
-        tenantID: tenantID, 
+        tenantID: tenantID,
         source: chargingStation.id,
         action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
@@ -267,14 +267,14 @@ export default class OCPPUtils {
   }
 
   public static async clearAndDeleteChargingProfilesForSiteArea(
-      tenantID: string, siteArea: SiteArea,
-      params?: { profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; }): Promise<ActionsResponse> {
+    tenantID: string, siteArea: SiteArea,
+    params?: { profilePurposeType?: ChargingProfilePurposeType; transactionId?: number }): Promise<ActionsResponse> {
     const actionsResponse: ActionsResponse = {
       inError: 0,
       inSuccess: 0
     };
     for (const chargingStation of siteArea.chargingStations) {
-      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, { 
+      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
         chargingStationID: chargingStation.id,
         profilePurposeType: params.profilePurposeType,
         transactionId: params.transactionId

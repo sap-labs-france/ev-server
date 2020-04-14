@@ -55,7 +55,7 @@ export default class AssetSecurity {
     filteredRequest.name = sanitize(request.name),
     filteredRequest.siteAreaID = sanitize(request.siteAreaID),
     filteredRequest.assetType = sanitize(request.assetType),
-    filteredRequest.image = request.image
+    filteredRequest.image = request.image;
     if (request.coordinates && request.coordinates.length === 2) {
       filteredRequest.coordinates = [
         sanitize(request.coordinates[0]),

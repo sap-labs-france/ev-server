@@ -26,7 +26,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Site Area tests', function () {
+describe('Site Area tests', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {

@@ -335,7 +335,7 @@ export default class SiteAreaService {
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'handleUpdateSiteArea',
             action: Action.UPDATE,
-            message: `An error occurred while trying to call smart charging`,
+            message: 'An error occurred while trying to call smart charging',
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }

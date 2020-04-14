@@ -4,4 +4,4 @@ import { Factory } from 'rosie';
 export default Factory.define('asset')
   .attr('name', () => faker.company.companyName())
   .attr('siteAreaID', null)
-  .attr('assetType', null)
+  .attr('assetType', null);

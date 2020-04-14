@@ -460,7 +460,7 @@ export default class OCPPStorage {
         connectorId: Utils.convertToInt(meterValueToSave.connectorId),
         transactionId: Utils.convertToInt(meterValueToSave.transactionId),
         timestamp,
-        value: meterValueToSave.attribute.format === 'SignedData' ?  meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
+        value: meterValueToSave.attribute.format === 'SignedData' ? meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
         attribute: meterValueToSave.attribute,
       };
       // Add

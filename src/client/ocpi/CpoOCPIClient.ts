@@ -289,7 +289,7 @@ export default class CpoOCPIClient extends OCPIClient {
       total_cost: transaction.ocpiSession.total_cost,
       currency: transaction.ocpiSession.currency,
       status: transaction.ocpiSession.status
-    }
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,

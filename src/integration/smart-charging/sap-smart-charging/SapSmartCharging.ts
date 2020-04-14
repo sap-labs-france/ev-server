@@ -347,11 +347,11 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
           source: chargingStationId,
           action: Action.SMART_CHARGING,
           module: MODULE_NAME, method: 'buildChargingProfilesFromOptimizer',
-          message: `Charging Station not found`
+          message: 'Charging Station not found'
         });
       }
       const connectorId = parseInt(car.name.substring(car.name.lastIndexOf('-') + 1));
-      const connector = chargingStation.connectors[connectorId-1];
+      const connector = chargingStation.connectors[connectorId - 1];
       // Build profile of charging profile
       const profile: Profile = {
         chargingProfileId: connectorId,
