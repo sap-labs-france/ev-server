@@ -1,8 +1,9 @@
 import Consumption from '../../types/Consumption';
-import global from '../../types/GlobalType';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
+import { SiteAreaConsumptionValues } from '../../types/SiteArea';
 import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -67,6 +68,72 @@ export default class ConsumptionStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
+  static async getSiteAreaConsumption(tenantID: string, params: { siteAreaId: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumption');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create filters
+    const filters: any = {};
+    // ID
+    if (params.siteAreaId) {
+      filters.siteAreaID = params.siteAreaId;
+    }
+    // Date provided?
+    if (params.startDate || params.endDate) {
+      filters.startedAt = {};
+    }
+    // Start date
+    if (params.startDate) {
+      filters.startedAt.$gte = Utils.convertToDate(params.startDate);
+    }
+    // End date
+    if (params.endDate) {
+      filters.startedAt.$lte = Utils.convertToDate(params.endDate);
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Group consumption values per minute
+    aggregation.push({
+      $group: {
+        _id: {
+          year: { '$year': '$startedAt' },
+          month: { '$month': '$startedAt' },
+          day: { '$dayOfMonth': '$startedAt' },
+          hour: { '$hour': '$startedAt' },
+          minute: { '$minute': '$startedAt' }
+        },
+        instantPower: { $sum: '$instantPower' },
+      }
+    });
+    // Rebuild the date
+    aggregation.push({
+      $addFields: {
+        date: {
+          $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+        }
+      }
+    });
+    aggregation.push({
+      $sort: {
+        date: 1
+      }
+    });
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
+      .aggregate(...aggregation, { allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaId: params.siteAreaId });
+    return consumptionsMDB;
+  }
+
   static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getConsumption');
@@ -82,7 +149,7 @@ export default class ConsumptionStorage {
     });
     aggregation.push({
       $addFields: {
-        roundedInstantPower: { $round: [ { $divide: ['$instantPower', 100] } ] }
+        roundedInstantPower: { $round: [{ $divide: ['$instantPower', 100] }] }
       }
     });
     // Triming excess values
@@ -108,7 +175,7 @@ export default class ConsumptionStorage {
       let lastConsumption: Consumption = null;
       let lastConsumtionRemoved = false;
       // Simplify grouped consumption
-      for (let i = 0; i <= consumptionMDB.consumptions.length - 3 ; i++) {
+      for (let i = 0; i <= consumptionMDB.consumptions.length - 3; i++) {
         if (!lastConsumption) {
           lastConsumption = consumptionMDB.consumptions[i];
         }
