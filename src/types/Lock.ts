@@ -1,5 +1,7 @@
+import { ObjectID } from 'mongodb';
+
 export default interface Lock {
-  id?: string;
+  id?: ObjectID;
   keyHash: string;
   name: string;
   type: string;
