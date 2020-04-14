@@ -69,9 +69,9 @@ export default class SiteAreaStorage {
     if (siteAreaToSave.address) {
       siteAreaMDB.address = siteAreaToSave.address;
     }
-    if (siteAreaToSave.maximumPower) {
-      siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
-    }
+
+    siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
+
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
