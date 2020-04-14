@@ -135,7 +135,7 @@ export default class SiteAreaSecurity {
   }
 
   static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[],
-      siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
+    siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
     // Create Site Area Consumption
     const siteAreaConsumption: SiteAreaConsumption = {
       siteAreaId: siteAreaId,
