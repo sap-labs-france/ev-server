@@ -64,10 +64,16 @@ export default class ContextBuilder {
     }
     // Delete all tenants
     for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
-      console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
-      const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
+      console.log('Tenant to be deleted ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
+      let tenantEntity = await TenantStorage.getTenant(tenantContextDef.id);
+      if (!tenantEntity) {
+        tenantEntity = await TenantStorage.getTenantBySubdomain(tenantContextDef.subdomain);
+      }
       if (tenantEntity) {
+        console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
+      } else {
+        console.error('Tenant to be deleted not found ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       }
     }
   }
