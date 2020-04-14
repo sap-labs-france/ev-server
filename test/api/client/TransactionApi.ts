@@ -24,7 +24,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async readAllConsumption(params) {
-    return await super.read(params, '/client/api/ConsumptionFromTransaction');
+    return await super.read(params, '/client/api/TransactionConsumption');
   }
 
   public async readAllYears(params) {
