@@ -325,7 +325,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetConsumptionFromTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionConsumption(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
