@@ -16,7 +16,7 @@
     }
   ],
   "description": "Backend for Electric Vehicle charging station",
-  "author": "LucasBrazi06 <sergefabiano@free.fr>",
+  "author": "SAP E-Mobility Labs France <e-mobility@sap.com>",
   "homepage": "https://github.com/LucasBrazi06/ev-server",
   "main": "dist/start.js",
   "dependencies": {
