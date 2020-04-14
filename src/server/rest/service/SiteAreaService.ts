@@ -169,13 +169,12 @@ export default class SiteAreaService {
   }
 
   public static async handleGetSiteAreaConsumption(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
+    // Filter
+    const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, MODULE_NAME,
-
       'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
@@ -188,7 +187,6 @@ export default class SiteAreaService {
         method: 'handleGetSiteAreaConsumption'
       });
     }
-
     // Check dates
     if (!filteredRequest.startDate || !filteredRequest.endDate) {
       throw new AppError({
@@ -201,9 +199,10 @@ export default class SiteAreaService {
         action: action
       });
     }
-
     // Check dates order
-    if (filteredRequest.startDate && filteredRequest.endDate && moment(filteredRequest.startDate).isAfter(moment(filteredRequest.endDate))) {
+    if (filteredRequest.startDate &&
+        filteredRequest.endDate &&
+        moment(filteredRequest.startDate).isAfter(moment(filteredRequest.endDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -214,7 +213,6 @@ export default class SiteAreaService {
         action: action
       });
     }
-
     // Get the ConsumptionValues
     const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID,
       {
@@ -227,7 +225,8 @@ export default class SiteAreaService {
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaId);
     const siteAreaLimit = siteArea.maximumPower;
     // Return
-    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(siteAreaConsumptionValues, siteAreaLimit, filteredRequest.siteAreaId));
+    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(
+      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.siteAreaId));
     next();
   }
 

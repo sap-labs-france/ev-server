@@ -134,8 +134,8 @@ export default class SiteAreaSecurity {
     siteAreas.result = filteredSiteAreas;
   }
 
-  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[], siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
-
+  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[],
+      siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
     // Create Site Area Consumption
     const siteAreaConsumption: SiteAreaConsumption = {
       siteAreaId: siteAreaId,
@@ -144,7 +144,6 @@ export default class SiteAreaSecurity {
     for (const siteAreaConsumptionValue of siteAreaConsumptionValues) {
       siteAreaConsumption.values.push({ date: siteAreaConsumptionValue.date, instantPower: siteAreaConsumptionValue.instantPower, limitWatts: siteAreaLimit });
     }
-
     // Add Values where no Consumption is available
     for (let i = 1; i < siteAreaConsumption.values.length; i++) {
       if (siteAreaConsumption.values[i - 1].date.getTime() + 60000 !== siteAreaConsumption.values[i].date.getTime() && siteAreaConsumption.values[i]) {
@@ -164,7 +163,6 @@ export default class SiteAreaSecurity {
         i++;
       }
     }
-
     return siteAreaConsumption;
   }
 }

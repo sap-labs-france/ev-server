@@ -70,10 +70,9 @@ export default class ConsumptionStorage {
 
   static async getSiteAreaConsumption(tenantID: string, params: { siteAreaId: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getSiteAreaConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumption');
     // Check
     await Utils.checkTenant(tenantID);
-
     // Create filters
     const filters: any = {};
     // ID
@@ -86,13 +85,12 @@ export default class ConsumptionStorage {
     }
     // Start date
     if (params.startDate) {
-      filters.startedAt.$gte = new Date(params.startDate);
+      filters.startedAt.$gte = Utils.convertToDate(params.startDate);
     }
     // End date
     if (params.endDate) {
-      filters.startedAt.$lte = new Date(params.endDate);
+      filters.startedAt.$lte = Utils.convertToDate(params.endDate);
     }
-
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -101,42 +99,39 @@ export default class ConsumptionStorage {
         $match: filters
       });
     }
-
     // Group consumption values per minute
     aggregation.push({
       $group: {
         _id: {
           year: { '$year': '$startedAt' },
           month: { '$month': '$startedAt' },
-          dayOfMonth: { '$dayOfMonth': '$startedAt' },
+          day: { '$dayOfMonth': '$startedAt' },
           hour: { '$hour': '$startedAt' },
-          minute: {
-            $subtract: [
-              { '$minute': '$startedAt' },
-              { '$mod': [{ '$minute': '$startedAt' }, 1] }
-            ]
-          }
+          minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
       }
     });
-
+    // Rebuild the date
+    aggregation.push({
+      $addFields: {
+        date: {
+          $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+        }
+      }
+    });
+    aggregation.push({
+      $sort: {
+        date: 1
+      }
+    });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
-
-    // Create Date for each cumulated consumption value
-    consumptionsMDB.forEach((consumption) => {
-      consumption.date = new Date(consumption._id.year, consumption._id.month - 1, consumption._id.dayOfMonth, consumption._id.hour, consumption._id.minute);
-    });
-    // Sort Dates
-    consumptionsMDB.sort((a, b) => a.date.getTime() - b.date.getTime());
-
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getSiteAreaConsumption', uniqueTimerID, { siteAreaId: params.siteAreaId });
+    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaId: params.siteAreaId });
     return consumptionsMDB;
-
   }
 
   static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
