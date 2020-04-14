@@ -985,7 +985,7 @@ export default class Utils {
       });
     }
     // Smart Charging?
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING) && siteArea.smartCharging) {
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING)) {
       if (siteArea.maximumPower <= 0) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
