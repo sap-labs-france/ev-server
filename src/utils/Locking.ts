@@ -2,25 +2,30 @@ import cfenv from 'cfenv';
 import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import { Action } from '../types/Authorization';
-import Lock from '../types/Lock';
+import LockType from '../types/Lock';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import Logging from './Logging';
 
-const MODULE_NAME = 'RunLock';
+const MODULE_NAME = 'Lock';
 
 /**
- * Namespace based mutually exclusive runtime locking primitive with a DB storage
- * for sharing purpose among different hosts.
+ * Namespace based runtime locking primitive with a DB storage for sharing purpose among different hosts.
+ * Implemented lock type:
+ *  - 'E' = mutually exclusive
  */
-export default class RunLock {
-  private _runLock: Lock;
-  private _onMultipleHosts: boolean;
+export default class Lock implements LockType {
+  public keyHash: string;
+  public name: string;
+  public type: string;
+  public timestamp: Date;
+  public hostname: string;
+  public onMultipleHosts: boolean;
 
-  public constructor(name: string, onMultipleHosts = true) {
+  public constructor(name: string, type = 'E', onMultipleHosts = true) {
     if (!name) {
-      const logMsg = 'RunLock must have a unique name';
+      const logMsg = 'Lock must have a unique name';
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'constructor',
@@ -31,37 +36,31 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    this._onMultipleHosts = onMultipleHosts;
-    this._runLock = {
-      keyHash: Cypher.hash(name.toLowerCase() + '~runLock'),
-      name: name.toLowerCase(),
-      type: 'runLock',
-      timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
-    };
+    this.keyHash = Cypher.hash(name.toLowerCase() + '~' + type);
+    this.name = name.toLowerCase();
+    this.type = type,
+    this.timestamp = new Date();
+    this.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+    this.onMultipleHosts = onMultipleHosts;
   }
 
   public async acquire(): Promise<void> {
-    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
-      await LockingStorage.saveRunLock(this._runLock);
+    if (!await LockingStorage.getLockStatus(this, this.onMultipleHosts)) {
+      await LockingStorage.saveLock(this);
     }
   }
 
   public async tryAcquire(): Promise<boolean> {
-    if (await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
+    if (await LockingStorage.getLockStatus(this, this.onMultipleHosts)) {
       return false;
     }
-    await LockingStorage.saveRunLock(this._runLock);
+    await LockingStorage.saveLock(this);
     return true;
   }
 
-  public async timedAcquire(duration = 60) { }
-
-  public async tryTimedAcquire(duration = 60) { }
-
   public async release(): Promise<void> {
-    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
-      const logMsg = `RunLock ${this._runLock.name} is not acquired`;
+    if (!await LockingStorage.getLockStatus(this, this.onMultipleHosts)) {
+      const logMsg = `Lock ${this.name} is not acquired`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'release',
@@ -72,6 +71,6 @@ export default class RunLock {
       console.log(logMsg);
       return;
     }
-    await LockingStorage.deleteRunLock(this._runLock.keyHash);
+    await LockingStorage.deleteLock(this);
   }
 }

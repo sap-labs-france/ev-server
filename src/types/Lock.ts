@@ -5,4 +5,5 @@ export default interface Lock {
   type: string;
   timestamp: Date;
   hostname: string;
+  onMultipleHosts: boolean;
 }

@@ -56,32 +56,32 @@ export default class LockingStorage {
     Logging.traceEnd(MODULE_NAME, 'cleanLocks', uniqueTimerID);
   }
 
-  public static async saveRunLock(runLockToSave: Lock): Promise<void> {
+  public static async saveLock(lockToSave: Lock): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveRunLock');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveLock');
     // Transfer
-    const runLockMDB = {
-      _id: runLockToSave.id ? Utils.convertToObjectID(runLockToSave.id) : new ObjectID(),
-      keyHash: runLockToSave.keyHash,
-      name: runLockToSave.name,
-      type: runLockToSave.type,
-      timestamp: Utils.convertToDate(runLockToSave.timestamp),
-      hostname: runLockToSave.hostname
+    const lockMDB = {
+      _id: lockToSave.id ? Utils.convertToObjectID(lockToSave.id) : new ObjectID(),
+      keyHash: lockToSave.keyHash,
+      name: lockToSave.name,
+      type: lockToSave.type,
+      timestamp: Utils.convertToDate(lockToSave.timestamp),
+      hostname: lockToSave.hostname
     };
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .insertOne(runLockMDB);
+      .insertOne(lockMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveRunLock', uniqueTimerID, { runLock: runLockToSave });
+    Logging.traceEnd(MODULE_NAME, 'saveLock', uniqueTimerID, { lock: lockToSave });
   }
 
-  public static async deleteRunLock(keyHash: string): Promise<void> {
+  public static async deleteLock(lockToDelete: Lock): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteRunLock');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteLock');
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .findOneAndDelete({ 'keyHash': keyHash });
+      .findOneAndDelete({ 'keyHash': lockToDelete.keyHash });
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteRunLock', uniqueTimerID, { keyHash });
+    Logging.traceEnd(MODULE_NAME, 'deleteLock', uniqueTimerID, { lock: lockToDelete });
   }
 }

@@ -7,7 +7,7 @@ import { Action } from '../../types/Authorization';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import RunLock from './../../utils/Locking';
+import Lock from '../../utils/Locking';
 import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -70,7 +70,7 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index creation RunLock
-          const indexCreationLock = new RunLock(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
+          const indexCreationLock = new Lock(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
           if (await indexCreationLock.tryAcquire()) {
             // Create Index
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
@@ -90,7 +90,7 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index drop RunLock
-          const indexDropLock = new RunLock(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
+          const indexDropLock = new Lock(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
 
           if (await indexDropLock.tryAcquire()) {
             // Drop Index
@@ -266,8 +266,9 @@ export default class MongoDBStorage {
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
-      { fields: { type: 1, name: 1 }, options: { unique: true } },
-      { fields: { keyHash: 1 }, options: { unique: true } }
+      { fields: { keyHash: 1 }, options: { unique: true } },
+      { fields: { hostname: 1 } },
+      { fields: { keyHash: 1, hostname: 1 } }
     ]);
 
     for (const collection of collections) {

@@ -3,7 +3,7 @@ import moment from 'moment';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import { Action } from '../types/Authorization';
 import Constants from '../utils/Constants';
-import RunLock from '../utils/Locking';
+import Lock from '../utils/Locking';
 import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -110,7 +110,7 @@ export default class MigrationHandler {
 
   static async _executeTask(currentMigrationTask): Promise<void> {
     // Create a RunLock by migration name and version
-    const migrationLock = new RunLock(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
+    const migrationLock = new Lock(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock
     if (await migrationLock.tryAcquire()) {
       // Log Start Task
