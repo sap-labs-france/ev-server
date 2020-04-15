@@ -1,4 +1,3 @@
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DbLookup';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
@@ -87,7 +86,7 @@ export default class DatabaseUtils {
     DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
       objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
-    }, [ DatabaseUtils.buildChargingStationInactiveFlagQuery() ]);
+    }, [DatabaseUtils.buildChargingStationInactiveFlagQuery()]);
   }
 
   public static pushTagLookupInAggregation(lookupParams: DbLookup) {
@@ -151,27 +150,6 @@ export default class DatabaseUtils {
   public static pushChargingStationInactiveFlag(aggregation: any[]) {
     // Add inactive field
     aggregation.push(DatabaseUtils.buildChargingStationInactiveFlagQuery());
-  }
-
-  private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
-    // Add inactive field
-    return {
-      $addFields: {
-        inactive: {
-          $or: [
-            { $eq: [ '$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING ] },
-            {
-              $gte: [
-                {
-                  $divide: [ { $subtract: [ new Date(), '$lastHeartBeat' ] }, 1000 ]
-                },
-                Utils.getChargingStationHeartbeatMaxIntervalSecs()
-              ]
-            }
-          ]
-        }
-      }
-    };
   }
 
   public static projectFields(aggregation: any[], projectedFields: string[]) {
@@ -269,6 +247,27 @@ export default class DatabaseUtils {
       };
       aggregation.push(project);
     }
+  }
+
+  private static buildChargingStationInactiveFlagQuery(): Record<string, any> {
+    // Add inactive field
+    return {
+      $addFields: {
+        inactive: {
+          $or: [
+            { $eq: ['$firmwareUpdateStatus', OCPPFirmwareStatus.INSTALLING] },
+            {
+              $gte: [
+                {
+                  $divide: [{ $subtract: [new Date(), '$lastHeartBeat'] }, 1000]
+                },
+                Utils.getChargingStationHeartbeatMaxIntervalSecs()
+              ]
+            }
+          ]
+        }
+      }
+    };
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...

@@ -1,5 +1,4 @@
 
-
 export interface Migration {
   id?: string;
   timestamp: Date;

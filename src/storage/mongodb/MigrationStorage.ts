@@ -28,6 +28,7 @@ export default class MigrationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMigration');
     // Transfer
     const migrationMDB = {
+      // FIXME: add an MongoDB ObjectID field. All records in the DB must have one.
       _id: `${migrationToSave.name}~${migrationToSave.version}`,
       timestamp: Utils.convertToDate(migrationToSave.timestamp),
       name: migrationToSave.name,

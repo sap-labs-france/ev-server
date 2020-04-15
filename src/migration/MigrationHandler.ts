@@ -3,7 +3,7 @@ import moment from 'moment';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import { Action } from '../types/Authorization';
 import Constants from '../utils/Constants';
-import Lock from '../utils/Locking';
+import LockManager from '../locking/LockManager';
 import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -109,10 +109,10 @@ export default class MigrationHandler {
   }
 
   static async _executeTask(currentMigrationTask): Promise<void> {
-    // Create a RunLock by migration name and version
-    const migrationLock = new Lock(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
+    // Create a Lock by migration name and version
+    const migrationLock = LockManager.init(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock
-    if (await migrationLock.tryAcquire()) {
+    if (await LockManager.tryAcquire(migrationLock)) {
       // Log Start Task
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -148,7 +148,7 @@ export default class MigrationHandler {
       // eslint-disable-next-line no-console
       console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
       // Release the migration lock
-      await migrationLock.release();
+      await LockManager.release(migrationLock);
     }
   }
 }

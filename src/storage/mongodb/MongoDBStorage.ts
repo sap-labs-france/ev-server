@@ -7,7 +7,7 @@ import { Action } from '../../types/Authorization';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import Lock from '../../utils/Locking';
+import LockManager from '../../locking/LockManager';
 import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -69,13 +69,13 @@ export default class MongoDBStorage {
         const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
         // Found?
         if (!foundIndex) {
-          // Index creation RunLock
-          const indexCreationLock = new Lock(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await indexCreationLock.tryAcquire()) {
+          // Index creation Lock
+          const indexCreationLock = LockManager.init(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
+          if (await LockManager.tryAcquire(indexCreationLock)) {
             // Create Index
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            // Release the index creation RunLock
-            await indexCreationLock.release();
+            // Release the index creation Lock
+            await LockManager.release(indexCreationLock);
           }
         }
       }
@@ -89,14 +89,14 @@ export default class MongoDBStorage {
         const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
         // Found?
         if (!foundIndex) {
-          // Index drop RunLock
-          const indexDropLock = new Lock(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
+          // Index drop Lock
+          const indexDropLock = LockManager.init(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
 
-          if (await indexDropLock.tryAcquire()) {
+          if (await LockManager.tryAcquire(indexDropLock)) {
             // Drop Index
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            // Release the index drop RunLock
-            await indexDropLock.release();
+            // Release the index drop Lock
+            await LockManager.release(indexDropLock);
           }
         }
       }
