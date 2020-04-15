@@ -2,8 +2,10 @@ import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
+import { ActionsResponse } from '../../types/GlobalType';
 import { SmartChargingSetting } from '../../types/Setting';
 import SiteArea from '../../types/SiteArea';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'SmartCharging';
@@ -17,7 +19,11 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     this.setting = setting;
   }
 
-  public async computeAndApplyChargingProfiles(siteArea: SiteArea) {
+  public async computeAndApplyChargingProfiles(siteArea: SiteArea): Promise<ActionsResponse> {
+    const actionsResponse: ActionsResponse = {
+      inSuccess: 0,
+      inError: 0
+    }
     Logging.logDebug({
       tenantID: this.tenantID,
       action: Action.CHARGING_PROFILE_UPDATE,
@@ -39,8 +45,10 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
       try {
         // Set Charging Profile
         await OCPPUtils.setAndSaveChargingProfile(this.tenantID, chargingProfile);
+        actionsResponse.inSuccess++;
       } catch (error) {
         // Log failed
+        actionsResponse.inError++;
         Logging.logError({
           tenantID: this.tenantID,
           source: chargingProfile.chargingStationID,
@@ -51,12 +59,46 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         });
       }
     }
+    if (actionsResponse.inSuccess && actionsResponse.inError) {
+      Logging.logError({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        module: MODULE_NAME, method: 'processTenant',
+        message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed and ${actionsResponse.inError} have failed`
+      });
+    } else if (actionsResponse.inSuccess) {
+      Logging.logInfo({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        module: MODULE_NAME, method: 'processTenant',
+        message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed`
+      });
+    } else if (actionsResponse.inError) {
+      Logging.logError({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        module: MODULE_NAME, method: 'processTenant',
+        message: `${actionsResponse.inError} charging plan(s) have failed to be pushed`
+      });
+    } else {
+      Logging.logWarning({
+        tenantID: this.tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        module: MODULE_NAME, method: 'processTenant',
+        message: `No charging stations have been updated with charging plans`
+      });
+    }
     Logging.logDebug({
       tenantID: this.tenantID,
       action: Action.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles has been called',
       module: MODULE_NAME, method: 'computeAndApplyChargingProfiles'
     });
+    return actionsResponse;
   }
 
   async abstract buildChargingProfiles(siteArea: SiteArea): Promise<ChargingProfile[]>;

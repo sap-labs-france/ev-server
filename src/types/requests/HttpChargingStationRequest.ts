@@ -5,7 +5,7 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
   chargingStationIDs: string[];
 }
 
-export interface HttpCallOptimizerRequest {
+export interface HttpTriggerSmartChargingRequest {
   siteAreaID: string;
 }
 
