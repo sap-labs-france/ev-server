@@ -12,7 +12,7 @@ const MODULE_NAME = 'LockManager';
 
 /**
  * Namespace based runtime locking primitive management with a DB storage for sharing purpose among different hosts.
- * Implemented lock type:
+ * Implemented lock types:
  *  - E = mutually exclusive
  */
 export default class LockManager {
