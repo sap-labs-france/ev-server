@@ -40,13 +40,13 @@ export default class LockManager {
   }
 
   public static async acquire(lock: Lock): Promise<void> {
-    if (!await LockingStorage.getLockStatus(lock, lock.onMultipleHosts)) {
+    if (!await LockingStorage.getLockStatus(lock)) {
       await LockingStorage.saveLock(lock);
     }
   }
 
   public static async tryAcquire(lock: Lock): Promise<boolean> {
-    if (await LockingStorage.getLockStatus(lock, lock.onMultipleHosts)) {
+    if (await LockingStorage.getLockStatus(lock)) {
       return false;
     }
     await LockingStorage.saveLock(lock);
@@ -54,7 +54,7 @@ export default class LockManager {
   }
 
   public static async release(lock: Lock): Promise<void> {
-    if (!await LockingStorage.getLockStatus(lock, lock.onMultipleHosts)) {
+    if (!await LockingStorage.getLockStatus(lock)) {
       const logMsg = `Lock ${this.name} is not acquired`;
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,

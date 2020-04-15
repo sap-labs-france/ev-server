@@ -28,11 +28,11 @@ export default class LockingStorage {
     return locksMDB;
   }
 
-  public static async getLockStatus(lockToTest: Lock, lockOnMultipleHosts = true): Promise<boolean> {
+  public static async getLockStatus(lockToTest: Lock): Promise<boolean> {
     //  Check
     const locks = await LockingStorage.getLocks();
     const lockFound: Lock = locks.find((lock: Lock): boolean => {
-      if (lockOnMultipleHosts) {
+      if (lockToTest.onMultipleHosts) {
         // Same keyHash
         return (lockToTest.keyHash === lock.keyHash);
       }
