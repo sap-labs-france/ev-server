@@ -13,6 +13,7 @@ RUN apk add --no-cache --virtual .gyp \
   && npm install \
   && apk del .gyp
 
+COPY LICENSE NOTICE ./
 COPY src ./src
 COPY build ./build
 COPY *.json ./
