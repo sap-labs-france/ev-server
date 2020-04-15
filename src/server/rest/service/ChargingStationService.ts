@@ -370,6 +370,58 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleTriggerSmartCharging(action: Action, req: Request, res: Response, next: NextFunction) {
+    // Check if Component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
+      action, Entity.CHARGING_STATION, MODULE_NAME, 'handleTriggerSmartCharging');
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
+    // Get Site Area
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+      MODULE_NAME, 'handleTriggerSmartCharging', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME,
+        method: 'handleAssignAssetsToSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Call Smart Charging
+    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    if (!smartCharging) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Smart Charging service is not configured',
+        module: MODULE_NAME, method: 'handleTriggerSmartCharging',
+        action: action,
+        user: req.user
+      });
+    }
+    // Call
+    const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
+    if (actionsResponse && actionsResponse.inError > 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        action: action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        module: MODULE_NAME, method: 'handleTriggerSmartCharging',
+        user: req.user,
+        message: 'Error occurred while triggering the smart charging',
+      });
+    }
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleUpdateChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
@@ -1255,7 +1307,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
+        action: Action.UPDATE,
         entity: Entity.SETTING,
         module: MODULE_NAME,
         method: 'handleCheckSmartChargingConnection'
@@ -1263,6 +1315,16 @@ export default class ChargingStationService {
     }
     // Get implementation
     const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    if (!smartCharging) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Smart Charging service is not configured',
+        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
+        action: action,
+        user: req.user
+      });
+    }
     // Check
     await smartCharging.checkConnection();
     // Ok

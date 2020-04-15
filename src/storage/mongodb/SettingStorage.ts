@@ -232,7 +232,6 @@ export default class SettingStorage {
     } as BillingSettings;
     const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.BILLING }, Constants.DB_PARAMS_MAX_LIMIT);
     const config = settings.result[0].content;
-
     if (settings && settings.count > 0 && settings.result[0].content) {
       // ID
       billingSettings.id = settings.result[0].id;
@@ -249,7 +248,6 @@ export default class SettingStorage {
           }
         }
       }
-
       // Billing type
       if (config.stripe) {
         billingSettings.type = BillingSettingsType.STRIPE;

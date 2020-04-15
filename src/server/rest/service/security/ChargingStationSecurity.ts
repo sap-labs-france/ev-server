@@ -7,13 +7,13 @@ import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
-
 import { InactivityStatus } from '../../../../types/Transaction';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+
 
 
 export default class ChargingStationSecurity {
@@ -154,6 +154,12 @@ export default class ChargingStationSecurity {
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
+  }
+
+  public static filterTriggerSmartCharging(request: any): HttpTriggerSmartChargingRequest {
+    return {
+      siteAreaID: sanitize(request.SiteAreaID)
+    }
   }
 
   public static filterRequestChargingStationOcppParametersRequest(request: any): HttpChargingStationOcppParametersRequest {
