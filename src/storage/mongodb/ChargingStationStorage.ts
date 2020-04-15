@@ -769,7 +769,7 @@ export default class ChargingStationStorage {
     } else {
       aggregation.push({
         $sort: {
-          identifier: 1
+          connectorID: -1
         }
       });
     }
