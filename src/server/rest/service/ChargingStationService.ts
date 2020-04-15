@@ -370,6 +370,33 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleCallOptimizer(action: Action, req: Request, res: Response, next: NextFunction) {
+
+    const filteredRequest = ChargingStationSecurity.filterCallOptimizerRequest(req.query);
+
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+
+    setTimeout(async () => {
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'handleUpdateSiteArea',
+          action: Action.UPDATE,
+          message: 'An error occurred while trying to call smart charging',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleUpdateChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);

@@ -112,6 +112,7 @@ class RequestMapper {
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
           CheckSmartChargingConnection: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           ChargingProfiles: ChargingStationService.handleGetChargingProfiles.bind(this),
+          CallOptimizer: ChargingStationService.handleCallOptimizer.bind(this),
           RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens.bind(this),
           StatusNotifications: ChargingStationService.handleGetStatusNotifications.bind(this),
           BootNotifications: ChargingStationService.handleGetBootNotifications.bind(this),
