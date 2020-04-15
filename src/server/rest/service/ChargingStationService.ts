@@ -386,8 +386,8 @@ export default class ChargingStationService {
         Logging.logError({
           tenantID: req.user.tenantID,
           source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME, method: 'handleUpdateSiteArea',
-          action: Action.UPDATE,
+          module: MODULE_NAME, method: 'handleCallOptimizer',
+          action: Action.SMART_CHARGING,
           message: 'An error occurred while trying to call smart charging',
           detailedMessages: { error: error.message, stack: error.stack }
         });
