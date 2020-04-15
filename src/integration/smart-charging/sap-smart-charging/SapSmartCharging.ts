@@ -199,7 +199,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       for (const connector of chargingStation.connectors) {
         // Check if connector is charging
         // Build Car
-        cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId));
+        cars.push(this.buildCar(connectorIndex, chargingStation.id, connector.connectorId, connector.totalConsumption));
         // Build Charging Station
         const chargingStationOptimizer = this.buildChargingStation(connectorIndex, connector);
         chargingStationChildren.push(chargingStationOptimizer);
@@ -252,7 +252,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return request;
   }
 
-  private buildCar(connectorIndex: number, chargingStationId: string, connectorId: number): OptimizerCar {
+  private buildCar(connectorIndex: number, chargingStationId: string, connectorId: number, totalConsumption: number): OptimizerCar {
     // Build 'Safe' car
     const car: OptimizerCar = {
       canLoadPhase1: 1,
@@ -263,7 +263,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       carType: 'BEV',
       maxCapacity: 100 * 1000 / 230, // Not usable on DC chargers?
       minLoadingState: 100 * 1000 / 230 * 0.5,
-      startCapacity: 0,
+      startCapacity: totalConsumption / 230,
       minCurrent: 0,
       minCurrentPerPhase: 0,
       maxCurrent: 96,
