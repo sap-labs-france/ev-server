@@ -5,7 +5,7 @@
   },
   "Crypto": {
     "key": "",
-    "algorithm": "aes-256-ctr"
+    "algorithm": ""
   },
   "Cluster": {
     "enabled": false,
@@ -34,8 +34,8 @@
     "protocol": "https",
     "host": "localhost",
     "port": 443,
-    "ssl-key": "ssl/localhost.key",
-    "ssl-cert": "ssl/localhost.cert",
+    "ssl-key": "",
+    "ssl-cert": "",
     "ssl-ca": [],
     "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
@@ -45,7 +45,7 @@
     "socketIOSingleNotificationIntervalSecs": 1,
     "passwordWrongNumberOfTrial": 3,
     "passwordBlockedWaitTimeMin": 5,
-    "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "captchaSecretKey": "YourCaptchaSecretKey",
     "debug": false
   },
   "CentralSystemFrontEnd": {
@@ -59,8 +59,8 @@
     "protocol": "https",
     "host": "localhost",
     "port": 9090,
-    "ssl-key": "ssl/localhost.key",
-    "ssl-cert": "ssl/localhost.cert",
+    "ssl-key": "",
+    "ssl-cert": "",
     "ssl-ca": [],
     "debug": false,
     "externalProtocol": "https"
@@ -74,8 +74,8 @@
     "protocol": "https",
     "host": "localhost",
     "port": 9090,
-    "ssl-key": "ssl/localhost.key",
-    "ssl-cert": "ssl/localhost.cert",
+    "ssl-key": "",
+    "ssl-cert": "",
     "ssl-ca": [],
     "debug": false,
     "externalProtocol": "https"
@@ -91,14 +91,7 @@
   },
   "Storage": {
     "implementation": "mongodb",
-    "uri": null,
-    "host": "localhost",
-    "port": 27017,
-    "user": "evse-user",
-    "password": "",
-    "database": "evse",
-    "poolSize": 20,
-    "replicaSet": "rs0",
+    "uri": "YourConnectionURI",
     "monitorDBChange": true,
     "debug": false
   },
@@ -124,11 +117,18 @@
     "databaseURL": ""
   },
   "Email": {
-    "admins": [],
-    "bcc": "",
     "smtp": {
-      "from": "noreply@gmail.com",
-      "host": "smtp.gmail.com",
+      "from": "",
+      "host": "",
+      "port": 465,
+      "secure": true,
+      "requireTLS": false,
+      "user": "",
+      "password": ""
+    },
+    "smtpBackup": {
+      "from": "",
+      "host": "",
       "port": 465,
       "secure": true,
       "requireTLS": false,
@@ -153,75 +153,12 @@
       "fr_FR"
     ]
   },
-  "Advanced": {
-    "chargeCurveTimeFrameSecsPoint": 60
-  },
   "Migration": {
     "active": true
   },
   "Scheduler": {
-    "active": true,
+    "active": false,
     "tasks": [
-      {
-        "name": "LoggingDatabaseTableCleanupTask",
-        "active": true,
-        "periodicity": "0 0 * * 1",
-        "config": {
-          "retentionPeriodWeeks": 4,
-          "securityRetentionPeriodWeeks": 12
-        }
-      },
-      {
-        "name": "OCPIPatchLocationsTask",
-        "active": true,
-        "periodicity": "0-59/5 * * * *",
-        "config": {}
-      },
-      {
-        "name": "OCPIGetCdrsTask",
-        "active": true,
-        "periodicity": "0 2 * * *",
-        "config": {}
-      },
-      {
-        "name": "OCPIGetLocationsTask",
-        "active": true,
-        "periodicity": "0 * * * *",
-        "config": {}
-      },
-      {
-        "name": "OCPIGetSessionsTask",
-        "active": true,
-        "periodicity": "0 2 * * *",
-        "config": {}
-      },
-      {
-        "name": "OCPIGetTokensTask",
-        "active": true,
-        "periodicity": "0 2 * * *",
-        "config": {}
-      },
-      {
-        "name": "SynchronizeRefundTransactionsTask",
-        "active": true,
-        "periodicity": "0 * * * *",
-        "config": {}
-      },
-      {
-        "name": "CheckSessionNotStartedAfterAuthorizeTask",
-        "active": true,
-        "periodicity": "*/5 * * * *",
-        "config": {
-          "checkPastAuthorizeMins": 60,
-          "sessionShouldBeStartedAfterMins": 10
-        }
-      },
-      {
-        "name": "SynchronizeCarsTask",
-        "active": true,
-        "periodicity": "0 0 1 * *",
-        "config": {}
-      }
     ]
   },
   "Logging": {

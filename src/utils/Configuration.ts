@@ -20,7 +20,6 @@ import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfig
 import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
 import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
 import EmailConfiguration from '../types/configuration/EmailConfiguration';
-import AdvancedConfiguration from '../types/configuration/AdvancedConfiguration';
 import LocalesConfiguration from '../types/configuration/LocalesConfiguration';
 import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
 import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
@@ -221,12 +220,6 @@ export default class Configuration {
   static getEVDatabaseConfig(): EVDatabaseConfiguration {
     // Read conf
     return Configuration.getConfig().EVDatabase;
-  }
-
-  // Advanced config
-  static getAdvancedConfig(): AdvancedConfiguration {
-    // Read conf
-    return Configuration.getConfig().Advanced;
   }
 
   // Locale config
