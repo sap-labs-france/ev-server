@@ -174,9 +174,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const rootFuse: OptimizerFuse = {
       '@type': 'Fuse',
       id: 0,
-      fusePhase1: (siteArea.maximumPower / (230 * 3)) / 3,
-      fusePhase2: (siteArea.maximumPower / (230 * 3)) / 3,
-      fusePhase3: (siteArea.maximumPower / (230 * 3)) / 3,
+      fusePhase1: (siteArea.maximumPower / 230) / 3,
+      fusePhase2: (siteArea.maximumPower / 230) / 3,
+      fusePhase3: (siteArea.maximumPower / 230) / 3,
       children: [],
     };
     // Charging Stations
@@ -272,7 +272,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       immediateStart: false,
       canUseVariablePower: true,
       // Build string with chargingStation and ConnectorID
-      name: chargingStationId + ': Connector-' + connectorId,
+      name: chargingStationId + ':Connector-' + connectorId,
     };
     return car;
   }
@@ -282,9 +282,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     const chargingStation: OptimizerChargingStation = {
       '@type': 'ChargingStation',
       id: connectorIndex,
-      fusePhase1: connector.amperage / 3,
-      fusePhase2: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
-      fusePhase3: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0) / 3,
+      fusePhase1: connector.amperage,
+      fusePhase2: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0),
+      fusePhase3: ((connector.numberOfConnectedPhase > 1) ? connector.amperage : 0),
     };
     return chargingStation;
   }
@@ -339,7 +339,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       // Set duration
       chargingSchedule.duration = currentTimeSlot * 15 * 60;
       // Get ChargingStation ID and Connector ID from name property
-      const chargingStationId = car.name.substring(0, car.name.lastIndexOf(': Connector-'));
+      const chargingStationId = car.name.substring(0, car.name.lastIndexOf(':Connector-'));
       // Get the charging station
       const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingStationId);
       if (!chargingStation) {
