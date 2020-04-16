@@ -72,6 +72,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Get the Charging Stations of the site area with status charging and preparing
     const chargingStations = await ChargingStationStorage.getChargingStations(this.tenantID,
       { siteAreaIDs: [siteArea.id], connectorStatuses: [
+        ChargePointStatus.AVAILABLE,
         ChargePointStatus.PREPARING,
         ChargePointStatus.CHARGING,
         ChargePointStatus.SUSPENDED_EV,
@@ -252,9 +253,9 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     return request;
   }
 
-  private buildCar(connectorIndex: number, chargingStationId: string, connectorId: number, totalConsumption: number): OptimizerCar {
+  private buildCar(connectorIndex: number, chargingStationID: string, connectorId: number, totalConsumption: number): OptimizerCar {
     // Build 'Safe' car
-    const car: OptimizerCar = {
+    return {
       canLoadPhase1: 1,
       canLoadPhase2: 1,
       canLoadPhase3: 1,
@@ -271,10 +272,8 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       suspendable: true,
       immediateStart: false,
       canUseVariablePower: true,
-      // Build string with chargingStation and ConnectorID
-      name: chargingStationId + ':Connector-' + connectorId,
+      name: `${chargingStationID}~${connectorId}`,
     };
-    return car;
   }
 
   private buildChargingStation(connectorIndex: number, connector: Connector): OptimizerChargingStation {
@@ -339,18 +338,19 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       // Set duration
       chargingSchedule.duration = currentTimeSlot * 15 * 60;
       // Get ChargingStation ID and Connector ID from name property
-      const chargingStationId = car.name.substring(0, car.name.lastIndexOf(':Connector-'));
+      const chargingStationDetails = car.name.split('~');
+      const chargingStationID = chargingStationDetails[0];
       // Get the charging station
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingStationId);
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, chargingStationID);
       if (!chargingStation) {
         throw new BackendError({
-          source: chargingStationId,
+          source: chargingStationID,
           action: Action.SMART_CHARGING,
           module: MODULE_NAME, method: 'buildChargingProfilesFromOptimizer',
           message: 'Charging Station not found'
         });
       }
-      const connectorId = parseInt(car.name.substring(car.name.lastIndexOf('-') + 1));
+      const connectorId = parseInt(chargingStationDetails[1]);
       const connector = chargingStation.connectors[connectorId - 1];
       // Build profile of charging profile
       const profile: Profile = {
@@ -363,7 +363,7 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       };
       // Build charging profile with charging station id and connector id
       const chargingProfile: ChargingProfile = {
-        chargingStationID: chargingStationId,
+        chargingStationID: chargingStationID,
         connectorID: connectorId,
         profile: profile
       };
