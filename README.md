@@ -423,20 +423,6 @@ Here are the default delivered locales:
  },
 ```
 
-### Advanced Configuration
-
-Here is the advanced configuration:
-
-```
- "Advanced": {
-  "backgroundTasksIntervalSecs": 120,
-  "chargeCurveMeterIntervalSecs": 60
- }
-```
-
-* **backgroundTasksIntervalSecs**: Interval used by the background tasks that will do some actions like: updating the status of the charging stations, check and send notifications, import the initial users...
-* **chargeCurveMeterIntervalSecs**: The interval between two points in the charging curve displayed in the Dashboard
-
 ## The Charging Stations
 
 Each charging station vendor has its own configuration interface, so I'll just describe in general terms what's to be setup on those:
