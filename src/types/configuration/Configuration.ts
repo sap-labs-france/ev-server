@@ -15,7 +15,6 @@ import WSDLEndpointConfiguration from './WSDLEndpointConfiguration';
 import JsonEndpointConfiguration from './JsonEndpointConfiguration';
 import OCPIServiceConfiguration from './OCPIServiceConfiguration';
 import AuthorizationConfiguration from './AuthorizationConfiguration';
-import AdvancedConfiguration from './AdvancedConfiguration';
 import SchedulerConfiguration from './SchedulerConfiguration';
 import LoggingConfiguration from './LoggingConfiguration';
 import FirebaseConfiguration from './FirebaseConfiguration';
@@ -44,7 +43,6 @@ export interface Configuration {
   Authorization: AuthorizationConfiguration;
   ChargingStation: ChargingStationConfiguration;
   Locales: LocalesConfiguration;
-  Advanced: AdvancedConfiguration;
   Scheduler: SchedulerConfiguration;
   Logging: LoggingConfiguration;
   HealthCheck?: HealthCheckConfiguration;
