@@ -4,6 +4,7 @@ import uuid from 'uuid/v4';
 import OCPPService from '../OCPPService';
 import WSClient from '../../../../src/client/websocket/WSClient';
 
+// FIXME: use defined constants in Constants.ts
 const OCPP_JSON_CALL_MESSAGE = 2;
 const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 

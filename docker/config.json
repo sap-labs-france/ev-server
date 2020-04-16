@@ -1,11 +1,11 @@
 {
   "Crypto": {
-    "key": "6pKSrPeSgE6ZNwQXvJPxpsH1E6JWCUyy",
+    "key": "ShVmYq3t6w9z$C&F)H@McQfTjWnZr4u7",
     "algorithm": "aes-256-ctr"
   },
   "EVDatabase": {
     "url": "https://ev-database.org/export_v26/74964691",
-    "key": "Sm9wf91An9tg0d9ta21AA"
+    "key": ""
   },
   "CentralSystems": [
     {
@@ -142,9 +142,6 @@
       "fr_FR"
     ]
   },
-  "Advanced": {
-    "chargeCurveTimeFrameSecsPoint": 60
-  },
   "Migration": {
     "active": true
   },
@@ -237,7 +234,7 @@
       },
       {
         "name": "SynchronizeCarsTask",
-        "active": true,
+        "active": false,
         "periodicity": "0 0 1 * *",
         "config": {}
       }
