@@ -72,7 +72,6 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
     // Get the Charging Stations of the site area with status charging and preparing
     const chargingStations = await ChargingStationStorage.getChargingStations(this.tenantID,
       { siteAreaIDs: [siteArea.id], connectorStatuses: [
-        ChargePointStatus.AVAILABLE,
         ChargePointStatus.PREPARING,
         ChargePointStatus.CHARGING,
         ChargePointStatus.SUSPENDED_EV,
