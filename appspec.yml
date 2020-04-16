@@ -1,0 +1,23 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /opt/server
+permissions:
+  - object: /opt/server
+    pattern: '**'
+    owner: ubuntu
+    group: ubuntu
+hooks:
+  BeforeInstall:
+    - location: src/aws/beforeinstall_server.sh
+      runas: root
+  AfterInstall:
+    - location: src/aws/afterinstall_server.sh
+      runas: ubuntu
+  ApplicationStart:
+    - location: src/aws/service_start.sh
+      runas: ubuntu
+  ApplicationStop:
+    - location: src/aws/service_stop.sh
+      runas: ubuntu

@@ -1,0 +1,22 @@
+applications:
+- name: e-mobility-server
+  memory: 1G
+  disk_quota: 1G
+  instances: 1
+  # For server type using express:
+  # health-check-type: http
+  # health-check-http-endpoint: /health-check
+  # For server type using WS:
+  # health-check-type: http
+  # For server type not listening on a socket:
+  # health-check-type: process
+  buildpacks:
+  - https://github.com/cloudfoundry/nodejs-buildpack
+  random-route: true
+  routes:
+  - route: e-mobility-server.cfapps.eu10.hana.ondemand.com
+  command: node -r source-map-support/register --stack-trace-limit=1024 dist/start.js
+  env:
+    OPTIMIZE_MEMORY: true
+  services:
+  - ev-mongodb

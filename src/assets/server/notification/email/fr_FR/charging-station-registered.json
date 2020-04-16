@@ -1,0 +1,35 @@
+{
+  "subject": "'<%- chargeBoxID %>' vient de se Connecter",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Borne Connectée",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "La borne <b><%- chargeBoxID %></b> vient de se connecter au serveur central."
+    ],
+    "action": {
+      "title": "Voir <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

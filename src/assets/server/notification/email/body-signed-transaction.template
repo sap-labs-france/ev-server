@@ -1,0 +1,40 @@
+<html>
+  <head id="<%- body.template %>"></head>
+  <body align="left" style="margin: 15px;">
+    <p>
+      Ladetransaktion abgeschlossen <br>
+      === Dauerhafter Nachweis des Messergebnisses nach MessEV Anhang 2 Punkt 10.2 des Ladevorgangs === <br>
+      <table>
+        <% for (var i = 0; i < body.stats.length; i++) { %>
+          <tr>
+            <td style="padding-right: 5px;"><%- body.stats[i].label %></td>
+            <td><%- body.stats[i].value %></td>
+          </tr>
+        <% } %>
+      </table>
+    </p>
+    <p>
+      === Anfang der eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität === <br>
+      Transaktionssignatur für Transparenzsoftware: <br>
+      ---8&lt;----Signatur ab hier---8&lt;--- <br>
+      &lt;?xml version="1.0"?&gt;&lt;values&gt;&lt;value transactionId="<%- body.transactionId %>" context="Transaction.Begin"&gt;&lt;signedData&gt;<br>
+      <%- body.startSignedData %><br>
+      &lt;/signedData&gt;&lt;/value&gt;&lt;value transactionId="<%- body.transactionId %>" context="Transaction.End"&gt;&lt;signedData&gt;<br>
+      <%- body.endSignedData %><br>
+      &lt;/signedData&gt;&lt;/value&gt;&lt;/values&gt;<br>
+      ---8&lt;----Signatur bis hier---8&lt;--- <br>
+    </p>
+    <p>
+        Bitte validieren Sie bei Bedarf mit der Transparenzsoftware von <a href="http://www.transparenz.software">http://www.transparenz.software</a> <br>
+        - den oben angezeigten Zählerstand für Start- und Ende <br>
+        - den daraus errechneten Verbrauch <br>
+        - Start- und Endzeit der Ladetransaktion <br>
+        - das der Paginierungswert in der Endsignatur genau um 1 höher ist als in der Startsignatur <br>
+        - das der Public Key dem in der Ladeeinrichtung sichtbaren Public Key entspricht <br>
+        - das die Transparenzsoftware beide Signaturen als korrekt validiert <br>
+    </p>
+    <p>
+        === Ende der Eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität === <br>
+    </p>
+  </body>
+</html>

@@ -1,0 +1,172 @@
+{
+  "EVDatabase": {
+    "url":"",
+    "key":""
+  },
+  "Crypto": {
+    "key": "",
+    "algorithm": ""
+  },
+  "Cluster": {
+    "enabled": false,
+    "numWorkers": 2
+  },
+  "CentralSystems": [
+    {
+      "type": "ocpp",
+      "implementation": "soap",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8000,
+      "debug": false
+    },
+    {
+      "type": "ocpp",
+      "implementation": "json",
+      "protocol": "ws",
+      "host": "localhost",
+      "port": 8010,
+      "keepaliveinterval": 30,
+      "debug": false
+    }
+  ],
+  "CentralSystemRestService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80,
+    "userTokenKey": "YourSecretKey",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
+    "socketIO": false,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
+    "passwordWrongNumberOfTrial": 3,
+    "passwordBlockedWaitTimeMin": 5,
+    "captchaSecretKey": "YourCaptchaSecretKey",
+    "debug": false
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80
+  },
+  "OCPIService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9090,
+    "debug": false,
+    "externalProtocol": "http"
+  },
+  "CentralSystemServer": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80
+  },
+  "ODataService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9292,
+    "debug": false,
+    "externalProtocol": "http"
+  },
+  "WSDLEndpoint": {
+    "baseUrl": ""
+  },
+  "JsonEndpoint": {
+    "baseUrl": ""
+  },
+  "OCPIEndpoint": {
+    "baseUrl": ""
+  },
+  "WSClient": {
+    "autoReconnectMaxRetries": 10,
+    "autoReconnectTimeout": 60
+  },
+  "Storage": {
+    "implementation": "mongodb",
+    "uri": "YourConnectionURI",
+    "monitorDBChange": true,
+    "debug": false
+  },
+	"Notification": {
+    "Email": {
+      "enabled": true
+    },
+		"RemotePushNotification": {
+      "enabled": true
+		}
+	},
+  "Firebase": {
+    "type": "",
+    "projectID": "",
+    "privateKeyID": "",
+    "privateKey": "",
+    "clientEmail": "",
+    "clientID": "",
+    "authURI": "",
+    "tokenURI": "",
+    "authProviderX509CertURL": "",
+    "clientX509CertURL": "",
+    "databaseURL": ""
+  },
+  "Email": {
+    "smtp": {
+      "from": "",
+      "host": "",
+      "port": 465,
+      "secure": true,
+      "requireTLS": false,
+      "user": "",
+      "password": ""
+    },
+    "smtpBackup": {
+      "from": "",
+      "host": "",
+      "port": 465,
+      "secure": true,
+      "requireTLS": false,
+      "user": "",
+      "password": ""
+    }
+  },
+  "Authorization": {
+    "debug": false
+  },
+  "ChargingStation": {
+    "heartbeatIntervalSecs": 180,
+    "notifBeforeEndOfChargeEnabled": true,
+    "notifBeforeEndOfChargePercent": 85,
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
+  },
+  "Locales": {
+    "default": "en_US",
+    "supported": [
+      "en_US",
+      "fr_FR"
+    ]
+  },
+  "Migration": {
+    "active": true
+  },
+  "Scheduler": {
+    "active": false,
+    "tasks": [
+    ]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "trace": false,
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
+  }
+}

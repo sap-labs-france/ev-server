@@ -1,0 +1,266 @@
+import axios from 'axios';
+import { NextFunction, Request, Response } from 'express';
+import AppError from '../../../../exception/AppError';
+import BackendError from '../../../../exception/BackendError';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import { Action } from '../../../../types/Authorization';
+import { HTTPError } from '../../../../types/HTTPError';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
+
+const EP_IDENTIFIER = 'credentials';
+const MODULE_NAME = 'CredentialsEndpoint';
+
+/**
+ * Credentials Endpoint
+ */
+export default class CredentialsEndpoint extends AbstractEndpoint {
+  constructor(ocpiService: AbstractOCPIService) {
+    super(ocpiService, EP_IDENTIFIER);
+  }
+
+  /**
+   * Main Process Method for the endpoint
+   */
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, ocpiEndpoint: OCPIEndpoint): Promise<OCPIResponse> {
+    switch (req.method) {
+      case 'POST':
+        return await this.postCredentials(req, res, next, tenant);
+      case 'DELETE':
+        return await this.deleteCredentials(req, res, next, tenant);
+    }
+  }
+
+  /**
+   * Registration process initiated by IOP
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+    // Get token from header
+    let token;
+    if (req.headers && req.headers.authorization) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    // Log body
+    Logging.logInfo({
+      tenantID: tenant.id,
+      action: Action.OCPI_DELETE_CREDENTIALS,
+      message: 'Received unregister',
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME, method: 'deleteCredentials',
+      detailedMessages: { token }
+    });
+    // Get ocpiEndpoints based on the given token
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+    // Check if ocpiEndpoint available
+    if (!ocpiEndpoint || ocpiEndpoint.status === OCPIRegistrationStatus.UNREGISTERED) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'deleteCredentials',
+        errorCode: 405,
+        action: Action.OCPI_DELETE_CREDENTIALS,
+        message: 'method not allowed if the client was not registered',
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+      });
+    }
+    // Save ocpi endpoint
+    ocpiEndpoint.status = OCPIRegistrationStatus.UNREGISTERED;
+    ocpiEndpoint.backgroundPatchJob = false;
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
+    return OCPIUtils.success();
+  }
+
+  /**
+   * Registration process initiated by IOP
+   */
+  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant): Promise<OCPIResponse> {
+    // Get payload
+    const credential = req.body;
+    // Log body
+    Logging.logDebug({
+      tenantID: tenant.id,
+      action: Action.OCPI_POST_CREDENTIALS,
+      message: 'Received credential object',
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME, method: 'postCredentials',
+      detailedMessages: { credential }
+    });
+    // Check if valid
+    if (!OCPIMapping.isValidOCPICredential(credential)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Invalid Credential Object',
+        ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR
+      });
+    }
+    // Get token from header
+    let token;
+    if (req.headers && req.headers.authorization) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    // Log body
+    Logging.logDebug({
+      tenantID: tenant.id,
+      action: Action.OCPI_POST_CREDENTIALS,
+      message: 'Received token',
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME, method: 'postCredentials',
+      detailedMessages: { token }
+    });
+    // Get ocpiEndpoints based on the given token
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
+    // Check if ocpiEndpoint available
+    if (!ocpiEndpoint) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'OCPI Endpoint not available or wrong token',
+        ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
+      });
+    }
+    // Save information
+    ocpiEndpoint.baseUrl = credential.url;
+    ocpiEndpoint.token = credential.token;
+    ocpiEndpoint.countryCode = credential.country_code;
+    ocpiEndpoint.partyId = credential.party_id;
+    ocpiEndpoint.businessDetails = credential.business_details;
+    // Log updated ocpi endpoint
+    Logging.logDebug({
+      tenantID: tenant.id,
+      action: Action.OCPI_POST_CREDENTIALS,
+      message: 'OCPI Server found and updated with credential object',
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME, method: 'postCredentials',
+      detailedMessages: { ocpiEndpoint }
+    });
+    // Try to access remote ocpi service versions
+    // Any error here should result in a 3001 Ocpi result exception based on the specification
+    try {
+      // Access versions API
+      const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        },
+        timeout: 10000
+      });
+      // Log available OCPI Versions
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_POST_CREDENTIALS,
+        message: 'Available OCPI Versions',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCredentials',
+        detailedMessages: { versions: ocpiVersions.data }
+      });
+      // Check response
+      if (!ocpiVersions.data || !ocpiVersions.data.data) {
+        throw new BackendError({
+          action: Action.OCPI_POST_CREDENTIALS,
+          message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
+          module: MODULE_NAME, method: 'postCredentials',
+          detailedMessages: { data: ocpiVersions.data }
+        });
+      }
+      // Loop through versions and pick the same one
+      let versionFound = false;
+      for (const version of ocpiVersions.data.data) {
+        if (version.version === this.getVersion()) {
+          versionFound = true;
+          ocpiEndpoint.version = version.version;
+          ocpiEndpoint.versionUrl = version.url;
+
+          // Log correct OCPI service found
+          Logging.logDebug({
+            tenantID: tenant.id,
+            action: Action.OCPI_POST_CREDENTIALS,
+            message: 'Correct OCPI version found',
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'postCredentials',
+            detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`
+          });
+        }
+      }
+      // If not found trigger exception
+      if (!versionFound) {
+        throw new BackendError({
+          action: Action.OCPI_POST_CREDENTIALS,
+          message: `OCPI Endpoint version ${this.getVersion()} not found`,
+          module: MODULE_NAME, method: 'postCredentials',
+          detailedMessages: { data: ocpiVersions.data }
+        });
+      }
+      // Try to read endpoints
+      // Access versions API
+      const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
+        headers: {
+          'Authorization': `Token ${ocpiEndpoint.token}`
+        }
+      });
+      // Log available OCPI services
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_POST_CREDENTIALS,
+        message: 'Available OCPI services',
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCredentials',
+        detailedMessages: { endpoints: endpoints.data }
+      });
+      // Check response
+      if (!endpoints.data || !endpoints.data.data) {
+        throw new BackendError({
+          action: Action.OCPI_POST_CREDENTIALS,
+          message: `Invalid response from GET ${ocpiEndpoint.versionUrl}`,
+          module: MODULE_NAME, method: 'postCredentials',
+          detailedMessages: { data: endpoints.data }
+        });
+      }
+      // Set available endpoints
+      ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(endpoints.data.data);
+    } catch (error) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'postCredentials',
+        action: Action.OCPI_POST_CREDENTIALS,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Unable to use client API: ${error.message}`,
+        ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    // Generate new token
+    ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
+    ocpiEndpoint.status = OCPIRegistrationStatus.REGISTERED;
+    // Save ocpi endpoint
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
+    // Get base url
+    const versionUrl = this.getServiceUrl(req) + AbstractOCPIService.VERSIONS_PATH;
+    // Build credential object
+    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
+    // Log available OCPI Versions
+    Logging.logDebug({
+      tenantID: tenant.id,
+      action: Action.OCPI_POST_CREDENTIALS,
+      message: 'Response with credential object',
+      source: Constants.CENTRAL_SERVER,
+      module: MODULE_NAME, method: 'postCredentials',
+      detailedMessages: { respCredential }
+    });
+    // Respond with credentials
+    return OCPIUtils.success(respCredential);
+  }
+}
+

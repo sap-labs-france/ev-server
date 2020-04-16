@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://schema.rating.ws.highdeal.com/" xmlns:tns="http://schema.rating.ws.highdeal.com/" xmlns:ns2="http://schema.provisioning.ws.highdeal.com/" xmlns:ns1="http://rating.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://rating.ws.highdeal.com/" schemaLocation="rating_1_2.xsd"/>
+  <xs:import namespace="http://schema.provisioning.ws.highdeal.com/" schemaLocation="rating_1_2_3.xsd"/>
+  <xs:element name="chargedItemLoadRequest" type="tns:ChargedItemLoadRequest"/>
+  <xs:element name="chargedItemLoadResponse" type="tns:JobRecordResponse"/>
+  <xs:element name="chargingContractBulkActivateRequest" type="tns:ChargingContractBulkActivateRequest"/>
+  <xs:element name="chargingContractBulkActivateResponse" type="tns:JobRecordResponse"/>
+  <xs:element name="jobStatusReadRequest" type="tns:JobStatusReadRequest"/>
+  <xs:element name="jobStatusReadResponse" type="tns:JobStatusReadResponse"/>
+  <xs:element name="ratingSessionStartRequest" type="tns:RatingSessionStartRequest"/>
+  <xs:element name="ratingSessionStartResponse" type="tns:JobRecordResponse"/>
+  <xs:element name="subscriptionBulkActivateRequest" type="tns:SubscriptionBulkActivateRequest"/>
+  <xs:element name="subscriptionBulkActivateResponse" type="tns:JobRecordResponse"/>
+  <xs:complexType name="JobRecordResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="id" type="xs:long" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="JobStatusReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ratingJobStatus" type="tns:RatingJobStatus" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="SubscriptionSearchFilter">
+    <xs:complexContent>
+      <xs:extension base="ns1:SearchFilter">
+        <xs:sequence>
+          <xs:element name="code" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="offerCode" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="offerConditionCode" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="type" type="ns1:NumberAttributeDescription" minOccurs="0"/>
+          <xs:element name="effective_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="expiration_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="priceFreeze_effective_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="priceFreeze_expiration_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="commitment_expiration_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="suspension_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="resumption_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="cancellation_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="batchRatingGroupId" type="ns1:NumberAttributeDescription" minOccurs="0"/>
+          <xs:element name="rerating_lock_code" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="rerating_last_status" type="ns1:NumberAttributeDescription" minOccurs="0"/>
+          <xs:element name="rerating_last_code" type="ns1:StringAttributeDescription" minOccurs="0"/>
+          <xs:element name="rerating_suggested_date" type="ns1:DateAttributeDescription" minOccurs="0"/>
+          <xs:element name="partitionID" type="ns1:NumberAttributeDescription" minOccurs="0"/>
+          <xs:element name="status" type="ns1:NumberAttributeDescription" minOccurs="0"/>
+          <xs:element name="additionalInfo" type="ns1:AdditionalAttributeDescription" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="subscriptionSpecificFormula" type="tns:SubscriptionSpecificFormula" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="JobStatusReadRequest">
+    <xs:sequence>
+      <xs:element name="id" type="xs:long"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SubscriptionBulkActivateRequest">
+    <xs:complexContent>
+      <xs:extension base="tns:BulkActivateRequest">
+        <xs:sequence>
+          <xs:element name="filter" type="tns:SubscriptionSearchFilter" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="BulkActivateRequest">
+    <xs:sequence>
+      <xs:element name="toDate" type="xs:anySimpleType"/>
+      <xs:element name="maxThroughput" type="xs:int"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractBulkActivateRequest">
+    <xs:complexContent>
+      <xs:extension base="tns:BulkActivateRequest">
+        <xs:sequence>
+          <xs:element name="filter" type="ns2:ChargingContractSearchFilter" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChargedItemLoadRequest">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:complexType name="RatingSessionStartRequest">
+    <xs:sequence>
+      <xs:element name="maxConsumptionDate" type="xs:anySimpleType"/>
+      <xs:element name="batchRatingGroup" type="xs:string"/>
+      <xs:element name="ratingMode" type="tns:RatingSessionMode"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="RatingJobStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="init"/>
+      <xs:enumeration value="running"/>
+      <xs:enumeration value="success"/>
+      <xs:enumeration value="inError"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SubscriptionSpecificFormula">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="mustBeRoot"/>
+      <xs:enumeration value="isOffline"/>
+      <xs:enumeration value="isHybrid"/>
+      <xs:enumeration value="isOnline"/>
+      <xs:enumeration value="isLocked"/>
+      <xs:enumeration value="isNotLocked"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RatingSessionMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="subscription-firstFail"/>
+      <xs:enumeration value="subscription-most"/>
+      <xs:enumeration value="subscription-try"/>
+      <xs:enumeration value="day-most"/>
+      <xs:enumeration value="day-subscription-firstFail"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

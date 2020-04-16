@@ -1,0 +1,13 @@
+[Unit]
+Description=EV Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/opt/server/src/aws/start_server.sh
+Restart=on-failure
+ExecStop=/opt/server/src/aws/stop_server.sh
+
+[Install]
+WantedBy=multi-user.target

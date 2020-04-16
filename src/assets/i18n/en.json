@@ -1,0 +1,71 @@
+{
+  "notifications": {
+    "sessionNotStarted": {
+      "title": "Session Not Started",
+      "body": "You badged on the charging station '{{chargeBoxID}}' but no session has been started"
+    },
+		"sessionStarted": {
+			"title": "Session Started",
+			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully in organization '{{tenantName}}'"
+		},
+		"ocpiPatchChargingStationsStatusesError": {
+			"title": "Roaming Send Statuses",
+			"body": "The transfer to the roaming platform of the charging station's statuses has failed on location '{{location}}' in organization '{{tenantName}}', check the logs"
+		},
+		"smtpAuthError": {
+			"title": "Email Server Error",
+			"body": "The authentication against the primary email server has failed in organization '{{tenantName}}', check the configuration"
+		},
+		"optimalChargeReached": {
+			"title": "Optimal Charge Reached",
+			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%) in organization '{{tenantName}}'"
+		},
+		"endOfCharge": {
+			"title": "Charge Finished",
+			"body": "Your electric vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging in organization '{{tenantName}}'"
+		},
+		"endOfSession": {
+			"title": "Session Finished",
+			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished in organization '{{tenantName}}'"
+		},
+		"chargingStationStatusError": {
+			"title": "Charging Station in Error",
+			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}': {{error}}"
+		},
+		"unknownUserBadged": {
+			"title": "Unknown User",
+			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}' in organization '{{tenantName}}'"
+		},
+		"chargingStationRegistered": {
+			"title": "Charging Station Connected",
+			"body": "The charging station '{{chargeBoxID}}' just got connected to the central server in organization '{{tenantName}}'"
+		},
+		"userAccountStatusChanged": {
+			"title": "Account {{status}}",
+			"activated": "activated",
+			"suspended": "suspended",
+			"body": "Your account has been {{status}} by an administrator in organization '{{tenantName}}'"
+		},
+		"userAccountInactivity": {
+			"title": "User Account",
+			"body": "Your account has been inactive since {{lastLogin}} in organization '{{tenantName}}'. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted"
+		},
+		"preparingSessionNotStarted": {
+			"title": "Session Not Started",
+			"body": "Session not started on charging station '{{chargeBoxID}}', connector '{{connectorId}}' in organization '{{tenantName}}'"
+		},
+		"offlineChargingStation": {
+			"title": "Offline Charging Stations",
+			"body": "The following charging stations are offline in organization '{{tenantName}}': {{chargeBoxIDs}}"
+		},
+    "billingUserSynchronizationFailed": {
+      "title": "User Synchro Failed",
+      "body": "Unable to synchronize {{nbrUsersInError}} user(s) with the billing service provider in organization '{{tenantName}}'"
+    }
+	},
+  "billing": {
+    "generatedUser": "Generated user for '{{email}}'",
+    "chargingStopSiteArea": "Charging {{totalConsumption}} kWh at {{siteArea}} (finished at {{time}})",
+    "chargingStopChargeBox": "Charging {{totalConsumption}} kWh at charging station {{chargeBox}} (finished at {{time}})"
+  }
+}

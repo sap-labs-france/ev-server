@@ -1,0 +1,1521 @@
+{
+	"info": {
+		"_postman_id": "45459bc1-2ccd-4e21-9bfb-12703841f02f",
+		"name": "Concur dev",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "oauth",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-ConsumerKey",
+						"value": "bcf2zM8NyMpb4NU5xNBneC"
+					},
+					{
+						"key": "Authorization",
+						"value": "Basic YWNzb250b3NAb3V0dGFzay5jb206b3V0dGFzaw=="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/net2/oauth2/accesstoken.ashx",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"net2",
+						"oauth2",
+						"accesstoken.ashx"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "4be9e11f-6b10-44d3-9f02-5848326fc3c2",
+					"name": "oauth",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-ConsumerKey",
+								"value": "siEUcFBbigcTRju93piCxW",
+								"disabled": false
+							},
+							{
+								"key": "Authorization",
+								"value": "Basic YWNzb250b3NAb3V0dGFzay5jb206b3V0dGFzaw==",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/net2/oauth2/accesstoken.ashx",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"net2",
+								"oauth2",
+								"accesstoken.ashx"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "private",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "254",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:17:31 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Access_Token>\r\n  <Instance_Url>http://localhost/</Instance_Url>\r\n  <Token>0_vZPsPqgkJ4tWdR+9t91oIcnOg=</Token>\r\n  <Expiration_date>6/29/2019 11:17:31 AM</Expiration_date>\r\n  <Refresh_Token>0_CuaGxoob43LGDNLNHQUmmy1AMPuUn</Refresh_Token>\r\n</Access_Token>"
+				}
+			]
+		},
+		{
+			"name": "trip supplier",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/travel/trip/v1.0/Supplier/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"travel",
+						"trip",
+						"v1.0",
+						"Supplier",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "8dad9e7c-581b-4892-86fe-1519c2ec1185",
+					"name": "trip",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/travel/trip/v1.0/Supplier/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"travel",
+								"trip",
+								"v1.0",
+								"Supplier",
+								""
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "private",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "6398",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:18:38 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 28 Jun 2018 11:18:39 GMT",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<ItineraryInfoList xmlns=\"http://www.concursolutions.com/api/travel/trip/2010/06\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><ItineraryInfo><BookingSource>Manual, Worldspan, OpenTable</BookingSource><DateModifiedUtc>2012-03-21T20:54:23</DateModifiedUtc><EndDateLocal>2010-01-01T20:00:00</EndDateLocal><Passengers i:nil=\"true\"/><RecordLocator>ABC123, 123DCA, 123DCA343434</RecordLocator><StartDateLocal>2010-01-01T09:00:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWujPP$pHerBnKab3y1h9nO1Of</TripId><TripName>Andrew's trip</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWujPP$pHerBnKab3y1h9nO1Of</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan, RideCharge</BookingSource><DateModifiedUtc>2010-08-27T19:58:24</DateModifiedUtc><EndDateLocal>2010-08-26T21:57:00</EndDateLocal><Passengers>ANDREW.S CSONTOS</Passengers><RecordLocator>3E44C2, 906776</RecordLocator><StartDateLocal>2010-08-24T06:45:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWuxeRijMjhZh44aB5beENXp$su548vEDpIg</TripId><TripName>Extended Leadership in Seattle</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWuxeRijMjhZh44aB5beENXp$su548vEDpIg</id></ItineraryInfo><ItineraryInfo><BookingSource>Manual</BookingSource><DateModifiedUtc>2010-07-06T21:29:46</DateModifiedUtc><EndDateLocal>2010-09-21T20:26:40</EndDateLocal><Passengers>Ann Pei Yuan, Ben Pei Yuan, Emil Dover, Emil Pei Yuan, Jack Dover, Jack Esch, Jack Pei Yuan</Passengers><RecordLocator>A52653, A51885, A53273, A47331, A14618, A85646, A73325, A41784, A04158, A95194, A21860</RecordLocator><StartDateLocal>2010-09-16T17:29:40</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWu5aQizJghpkZNZwkOCo9gAy5i0gUDNleqtR1w</TripId><TripName>My Random Trip #17906054</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWu5aQizJghpkZNZwkOCo9gAy5i0gUDNleqtR1w</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-07-07T15:53:40</DateModifiedUtc><EndDateLocal>2010-10-06T23:19:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>MF5CJU</RecordLocator><StartDateLocal>2010-10-05T09:40:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupZSyWfMm1wfK0v91HK6A58o7r7</TripId><TripName>Trip from Richmond to Charlottesville</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupZSyWfMm1wfK0v91HK6A58o7r7</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-10-18T16:22:42</DateModifiedUtc><EndDateLocal>2010-11-11T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>O3JUQP</RecordLocator><StartDateLocal>2010-11-09T23:59:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupZSygZJiTBkfOzQUUG6$pM8xz$st</TripId><TripName>A Trip from Washington DC to Chicago, IL</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupZSygZJiTBkfOzQUUG6$pM8xz$st</id></ItineraryInfo><ItineraryInfo><BookingSource>Amadeus</BookingSource><DateModifiedUtc>2010-09-20T18:18:34</DateModifiedUtc><EndDateLocal>2010-11-24T23:59:00</EndDateLocal><Passengers>MEIKE MRS PLEWE</Passengers><RecordLocator>4CJ398</RecordLocator><StartDateLocal>2010-11-21T23:59:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWu9ZQi7EhB5nHuhmm$pocJckTqSSU7eFSCg</TripId><TripName>Fit für Banking 2 Rostock</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWu9ZQi7EhB5nHuhmm$pocJckTqSSU7eFSCg</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-09-22T21:36:04</DateModifiedUtc><EndDateLocal>2010-12-08T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>2SIWON</RecordLocator><StartDateLocal>2010-12-07T10:15:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQi07ljwzStylNh6jDoHysrmN</TripId><TripName>Trip from Washington to New York</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupYQi07ljwzStylNh6jDoHysrmN</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-10-02T01:40:24</DateModifiedUtc><EndDateLocal>2010-12-09T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>M5OGYE</RecordLocator><StartDateLocal>2010-12-07T12:00:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQinrmzvz9JnhuvoAqKwbRYCB</TripId><TripName>Car/Hotel Reservation</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupYQinrmzvz9JnhuvoAqKwbRYCB</id></ItineraryInfo><ItineraryInfo><BookingSource>Sabre, Amtrak</BookingSource><DateModifiedUtc>2012-03-21T20:54:23</DateModifiedUtc><EndDateLocal>2010-12-31T20:07:00</EndDateLocal><Passengers>TERRY ROWLEY</Passengers><RecordLocator>GHXOXK, 13A8B0</RecordLocator><StartDateLocal>2010-12-27T11:04:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupaRiXKgRthQs$p2yyo5221dvVpvaCfM1g</TripId><TripName>Amtrak Train Trip: Richmond - Staples Mill Road to Newark - Penn Station</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupaRiXKgRthQs$p2yyo5221dvVpvaCfM1g</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-09-29T14:34:15</DateModifiedUtc><EndDateLocal>2011-04-13T17:35:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>277AJZ</RecordLocator><StartDateLocal>2011-04-12T09:20:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQi5nk$p4jOm9WU1XaNBx8NOtI</TripId><TripName>Trip from Los Angeles to Las Vegas</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.0/gWupYQi5nk$p4jOm9WU1XaNBx8NOtI</id></ItineraryInfo></ItineraryInfoList>"
+				}
+			]
+		},
+		{
+			"name": "trip list",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/travel/trip/v1.1/?startDate=2010%2F02%2F01&endDate=2018%2F05%2F31",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"travel",
+						"trip",
+						"v1.1",
+						""
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2010%2F02%2F01"
+						},
+						{
+							"key": "endDate",
+							"value": "2018%2F05%2F31"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "8f2416db-929b-41cc-b33f-62b746095c67",
+					"name": "trip list",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/travel/trip/v1.1/?startDate=2010%2F02%2F01&endDate=2018%2F05%2F31",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"travel",
+								"trip",
+								"v1.1",
+								""
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2010%2F02%2F01"
+								},
+								{
+									"key": "endDate",
+									"value": "2018%2F05%2F31"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "private",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "5799",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:20:36 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 28 Jun 2018 11:20:36 GMT",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<ItineraryInfoList xmlns=\"http://www.concursolutions.com/api/travel/trip/2010/06\" xmlns:i=\"http://www.w3.org/2001/XMLSchema-instance\"><ItineraryInfo><BookingSource>Worldspan, RideCharge</BookingSource><DateModifiedUtc>2010-08-27T19:58:24</DateModifiedUtc><EndDateLocal>2010-08-26T21:57:00</EndDateLocal><Passengers>ANDREW.S CSONTOS</Passengers><RecordLocator>3E44C2, 906776</RecordLocator><StartDateLocal>2010-08-24T06:45:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWuxeRijMjhZh44aB5beENXp$su548vEDpIg</TripId><TripName>Extended Leadership in Seattle</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWuxeRijMjhZh44aB5beENXp$su548vEDpIg</id></ItineraryInfo><ItineraryInfo><BookingSource>Manual</BookingSource><DateModifiedUtc>2010-07-06T21:29:46</DateModifiedUtc><EndDateLocal>2010-09-21T20:26:40</EndDateLocal><Passengers>Ann Pei Yuan, Ben Pei Yuan, Emil Dover, Emil Pei Yuan, Jack Dover, Jack Esch, Jack Pei Yuan</Passengers><RecordLocator>A52653, A51885, A53273, A47331, A14618, A85646, A73325, A41784, A04158, A95194, A21860</RecordLocator><StartDateLocal>2010-09-16T17:29:40</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWu5aQizJghpkZNZwkOCo9gAy5i0gUDNleqtR1w</TripId><TripName>My Random Trip #17906054</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWu5aQizJghpkZNZwkOCo9gAy5i0gUDNleqtR1w</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-07-07T15:53:40</DateModifiedUtc><EndDateLocal>2010-10-06T23:19:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>MF5CJU</RecordLocator><StartDateLocal>2010-10-05T09:40:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupZSyWfMm1wfK0v91HK6A58o7r7</TripId><TripName>Trip from Richmond to Charlottesville</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupZSyWfMm1wfK0v91HK6A58o7r7</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-10-18T16:22:42</DateModifiedUtc><EndDateLocal>2010-11-11T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>O3JUQP</RecordLocator><StartDateLocal>2010-11-09T23:59:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupZSygZJiTBkfOzQUUG6$pM8xz$st</TripId><TripName>A Trip from Washington DC to Chicago, IL</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupZSygZJiTBkfOzQUUG6$pM8xz$st</id></ItineraryInfo><ItineraryInfo><BookingSource>Amadeus</BookingSource><DateModifiedUtc>2010-09-20T18:18:34</DateModifiedUtc><EndDateLocal>2010-11-24T23:59:00</EndDateLocal><Passengers>MEIKE MRS PLEWE</Passengers><RecordLocator>4CJ398</RecordLocator><StartDateLocal>2010-11-21T23:59:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWu9ZQi7EhB5nHuhmm$pocJckTqSSU7eFSCg</TripId><TripName>Fit für Banking 2 Rostock</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWu9ZQi7EhB5nHuhmm$pocJckTqSSU7eFSCg</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-09-22T21:36:04</DateModifiedUtc><EndDateLocal>2010-12-08T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>2SIWON</RecordLocator><StartDateLocal>2010-12-07T10:15:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQi07ljwzStylNh6jDoHysrmN</TripId><TripName>Trip from Washington to New York</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupYQi07ljwzStylNh6jDoHysrmN</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-10-02T01:40:24</DateModifiedUtc><EndDateLocal>2010-12-09T23:59:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>M5OGYE</RecordLocator><StartDateLocal>2010-12-07T12:00:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQinrmzvz9JnhuvoAqKwbRYCB</TripId><TripName>Car/Hotel Reservation</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupYQinrmzvz9JnhuvoAqKwbRYCB</id></ItineraryInfo><ItineraryInfo><BookingSource>Sabre, Amtrak</BookingSource><DateModifiedUtc>2012-03-21T20:54:23</DateModifiedUtc><EndDateLocal>2010-12-31T20:07:00</EndDateLocal><Passengers>TERRY ROWLEY</Passengers><RecordLocator>GHXOXK, 13A8B0</RecordLocator><StartDateLocal>2010-12-27T11:04:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupaRiXKgRthQs$p2yyo5221dvVpvaCfM1g</TripId><TripName>Amtrak Train Trip: Richmond - Staples Mill Road to Newark - Penn Station</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupaRiXKgRthQs$p2yyo5221dvVpvaCfM1g</id></ItineraryInfo><ItineraryInfo><BookingSource>Worldspan</BookingSource><DateModifiedUtc>2010-09-29T14:34:15</DateModifiedUtc><EndDateLocal>2011-04-13T17:35:00</EndDateLocal><Passengers>ANDREW CSONTOS</Passengers><RecordLocator>277AJZ</RecordLocator><StartDateLocal>2011-04-12T09:20:00</StartDateLocal><TravelerFirst>Andrew</TravelerFirst><TravelerLast>Csontos</TravelerLast><TripId>gWupYQi5nk$p4jOm9WU1XaNBx8NOtI</TripId><TripName>Trip from Los Angeles to Las Vegas</TripName><UserLoginId>acsontos@outtask.com</UserLoginId><id>http://localhost/api/travel/trip/v1.1/gWupYQi5nk$p4jOm9WU1XaNBx8NOtI</id></ItineraryInfo></ItineraryInfoList>"
+				}
+			]
+		},
+		{
+			"name": "trip get",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/travel/trip/v1.0/gWujPP$pHerBnKab3y1h9nO1Of",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"travel",
+						"trip",
+						"v1.0",
+						"gWujPP$pHerBnKab3y1h9nO1Of"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "profile list",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/travelprofile/v2.0/summary",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"travelprofile",
+						"v2.0",
+						"summary"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "b0d9f1a7-d788-491a-9fae-d82bca9e8a8d",
+					"name": "profile list",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/travelprofile/v2.0/summary",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"travelprofile",
+								"v2.0",
+								"summary"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "private",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "47824",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:27:59 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "Thu, 28 Jun 2018 11:27:59 GMT",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<ConnectResponse xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n    <Metadata>\r\n        <Paging>\r\n            <TotalPages>1</TotalPages>\r\n            <TotalItems>181</TotalItems>\r\n            <Page>1</Page>\r\n            <ItemsPerPage>200</ItemsPerPage>\r\n            <PreviousPageURL />\r\n            <NextPageURL />\r\n        </Paging>\r\n    </Metadata>\r\n    <Data>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>mshepherd@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>dferris@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sbabu@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tim.martino@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>truff@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jlueker@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>rachel.hagensen@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>dmyers@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sarah.kuberry@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jennifer.christensen@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sabre@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tim.csontos@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>huy.tran@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jay.lewis@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>hihanainen@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>mmurphy@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>diane.janda@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>joanna.winston@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>ynesterenko@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>dgibb@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>sermolov@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>tom.leahy@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jkeyser@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>rbrennes@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jdepasquale@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>michael.johnson@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC xsi:nil=\"true\" />\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>marie.godwin@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:27.953</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>ttreat@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:27.953</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>greg.pons@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:27.953</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>bharris@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:27.953</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>ffredericks@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:29.777</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>barb.greiert@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:31.03</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>john.preckel@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-07-17T19:58:31.03</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>patty.albano@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>steve.eskenazi@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>michael.forster@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>paul.humenansky@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>david.howard@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jeannine.armstrong@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>chris.condon@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>chris.venezia@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>apollo@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>kristin.rumberger@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>pat.burrows@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jim.polito@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>tguidi@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>demo@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>pmontross@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>weblabs@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>ploupakos@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>mary.nowak@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>melissa.henry@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>aaretakis@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>nancy.logan@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>phoenix@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>art.pereless@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>rebecca.herschkowitz@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>james.lewis@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>josh.heinzelmann@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>temp@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>hdombrovskaya@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jmetteauer@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>smarcus@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>bkroening@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>cptest@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>michael.crawford@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>userws@concur.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>meeting_booking_user_60534@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>joejoe@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>chris.dominguez@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>brian.lisi@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>adrienne.finley@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>holly.ory@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>borrell@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>shawn.coker@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>test00@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>testguy@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>mike.bohn@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>kscott@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jgoldsby@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>pfurey@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>kristen.krall@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>test01@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>shannon.mcmurtray@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>dzemper@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>david.steinberg@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>millennium@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>005555@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>patrick.riccards@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>tony.orlando@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>frank.su@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>josh.mccraw@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jesse.cofield@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>psanford@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>reportadmin@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>bankim.gopani@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>wsuser@outtask.net</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>cforsythe@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jisham@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>ccaron@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>mrimer@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>btillman@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jlove@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>brobison@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jmaier@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>syoung@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jdunnick@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>alex.walker@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>ghensgen@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>gmendel@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>troy.davis@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jwolfenden@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>ratkinson@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>chris.mccrae@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>heriecel.quinones@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jenn.reilly@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>nick.carasia@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>peter.hauschild@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sean.rodwell-simon@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tom.crockett@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>dale.umbaugh@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>adam.gallegos@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>rterkowitz@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tjones@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>belliott@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sdepasquale@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tony.anzelone@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>kevin.deickmann@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>mchancy@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>todd.horst@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>brian.cunningham@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>suzette.murphy@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tasia.chipain@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>debbie.robertson@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>deborah.guinn@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>vicki.albrecht@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>chip.cochran@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sgregg@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>anita.novicki@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>JW.Pierron@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>Brad.Lanier@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>diane.erny@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sonoyan@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>mlore@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>kmiett@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>dave.ungerleider@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jpeebles@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>zmahshie@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jsullivan@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>rich.dressen@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>stephanie.weinberg@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>michelle.funk@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>mloscalzo@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>vgorodnitchev@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>peter.kraus@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>bbunny@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>randy.drake@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>tdepasquale@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>gcaramanica@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>kathy.starling@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>dmay@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>mike.lemma@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>scott.keller@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>chris.sciortino@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>michael.doucet@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>bruce.triner@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>kyle.kudla@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>jeff.ahdoot@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-07T23:01:27.637</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>sabre@concur.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-10T22:43:04.34</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>ProWebService@concur.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-13T16:12:50.367</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>jaltman@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2012-09-13T19:50:21.44</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>brianw@concur.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2013-11-02T04:26:08.06</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>acsontos@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2015-01-16T08:05:32.183</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Inactive</Status>\r\n            <LoginId>craig.bogard@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2015-04-15T10:11:48.237</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>JSTR01@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2015-10-27T09:53:58.473</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>CBOU01@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2015-10-27T09:56:08.06</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>us.kirsch@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2016-10-18T13:24:48.767</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>admin.kirsch@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2016-10-18T13:31:50.047</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>user.kirsch@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2016-10-18T13:51:57.45</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>all.kirsch@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2016-10-18T13:52:54.73</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n        <ProfileSummary>\r\n            <Status>Active</Status>\r\n            <LoginId>d04@outtask.com</LoginId>\r\n            <XmlProfileSyncId />\r\n            <ProfileLastModifiedUTC>2016-11-16T12:27:58.623</ProfileLastModifiedUTC>\r\n        </ProfileSummary>\r\n    </Data>\r\n</ConnectResponse>"
+				}
+			]
+		},
+		{
+			"name": "quickexpense",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/quickexpenses",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"quickexpenses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "quickexpense list",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					},
+					{
+						"key": "",
+						"value": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/quickexpenses",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"quickexpenses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "report list",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/reports",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"reports"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "a5d7fe04-3ce4-4212-b838-27bece78ef38",
+					"name": "report list",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "12391",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:38:19 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Reports xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><Items><Report><ID>AA7C6D3F03794229A93C</ID><URI>http://localhost/api/v3.0/expense/reports/AA7C6D3F03794229A93C</URI><Name>erst0r</Name><Total>88.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-01T12:50:17.883</CreateDate><SubmitDate>2015-04-02T08:23:43.313</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-01T00:00:00</UserDefinedDate><LastComment>Man kriegst hin....</LastComment><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>sdepasquale@outtask.com</ApproverLoginID><ApproverName>Scott Davis</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-02T08:23:48.97</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>88.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>88.00000000</TotalClaimedAmount><TotalApprovedAmount>88.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8TpYgt$pBWcOOvrjsUbLJhQ$pCH9Xto3lXxNg/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>BCE24032D5D9411984A6</ID><URI>http://localhost/api/v3.0/expense/reports/BCE24032D5D9411984A6</URI><Name>try2</Name><Total>67.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-02T09:05:24.56</CreateDate><SubmitDate>2015-04-02T09:14:20.783</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-02T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>sdepasquale@outtask.com</ApproverLoginID><ApproverName>Scott Davis</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-02T09:14:20.823</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>67.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>67.00000000</TotalClaimedAmount><TotalApprovedAmount>67.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8DpYgt$pBWcOOv$pmlVM0aWcP06j5vnycJhiU/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>DF002B9ECBDD4226A284</ID><URI>http://localhost/api/v3.0/expense/reports/DF002B9ECBDD4226A284</URI><Name>try3</Name><Total>67.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-02T16:55:52.69</CreateDate><SubmitDate>2015-04-15T14:54:11.087</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-02T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Approved &amp; In Accounting Review</ApprovalStatusName><ApprovalStatusCode>A_ACCO</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-15T15:09:00.68</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>67.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>67.00000000</TotalClaimedAmount><TotalApprovedAmount>67.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8zpZgt$pBWMOOvPBm2LIaVsPW14PXb3SVgMM/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>648BD30A070D4FFE9407</ID><URI>http://localhost/api/v3.0/expense/reports/648BD30A070D4FFE9407</URI><Name>aaaaaaa</Name><Total>1010.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-12-17T08:56:00.39</CreateDate><SubmitDate>2015-12-13T08:58:58.047</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-12-17T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>admin.kirsch@outtask.com</ApproverLoginID><ApproverName>Admin Kirsch</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-12-17T09:24:21.89</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>1010.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>1010.00000000</TotalClaimedAmount><TotalApprovedAmount>1010.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQPmrr8jpYgt$pBW8OPvCgEbou1PR31NSr2Qb0u26w/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>49B183067AD5468E9398</ID><URI>http://localhost/api/v3.0/expense/reports/49B183067AD5468E9398</URI><Name>t5</Name><Total>0.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2016-12-12T20:22:52.15</CreateDate><SubmitDate xsi:nil=\"true\" /><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2016-12-12T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Not Submitted</ApprovalStatusName><ApprovalStatusCode>A_NOTF</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2016-12-12T20:22:52.15</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>0.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>0.00000000</TotalClaimedAmount><TotalApprovedAmount>0.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl /><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report></Items><NextPage xsi:nil=\"true\" /></Reports>"
+				},
+				{
+					"id": "71b30c67-a5b0-43f5-b8e3-a1c6f3c8f650",
+					"name": "report list json",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": false
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "8412",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:43:25 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "{\"Items\":[{\"Name\":\"erst0r\",\"Total\":88.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2015-04-01T12:50:17.883\",\"SubmitDate\":\"2015-04-02T08:23:43.313\",\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2015-04-01T00:00:00\",\"LastComment\":\"Man kriegst hin....\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":\"sdepasquale@outtask.com\",\"ApproverName\":\"Scott Davis\",\"ApprovalStatusName\":\"Submitted & Pending Approval\",\"ApprovalStatusCode\":\"A_PEND\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2015-04-02T08:23:48.97\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":88.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":88.00000000,\"TotalApprovedAmount\":88.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8TpYgt$pBWcOOvrjsUbLJhQ$pCH9Xto3lXxNg/WorkFlowAction\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"AA7C6D3F03794229A93C\",\"URI\":\"http://localhost/api/v3.0/expense/reports/AA7C6D3F03794229A93C\"},{\"Name\":\"try2\",\"Total\":67.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2015-04-02T09:05:24.56\",\"SubmitDate\":\"2015-04-02T09:14:20.783\",\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2015-04-02T00:00:00\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":\"sdepasquale@outtask.com\",\"ApproverName\":\"Scott Davis\",\"ApprovalStatusName\":\"Submitted & Pending Approval\",\"ApprovalStatusCode\":\"A_PEND\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2015-04-02T09:14:20.823\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":67.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":67.00000000,\"TotalApprovedAmount\":67.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8DpYgt$pBWcOOv$pmlVM0aWcP06j5vnycJhiU/WorkFlowAction\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"BCE24032D5D9411984A6\",\"URI\":\"http://localhost/api/v3.0/expense/reports/BCE24032D5D9411984A6\"},{\"Name\":\"try3\",\"Total\":67.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2015-04-02T16:55:52.69\",\"SubmitDate\":\"2015-04-15T14:54:11.087\",\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2015-04-02T00:00:00\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":null,\"ApproverName\":null,\"ApprovalStatusName\":\"Approved & In Accounting Review\",\"ApprovalStatusCode\":\"A_ACCO\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2015-04-15T15:09:00.68\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":67.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":67.00000000,\"TotalApprovedAmount\":67.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8zpZgt$pBWMOOvPBm2LIaVsPW14PXb3SVgMM/WorkFlowAction\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"DF002B9ECBDD4226A284\",\"URI\":\"http://localhost/api/v3.0/expense/reports/DF002B9ECBDD4226A284\"},{\"Name\":\"aaaaaaa\",\"Total\":1010.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2015-12-17T08:56:00.39\",\"SubmitDate\":\"2015-12-13T08:58:58.047\",\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2015-12-17T00:00:00\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":\"admin.kirsch@outtask.com\",\"ApproverName\":\"Admin Kirsch\",\"ApprovalStatusName\":\"Submitted & Pending Approval\",\"ApprovalStatusCode\":\"A_PEND\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2015-12-17T09:24:21.89\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":1010.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":1010.00000000,\"TotalApprovedAmount\":1010.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"http://localhost/api/v3.0/expense/reports/report/gWhwQPmrr8jpYgt$pBW8OPvCgEbou1PR31NSr2Qb0u26w/WorkFlowAction\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"648BD30A070D4FFE9407\",\"URI\":\"http://localhost/api/v3.0/expense/reports/648BD30A070D4FFE9407\"},{\"Name\":\"t5\",\"Total\":0.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2016-12-12T20:22:52.15\",\"SubmitDate\":null,\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2016-12-12T00:00:00\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":null,\"ApproverName\":null,\"ApprovalStatusName\":\"Not Submitted\",\"ApprovalStatusCode\":\"A_NOTF\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2016-12-12T20:22:52.15\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":0.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":0.00000000,\"TotalApprovedAmount\":0.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"49B183067AD5468E9398\",\"URI\":\"http://localhost/api/v3.0/expense/reports/49B183067AD5468E9398\"}],\"NextPage\":null}"
+				}
+			]
+		},
+		{
+			"name": "create report",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"Name\": \"Gabriel reimbursment\",\r\n  \"Total\": 10,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"Country\": \"US\",\r\n  \"LastComment\": \"\",\r\n  \"PersonalAmount\": 0,\r\n  \"AmountDueEmployee\": 0,\r\n  \"AmountDueCompanyCard\": 0,\r\n  \"TotalClaimedAmount\": 0,\r\n  \"TotalApprovedAmount\": 0,\r\n  \"LedgerName\": \"Corporate\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/reports",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"reports"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "8c33bb5e-4665-4511-bbb1-1e23a1441e69",
+					"name": "create report",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Name\": \"Gabriel reimbursment\",\r\n  \"Total\": 10,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"Country\": \"US\",\r\n  \"LastComment\": \"\",\r\n  \"PersonalAmount\": 0,\r\n  \"AmountDueEmployee\": 0,\r\n  \"AmountDueCompanyCard\": 0,\r\n  \"TotalClaimedAmount\": 0,\r\n  \"TotalApprovedAmount\": 0,\r\n  \"LedgerName\": \"Corporate\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "222",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:47:19 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Response xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><ID>27D2D767139346B190F7</ID><URI>http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7</URI></Response>"
+				},
+				{
+					"id": "293e9a78-78f8-4455-b747-504217880e9c",
+					"name": "report list",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"ExpenseTypeCode\": \"DINNR\",\r\n  \"PaymentTypeCode\": \"CPAID\",\r\n  \"TransactionDate\": \"2018-03-17T00:00:00\",\r\n  \"TransactionAmount\": 17.01,\r\n  \"CurrencyCode\": \"USD\",\r\n  \"VendorDescription\": \"I Love Sushi\",\r\n  \"Comment\": \"Does this default to Cash?\",\r\n  \"ReceiptImageID\": null\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "12391",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:38:19 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Reports xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><Items><Report><ID>AA7C6D3F03794229A93C</ID><URI>http://localhost/api/v3.0/expense/reports/AA7C6D3F03794229A93C</URI><Name>erst0r</Name><Total>88.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-01T12:50:17.883</CreateDate><SubmitDate>2015-04-02T08:23:43.313</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-01T00:00:00</UserDefinedDate><LastComment>Man kriegst hin....</LastComment><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>sdepasquale@outtask.com</ApproverLoginID><ApproverName>Scott Davis</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-02T08:23:48.97</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>88.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>88.00000000</TotalClaimedAmount><TotalApprovedAmount>88.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8TpYgt$pBWcOOvrjsUbLJhQ$pCH9Xto3lXxNg/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>BCE24032D5D9411984A6</ID><URI>http://localhost/api/v3.0/expense/reports/BCE24032D5D9411984A6</URI><Name>try2</Name><Total>67.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-02T09:05:24.56</CreateDate><SubmitDate>2015-04-02T09:14:20.783</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-02T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>sdepasquale@outtask.com</ApproverLoginID><ApproverName>Scott Davis</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-02T09:14:20.823</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>67.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>67.00000000</TotalClaimedAmount><TotalApprovedAmount>67.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8DpYgt$pBWcOOv$pmlVM0aWcP06j5vnycJhiU/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>DF002B9ECBDD4226A284</ID><URI>http://localhost/api/v3.0/expense/reports/DF002B9ECBDD4226A284</URI><Name>try3</Name><Total>67.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-04-02T16:55:52.69</CreateDate><SubmitDate>2015-04-15T14:54:11.087</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-04-02T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Approved &amp; In Accounting Review</ApprovalStatusName><ApprovalStatusCode>A_ACCO</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-04-15T15:09:00.68</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>67.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>67.00000000</TotalClaimedAmount><TotalApprovedAmount>67.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQOmrq8zpZgt$pBWMOOvPBm2LIaVsPW14PXb3SVgMM/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>648BD30A070D4FFE9407</ID><URI>http://localhost/api/v3.0/expense/reports/648BD30A070D4FFE9407</URI><Name>aaaaaaa</Name><Total>1010.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2015-12-17T08:56:00.39</CreateDate><SubmitDate>2015-12-13T08:58:58.047</SubmitDate><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2015-12-17T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID>admin.kirsch@outtask.com</ApproverLoginID><ApproverName>Admin Kirsch</ApproverName><ApprovalStatusName>Submitted &amp; Pending Approval</ApprovalStatusName><ApprovalStatusCode>A_PEND</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2015-12-17T09:24:21.89</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>1010.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>1010.00000000</TotalClaimedAmount><TotalApprovedAmount>1010.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl>http://localhost/api/v3.0/expense/reports/report/gWhwQPmrr8jpYgt$pBW8OPvCgEbou1PR31NSr2Qb0u26w/WorkFlowAction</WorkflowActionUrl><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report><Report><ID>49B183067AD5468E9398</ID><URI>http://localhost/api/v3.0/expense/reports/49B183067AD5468E9398</URI><Name>t5</Name><Total>0.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2016-12-12T20:22:52.15</CreateDate><SubmitDate xsi:nil=\"true\" /><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2016-12-12T00:00:00</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Not Submitted</ApprovalStatusName><ApprovalStatusCode>A_NOTF</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2016-12-12T20:22:52.15</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>0.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>0.00000000</TotalClaimedAmount><TotalApprovedAmount>0.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl /><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report></Items><NextPage xsi:nil=\"true\" /></Reports>"
+				}
+			]
+		},
+		{
+			"name": "get report",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"reports",
+						"27D2D767139346B190F7"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "1291c84b-9b43-4512-82a6-c5ca8530fab7",
+					"name": "get report",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+							},
+							{
+								"key": "Accept",
+								"value": ""
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports",
+								"27D2D767139346B190F7"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2396",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:47:52 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Report xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><ID>27D2D767139346B190F7</ID><URI>http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7</URI><Name>Gabriel reimbursment</Name><Total>0.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2018-06-29T11:47:17.65</CreateDate><SubmitDate xsi:nil=\"true\" /><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2018-06-29T07:47:16</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Not Submitted</ApprovalStatusName><ApprovalStatusCode>A_NOTF</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2018-06-29T11:47:17.65</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>0.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>0.00000000</TotalClaimedAmount><TotalApprovedAmount>0.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl /><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report>"
+				},
+				{
+					"id": "282034f1-a2f5-4e46-9208-80e64fe0dfed",
+					"name": "get report",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports",
+								"27D2D767139346B190F7"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1547",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:48:13 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "{\"Name\":\"Gabriel reimbursment\",\"Total\":0.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2018-06-29T11:47:17.65\",\"SubmitDate\":null,\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2018-06-29T07:47:16\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":null,\"ApproverName\":null,\"ApprovalStatusName\":\"Not Submitted\",\"ApprovalStatusCode\":\"A_NOTF\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2018-06-29T11:47:17.65\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":0.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":0.00000000,\"TotalApprovedAmount\":0.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"27D2D767139346B190F7\",\"URI\":\"http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7\"}"
+				}
+			]
+		},
+		{
+			"name": "get report Copy",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"api",
+						"v3.0",
+						"expense",
+						"reports",
+						"27D2D767139346B190F7"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "417c36e5-ca14-431f-be60-9f7773536d55",
+					"name": "get report",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg="
+							},
+							{
+								"key": "Accept",
+								"value": ""
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports",
+								"27D2D767139346B190F7"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2396",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:47:52 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "<Report xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><ID>27D2D767139346B190F7</ID><URI>http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7</URI><Name>Gabriel reimbursment</Name><Total>0.00000000</Total><CurrencyCode>USD</CurrencyCode><Country>US</Country><CountrySubdivision xsi:nil=\"true\" /><CreateDate>2018-06-29T11:47:17.65</CreateDate><SubmitDate xsi:nil=\"true\" /><ProcessingPaymentDate xsi:nil=\"true\" /><PaidDate xsi:nil=\"true\" /><ReceiptsReceived>false</ReceiptsReceived><UserDefinedDate>2018-06-29T07:47:16</UserDefinedDate><LastComment /><OwnerLoginID>acsontos@outtask.com</OwnerLoginID><OwnerName>Andrew Csontos</OwnerName><ApproverLoginID xsi:nil=\"true\" /><ApproverName xsi:nil=\"true\" /><ApprovalStatusName>Not Submitted</ApprovalStatusName><ApprovalStatusCode>A_NOTF</ApprovalStatusCode><PaymentStatusName>Not Paid</PaymentStatusName><PaymentStatusCode>P_NOTP</PaymentStatusCode><LastModifiedDate>2018-06-29T11:47:17.65</LastModifiedDate><PersonalAmount>0.00000000</PersonalAmount><AmountDueEmployee>0.00000000</AmountDueEmployee><AmountDueCompanyCard>0.00000000</AmountDueCompanyCard><TotalClaimedAmount>0.00000000</TotalClaimedAmount><TotalApprovedAmount>0.00000000</TotalApprovedAmount><LedgerName>Corporate</LedgerName><PolicyID>gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw</PolicyID><EverSentBack>false</EverSentBack><HasException>false</HasException><WorkflowActionUrl /><OrgUnit1><Type>Text</Type><Value>R&amp;D</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit1><OrgUnit2><Type>Text</Type><Value>Dev</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit2><OrgUnit3><Type>Text</Type><Value>EXP</Value><Code xsi:nil=\"true\" /><ListItemID xsi:nil=\"true\" /></OrgUnit3><OrgUnit4 xsi:nil=\"true\" /><OrgUnit5 xsi:nil=\"true\" /><OrgUnit6 xsi:nil=\"true\" /><Custom1 xsi:nil=\"true\" /><Custom2 xsi:nil=\"true\" /><Custom3 xsi:nil=\"true\" /><Custom4 xsi:nil=\"true\" /><Custom5 xsi:nil=\"true\" /><Custom6 xsi:nil=\"true\" /><Custom7 xsi:nil=\"true\" /><Custom8 xsi:nil=\"true\" /><Custom9 xsi:nil=\"true\" /><Custom10 xsi:nil=\"true\" /><Custom11 xsi:nil=\"true\" /><Custom12 xsi:nil=\"true\" /><Custom13 xsi:nil=\"true\" /><Custom14 xsi:nil=\"true\" /><Custom15 xsi:nil=\"true\" /><Custom16 xsi:nil=\"true\" /><Custom17 xsi:nil=\"true\" /><Custom18 xsi:nil=\"true\" /><Custom19 xsi:nil=\"true\" /><Custom20 xsi:nil=\"true\" /></Report>"
+				},
+				{
+					"id": "785bae74-70fe-431e-8a59-1039c09e01d8",
+					"name": "get report",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "OAuth 0_vZPsPqgkJ4tWdR+9t91oIcnOg=",
+								"disabled": false
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"disabled": false
+							}
+						],
+						"body": {},
+						"url": {
+							"raw": "http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"api",
+								"v3.0",
+								"expense",
+								"reports",
+								"27D2D767139346B190F7"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache",
+							"name": "Cache-Control",
+							"description": "Tells all caching mechanisms from server to client whether they may cache this object. It is measured in seconds"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1547",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 29 Jun 2018 11:48:13 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Expires",
+							"value": "-1",
+							"name": "Expires",
+							"description": "Gives the date/time after which the response is considered stale"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache",
+							"name": "Pragma",
+							"description": "Implementation-specific headers that may have various effects anywhere along the request-response chain."
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/7.5",
+							"name": "Server",
+							"description": "A name for the server"
+						},
+						{
+							"key": "Webserver",
+							"value": "rotvm",
+							"name": "Webserver",
+							"description": "Custom header"
+						}
+					],
+					"cookie": [
+						{
+							"expires": "Mon Jan 18 2038 22:14:07 GMT-0500 (Eastern Standard Time)",
+							"httpOnly": true,
+							"domain": "localhost",
+							"path": "/",
+							"secure": false,
+							"value": "A5BE7A89GAD66G473EG944AGCF7A2B11777F",
+							"key": "OTSESSIONAABQRN"
+						}
+					],
+					"body": "{\"Name\":\"Gabriel reimbursment\",\"Total\":0.00000000,\"CurrencyCode\":\"USD\",\"Country\":\"US\",\"CountrySubdivision\":null,\"CreateDate\":\"2018-06-29T11:47:17.65\",\"SubmitDate\":null,\"ProcessingPaymentDate\":null,\"PaidDate\":null,\"ReceiptsReceived\":false,\"UserDefinedDate\":\"2018-06-29T07:47:16\",\"LastComment\":\"\",\"OwnerLoginID\":\"acsontos@outtask.com\",\"OwnerName\":\"Andrew Csontos\",\"ApproverLoginID\":null,\"ApproverName\":null,\"ApprovalStatusName\":\"Not Submitted\",\"ApprovalStatusCode\":\"A_NOTF\",\"PaymentStatusName\":\"Not Paid\",\"PaymentStatusCode\":\"P_NOTP\",\"LastModifiedDate\":\"2018-06-29T11:47:17.65\",\"PersonalAmount\":0.00000000,\"AmountDueEmployee\":0.00000000,\"AmountDueCompanyCard\":0.00000000,\"TotalClaimedAmount\":0.00000000,\"TotalApprovedAmount\":0.00000000,\"LedgerName\":\"Corporate\",\"PolicyID\":\"gWm$pVDp99T$pqmlciXP1fs1TxjwGEiJX$pcOw\",\"EverSentBack\":false,\"HasException\":false,\"WorkflowActionUrl\":\"\",\"OrgUnit1\":{\"Type\":\"Text\",\"Value\":\"R&D\",\"Code\":null,\"ListItemID\":null},\"OrgUnit2\":{\"Type\":\"Text\",\"Value\":\"Dev\",\"Code\":null,\"ListItemID\":null},\"OrgUnit3\":{\"Type\":\"Text\",\"Value\":\"EXP\",\"Code\":null,\"ListItemID\":null},\"OrgUnit4\":null,\"OrgUnit5\":null,\"OrgUnit6\":null,\"Custom1\":null,\"Custom2\":null,\"Custom3\":null,\"Custom4\":null,\"Custom5\":null,\"Custom6\":null,\"Custom7\":null,\"Custom8\":null,\"Custom9\":null,\"Custom10\":null,\"Custom11\":null,\"Custom12\":null,\"Custom13\":null,\"Custom14\":null,\"Custom15\":null,\"Custom16\":null,\"Custom17\":null,\"Custom18\":null,\"Custom19\":null,\"Custom20\":null,\"ID\":\"27D2D767139346B190F7\",\"URI\":\"http://localhost/api/v3.0/expense/reports/27D2D767139346B190F7\"}"
+				}
+			]
+		}
+	]
+}

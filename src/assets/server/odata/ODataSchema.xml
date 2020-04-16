@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:m="http://docs.oasis-open.org/odata/ns/metadata" xml:base="https://sap-ev-odata-server.cfapps.eu10.hana.ondemand.com/odata/" m:context="https://sap-ev-odata-server.cfapps.eu10.hana.ondemand.com/odata/$metadata">
+   <workspace>
+      <atom:title type="text">Default</atom:title>
+      <collection href="Transactions">
+         <atom:title type="text">Transactions</atom:title>
+      </collection>
+      <collection href="TransactionsCompleted">
+         <atom:title type="text">TransactionsCompleted</atom:title>
+      </collection>
+      <collection href="BootNotifications">
+         <atom:title type="text">BootNotifications</atom:title>
+      </collection>
+      <collection href="Companies">
+         <atom:title type="text">Companies</atom:title>
+      </collection>
+      <collection href="Sites">
+         <atom:title type="text">Sites</atom:title>
+      </collection>
+      <collection href="SiteAreas">
+         <atom:title type="text">SiteAreas</atom:title>
+      </collection>
+      <collection href="ChargingStations">
+         <atom:title type="text">ChargingStations</atom:title>
+      </collection>
+      <collection href="Users">
+         <atom:title type="text">Users</atom:title>
+      </collection>
+      <collection href="StatusNotifications">
+         <atom:title type="text">StatusNotifications</atom:title>
+      </collection>
+   </workspace>
+</service>

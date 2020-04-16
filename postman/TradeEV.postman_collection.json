@@ -1,0 +1,468 @@
+{
+	"info": {
+		"_postman_id": "7815038d-bccf-402c-bc5a-8d542eeda667",
+		"name": "TradeEV",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "69666bf9-21c4-4483-ad96-e7690885d531",
+						"type": "text/javascript",
+						"exec": [
+							"pm.globals.unset(\"access_token\");",
+							"pm.globals.unset(\"access_token_scopes\");",
+							"pm.globals.unset(\"access_token_expiration\");",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.globals.set(\"access_token\", jsonData.access_token);",
+							"pm.globals.set(\"access_token_scopes\", jsonData.scope.split(' '));",
+							"pm.globals.set(\"access_token_expiration\", new Date(Date.now() + (jsonData.expires_in * 1000)).toString());",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_secret",
+							"value": "{{client_secret}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "{{grant_type}}",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token",
+					"protocol": "https",
+					"host": [
+						"seed-innovation",
+						"authentication",
+						"eu10",
+						"hana",
+						"ondemand",
+						"com"
+					],
+					"path": [
+						"oauth",
+						"token"
+					]
+				},
+				"description": "Generated from a curl request: \ncurl -X POST \\\n 'http://{{auth_url}}' \\\n -H 'Cache-Control: no-cache' \\\n -H 'Content-Type: application/x-www-form-urlencoded' \\\n -H 'Postman-Token: e500a615-2797-4126-ac6f-1ca429df2a06' \\\n -d 'client_secret=%7B%7Bclient_secret%7D%7D&grant_type=%7B%7Bgrant_type%7D%7D&client_id=%7B%7Bclient_id%7D%7D'"
+			},
+			"response": []
+		},
+		{
+			"name": "Post Subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ca09eed2-bffb-4b97-9f8e-4320faa6389a",
+						"type": "text/javascript",
+						"exec": [
+							"pm.globals.unset(\"subscriptionId\");",
+							"pm.globals.unset(\"subscriptionDocumentNumber\");",
+							"",
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.globals.set(\"subscriptionId\", jsonData.subscriptionId);",
+							"pm.globals.set(\"subscriptionDocumentNumber\", jsonData.documentNumber);",
+							"",
+							"tests[\"Status code is 201\"] = responseCode.code === 201;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"validFrom\": \"2018-06-01T05:00:00.000Z\",\r\n\t\"customer\": {\r\n\t\t\"id\": \"1864621733\"\r\n\t},\r\n\t\"market\": {\r\n\t\t\"id\": \"Germany_01\"\r\n\t},\r\n\t\"snapshots\": [\r\n\t\t{\r\n\t\t\t\"effectiveDate\": \"2018-06-01T05:00:00.000Z\",\r\n\t\t\t\"items\": [\r\n\t\t\t\t{\r\n\t\t\t\t\t\"itemId\": \"10\",\r\n\t\t\t\t\t\"subscriptionType\": \"Commercial\",\r\n\t\t\t\t\t\"product\": {\r\n\t\t\t\t\t\t\"code\": \"ChargeAtHome_100\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"ratePlan\": {\r\n\t\t\t\t\t\t\"id\": \"a8ff51a8-9fda-4944-afe6-e98eedc3e8f4\",\r\n\t\t\t\t\t\t\"source\": \"product\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"technicalResources\": [\r\n\t\t\t\t\t\t{\r\n\t\t\t\t\t\t\t\"id\": \"TESTTRADEEV1\",\r\n\t\t\t\t\t\t\t\"type\": \"ChargeCurrent\"\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t]\r\n\t\t\t\t}\r\n\t\t\t]\r\n\t\t}\r\n\t]\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://eu10.revenue.cloud.sap/api/subscription/v1/subscriptions",
+					"protocol": "https",
+					"host": [
+						"eu10",
+						"revenue",
+						"cloud",
+						"sap"
+					],
+					"path": [
+						"api",
+						"subscription",
+						"v1",
+						"subscriptions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Subscription",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7b6e1c47-4f6c-4d06-ae80-80818bf2775e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"validFrom\": \"2018-05-01T05:00:00.000Z\",\r\n\t\"customer\": {\r\n\t\t\"id\": \"{{customer_id}}\"\r\n\t},\r\n\t\"market\": {\r\n\t\t\"id\": \"{{market_id}}\"\r\n\t},\r\n\t\"snapshots\": [\r\n\t\t{\r\n\t\t\t\"effectiveDate\": \"2018-05-01T05:00:00.000Z\",\r\n\t\t\t\"items\": [\r\n\t\t\t\t{\r\n\t\t\t\t\t\"itemId\": \"10\",\r\n\t\t\t\t\t\"product\": {\r\n\t\t\t\t\t\t\"code\": \"{{subscriptionProductCode}}\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"ratePlan\": {\r\n\t\t\t\t\t\t\"id\": \"{{ratePlanId}}\",\r\n\t\t\t\t\t\t\"source\": \"product\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"technicalResources\": [\r\n\t\t\t\t\t\t{\r\n\t\t\t\t\t\t\t\"id\": \"{{guid}}\",\r\n\t\t\t\t\t\t\t\"type\": \"{{rate_plan_element}}\"\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t],\r\n\t\t\t\t\t\"subscriptionType\": \"Commercial\"\r\n\t\t\t\t}\r\n\t\t\t]\r\n\t\t}\r\n\t]\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://eu10.revenue.cloud.sap/api/subscription/v1/subscriptions/0F0AABDD-F7E6-4629-B0C8-5370A54FF30B",
+					"protocol": "https",
+					"host": [
+						"eu10",
+						"revenue",
+						"cloud",
+						"sap"
+					],
+					"path": [
+						"api",
+						"subscription",
+						"v1",
+						"subscriptions",
+						"0F0AABDD-F7E6-4629-B0C8-5370A54FF30B"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Usage Record",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "16361e61-2606-4f9d-8013-734671d39ac1",
+						"type": "text/javascript",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"postman.clearGlobalVariable(\"usageRecordId\");",
+							"postman.setGlobalVariable(\"usageRecordId\", jsonData.id);",
+							"",
+							"tests[\"Status code is 201\"] = responseCode.code === 201;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"quantity\": 10,\r\n\t\"metricId\": \"ChargeCurrent\",\r\n\t\"startedAt\": \"2018-06-18T04:00:00Z\",\r\n\t\"endedAt\": \"2018-06-19T04:00:00Z\",\r\n\t\"userTechnicalId\": \"TESTTRADEEV1\"\r\n}"
+				},
+				"url": {
+					"raw": "https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records",
+					"protocol": "https",
+					"host": [
+						"eu10",
+						"revenue",
+						"cloud",
+						"sap"
+					],
+					"path": [
+						"api",
+						"usage-record",
+						"v1",
+						"usage-records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Usage Records",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "34e09a82-bf59-402c-a8eb-5810b4e102c6",
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"quantity\": 123,\r\n\t\"metricId\": \"{{rate_plan_element}}\",\r\n\t\"startedAt\": \"2018-06-02T04:00:00Z\",\r\n\t\"endedAt\": \"2018-06-03T04:00:00Z\",\r\n\t\"userTechnicalId\": \"{{guid}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records",
+					"protocol": "https",
+					"host": [
+						"eu10",
+						"revenue",
+						"cloud",
+						"sap"
+					],
+					"path": [
+						"api",
+						"usage-record",
+						"v1",
+						"usage-records"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all Bills (v1)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "38772b06-070a-46e9-80e0-8ff930864232",
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Header X-Count is present\", function () {",
+							"    pm.response.to.have.header(\"X-Count\");",
+							"});",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "8812fb32-bb21-4fbe-bc30-49c62a4c67ef",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"validFrom\": \"2018-05-01T05:00:00.000Z\",\r\n\t\"customer\": {\r\n\t\t\"id\": \"{{customer_id}}\"\r\n\t},\r\n\t\"market\": {\r\n\t\t\"id\": \"{{market_id}}\"\r\n\t},\r\n\t\"snapshots\": [\r\n\t\t{\r\n\t\t\t\"effectiveDate\": \"2018-05-01T05:00:00.000Z\",\r\n\t\t\t\"items\": [\r\n\t\t\t\t{\r\n\t\t\t\t\t\"itemId\": \"10\",\r\n\t\t\t\t\t\"product\": {\r\n\t\t\t\t\t\t\"code\": \"{{subscriptionProductCode}}\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"ratePlan\": {\r\n\t\t\t\t\t\t\"id\": \"{{ratePlanId}}\",\r\n\t\t\t\t\t\t\"source\": \"product\"\r\n\t\t\t\t\t},\r\n\t\t\t\t\t\"technicalResources\": [\r\n\t\t\t\t\t\t{\r\n\t\t\t\t\t\t\t\"id\": \"{{guid}}\",\r\n\t\t\t\t\t\t\t\"type\": \"{{rate_plan_element}}\"\r\n\t\t\t\t\t\t}\r\n\t\t\t\t\t],\r\n\t\t\t\t\t\"subscriptionType\": \"Commercial\"\r\n\t\t\t\t}\r\n\t\t\t]\r\n\t\t}\r\n\t]\r\n}\r\n"
+				},
+				"url": {
+					"raw": "https://eu10.revenue.cloud.sap/api/bill/v1/bills/",
+					"protocol": "https",
+					"host": [
+						"eu10",
+						"revenue",
+						"cloud",
+						"sap"
+					],
+					"path": [
+						"api",
+						"bill",
+						"v1",
+						"bills",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3899bf88-144c-49e3-bf8e-0472d30706aa",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "6a8f7e2c-1544-4e35-be17-9b73539241ac",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "125d107d-ec36-47f2-81e8-e1f9430ba728",
+			"key": "host",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		},
+		{
+			"id": "73b1dba2-7faf-4d9c-ba44-6b42846e5342",
+			"key": "client_secret",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "1515ccfa-e6fe-45ae-9855-c5e058616057",
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"id": "62a0fe48-e03f-4a07-8550-4456430f79b0",
+			"key": "grant_type",
+			"value": "client_credentials",
+			"type": "string"
+		},
+		{
+			"id": "8382fe90-f4aa-41eb-9f97-a5d67966dd5c",
+			"key": "app_url",
+			"value": "https://eu10.revenue.cloud.sap/api",
+			"type": "string"
+		},
+		{
+			"id": "0ebd7390-f573-41b7-aade-cdb451ffa143",
+			"key": "auth_url",
+			"value": "https://authentication.eu10.hana.ondemand.com",
+			"type": "string"
+		},
+		{
+			"id": "6967ce09-9c07-45c6-ac31-a45775f1dbbc",
+			"key": "market_id",
+			"value": "A1",
+			"type": "string"
+		},
+		{
+			"id": "2ae389f7-708f-44e7-95d2-6160ecb59a79",
+			"key": "customer_id",
+			"value": "",
+			"type": "string",
+			"disabled": true
+		}
+	]
+}

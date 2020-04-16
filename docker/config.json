@@ -1,0 +1,258 @@
+{
+  "Crypto": {
+    "key": "ShVmYq3t6w9z$C&F)H@McQfTjWnZr4u7",
+    "algorithm": "aes-256-ctr"
+  },
+  "EVDatabase": {
+    "url": "https://ev-database.org/export_v26/74964691",
+    "key": ""
+  },
+  "CentralSystems": [
+    {
+      "type": "ocpp",
+      "implementation": "soap",
+      "protocol": "http",
+      "host": "server",
+      "port": 8000,
+      "debug": false
+    },
+    {
+      "type": "ocpp",
+      "implementation": "json",
+      "protocol": "ws",
+      "host": "server",
+      "port": 8010,
+      "debug": false
+    }
+  ],
+  "CentralSystemRestService": {
+    "protocol": "http",
+    "host": "server",
+    "port": 81,
+    "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
+    "socketIO": true,
+    "socketIOListNotificationIntervalSecs": 5,
+    "socketIOSingleNotificationIntervalSecs": 1,
+    "passwordWrongNumberOfTrial": 3,
+    "passwordBlockedWaitTimeMin": 5,
+    "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "debug": false
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 3080,
+    "distEnabled": false,
+    "distPath": "../dist/front-end"
+  },
+  "CentralSystemServer": {
+    "protocol": "http",
+    "host": "server",
+    "port": 81
+  },
+  "OCPIService": {
+    "protocol": "http",
+    "host": "server",
+    "port": 9090,
+    "debug": false,
+    "externalProtocol": "http",
+    "tenantEnabled": [
+      "slf"
+    ],
+    "eMI3id": {
+      "slf": {
+        "country_id": "FR",
+        "party_id": "SLF"
+      }
+    }
+  },
+  "ODataService": {
+    "protocol": "http",
+    "host": "server",
+    "port": 9292,
+    "debug": false,
+    "externalProtocol": "http"
+  },
+  "WSDLEndpoint": {
+    "baseUrl": "http://localhost:8000"
+  },
+  "JsonEndpoint": {
+    "baseUrl": "ws://localhost:8010"
+  },
+  "OCPIEndpoint": {
+    "baseUrl": "http://localhost:9090"
+  },
+  "WSClient": {
+    "autoReconnectMaxRetries": 10,
+    "autoReconnectTimeout": 60
+  },
+  "Storage": {
+    "implementation": "mongodb",
+    "uri": null,
+    "host": "mongodb",
+    "port": 27017,
+    "user": "evse-user",
+    "password": "evse-user-pwd",
+    "database": "evse",
+    "poolSize": 200,
+    "replicaSet": "rs0",
+    "monitorDBChange": true,
+    "debug": false
+  },
+  "Email": {
+    "from": "donotreply@charge-angels.fr",
+    "admins": [
+      "fabiano.serge@chargeangels.fr"
+    ],
+    "smtp": {
+      "host": "mailserver",
+      "port": 1025,
+      "secure": false,
+      "requireTLS": false,
+      "user": "evse-mail-user",
+      "password": "evse-mail-pwd"
+    }
+  },
+  "Notification": {
+    "Email": {
+      "enabled": true
+    },
+    "RemotePushNotification": {
+      "enabled": false
+    }
+  },
+  "Authorization": {
+    "debug": false
+  },
+  "ChargingStation": {
+    "heartbeatIntervalSecs": 180,
+    "checkEndOfChargeNotificationAfterMin": 5,
+    "notifBeforeEndOfChargePercent": 85,
+    "notifBeforeEndOfChargeEnabled": true,
+    "notifEndOfChargePercent": 0,
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
+  },
+  "Locales": {
+    "default": "en_US",
+    "supported": [
+      "en_US",
+      "fr_FR"
+    ]
+  },
+  "Migration": {
+    "active": true
+  },
+  "Scheduler": {
+    "active": true,
+    "tasks": [
+      {
+        "name": "CheckSessionNotStartedAfterAuthorizeTask",
+        "active": true,
+        "periodicity": "*/5 * * * *",
+        "config": {
+          "checkPastAuthorizeMins": 60,
+          "sessionShouldBeStartedAfterMins": 10
+        }
+      },
+      {
+        "name": "SynchronizeBillingUsersTask",
+        "active": false,
+        "periodicity": "0 0 * * *",
+        "config": {}
+      },
+      {
+        "name": "LoggingDatabaseTableCleanupTask",
+        "active": true,
+        "periodicity": "0 0 * * 1",
+        "config": {
+          "retentionPeriodWeeks": 1,
+          "securityRetentionPeriodWeeks": 1
+        }
+      },
+      {
+        "name": "SynchronizeRefundTransactionsTask",
+        "active": false,
+        "periodicity": "0 * * * *",
+        "config": {}
+      },
+      {
+        "name": "CheckPreparingSessionNotStartedTask",
+        "active": true,
+        "periodicity": "0-59/5 * * * *",
+        "config": {
+          "preparingStatusMaxMins": 15
+        }
+      },
+      {
+        "name": "CheckOfflineChargingStationsTask",
+        "active": false,
+        "periodicity": "0-59/5 * * * *",
+        "config": {
+          "offlineChargingStationMins": 5
+        }
+      },
+      {
+        "name": "CheckUserAccountInactivityTask",
+        "active": false,
+        "periodicity": "0 0 * * 1",
+        "config": {
+          "userAccountInactivityMonths": 6
+        }
+      },
+      {
+        "name": "OCPIPatchLocationsTask",
+        "active": false,
+        "periodicity": "0 1 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetLocationsTask",
+        "active": false,
+        "periodicity": "*/10 * * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetTokensTask",
+        "active": false,
+        "periodicity": "0 2 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetSessionsTask",
+        "active": false,
+        "periodicity": "0 3 * * *",
+        "config": {}
+      },
+      {
+        "name": "OCPIGetCdrsTask",
+        "active": false,
+        "periodicity": "0 4 * * *",
+        "config": {}
+      },
+      {
+        "name": "SynchronizeCarsTask",
+        "active": false,
+        "periodicity": "0 0 1 * *",
+        "config": {}
+      }
+    ]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "trace": true,
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
+  }
+}

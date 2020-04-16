@@ -1,0 +1,14 @@
+{
+    "title": "authorize-request",
+    "description": "Defines the Authorize.req PDU",
+    "type": "object",
+    "properties": {
+        "idTag": {
+            "type": "string",
+            "description": "string defining identification token, e.g. RFID or credit card number. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        }
+    },
+    "required": ["idTag"]
+}

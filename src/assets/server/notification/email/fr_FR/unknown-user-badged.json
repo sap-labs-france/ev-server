@@ -1,0 +1,35 @@
+{
+  "subject": "'<%- chargeBoxID %>' - Utilisateur Inconnu a Badgé",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Utilisateur Inconnu a Badgé",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "Un utilisateur inconnu vient juste de badger sur <b>'<%- chargeBoxID %>'</b> avec le badge ID <b>'<%- badgeID %>'</b>."
+    ],
+    "action": {
+      "title": "Editer Utilisateur",
+      "url": "<%- evseDashboardUserURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
