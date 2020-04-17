@@ -24,6 +24,7 @@ export default class OCPITokensService {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
+
     const email = OCPIUtils.buildUserEmailFromOCPIToken(token, ocpiEndpoint.countryCode, ocpiEndpoint.partyId);
     let user = await UserStorage.getUserByEmail(tenantId, email);
     if (user) {
@@ -42,10 +43,11 @@ export default class OCPITokensService {
         tag.issuer = false;
         tag.lastChangedOn = token.last_updated;
         tag.description = token.visual_number;
-        tag.active = token.valid === true ? true : false,
+        tag.active = token.valid === true ? true : false;
         tag.ocpiToken = token;
         await UserStorage.saveUserTag(tenantId, user.id, tag);
       } else {
+        await this.checkExistingTag(tenantId, token);
         await UserStorage.saveUserTag(tenantId, user.id, {
           id: token.uid,
           issuer: false,
@@ -56,6 +58,7 @@ export default class OCPITokensService {
         });
       }
     } else {
+      await this.checkExistingTag(tenantId, token);
       user = {
         issuer: false,
         createdOn: token.last_updated,
@@ -76,9 +79,30 @@ export default class OCPITokensService {
         ]
       } as User;
       user.id = await UserStorage.saveUser(tenantId, user);
-      await UserStorage.saveUserTag(tenantId, user.id, user.tags[0]);
       await UserStorage.saveUserRole(tenantId, user.id, UserRole.BASIC);
       await UserStorage.saveUserStatus(tenantId, user.id, UserStatus.ACTIVE);
+      await UserStorage.saveUserTag(tenantId, user.id, user.tags[0]);
+    }
+  }
+
+  private static async checkExistingTag(tenantId: string, token: OCPIToken): Promise<void> {
+    const existingTag = await UserStorage.getTag(tenantId, token.uid);
+    if (existingTag) {
+      if (existingTag.issuer) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'updateToken',
+          errorCode: HttpStatusCodes.CONFLICT,
+          message: `The token ${token.uid} does not belongs to OCPI`,
+          detailedMessages: token,
+          ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
+        });
+      } else {
+        const user = await UserStorage.getUser(tenantId, existingTag.userID);
+        if (!user || user.deleted) {
+          await UserStorage.deleteUserTag(tenantId, existingTag.userID, existingTag);
+        }
+      }
     }
   }
 
