@@ -154,7 +154,12 @@ export default class SapSmartCharging extends SmartCharging<SapSmartChargingSett
       action: Action.SMART_CHARGING,
       message: 'Build SAP Smart Charging request is being called',
       module: MODULE_NAME, method: 'buildRequest',
-      detailedMessages: { SiteAreaName: siteArea.name, MaximumPower: siteArea.maximumPower, ChargingStations: siteArea.chargingStations }
+      detailedMessages: {
+        siteAreaName: siteArea.name,
+        siteAreaMaximumPower: siteArea.maximumPower,
+        chargingStations: siteArea.chargingStations ?
+          siteArea.chargingStations.map((chargingStation) => chargingStation.id) : []
+      }
     });
     // Instantiate initial arrays for request
     const cars: OptimizerCar[] = [];

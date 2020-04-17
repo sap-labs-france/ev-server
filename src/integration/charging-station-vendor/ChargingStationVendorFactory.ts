@@ -1,5 +1,6 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
 import ChargingStationVendor from './ChargingStationVendor';
+import DeltaChargingStationVendor from './delta/DeltaChargingStationVendor';
 import SchneiderChargingStationVendor from './schneider/SchneiderChargingStationVendor';
 import WebastoChargingStationVendor from './webasto/WebastoChargingStationVendor';
 
@@ -13,6 +14,9 @@ export default class ChargingStationVendorFactory {
       // Webasto
       case ChargerVendor.WEBASTO:
         return new WebastoChargingStationVendor(chargingStation);
+      // Delta
+      case ChargerVendor.DELTA:
+        return new DeltaChargingStationVendor(chargingStation);
     }
     return null;
   }
