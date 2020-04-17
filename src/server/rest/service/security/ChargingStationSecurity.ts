@@ -15,7 +15,6 @@ import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
 
-
 export default class ChargingStationSecurity {
 
   public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {
@@ -159,7 +158,7 @@ export default class ChargingStationSecurity {
   public static filterTriggerSmartCharging(request: any): HttpTriggerSmartChargingRequest {
     return {
       siteAreaID: sanitize(request.SiteAreaID)
-    }
+    };
   }
 
   public static filterRequestChargingStationOcppParametersRequest(request: any): HttpChargingStationOcppParametersRequest {
