@@ -23,7 +23,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
     const actionsResponse: ActionsResponse = {
       inSuccess: 0,
       inError: 0
-    }
+    };
     Logging.logDebug({
       tenantID: this.tenantID,
       action: Action.CHARGING_PROFILE_UPDATE,
@@ -89,7 +89,7 @@ export default abstract class SmartCharging<T extends SmartChargingSetting> {
         source: Constants.CENTRAL_SERVER,
         action: Action.CHECK_AND_APPLY_SMART_CHARGING,
         module: MODULE_NAME, method: 'processTenant',
-        message: `No charging stations have been updated with charging plans`
+        message: 'No charging stations have been updated with charging plans'
       });
     }
     Logging.logDebug({

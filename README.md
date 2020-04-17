@@ -31,10 +31,6 @@ The application:
     sudo apt install build-essential
     ```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
-* In case of issue with package **bcrypt** do the following:
-  ```
-  npm install bcrypt
-  ```
 
 **NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),
 do as an administrator:
@@ -181,7 +177,7 @@ This application server will listen to the charging stations and store the data 
 
 It can also communicate with the charging stations (reboot, stop a transaction...)
 
-The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (SOAP.)
+The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (SOAP).
 
 Other protocols, like the ISO 15118, or OCPP 2.0 will also be supported in the future.
 
