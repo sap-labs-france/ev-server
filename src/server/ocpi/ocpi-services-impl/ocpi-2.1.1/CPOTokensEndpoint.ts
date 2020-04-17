@@ -91,7 +91,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
     const user = await UserStorage.getUserByTagId(tenant.id, tokenId);
     if (user) {
       const tag = user.tags.find((value) => value.id === tokenId);
-      if (!user.issuer) {
+      if (user.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'patchToken',
@@ -100,7 +100,7 @@ export default class CPOTokensEndpoint extends AbstractEndpoint {
           ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
         });
       }
-      if (!tag.ocpiToken) {
+      if (tag && tag.issuer) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'patchToken',
