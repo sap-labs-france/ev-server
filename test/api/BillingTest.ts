@@ -129,7 +129,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
-
+        fakeUser.issuer = true;
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
@@ -144,12 +144,11 @@ describe('Billing Service', testData.pending ? null : function() {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
-
+        fakeUser.issuer = true;
         await testData.userService.createEntity(
           testData.userService.userApi,
           fakeUser
         );
-        testData.createdUsers.push(fakeUser);
         fakeUser.firstName = 'Test';
         fakeUser.name = 'Name';
         await testData.userService.updateEntity(
@@ -157,7 +156,7 @@ describe('Billing Service', testData.pending ? null : function() {
           fakeUser,
           false
         );
-
+        testData.createdUsers.push(fakeUser);
         const billingUser = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUser.name).to.be.eq(fakeUser.firstName + ' ' + fakeUser.name);
       });
@@ -170,13 +169,14 @@ describe('Billing Service', testData.pending ? null : function() {
 
         const exists = await billingImpl.userExists(testData.createdUsers[0]);
         expect(exists).to.be.false;
-        testData.createdUsers.pop();
+        testData.createdUsers.shift();
       });
 
       it('Should synchronize a new user', async () => {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
+        fakeUser.issuer = true;
         await TestData.setBillingSystemInvalidCredentials(testData);
         await testData.userService.createEntity(
           testData.userService.userApi,
@@ -193,6 +193,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const fakeUser = {
           ...Factory.user.build()
         } as User;
+        fakeUser.issuer = true;
         await TestData.setBillingSystemInvalidCredentials(testData);
         // Creates user without billing data
         await testData.userService.createEntity(
@@ -219,7 +220,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const fakeUser = {
           ...Factory.user.build(),
         } as User;
-
+        fakeUser.issuer = true;
         await TestData.setBillingSystemValidCredentials(testData);
         await testData.userService.createEntity(
           testData.userService.userApi,
