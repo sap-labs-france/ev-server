@@ -14,3 +14,9 @@ export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
   WithChargeBoxes?: boolean;
   WithAvailableChargers: boolean;
 }
+
+export interface HttpSiteAreaConsumptionsRequest {
+  SiteAreaID: string;
+  StartDate: Date;
+  EndDate: Date;
+}

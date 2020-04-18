@@ -23,6 +23,7 @@ import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
+import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -62,6 +63,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddLimitToConsumptionsTask());
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
       currentMigrationTasks.push(new InitialCarImportTask());
+      currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

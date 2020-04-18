@@ -75,7 +75,6 @@ export default class SiteAreaService {
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
       { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes });
-    // Found?
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
@@ -174,21 +173,25 @@ export default class SiteAreaService {
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaConsumptionRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaId, MODULE_NAME,
-      'handleGetConsumptionFromTransaction', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.SiteAreaID, MODULE_NAME,
+      'handleGetSiteAreaConsumption', req.user);
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.SiteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.SiteAreaID}' does not exist`,
+      MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
-    if (!Authorizations.canListSiteAreas(req.user)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.SITE_AREAS,
+        action: Action.READ,
+        entity: Entity.SITE_AREA,
         module: MODULE_NAME,
         method: 'handleGetSiteAreaConsumption'
       });
     }
     // Check dates
-    if (!filteredRequest.startDate || !filteredRequest.endDate) {
+    if (!filteredRequest.StartDate || !filteredRequest.EndDate) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -200,13 +203,13 @@ export default class SiteAreaService {
       });
     }
     // Check dates order
-    if (filteredRequest.startDate &&
-        filteredRequest.endDate &&
-        moment(filteredRequest.startDate).isAfter(moment(filteredRequest.endDate))) {
+    if (filteredRequest.StartDate &&
+        filteredRequest.EndDate &&
+        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: `The requested start date '${new Date(filteredRequest.startDate).toISOString()}' is after the requested end date '${new Date(filteredRequest.endDate).toISOString()}' `,
+        message: `The requested start date '${filteredRequest.StartDate}' is after the end date '${filteredRequest.EndDate}' `,
         module: MODULE_NAME,
         method: 'handleGetSiteAreaConsumption',
         user: req.user,
@@ -214,19 +217,16 @@ export default class SiteAreaService {
       });
     }
     // Get the ConsumptionValues
-    const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID,
-      {
-        siteAreaId: filteredRequest.siteAreaId,
-        startDate: filteredRequest.startDate,
-        endDate: filteredRequest.endDate
-      },
-    );
+    const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID, {
+      siteAreaID: filteredRequest.SiteAreaID,
+      startDate: filteredRequest.StartDate,
+      endDate: filteredRequest.EndDate
+    });
     // Get the Site Area Limit
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaId);
     const siteAreaLimit = siteArea.maximumPower;
     // Return
     res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(
-      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.siteAreaId));
+      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.SiteAreaID));
     next();
   }
 
