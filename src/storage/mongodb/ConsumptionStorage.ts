@@ -1,9 +1,10 @@
 import Consumption from '../../types/Consumption';
+import global from '../../types/GlobalType';
+import { SiteAreaConsumptionValues } from '../../types/SiteArea';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
-import { SiteAreaConsumptionValues } from '../../types/SiteArea';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -27,8 +28,8 @@ export default class ConsumptionStorage {
       transactionId: Utils.convertToInt(consumptionToSave.transactionId),
       chargeBoxID: consumptionToSave.chargeBoxID,
       connectorId: Utils.convertToInt(consumptionToSave.connectorId),
-      siteAreaID: consumptionToSave.siteAreaID,
-      siteID: consumptionToSave.siteID,
+      siteAreaID: Utils.convertToObjectID(consumptionToSave.siteAreaID),
+      siteID: Utils.convertToObjectID(consumptionToSave.siteID),
       consumption: Utils.convertToFloat(consumptionToSave.consumption),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
       cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
@@ -43,7 +44,7 @@ export default class ConsumptionStorage {
       limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
       limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       limitSource: consumptionToSave.limitSource,
-      userID: consumptionToSave.userID
+      userID: Utils.convertToObjectID(consumptionToSave.userID)
     };
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
@@ -68,7 +69,7 @@ export default class ConsumptionStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
-  static async getSiteAreaConsumption(tenantID: string, params: { siteAreaId: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
+  static async getSiteAreaConsumption(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumption');
     // Check
@@ -76,8 +77,8 @@ export default class ConsumptionStorage {
     // Create filters
     const filters: any = {};
     // ID
-    if (params.siteAreaId) {
-      filters.siteAreaID = params.siteAreaId;
+    if (params.siteAreaID) {
+      filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
     }
     // Date provided?
     if (params.startDate || params.endDate) {
@@ -120,6 +121,10 @@ export default class ConsumptionStorage {
         }
       }
     });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     aggregation.push({
       $sort: {
         date: 1
@@ -130,7 +135,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaId: params.siteAreaId });
+    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaID: params.siteAreaID });
     return consumptionsMDB;
   }
 
@@ -162,6 +167,10 @@ export default class ConsumptionStorage {
         consumptions: { $push: '$$ROOT' }
       }
     });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     aggregation.push({
       $sort: { 'consumptions.startedAt': 1 }
     });
@@ -170,6 +179,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Do the optimization in the code!!!
+    // TODO: Handle this coding into the MongoDB request
     const consumptions: Consumption[] = [];
     for (const consumptionMDB of consumptionsMDB) {
       let lastConsumption: Consumption = null;
