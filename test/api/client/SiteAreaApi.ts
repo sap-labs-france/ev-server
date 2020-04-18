@@ -37,7 +37,7 @@ export default class SiteAreaApi extends CrudApi {
 
   public readConsumption(SiteAreaId, StartDate, EndDate) {
     return super.read({
-      SiteAreaId: SiteAreaId,
+      SiteAreaID: SiteAreaId,
       StartDate: StartDate,
       EndDate: EndDate
     }, '/client/api/SiteAreaConsumption');

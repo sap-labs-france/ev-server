@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
-import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest, HttpSiteAreaConsumptionsRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import SiteArea, { SiteAreaConsumption, SiteAreaConsumptionValues } from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
@@ -40,11 +40,11 @@ export default class SiteAreaSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteAreaConsumptionRequest(request: any) {
+  public static filterSiteAreaConsumptionRequest(request: any): HttpSiteAreaConsumptionsRequest {
     return {
-      siteAreaId: sanitize(request.SiteAreaId),
-      startDate: sanitize(request.StartDate),
-      endDate: sanitize(request.EndDate)
+      SiteAreaID: sanitize(request.SiteAreaID),
+      StartDate: sanitize(request.StartDate),
+      EndDate: sanitize(request.EndDate)
     };
   }
 
