@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
-import { HttpSiteAreaRequest, HttpSiteAreasRequest, HttpSiteAreaConsumptionsRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import SiteArea, { SiteAreaConsumption, SiteAreaConsumptionValues } from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
