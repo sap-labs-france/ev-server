@@ -55,7 +55,7 @@ export default class OCPPJsonService16 extends OCPPService {
           // Parse the message
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
-          if (messageJson[0] === Constants.OCPP_JSON_CALL_MESSAGE && sentRequests[messageJson[1]]) {
+          if (messageJson[0] === Constants.OCPP_JSON_CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
             const response: any = {};
             // Set the data
             response.responseMessageId = messageJson[1];
