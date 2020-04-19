@@ -303,4 +303,8 @@ export default class Bootstrap {
 }
 
 // Start
-Bootstrap.start();
+Bootstrap.start().catch(
+  (error) => {
+    console.log(error);
+  }
+);

@@ -189,6 +189,8 @@ export default class OCPPService {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
+      ).catch(
+        () => {}
       );
       // Log
       Logging.logInfo({
@@ -349,6 +351,7 @@ export default class OCPPService {
         // Process values
       } else {
         // Handle Meter Value only for transaction
+        // eslint-disable-next-line no-lonely-if
         if (meterValues.transactionId) {
           // Get the transaction
           const transaction = await TransactionStorage.getTransaction(headers.tenantID, meterValues.transactionId);
@@ -1092,7 +1095,7 @@ export default class OCPPService {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
         }
-      );
+      ).catch(() => {});
     }
   }
 
@@ -1335,7 +1338,7 @@ export default class OCPPService {
     if (!billingImpl) {
       return;
     }
-    // Checl
+    // Check
     switch (action) {
       // Start Transaction
       case TransactionAction.START:
@@ -1510,7 +1513,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      );
+      ).catch(() => {});
     }
   }
 
@@ -1518,7 +1521,7 @@ export default class OCPPService {
     if (transaction.user) {
       // Get the i18n lib
       const i18nManager = new I18nManager(transaction.user.locale);
-      // Notifcation Before End Of Charge (Async)
+      // Notification Before End Of Charge (Async)
       NotificationHandler.sendOptimalChargeReached(
         tenantID,
         transaction.id + '-OCR',
@@ -1534,7 +1537,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      );
+      ).catch(() => {});
     }
   }
 
@@ -1772,7 +1775,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL':
             await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
         }
-      );
+      ).catch(() => {});
     }
   }
 
@@ -1870,7 +1873,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      );
+      ).catch(() => {});
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
         NotificationHandler.sendEndOfSignedSession(
@@ -1902,7 +1905,7 @@ export default class OCPPService {
             'endSignedData': transaction.stop.signedData,
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           }
-        );
+        ).catch(() => {});
       }
     }
   }

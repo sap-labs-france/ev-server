@@ -338,27 +338,27 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     return this.chargingStation;
   }
 
-  public setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
     throw new Error('Method not implemented.');
   }
 
-  public getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
     throw new Error('Method not implemented.');
   }
 
-  public clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
     throw new Error('Method not implemented.');
   }
 
-  public changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
     throw new Error('Method not implemented.');
   }
 
-  public getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
     throw new Error('Method not implemented.');
   }
 
-  public updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
     throw new Error('Method not implemented.');
   }
 
