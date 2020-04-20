@@ -3,7 +3,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User, { UserRole } from '../types/User';
-import UserNotifications, { BillingUserSynchronizationFailedNotification, CarSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -748,7 +748,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendCarsSynchronizationFailed(sourceData: CarSynchronizationFailedNotification): Promise<void> {
+  static async sendCarsSynchronizationFailed(sourceData: CarCatalogSynchronizationFailedNotification): Promise<void> {
     // Enrich with admins
     const adminUsers = await NotificationHandler.getAdminUsers(Constants.DEFAULT_TENANT);
     if (adminUsers && adminUsers.length > 0) {
@@ -759,7 +759,7 @@ export default class NotificationHandler {
           try {
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              Constants.DEFAULT_TENANT, notificationSource.channel, Action.CAR_SYNCHRONIZATION_FAILED,
+              Constants.DEFAULT_TENANT, notificationSource.channel, Action.CAR_CATALOG_SYNCHRONIZATION_FAILED,
               null, null, { intervalMins: 60 * 24 });
             // Notified?
             if (!hasBeenNotified) {
@@ -769,14 +769,14 @@ export default class NotificationHandler {
               // Send
               for (const adminUser of adminUsers) {
                 // Enabled?
-                if (adminUser.notificationsActive && adminUser.notifications.sendCarSynchronizationFailed) {
-                  await notificationSource.notificationTask.sendCarSynchronizationFailed(
+                if (adminUser.notificationsActive && adminUser.notifications.sendCarCatalogSynchronizationFailed) {
+                  await notificationSource.notificationTask.sendCarCatalogSynchronizationFailed(
                     sourceData, adminUser, Constants.DEFAULT_TENANT_OBJECT, NotificationSeverity.ERROR);
                 }
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.CAR_SYNCHRONIZATION_FAILED, error);
+            Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.CAR_CATALOG_SYNCHRONIZATION_FAILED, error);
           }
         }
       }
