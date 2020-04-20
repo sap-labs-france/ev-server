@@ -54,7 +54,10 @@ export default class OCPIMapping {
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
-      connectors: []
+      connectors: [],
+      chargeBoxSerialNumber: evse.evse_id,
+      imsi: evse.uid,
+      iccid: location.id
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [

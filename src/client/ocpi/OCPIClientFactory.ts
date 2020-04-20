@@ -11,6 +11,8 @@ import Utils from '../../utils/Utils';
 import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
 import OCPIClient from './OCPIClient';
+import OCPIChargingStationClient from './OCPIChargingStationClient';
+import ChargingStation from '../../types/ChargingStation';
 
 const MODULE_NAME = 'OCPIClientFactory';
 
@@ -66,6 +68,18 @@ export default class OCPIClientFactory {
       if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
         const client = await OCPIClientFactory.getOcpiClient(tenant, ocpiEndpoint);
         return client;
+      }
+    }
+  }
+
+  static async getChargingStationClient(tenant: Tenant, chargingStation: ChargingStation): Promise<OCPIChargingStationClient> {
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: OCPIRole.EMSP }, Constants.DB_PARAMS_MAX_LIMIT);
+    for (const ocpiEndpoint of ocpiEndpoints.result) {
+      if (ocpiEndpoint.status === OCPIRegistrationStatus.REGISTERED) {
+        const client = await OCPIClientFactory.getEmspOcpiClient(tenant, ocpiEndpoint);
+        if (client) {
+          return new OCPIChargingStationClient(client, chargingStation);
+        }
       }
     }
   }
