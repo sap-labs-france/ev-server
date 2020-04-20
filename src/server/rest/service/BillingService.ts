@@ -1,17 +1,19 @@
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import {Action, Entity} from '../../../types/Authorization';
+import {HTTPAuthError, HTTPError} from '../../../types/HTTPError';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import {BillingInvoiceStatus} from "../../../types/Billing";
 
 const MODULE_NAME = 'BillingService';
 
@@ -238,11 +240,33 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
       MODULE_NAME, 'handleGetUserInvoices', req.user);
     // Get invoices
-    const invoices = await billingImpl.getUserInvoices(billingUser, {
-      status: filteredRequest.status,
-      startDateTime: filteredRequest.startDateTime,
-      endDateTime: filteredRequest.endDateTime
+    // const invoices = await billingImpl.getUserInvoices(billingUser, {
+    //   status: filteredRequest.status,
+    //   startDateTime: filteredRequest.startDateTime,
+    //   endDateTime: filteredRequest.endDateTime
+    // });
+    await BillingStorage.saveInvoice(req.user.tenantID, {
+      invoiceID: 'ii_z635rg46zr5g4',
+      status: BillingInvoiceStatus.OPEN,
+      currency: 'eur',
+      amountDue: 5000,
+      customerID: 'cus_H8ESyf51aEWckB',
+      createdOn: new Date(),
+      payUrl: 'itruhruth',
+      downloadUrl: 'usirug',
+      items: [],
+      number: 'rsreg-6584'
     });
+    const invoices = await BillingStorage.getInvoices(req.user.tenantID,
+      {
+        userID: req.user.id
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     BillingSecurity.filterInvoicesResponse(invoices, req.user);
     // Return

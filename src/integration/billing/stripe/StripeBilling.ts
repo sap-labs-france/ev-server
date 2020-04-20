@@ -3,7 +3,7 @@ import moment from 'moment';
 import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, HttpBillingInvoiceRequest, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { DataResult } from '../../../types/DataResult';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
@@ -156,7 +156,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     const invoice = await this.stripe.invoices.retrieve(invoiceId);
     if (invoice) {
       return {
-        id: invoice.id,
+        invoiceID: invoice.id,
         number: invoice.number,
         status: invoice.status as BillingInvoiceStatus,
         amountDue: invoice.amount_due,
@@ -170,7 +170,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>> {
+  public async getUserInvoices(user: BillingPartialUser, filters?: HttpBillingInvoiceRequest): Promise<DataResult<BillingInvoice>> {
     await this.checkConnection();
     const invoices = [] as BillingInvoice[];
     const requestParams: IInvoiceListOptions = { customer: user.billingData.customerID };
@@ -196,7 +196,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     const request = await this.stripe.invoices.list(requestParams);
     for (const invoice of request.data) {
       invoices.push({
-        id: invoice.id,
+        invoiceID: invoice.id,
         number: invoice.number,
         status: invoice.status as BillingInvoiceStatus,
         amountDue: invoice.amount_due,
@@ -371,7 +371,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         currency: this.settings.currency.toLocaleLowerCase(),
         amount: invoiceItem.amount * 100,
         description: invoiceItem.description,
-        invoice: invoice.id
+        invoice: invoice.invoiceID
       });
     } catch (error) {
       throw new BackendError({

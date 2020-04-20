@@ -2,7 +2,7 @@ import BackendError from '../../exception/BackendError';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceFilter, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, HttpBillingInvoiceRequest, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import { DataResult } from '../../types/DataResult';
 import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
@@ -304,7 +304,7 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: BillingPartialUser, filters?: BillingInvoiceFilter): Promise<DataResult<BillingInvoice>>;
+  async abstract getUserInvoices(user: BillingPartialUser, filters?: HttpBillingInvoiceRequest): Promise<DataResult<BillingInvoice>>;
 
   async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
 

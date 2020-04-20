@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
+import { BillingInvoice, HttpBillingInvoiceRequest, BillingTax } from '../../../../types/Billing';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
@@ -61,7 +61,7 @@ export default class BillingSecurity {
     // Check auth
     if (Authorizations.canReadBillingInvoices(loggedUser)) {
       // Set only necessary info
-      filteredInvoice.id = invoice.id;
+      filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
       filteredInvoice.amountDue = invoice.amountDue;
@@ -85,8 +85,8 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(request: any): BillingInvoiceFilter {
-    const filteredRequest = {} as BillingInvoiceFilter;
+  static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
+    const filteredRequest = {} as HttpBillingInvoiceRequest;
     if (request.Status) {
       filteredRequest.status = sanitize(request.Status);
     }

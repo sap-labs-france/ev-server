@@ -245,7 +245,7 @@ describe('Billing Service', testData.pending ? null : function() {
         expect(invoice.invoice).to.not.be.undefined;
         expect(invoice.invoiceItem).to.not.be.undefined;
         expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.id);
+        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.invoiceID);
         expect(billingInvoice).to.not.be.undefined;
       });
 
@@ -263,7 +263,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const openedInvoice = await billingImpl.getOpenedInvoice(billingUser);
         expect(openedInvoice).to.not.be.undefined;
         await billingImpl.createInvoiceItem(billingUser, openedInvoice, { description: 'Test invoice multiple items', amount: 1000 });
-        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.id);
+        const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.invoiceID);
         expect(billingInvoice).to.not.be.undefined;
         expect(billingInvoice.items.length).to.be.eq(2);
       });
@@ -279,7 +279,7 @@ describe('Billing Service', testData.pending ? null : function() {
         expect(invoice.invoice).to.not.be.undefined;
         expect(invoice.invoiceItem).to.not.be.undefined;
         expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-        const billingInvoice = await billingImpl.sendInvoiceToUser(invoice.invoice.id);
+        const billingInvoice = await billingImpl.sendInvoiceToUser(invoice.invoice.invoiceID);
         expect(billingInvoice).to.not.be.undefined;
         expect(billingInvoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
       });
@@ -289,7 +289,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
         const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
         for (let i = 0; i < response.data.result.length; i++) {
-          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].id);
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].invoiceID);
         }
       });
 
@@ -422,7 +422,7 @@ describe('Billing Service', testData.pending ? null : function() {
         const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const billingUserInvoices = await billingImpl.getUserInvoices(billingUser);
         for (let i = 0; i < response.data.result.length; i++) {
-          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].id);
+          expect(response.data.result[i].id).to.be.eq(billingUserInvoices.result[i].invoiceID);
         }
       });
 
