@@ -16,9 +16,9 @@ const GRANTS = {
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
       { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Cars', action: 'List', attributes: ['*'] },
-      { resource: 'Cars', action: 'SynchronizeCars', attributes: ['*'] },
-      { resource: 'Car', action: 'Read', attributes: ['*'] },
+      { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
+      { resource: 'CarCatalogs', action: 'SynchronizeCarCatalogs', attributes: ['*'] },
+      { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
     ]
   },
   admin: {
@@ -75,8 +75,8 @@ const GRANTS = {
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
       { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
-      { resource: 'Cars', action: 'List', attributes: ['*'] },
-      { resource: 'Car', action: 'Read', attributes: ['*'] },
+      { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
+      { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
     ]
   },
   basic: {

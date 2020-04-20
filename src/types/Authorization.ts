@@ -30,8 +30,8 @@ export enum Entity {
   CONNECTIONS = 'Connections',
   ASSET = 'Asset',
   ASSETS = 'Assets',
-  CAR = 'Car',
-  CARS = 'Cars',
+  CAR_CATALOG = 'CarCatalog',
+  CAR_CATALOGS = 'CarCatalogs',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes'
@@ -57,7 +57,7 @@ export enum Action {
   REGISTER = 'Register',
   REGISTER_USER = 'RegisterUser',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
-  SYNCHRONIZE_CARS = 'SynchronizeCars',
+  SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
   POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
@@ -175,8 +175,8 @@ export enum Action {
   OFFLINE_CHARGING_STATIONS = 'OfflineChargingStations',
   BILLING_USER_SYNCHRONIZATION_FAILED = 'BillingUserSynchronizationFailed',
 
-  CAR_SYNCHRONIZATION_FAILED = 'CarSynchronizationFailed',
-  CAR_SYNCHRONIZATION = 'CarSynchronization',
+  CAR_CATALOG_SYNCHRONIZATION_FAILED = 'CarCatalogSynchronizationFailed',
+  CAR_CATALOG_SYNCHRONIZATION = 'CarCatalogSynchronization',
 
   SESSION_NOT_STARTED_AFTER_AUTHORIZE = 'SessionNotStartedAfterAuthorize',
 

@@ -1,6 +1,6 @@
 import CarStorage from '../../storage/mongodb/CarStorage';
 import { Action } from '../../types/Authorization';
-import { Car } from '../../types/Car';
+import { CarCatalog } from '../../types/Car';
 import { ActionsResponse } from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -9,40 +9,40 @@ import Logging from '../../utils/Logging';
 const MODULE_NAME = 'CarDatabase';
 
 export default abstract class CarDatabase {
-  public abstract async getCars(): Promise<Car[]>;
+  public abstract async getCarCatalogs(): Promise<CarCatalog[]>;
 
-  public abstract async getCarThumb(car: Car): Promise<string>;
+  public abstract async getCarCatalogThumb(carCatalog: CarCatalog): Promise<string>;
 
-  public abstract async getCarImages(car: Car): Promise<string[]>;
+  public abstract async getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]>;
 
-  public async synchronizeCars(): Promise<ActionsResponse> {
+  public async synchronizeCarCatalogs(): Promise<ActionsResponse> {
     /* eslint-disable */
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };
     // Get the cars
-    const externalCars = await this.getCars();
+    const externalCars = await this.getCarCatalogs();
     for (const externalCar of externalCars) {
       try {
-        const internalCar = await CarStorage.getCar(externalCar.id);
+        const internalCar = await CarStorage.getCarCatalog(externalCar.id);
         if (!internalCar) {
           // New Car: Create it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           externalCar.createdOn = new Date();
           // Get image
-          externalCar.image = await this.getCarThumb(externalCar);
+          externalCar.image = await this.getCarCatalogThumb(externalCar);
           // Get images
-          externalCar.images = await this.getCarImages(externalCar);
+          externalCar.images = await this.getCarCatalogImages(externalCar);
           // Save
-          externalCar.id = await CarStorage.saveCar(externalCar, true);
+          externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_CARS,
-            module: MODULE_NAME, method: 'synchronizeCars',
+            action: Action.SYNCHRONIZE_CAR_CATALOGS,
+            module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
         } else if (Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
@@ -50,18 +50,18 @@ export default abstract class CarDatabase {
           internalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           internalCar.lastChangedOn = new Date();
           // Get image
-          internalCar.image = await this.getCarThumb(internalCar);
+          internalCar.image = await this.getCarCatalogThumb(internalCar);
           // Get images
-          internalCar.images = await this.getCarImages(internalCar);
+          internalCar.images = await this.getCarCatalogImages(internalCar);
           // Save
-          await CarStorage.saveCar(internalCar, true);
+          await CarStorage.saveCarCatalog(internalCar, true);
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_CARS,
-            module: MODULE_NAME, method: 'synchronizeCars',
+            action: Action.SYNCHRONIZE_CAR_CATALOGS,
+            module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${internalCar.id} - ${internalCar.vehicleMake} - ${internalCar.vehicleModel} has been updated successfully`,
           });
         }
@@ -70,8 +70,8 @@ export default abstract class CarDatabase {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CARS,
-          module: MODULE_NAME, method: 'synchronizeCars',
+          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          module: MODULE_NAME, method: 'synchronizeCarCatalogs',
           message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} got synchronization error`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
@@ -82,16 +82,16 @@ export default abstract class CarDatabase {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_CARS,
-        module: MODULE_NAME, method: 'synchronizeCars',
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        module: MODULE_NAME, method: 'synchronizeCarCatalogs',
         message: `${actionsDone.inSuccess} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
       });
     } else {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_CARS,
-        module: MODULE_NAME, method: 'synchronizeCars',
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        module: MODULE_NAME, method: 'synchronizeCarCatalogs',
         message: 'All the cars are up to date'
       });
     }
