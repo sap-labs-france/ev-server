@@ -17,6 +17,7 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
+import OCPILocationsService from './OCPILocationsService';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -65,7 +66,7 @@ const RECORDS_LIMIT = 20;
     };
     // Process request
     if (locationId && evseUid && connectorId) {
-      payload = await this.getConnector(tenant, locationId, evseUid, connectorId, options);
+      payload = await OCPILocationsService.getConnector(tenant, locationId, evseUid, connectorId, options);
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
@@ -78,7 +79,7 @@ const RECORDS_LIMIT = 20;
         });
       }
     } else if (locationId && evseUid) {
-      payload = await this.getEvse(tenant, locationId, evseUid, options);
+      payload = await OCPILocationsService.getEvse(tenant, locationId, evseUid, options);
       // Check if at least of site found
       if (!payload) {
         throw new AppError({
@@ -92,7 +93,7 @@ const RECORDS_LIMIT = 20;
       }
     } else if (locationId) {
       // Get single location
-      payload = await this.getLocation(tenant, locationId, options);
+      payload = await OCPILocationsService.getLocation(tenant, locationId, options);
 
       // Check if at least of site found
       if (!payload) {
@@ -129,63 +130,6 @@ const RECORDS_LIMIT = 20;
     return OCPIUtils.success(payload);
   }
 
-  /**
-   * Get OCPI Location from its id (Site ID)
-   * @param {*} tenant
-   * @param {*} locationId
-   */
-  async getLocation(tenant: Tenant, locationId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPILocation> {
-    // Get site
-    const site = await SiteStorage.getSite(tenant.id, locationId);
-    if (!site) {
-      return null;
-    }
-    // Convert
-    return await OCPIMapping.convertSite2Location(tenant, site, options);
-  }
 
-  /**
-   * Get OCPI EVSE from its location id/evse_id
-   * @param {*} tenant
-   * @param {*} locationId
-   * @param {*} evseId
-   */
-  async getEvse(tenant: Tenant, locationId: string, evseUid: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIEvse> {
-    // Get site
-    const site = await SiteStorage.getSite(tenant.id, locationId);
-    if (!site) {
-      return null;
-    }
-    // Convert to location
-    const location = await OCPIMapping.convertSite2Location(tenant, site, options);
-    // Loop through EVSE
-    if (location) {
-      for (const evse of location.evses) {
-        if (evse.uid === evseUid) {
-          return evse;
-        }
-      }
-    }
-  }
-
-  /**
-   * Get OCPI Connector from its location_id/evse_uid/connector id
-   * @param {*} tenant
-   * @param {*} locationId
-   * @param {*} evseUid
-   * @param {*} connectorId
-   */
-  async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }): Promise<OCPIConnector> {
-    // Get site
-    const evse = await this.getEvse(tenant, locationId, evseUid, options);
-    // Loop through Connector
-    if (evse) {
-      for (const connector of evse.connectors) {
-        if (connector.id === connectorId) {
-          return connector;
-        }
-      }
-    }
-  }
 }
 

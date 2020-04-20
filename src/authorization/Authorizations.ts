@@ -455,16 +455,16 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.COMPANY, Action.DELETE);
   }
 
-  public static canListCars(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
+  public static canListCarCatalogs(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.LIST);
   }
 
-  public static canReadCar(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
+  public static canReadCarCatalog(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOG, Action.READ);
   }
 
-  public static canSynchronizeCars(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.SYNCHRONIZE_CARS);
+  public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE_CAR_CATALOGS);
   }
 
   public static canListAssets(loggedUser: UserToken): boolean {
@@ -771,7 +771,7 @@ export default class Authorizations {
         sendOcpiPatchStatusError: false,
         sendSmtpAuthError: false,
         sendSessionNotStarted: false,
-        sendCarSynchronizationFailed: false
+        sendCarCatalogSynchronizationFailed: false
       } as UserNotifications;
       user.image = '';
       user.iNumber = '';

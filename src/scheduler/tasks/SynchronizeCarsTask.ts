@@ -14,7 +14,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
     try {
       const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
       if (carDatabaseImpl) {
-        const synchronizeAction = await carDatabaseImpl.synchronizeCars();
+        const synchronizeAction = await carDatabaseImpl.synchronizeCarCatalogs();
         if (synchronizeAction.inError > 0) {
           await NotificationHandler.sendCarsSynchronizationFailed({
             nbrCarsInError: synchronizeAction.inError,
@@ -26,7 +26,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'run',
-        action: Action.SYNCHRONIZE_CARS,
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
         message: `Error while running the task '${name}': ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

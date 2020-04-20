@@ -360,7 +360,12 @@ export default class TransactionService {
       });
     }
     // Get the consumption
-    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });
+    let consumptions: Consumption[];
+    if (filteredRequest.LoadAllConsumptions) {
+      consumptions = await ConsumptionStorage.getAllConsumptions(req.user.tenantID, { transactionId: transaction.id });
+    } else {
+      consumptions = await ConsumptionStorage.getOptimizedConsumptions(req.user.tenantID, { transactionId: transaction.id });
+    }
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
     const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;

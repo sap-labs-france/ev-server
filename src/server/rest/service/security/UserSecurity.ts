@@ -257,6 +257,9 @@ export default class UserSecurity {
         active: UtilsSecurity.filterBoolean(tag.active)
       };
     }
+    if (filteredTag.issuer) {
+      filteredTag.ocpiToken = tag.ocpiToken;
+    }
     return filteredTag;
   }
 
@@ -269,7 +272,7 @@ export default class UserSecurity {
       sendEndOfSession: notifications ? UtilsSecurity.filterBoolean(notifications.sendEndOfSession) : false,
       sendUserAccountStatusChanged: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountStatusChanged) : false,
       sendSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendSessionNotStarted) : false,
-      sendCarSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendCarSynchronizationFailed) : false,
+      sendCarCatalogSynchronizationFailed: notifications ? UtilsSecurity.filterBoolean(notifications.sendCarCatalogSynchronizationFailed) : false,
       sendUserAccountInactivity: notifications ? UtilsSecurity.filterBoolean(notifications.sendUserAccountInactivity) : false,
       sendPreparingSessionNotStarted: notifications ? UtilsSecurity.filterBoolean(notifications.sendPreparingSessionNotStarted) : false,
       sendBillingUserSynchronizationFailed: false,

@@ -11,13 +11,13 @@ export default class InitialCarImportTask extends MigrationTask {
     try {
       const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
       if (carDatabaseImpl) {
-        await carDatabaseImpl.synchronizeCars();
+        await carDatabaseImpl.synchronizeCarCatalogs();
       }
     } catch (error) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
-        action: Action.CAR_SYNCHRONIZATION,
+        action: Action.CAR_CATALOG_SYNCHRONIZATION,
         message: `Error while importing the Cars: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

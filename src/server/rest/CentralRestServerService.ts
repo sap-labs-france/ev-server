@@ -103,10 +103,10 @@ class RequestMapper {
           Logging: LoggingService.handleGetLogging.bind(this),
           LoggingsExport: LoggingService.handleGetLoggingsExport.bind(this),
           ChargingStations: ChargingStationService.handleGetChargingStations.bind(this),
-          Cars: CarService.handleGetCars.bind(this),
-          Car: CarService.handleGetCar.bind(this),
+          CarCatalogs: CarService.handleGetCarCatalogs.bind(this),
+          CarCatalog: CarService.handleGetCarCatalog.bind(this),
           CarMakers: CarService.handleGetCarMakers.bind(this),
-          CarImages: CarService.handleGetCarImages.bind(this),
+          CarCatalogImages: CarService.handleGetCarCatalogImages.bind(this),
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport.bind(this),
           ChargingStationsOCPPParamsExport:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           ChargingStation: ChargingStationService.handleGetChargingStation.bind(this),
@@ -202,7 +202,7 @@ class RequestMapper {
           OcpiEndpointUpdate: OCPIEndpointService.handleUpdateOcpiEndpoint.bind(this),
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint.bind(this),
           OcpiEndpointUnregister: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
-          SynchronizeCars: CarService.handleSynchronizeCars.bind(this),
+          SynchronizeCarCatalogs: CarService.handleSynchronizeCarCatalogs.bind(this),
           _default: UtilsService.handleUnknownAction.bind(this)
         });
         break;

@@ -1,7 +1,7 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { Car, CarMaker } from '../../../../types/Car';
+import { CarCatalog, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpCarByIDRequest, HttpCarImagesRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
@@ -9,86 +9,87 @@ import sanitize = require('mongo-sanitize');
 export default class CarSecurity {
 
   public static filterCarMakersRequest(request: any): HttpCarMakersRequest {
-    const filteredRequest: HttpCarsRequest = {
+    const filteredRequest: HttpCarMakersRequest = {
       Search: sanitize(request.Search),
-    } as HttpCarsRequest;
+    } as HttpCarMakersRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterCarsRequest(request: any): HttpCarsRequest {
-    const filteredRequest: HttpCarsRequest = {
+  public static filterCarCatalogsRequest(request: any): HttpCarCatalogsRequest {
+    const filteredRequest: HttpCarCatalogsRequest = {
       Search: sanitize(request.Search),
       CarMaker: sanitize(request.CarMaker),
-    } as HttpCarsRequest;
+    } as HttpCarCatalogsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterCarImagesRequest(request: any): HttpCarImagesRequest {
-    const filteredRequest: HttpCarImagesRequest = {
-      CarID: sanitize(request.CarID),
-    } as HttpCarImagesRequest;
+  public static filterCarCatalogImagesRequest(request: any): HttpCarCatalogImagesRequest {
+    const filteredRequest: HttpCarCatalogImagesRequest = {
+      CarID: sanitize(request.CarCatalogID),
+    } as HttpCarCatalogImagesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterCarRequest(request: any): HttpCarByIDRequest {
-    const filteredRequest: HttpCarByIDRequest = {
-      ID: +sanitize(request.CarID),
-    } as HttpCarByIDRequest;
+  public static filterCarCatalogRequest(request: any): HttpCarCatalogByIDRequest {
+    const filteredRequest: HttpCarCatalogByIDRequest = {
+      ID: +sanitize(request.CarCatalogID),
+    } as HttpCarCatalogByIDRequest;
     return filteredRequest;
   }
 
-  public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
-    let filteredCar: Car;
-    if (!car) {
+  public static filterCarCatalogResponse(carCatalog: CarCatalog, loggedUser: UserToken): CarCatalog {
+    let filteredCarCatalog;
+
+    if (!carCatalog) {
       return null;
     }
     // Check auth
     if (Authorizations.isSuperAdmin(loggedUser)) {
-      filteredCar = car;
-    } else if (Authorizations.canReadCar(loggedUser)) {
-      filteredCar = {
-        id: car.id,
-        vehicleModel: car.vehicleModel,
-        vehicleMake: car.vehicleMake,
-        batteryCapacityFull: car.batteryCapacityFull,
-        fastChargeSpeed: car.fastChargeSpeed,
-        performanceTopspeed: car.performanceTopspeed,
-        chargeStandardPower: car.chargeStandardPower,
-        chargeStandardPhase: car.chargeStandardPhase,
-        vehicleModelVersion: car.vehicleModelVersion,
-        performanceAcceleration: car.performanceAcceleration,
-        rangeReal: car.rangeReal,
-        rangeWLTP: car.rangeWLTP,
-        efficiencyReal: car.efficiencyReal,
-        chargeStandardChargeSpeed: car.chargeStandardChargeSpeed,
-        drivetrainPropulsion: car.drivetrainPropulsion,
-        drivetrainTorque: car.drivetrainTorque,
-        batteryCapacityUseable: car.batteryCapacityUseable,
-        chargePlug: car.chargePlug,
-        fastChargePlug: car.fastChargePlug,
-        fastChargePowerMax: car.fastChargePowerMax,
-        chargePlugLocation: car.chargePlugLocation,
-        drivetrainPowerHP: car.drivetrainPowerHP,
-        chargeStandardChargeTime: car.chargeStandardChargeTime,
-        miscSeats: car.miscSeats,
-        miscBody: car.miscBody,
-        miscIsofix: car.miscIsofix,
-        miscTurningCircle: car.miscTurningCircle,
-        miscSegment: car.miscSegment,
-        miscIsofixSeats: car.miscIsofixSeats,
-        chargeStandardTables: car.chargeStandardTables,
-        image: car.image,
-      } as Car;
+      filteredCarCatalog = carCatalog;
+    } else if (Authorizations.canReadCarCatalog(loggedUser)) {
+      filteredCarCatalog = {
+        id: carCatalog.id,
+        vehicleModel: carCatalog.vehicleModel,
+        vehicleMake: carCatalog.vehicleMake,
+        batteryCapacityFull: carCatalog.batteryCapacityFull,
+        fastChargeSpeed: carCatalog.fastChargeSpeed,
+        performanceTopspeed: carCatalog.performanceTopspeed,
+        chargeStandardPower: carCatalog.chargeStandardPower,
+        chargeStandardPhase: carCatalog.chargeStandardPhase,
+        vehicleModelVersion: carCatalog.vehicleModelVersion,
+        performanceAcceleration: carCatalog.performanceAcceleration,
+        rangeReal: carCatalog.rangeReal,
+        rangeWLTP: carCatalog.rangeWLTP,
+        efficiencyReal: carCatalog.efficiencyReal,
+        chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
+        drivetrainPropulsion: carCatalog.drivetrainPropulsion,
+        drivetrainTorque: carCatalog.drivetrainTorque,
+        batteryCapacityUseable: carCatalog.batteryCapacityUseable,
+        chargePlug: carCatalog.chargePlug,
+        fastChargePlug: carCatalog.fastChargePlug,
+        fastChargePowerMax: carCatalog.fastChargePowerMax,
+        chargePlugLocation: carCatalog.chargePlugLocation,
+        drivetrainPowerHP: carCatalog.drivetrainPowerHP,
+        chargeStandardChargeTime: carCatalog.chargeStandardChargeTime,
+        miscSeats: carCatalog.miscSeats,
+        miscBody: carCatalog.miscBody,
+        miscIsofix: carCatalog.miscIsofix,
+        miscTurningCircle: carCatalog.miscTurningCircle,
+        miscSegment: carCatalog.miscSegment,
+        miscIsofixSeats: carCatalog.miscIsofixSeats,
+        chargeStandardTables: carCatalog.chargeStandardTables,
+        image: carCatalog.image,
+      } as CarCatalog;
     }
     // Created By / Last Changed By
-    UtilsSecurity.filterCreatedAndLastChanged(filteredCar, car, loggedUser);
-    return filteredCar;
+    UtilsSecurity.filterCreatedAndLastChanged(filteredCarCatalog, carCatalog, loggedUser);
+    return filteredCarCatalog;
   }
 
   public static filterCarMakersResponse(carMakers: DataResult<CarMaker>, loggedUser: UserToken) {
@@ -96,7 +97,7 @@ export default class CarSecurity {
     if (!carMakers) {
       return null;
     }
-    if (!Authorizations.canReadCar(loggedUser)) {
+    if (!Authorizations.canReadCarCatalog(loggedUser)) {
       return null;
     }
     for (const carMaker of carMakers.result) {
@@ -107,41 +108,41 @@ export default class CarSecurity {
     carMakers.result = filteredCarConstructors;
   }
 
-  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
-    const filteredCars = [];
+  public static filterCarCatalogsResponse(carCatalogs: DataResult<CarCatalog>, loggedUser: UserToken) {
+    const filteredCarCatalogs = [];
 
-    if (!cars.result) {
+    if (!carCatalogs.result) {
       return null;
     }
-    if (!Authorizations.canListCars(loggedUser)) {
+    if (!Authorizations.canListCarCatalogs(loggedUser)) {
       return null;
     }
-    for (const car of cars.result) {
+    for (const carCatalog of carCatalogs.result) {
       // Add
-      if (car) {
-        filteredCars.push({
-          id: car.id,
-          vehicleModel: car.vehicleModel,
-          vehicleMake: car.vehicleMake,
-          batteryCapacityFull: car.batteryCapacityFull,
-          fastChargeSpeed: car.fastChargeSpeed,
-          performanceTopspeed: car.performanceTopspeed,
-          chargeStandardPower: car.chargeStandardPower,
-          chargePlug: car.chargePlug,
-          fastChargePlug: car.fastChargePlug,
-          fastChargePowerMax: car.fastChargePowerMax,
-          drivetrainPowerHP: car.drivetrainPowerHP,
-          chargeStandardPhase: car.chargeStandardPhase,
-          vehicleModelVersion: car.vehicleModelVersion,
-          performanceAcceleration: car.performanceAcceleration,
-          rangeReal: car.rangeReal,
-          rangeWLTP: car.rangeWLTP,
-          efficiencyReal: car.efficiencyReal,
-          image: car.image,
-          chargeStandardChargeSpeed: car.chargeStandardChargeSpeed
+      if (carCatalog) {
+        filteredCarCatalogs.push({
+          id: carCatalog.id,
+          vehicleModel: carCatalog.vehicleModel,
+          vehicleMake: carCatalog.vehicleMake,
+          batteryCapacityFull: carCatalog.batteryCapacityFull,
+          fastChargeSpeed: carCatalog.fastChargeSpeed,
+          performanceTopspeed: carCatalog.performanceTopspeed,
+          chargeStandardPower: carCatalog.chargeStandardPower,
+          chargePlug: carCatalog.chargePlug,
+          fastChargePlug: carCatalog.fastChargePlug,
+          fastChargePowerMax: carCatalog.fastChargePowerMax,
+          drivetrainPowerHP: carCatalog.drivetrainPowerHP,
+          chargeStandardPhase: carCatalog.chargeStandardPhase,
+          vehicleModelVersion: carCatalog.vehicleModelVersion,
+          performanceAcceleration: carCatalog.performanceAcceleration,
+          rangeReal: carCatalog.rangeReal,
+          rangeWLTP: carCatalog.rangeWLTP,
+          efficiencyReal: carCatalog.efficiencyReal,
+          image: carCatalog.image,
+          chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed
         });
       }
     }
-    cars.result = filteredCars;
+    carCatalogs.result = filteredCarCatalogs;
   }
 }
