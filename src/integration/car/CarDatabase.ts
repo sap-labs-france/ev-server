@@ -10,7 +10,6 @@ const MODULE_NAME = 'CarDatabase';
 
 export default abstract class CarDatabase {
   public async synchronizeCarCatalogs(): Promise<ActionsResponse> {
-    /* eslint-disable */
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
