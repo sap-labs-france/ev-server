@@ -7,7 +7,7 @@ export default class CarApi extends CrudApi {
   }
 
   public async readById(id) {
-    return super.read({ CarID: id }, '/client/api/CarCatalog');
+    return super.read({ CarCatalogID: id }, '/client/api/CarCatalog');
   }
 
   public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
@@ -19,7 +19,7 @@ export default class CarApi extends CrudApi {
   }
 
   public async readCarImages(id) {
-    return super.read({ CarID: id }, '/client/api/CarCatalogImages');
+    return super.read({ CarCatalogID: id }, '/client/api/CarCatalogImages');
   }
 
 }

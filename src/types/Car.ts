@@ -152,6 +152,7 @@ export interface ChargeAlternativeTable {
 export interface ChargeStandardTable {
   type: string;
   evsePhaseVolt: number;
+  evsePhaseVoltCalculated: number;
   evsePhaseAmp: number;
   evsePhase: number;
   chargePhaseVolt: number;
