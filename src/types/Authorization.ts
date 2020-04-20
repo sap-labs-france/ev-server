@@ -91,6 +91,8 @@ export enum Action {
   OCPI_PULL_LOCATIONS = 'OCPIPullLocations',
   OCPI_PULL_SESSIONS = 'OCPIPullSessions',
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
+  OCPI_START_SESSION = 'OCPIStartSession',
+  OCPI_STOP_SESSION = 'OCPIStopSession',
   OCPI_GET_VERSIONS = 'OCPIGetVersions',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_GET_SESSIONS = 'OCPIGetSessions',
