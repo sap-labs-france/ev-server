@@ -86,14 +86,6 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
     });
   }
 
-  private computeValidUntilAt(result) {
-    return new Date(result.data.refresh_expires_in * 1000);
-  }
-
-  private isTokenExpired(connection: Connection) {
-    return moment(connection.updatedAt).add(connection.data.expires_in, 'seconds').isBefore(moment.now());
-  }
-
   public async createConnection(userId: string, data: any): Promise<Connection> {
     try {
       Logging.logDebug({
@@ -244,6 +236,14 @@ export default class ConcurRefundConnector extends RefundConnector<ConcurRefundS
       }
     }
     return true;
+  }
+
+  private computeValidUntilAt(result) {
+    return new Date(result.data.refresh_expires_in * 1000);
+  }
+
+  private isTokenExpired(connection: Connection) {
+    return moment(connection.updatedAt).add(connection.data.expires_in, 'seconds').isBefore(moment.now());
   }
 
   private async getLocation(tenantID: string, connection: Connection, site: Site): Promise<ConcurLocation> {

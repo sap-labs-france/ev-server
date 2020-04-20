@@ -9,14 +9,7 @@ import Logging from '../../utils/Logging';
 const MODULE_NAME = 'CarDatabase';
 
 export default abstract class CarDatabase {
-  public abstract async getCars(): Promise<Car[]>;
-
-  public abstract async getCarThumb(car: Car): Promise<string>;
-
-  public abstract async getCarImages(car: Car): Promise<string[]>;
-
   public async synchronizeCars(): Promise<ActionsResponse> {
-    /* eslint-disable */
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
@@ -97,4 +90,10 @@ export default abstract class CarDatabase {
     }
     return actionsDone;
   }
+
+  public abstract async getCars(): Promise<Car[]>;
+
+  public abstract async getCarThumb(car: Car): Promise<string>;
+
+  public abstract async getCarImages(car: Car): Promise<string[]>;
 }
