@@ -6,11 +6,11 @@ export default class SiteApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/Site');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Sites');
   }
 
@@ -27,18 +27,18 @@ export default class SiteApi extends CrudApi {
     return site;
   }
 
-  public addUsersToSite(siteId, userIds) {
+  public async addUsersToSite(siteId, userIds) {
     return super.create({
       siteID: siteId,
       userIDs: userIds
     }, '/client/api/AddUsersToSite');
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/SiteUpdate');
   }
 
-  public delete(id) {
+  public async delete(id) {
     return super.delete(id, '/client/api/SiteDelete');
   }
 }

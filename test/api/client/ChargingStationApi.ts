@@ -12,43 +12,43 @@ export default class ChargingStationApi extends CrudApi {
     this._baseApi = baseApi;
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/ChargingStation');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStations');
   }
 
-  public readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStationsInError');
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/ChargingStationUpdateParams');
   }
 
-  public delete(id) {
+  public async delete(id) {
     return super.delete(id, '/client/api/ChargingStationDelete');
   }
 
-  public readConfiguration(chargeBoxID) {
+  public async readConfiguration(chargeBoxID) {
     return super.read({ ChargeBoxID: chargeBoxID }, '/client/api/ChargingStationOcppParameters');
   }
 
-  public readConsumptionStatistics(year) {
+  public async readConsumptionStatistics(year) {
     return super.read({ Year: year }, '/client/api/ChargingStationConsumptionStatistics');
   }
 
-  public readUsageStatistics(year) {
+  public async readUsageStatistics(year) {
     return super.read({ Year: year }, '/client/api/ChargingStationUsageStatistics');
   }
 
-  public readAllTransactions(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllTransactions(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStationTransactions');
   }
 
-  public readAllYears(params) {
+  public async readAllYears(params) {
     return super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
@@ -61,7 +61,7 @@ export default class ChargingStationApi extends CrudApi {
     return await super.read(params, '/client/api/IsAuthorized');
   }
 
-  public updateParams(data) {
+  public async updateParams(data) {
     return super.update(data, '/client/api/ChargingStationUpdateParams');
   }
 
