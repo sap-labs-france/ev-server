@@ -1,6 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
-/*eslint-disable*/
 export interface CarCatalog extends CreatedUpdatedProps{
   id: number;
   vehicleMake: string;
