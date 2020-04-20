@@ -188,6 +188,9 @@
     "test:car": "cross-env TS_NODE_FILES=true mocha test/**/CarTest.ts --exit",
     "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts --exit",
     "clinic:clean": "clinic clean",
-    "npm-check": "npm-check"
+    "npm-check": "npm-check",
+    "git:sdiff": "!git diff && git submodule foreach 'git diff'",
+    "git:supdate": "git submodule update --remote --merge",
+    "git:spush": "git push --recurse-submodules=on-demand"
   }
 }
