@@ -1,5 +1,6 @@
 import * as HttpStatus from 'http-status-codes';
-import { NextFunction, Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
+import { Action } from '../types/Authorization';
 import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -8,14 +9,12 @@ import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
 import cors from 'cors';
-import express from 'express';
 import fs from 'fs';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
-import { Action } from '../types/Authorization';
 
 bodyParserXml(bodyParser);
 

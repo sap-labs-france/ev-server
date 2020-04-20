@@ -1,12 +1,9 @@
+import Constants from '../../../utils/Constants';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import OCPPService from '../OCPPService';
 import WSClient from '../../../../src/client/websocket/WSClient';
-
-// FIXME: use defined constants in Constants.ts
-const OCPP_JSON_CALL_MESSAGE = 2;
-const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
 export default class OCPPJsonService16 extends OCPPService {
   private _wsSessions: any;
@@ -58,7 +55,7 @@ export default class OCPPJsonService16 extends OCPPService {
           // Parse the message
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
-          if (messageJson[0] === OCPP_JSON_CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
+          if (messageJson[0] === Constants.OCPP_JSON_CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
             const response: any = {};
             // Set the data
             response.responseMessageId = messageJson[1];
@@ -66,7 +63,7 @@ export default class OCPPJsonService16 extends OCPPService {
             response.data = messageJson[2];
             // Respond to the request
             sentRequests[messageJson[1]].resolve(response);
-          } else if (messageJson[0] === OCPP_JSON_CALL_MESSAGE) {
+          } else if (messageJson[0] === Constants.OCPP_JSON_CALL_MESSAGE) {
             const [messageType, messageId, commandName, commandPayload] = messageJson;
             await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
           }
@@ -166,7 +163,7 @@ export default class OCPPJsonService16 extends OCPPService {
     this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
       // pragma console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
-    if (message[0] === OCPP_JSON_CALL_MESSAGE) {
+    if (message[0] === Constants.OCPP_JSON_CALL_MESSAGE) {
       // Return a promise
       return await new Promise((resolve, reject) => {
         // Set the resolve function
@@ -178,7 +175,7 @@ export default class OCPPJsonService16 extends OCPPService {
   private _buildRequest(command, payload) {
     // Build the request
     return [
-      OCPP_JSON_CALL_MESSAGE,
+      Constants.OCPP_JSON_CALL_MESSAGE,
       uuid(),
       command,
       payload];
@@ -187,7 +184,7 @@ export default class OCPPJsonService16 extends OCPPService {
   private _buildResponse(messageId, payload) {
     // Build the request
     return [
-      OCPP_JSON_CALL_RESULT_MESSAGE,
+      Constants.OCPP_JSON_CALL_MESSAGE,
       messageId,
       payload];
   }

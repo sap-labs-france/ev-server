@@ -34,55 +34,55 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     this.requests = {};
   }
 
-  public remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
+  public async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
     return this._sendMessage(this._buildRequest(Action.REMOTE_START_TRANSACTION, params));
   }
 
-  public reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
+  public async reset(params: OCPPResetCommandParam): Promise<OCPPResetCommandResult> {
     return this._sendMessage(this._buildRequest(Action.RESET, params));
   }
 
-  public clearCache(): Promise<OCPPClearCacheCommandResult> {
+  public async clearCache(): Promise<OCPPClearCacheCommandResult> {
     return this._sendMessage(this._buildRequest(Action.CLEAR_CACHE));
   }
 
-  public getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
+  public async getConfiguration(params: OCPPGetConfigurationCommandParam): Promise<OCPPGetConfigurationCommandResult> {
     return this._sendMessage(this._buildRequest(Action.GET_CONFIGURATION, params));
   }
 
-  public changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
+  public async changeConfiguration(params: OCPPChangeConfigurationCommandParam): Promise<OCPPChangeConfigurationCommandResult> {
     return this._sendMessage(this._buildRequest(Action.CHANGE_CONFIGURATION, params));
   }
 
-  public remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
+  public async remoteStopTransaction(params: OCPPRemoteStopTransactionCommandParam): Promise<OCPPRemoteStopTransactionCommandResult> {
     return this._sendMessage(this._buildRequest(Action.REMOTE_STOP_TRANSACTION, params));
   }
 
-  public unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
+  public async unlockConnector(params: OCPPUnlockConnectorCommandParam): Promise<OCPPUnlockConnectorCommandResult> {
     return this._sendMessage(this._buildRequest(Action.UNLOCK_CONNECTOR, params));
   }
 
-  public setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
+  public async setChargingProfile(params: OCPPSetChargingProfileCommandParam): Promise<OCPPSetChargingProfileCommandResult> {
     return this._sendMessage(this._buildRequest(Action.SET_CHARGING_PROFILE, params));
   }
 
-  public getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
+  public async getCompositeSchedule(params: OCPPGetCompositeScheduleCommandParam): Promise<OCPPGetCompositeScheduleCommandResult> {
     return this._sendMessage(this._buildRequest(Action.GET_COMPOSITE_SCHEDULE, params));
   }
 
-  public clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
+  public async clearChargingProfile(params: OCPPClearChargingProfileCommandParam): Promise<OCPPClearChargingProfileCommandResult> {
     return this._sendMessage(this._buildRequest(Action.CLEAR_CHARGING_PROFILE, params));
   }
 
-  public changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
+  public async changeAvailability(params: OCPPChangeAvailabilityCommandParam): Promise<OCPPChangeAvailabilityCommandResult> {
     return this._sendMessage(this._buildRequest(Action.CHANGE_AVAILABILITY, params));
   }
 
-  public getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
+  public async getDiagnostics(params: OCPPGetDiagnosticsCommandParam): Promise<OCPPGetDiagnosticsCommandResult> {
     return this._sendMessage(this._buildRequest(Action.GET_DIAGNOSTICS, params));
   }
 
-  public updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
+  public async updateFirmware(params: OCPPUpdateFirmwareCommandParam): Promise<void> {
     return this._sendMessage(this._buildRequest(Action.UPDATE_FIRMWARE, params));
   }
 

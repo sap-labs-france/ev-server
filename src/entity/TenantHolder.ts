@@ -12,7 +12,9 @@ export default abstract class TenantHolder {
   public constructor(tenantID: string, lazyLoadTenant = true) {
     this.tenantID = tenantID;
     if (!lazyLoadTenant) {
-      this.getTenant();
+      this.getTenant().catch(
+        () => {}
+      );
     }
   }
 
