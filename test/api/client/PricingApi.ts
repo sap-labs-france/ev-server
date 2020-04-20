@@ -5,7 +5,7 @@ export default class SiteApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/PricingUpdate');
   }
 }

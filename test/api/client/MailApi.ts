@@ -5,11 +5,11 @@ export default class MailApi extends CrudApi {
     super(baseApi);
   }
 
-  public readAllMails() {
+  public async readAllMails() {
     return super.read(null, '/email');
   }
 
-  public deleteAllMails() {
+  public async deleteAllMails() {
     return super.delete(null, '/email/all');
   }
 

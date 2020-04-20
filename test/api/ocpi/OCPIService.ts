@@ -3,7 +3,6 @@ import chaiSubset from 'chai-subset';
 import config from '../../config';
 import BaseApi from '../client/utils/BaseApi';
 import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
-import TenantContext from '../contextProvider/TenantContext';
 
 // Set
 chai.use(chaiSubset);

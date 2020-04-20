@@ -14,13 +14,13 @@ export default abstract class Pricing<T extends PricingSetting> {
     this.transaction = transaction;
   }
 
+  protected getSettings(): T {
+    return this.setting;
+  }
+
   async abstract startSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   async abstract updateSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   async abstract stopSession(consumptionData: Consumption): Promise<PricedConsumption>;
-
-  protected getSettings(): T {
-    return this.setting;
-  }
 }

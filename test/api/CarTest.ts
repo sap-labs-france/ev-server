@@ -1,6 +1,6 @@
 import chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
-import chai, { assert, expect } from 'chai';
+import chai, { expect } from 'chai';
 import config from '../config';
 import TestData from './client/utils/TestData';
 

@@ -9,19 +9,19 @@ export default class TenantApi extends CrudApi {
     this._baseApi = baseApi;
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/Tenant');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Tenants');
   }
 
-  public create(data) {
+  public async create(data) {
     return super.create(data, '/client/api/TenantCreate');
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/TenantUpdate');
   }
 
