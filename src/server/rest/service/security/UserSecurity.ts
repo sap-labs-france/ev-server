@@ -257,6 +257,9 @@ export default class UserSecurity {
         active: UtilsSecurity.filterBoolean(tag.active)
       };
     }
+    if (filteredTag.issuer) {
+      filteredTag.ocpiToken = tag.ocpiToken
+    }
     return filteredTag;
   }
 

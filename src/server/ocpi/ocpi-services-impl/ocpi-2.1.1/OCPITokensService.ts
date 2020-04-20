@@ -9,7 +9,7 @@ import Constants from '../../../../utils/Constants';
 import OCPIUtils from '../../OCPIUtils';
 import OCPIMapping from './OCPIMapping';
 
-const MODULE_NAME = 'EMSPTokensEndpoint';
+const MODULE_NAME = 'OCPITokensService';
 
 export default class OCPITokensService {
 
@@ -85,6 +85,19 @@ export default class OCPITokensService {
     }
   }
 
+  public static validateToken(token: OCPIToken): boolean {
+    if (!token.uid
+      || !token.auth_id
+      || !token.type
+      || !token.issuer
+      || !token.whitelist
+      || !token.last_updated
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   private static async checkExistingTag(tenantId: string, token: OCPIToken): Promise<void> {
     const existingTag = await UserStorage.getTag(tenantId, token.uid);
     if (existingTag) {
@@ -104,18 +117,5 @@ export default class OCPITokensService {
         }
       }
     }
-  }
-
-  private static validateToken(token: OCPIToken): boolean {
-    if (!token.uid
-      || !token.auth_id
-      || !token.type
-      || !token.issuer
-      || !token.whitelist
-      || !token.last_updated
-    ) {
-      return false;
-    }
-    return true;
   }
 }
