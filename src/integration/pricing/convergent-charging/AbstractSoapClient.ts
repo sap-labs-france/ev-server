@@ -20,7 +20,7 @@ export default abstract class AbstractSoapClient {
     this.service = service;
   }
 
-  public execute(request: any): Promise<{executionTime: number; headers: any; data: any}> {
+  public async execute(request: any): Promise<{executionTime: number; headers: any; data: any}> {
     return this._execute(
       this._buildSOAPRequest(request.getName(), request)
     );

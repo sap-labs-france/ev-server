@@ -6,23 +6,23 @@ export default class AssetApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/Asset');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Assets');
   }
 
-  public create(data) {
+  public async create(data) {
     return super.create(data, '/client/api/AssetCreate');
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/AssetUpdate');
   }
 
-  public delete(id) {
+  public async delete(id) {
     return super.delete(id, '/client/api/AssetDelete');
   }
 }

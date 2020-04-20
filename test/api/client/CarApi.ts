@@ -1,24 +1,24 @@
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class CarApi extends CrudApi {
   public constructor(authenticatedApi) {
     super(authenticatedApi);
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.read({ CarID: id }, '/client/api/Car');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Cars');
   }
 
-  public readCarMakers(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readCarMakers(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/CarMakers');
   }
 
-  public readCarImages(id) {
+  public async readCarImages(id) {
     return super.read({ CarID: id }, '/client/api/CarImages');
   }
 

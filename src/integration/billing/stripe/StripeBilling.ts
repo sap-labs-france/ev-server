@@ -82,7 +82,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
         action: Action.BILLING_CHECK_CONNECTION,
-        message: `Error occured when connecting to Stripe: ${error.message}`,
+        message: `Error occurred when connecting to Stripe: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
@@ -91,7 +91,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
         action: Action.BILLING_CHECK_CONNECTION,
-        message: 'Error occured when connecting to Stripe: Invalid key'
+        message: 'Error occurred when connecting to Stripe: Invalid key'
       });
     }
   }

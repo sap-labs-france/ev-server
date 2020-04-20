@@ -30,13 +30,13 @@
     "distPath": "../dist/front-end"
   },
   "WSDLEndpoint": {
-    "baseUrl": "http://localhost:8000"
+    "baseUrl": "http://server-standalone:8000"
   },
   "JsonEndpoint": {
-    "baseUrl": "ws://localhost:8010"
+    "baseUrl": "ws://server-standalone:8010"
   },
   "OCPIEndpoint": {
-    "baseUrl": "http://localhost:9090"
+    "baseUrl": "http://server-standalone:9090"
   },
   "WSClient": {
     "autoReconnectMaxRetries": 10,

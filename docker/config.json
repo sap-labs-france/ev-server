@@ -76,13 +76,13 @@
     "externalProtocol": "http"
   },
   "WSDLEndpoint": {
-    "baseUrl": "http://localhost:8000"
+    "baseUrl": "http://server:8000"
   },
   "JsonEndpoint": {
-    "baseUrl": "ws://localhost:8010"
+    "baseUrl": "ws://server:8010"
   },
   "OCPIEndpoint": {
-    "baseUrl": "http://localhost:9090"
+    "baseUrl": "http://server:9090"
   },
   "WSClient": {
     "autoReconnectMaxRetries": 10,

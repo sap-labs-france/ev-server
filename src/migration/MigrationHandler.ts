@@ -84,7 +84,7 @@ export default class MigrationHandler {
         if (currentMigrationTask.isAsynchronous()) {
           // Execute Async
           setTimeout(() => {
-            MigrationHandler._executeTask(currentMigrationTask);
+            MigrationHandler._executeTask(currentMigrationTask).catch(() => {});
           }, 1000);
         } else {
           // Execute Sync

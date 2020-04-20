@@ -27,47 +27,47 @@ export default class StatisticsApi extends CrudApi {
     return number;
   }
 
-  public readAllYears() {
+  public async readAllYears() {
     return super.read({}, '/client/api/TransactionYears');
   }
 
-  public readChargingStationConsumption(params) {
+  public async readChargingStationConsumption(params) {
     return super.read(params, '/client/api/ChargingStationConsumptionStatistics');
   }
 
-  public readUserConsumption(params) {
+  public async readUserConsumption(params) {
     return super.read(params, '/client/api/UserConsumptionStatistics');
   }
 
-  public readChargingStationUsage(params) {
+  public async readChargingStationUsage(params) {
     return super.read(params, '/client/api/ChargingStationUsageStatistics');
   }
 
-  public readUserUsage(params) {
+  public async readUserUsage(params) {
     return super.read(params, '/client/api/UserUsageStatistics');
   }
 
-  public readChargingStationInactivity(params) {
+  public async readChargingStationInactivity(params) {
     return super.read(params, '/client/api/ChargingStationInactivityStatistics');
   }
 
-  public readUserInactivity(params) {
+  public async readUserInactivity(params) {
     return super.read(params, '/client/api/UserInactivityStatistics');
   }
 
-  public readChargingStationTransactions(params) {
+  public async readChargingStationTransactions(params) {
     return super.read(params, '/client/api/ChargingStationTransactionsStatistics');
   }
 
-  public readUserTransactions(params) {
+  public async readUserTransactions(params) {
     return super.read(params, '/client/api/UserTransactionsStatistics');
   }
 
-  public readChargingStationPricing(params) {
+  public async readChargingStationPricing(params) {
     return super.read(params, '/client/api/ChargingStationPricingStatistics');
   }
 
-  public readUserPricing(params) {
+  public async readUserPricing(params) {
     return super.read(params, '/client/api/UserPricingStatistics');
   }
 
