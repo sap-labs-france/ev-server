@@ -24,5 +24,4 @@ export default interface Consumption {
   limitAmps?: number;
   limitWatts?: number;
   limitSource?: ConnectorCurrentLimitSource;
-  limitSiteArea?: number;
 }
