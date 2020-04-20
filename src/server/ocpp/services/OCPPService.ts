@@ -1224,6 +1224,12 @@ export default class OCPPService {
             consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
             consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
           }
+
+          // Store the current limit of the site area
+          if (chargingStation.siteArea.maximumPower) {
+            consumption.limitSiteArea = chargingStation.siteArea.maximumPower;
+          }
+
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
             (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
