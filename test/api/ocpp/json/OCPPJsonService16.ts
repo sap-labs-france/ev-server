@@ -1,9 +1,9 @@
-import Constants from '../../../utils/Constants';
-import config from '../../../config';
 import { performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
-import OCPPService from '../OCPPService';
 import WSClient from '../../../../src/client/websocket/WSClient';
+import Constants from '../../../../src/utils/Constants';
+import config from '../../../config';
+import OCPPService from '../OCPPService';
 
 export default class OCPPJsonService16 extends OCPPService {
   private _wsSessions: any;
