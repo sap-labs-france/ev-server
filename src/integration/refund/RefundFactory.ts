@@ -1,12 +1,13 @@
-import Constants from '../../utils/Constants';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { RefundSetting, RefundSettingsType } from '../../types/Setting';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import RefundConnector from './RefundConnector';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import RefundConnector from './RefundConnector';
+import path from 'path';
 
 const MODULE_NAME = 'RefundFactory';
 
@@ -21,7 +22,7 @@ export default class RefundFactory {
       if (setting) {
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            const ConcurRefundConnector = await Utils.importModule('./concur/ConcurRefundConnector');
+            const ConcurRefundConnector = await Utils.importModule(path.join(__dirname, '/concur/ConcurRefundConnector'));
             return new ConcurRefundConnector(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
           default:
             break;

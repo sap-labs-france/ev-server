@@ -27,6 +27,7 @@ import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
+import path from 'path';
 
 const MODULE_NAME = 'UserService';
 
@@ -1104,9 +1105,9 @@ export default class UserService {
       });
     }
     // Create services
-    const RatingService = await Utils.importModule('../../../integration/pricing/convergent-charging/RatingService');
+    const RatingService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/RatingService'));
     const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const ERPService = await Utils.importModule('../../../integration/pricing/convergent-charging/ERPService');
+    const ERPService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/ERPService'));
     const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {

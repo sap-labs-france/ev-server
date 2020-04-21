@@ -36,6 +36,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
+import Logging from './Logging';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -1388,6 +1389,16 @@ export default class Utils {
   }
 
   public static isModuleAvailable(modulePath: string): boolean {
+    if (!path.isAbsolute(modulePath)) {
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.IMPORT_MODULE,
+        module: MODULE_NAME, method: 'isModuleAvailable',
+        message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
+      });
+      console.log('The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies');
+    }
     try {
       require.resolve(modulePath);
       return true;

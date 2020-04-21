@@ -225,6 +225,8 @@ export enum Action {
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SMART_CHARGING = 'SmartCharging',
+
+  IMPORT_MODULE = 'ImportModule',
 }
 
 export interface AuthorizationContext {
