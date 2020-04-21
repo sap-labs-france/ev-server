@@ -24,7 +24,7 @@ export default class SmartChargingFactory {
         }
       }
     }
-    // Pricing is not active
+    // Smart Charging is not active
     return null;
   }
 }

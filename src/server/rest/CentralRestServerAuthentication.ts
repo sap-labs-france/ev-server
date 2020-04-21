@@ -1,9 +1,9 @@
+import { Handler, NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
 import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
-import { Handler, NextFunction, Request, Response } from 'express';
 
 export default {
   // Init Passport
