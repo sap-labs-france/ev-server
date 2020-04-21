@@ -61,7 +61,7 @@ export default class OCPIChargingStationClient extends ChargingStationClient {
   }
 
   async remoteStartTransaction(params: OCPPRemoteStartTransactionCommandParam): Promise<OCPPRemoteStartTransactionCommandResult> {
-    const commandResponse = await this.ocpiClient.remoteStartSession(this.chargingStation, params.connectorId, params.idTag);
+    const commandResponse = await this.ocpiClient.remoteStartSession(this.chargingStation, parseInt(params.connectorId), params.idTag);
     return {
       status: commandResponse && commandResponse.result === OCPICommandResponseType.ACCEPTED ?
         OCPPRemoteStartStopStatus.ACCEPTED : OCPPRemoteStartStopStatus.REJECTED
