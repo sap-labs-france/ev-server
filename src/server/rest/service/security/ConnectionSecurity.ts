@@ -38,14 +38,6 @@ export default class ConnectionSecurity {
     return ConnectionSecurity.filterConnectionRequest(request);
   }
 
-  private static filterConnectionRequest(request: any): Connection {
-    return {
-      connectorId: sanitize(request.connectorId),
-      userId: sanitize(request.userId),
-      data: sanitize(request.data),
-    };
-  }
-
   public static filterConnectionResponse(connection: Connection, loggedUser: UserToken): Connection {
     let filteredConnection;
     if (!connection) {
@@ -84,6 +76,14 @@ export default class ConnectionSecurity {
       }
     }
     connections.result = filteredConnections;
+  }
+
+  private static filterConnectionRequest(request: any): Connection {
+    return {
+      connectorId: sanitize(request.connectorId),
+      userId: sanitize(request.userId),
+      data: sanitize(request.data),
+    };
   }
 }
 

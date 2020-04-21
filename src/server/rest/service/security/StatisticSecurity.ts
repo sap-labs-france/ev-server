@@ -3,7 +3,6 @@ import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticReque
 import Utils from '../../../../utils/Utils';
 
 export default class StatisticSecurity {
-  // eslint-disable-next-line no-unused-vars
   static filterStatisticsRequest(request: any): HttpStatisticsRequest {
     return {
       Year: Utils.convertToInt(sanitize(request.Year)),
@@ -16,14 +15,11 @@ export default class StatisticSecurity {
     };
   }
 
-  // eslint-disable-next-line no-unused-vars
   static filterMetricsStatisticsRequest(request: any): HttpStatisticsRequest {
-    if (!request.PeriodInMonth) {
-    }
+    if (!request.PeriodInMonth) {}
     return { PeriodInMonth: sanitize(request.PeriodInMonth) };
   }
 
-  // eslint-disable-next-line no-unused-vars
   static filterExportStatisticsRequest(request: any): HttpStatisticsRequest {
     return { ...StatisticSecurity.filterStatisticsRequest(request),
       DataType: sanitize(request.DataType),

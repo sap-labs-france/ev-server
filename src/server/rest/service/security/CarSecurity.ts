@@ -1,7 +1,7 @@
 import Authorizations from '../../../../authorization/Authorizations';
 import { CarCatalog, CarMaker } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarMakersRequest, HttpCarCatalogsRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
