@@ -167,6 +167,11 @@ export interface ChargingStationCapabilities {
   supportStaticLimitationForChargingStation: boolean;
   supportStaticLimitationPerConnector: boolean;
   supportChargingProfiles: boolean;
+  supportCreditCard: boolean;
+  supportRemoteStartStopTransaction: boolean;
+  supportUnlockConnector: boolean;
+  supportReservation: boolean;
+  supportRFIDCard: boolean;
 }
 
 export interface ChargingStationOcppParameters {
