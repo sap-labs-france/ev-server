@@ -245,18 +245,6 @@ export default class BillingService {
     //   startDateTime: filteredRequest.startDateTime,
     //   endDateTime: filteredRequest.endDateTime
     // });
-    await BillingStorage.saveInvoice(req.user.tenantID, {
-      invoiceID: 'ii_z635rg46zr5g4',
-      status: BillingInvoiceStatus.OPEN,
-      currency: 'eur',
-      amountDue: 5000,
-      customerID: 'cus_H8ESyf51aEWckB',
-      createdOn: new Date(),
-      payUrl: 'itruhruth',
-      downloadUrl: 'usirug',
-      items: [],
-      number: 'rsreg-6584'
-    });
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
         userID: req.user.id

@@ -3,8 +3,7 @@ import moment from 'moment';
 import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, HttpBillingInvoiceRequest, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
-import { DataResult } from '../../../types/DataResult';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -15,9 +14,9 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import Billing from '../Billing';
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
-import ITaxRate = Stripe.taxRates.ITaxRate;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
-import IInvoiceListOptions = Stripe.invoices.IInvoiceListOptions;
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
+import IInvoice = Stripe.invoices.IInvoice;
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -151,69 +150,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice> {
-    await this.checkConnection();
-    const invoice = await this.stripe.invoices.retrieve(invoiceId);
-    if (invoice) {
-      return {
-        invoiceID: invoice.id,
-        number: invoice.number,
-        status: invoice.status as BillingInvoiceStatus,
-        amountDue: invoice.amount_due,
-        currency: invoice.currency,
-        customerID: invoice.customer.toString(),
-        createdOn: new Date(invoice.created * 1000),
-        downloadUrl: invoice.invoice_pdf,
-        payUrl: invoice.hosted_invoice_url,
-        items: invoice.lines.data,
-      };
-    }
-  }
-
-  public async getUserInvoices(user: BillingPartialUser, filters?: HttpBillingInvoiceRequest): Promise<DataResult<BillingInvoice>> {
-    await this.checkConnection();
-    const invoices = [] as BillingInvoice[];
-    const requestParams: IInvoiceListOptions = { customer: user.billingData.customerID };
-    if (filters) {
-      if (filters.status) {
-        requestParams.status = filters.status;
-      }
-      if (filters.startDateTime || filters.endDateTime) {
-        requestParams.created = {};
-      }
-      if (filters.startDateTime) {
-        // @ts-ignore
-        requestParams.created.gte = new Date(filters.startDateTime).getTime() / 1000;
-      }
-      if (filters.endDateTime) {
-        // @ts-ignore
-        requestParams.created.lte = new Date(filters.endDateTime).getTime() / 1000;
-      }
-    }
-    // Always force the max: impossible to handle the pagination!!!
-    requestParams.limit = 100;
-    // Call
-    const request = await this.stripe.invoices.list(requestParams);
-    for (const invoice of request.data) {
-      invoices.push({
-        invoiceID: invoice.id,
-        number: invoice.number,
-        status: invoice.status as BillingInvoiceStatus,
-        amountDue: invoice.amount_due,
-        currency: invoice.currency,
-        customerID: invoice.customer.toString(),
-        createdOn: new Date(invoice.created * 1000),
-        downloadUrl: invoice.invoice_pdf,
-        payUrl: invoice.hosted_invoice_url,
-        items: invoice.lines.data,
-      });
-    }
-    return {
-      count: invoices.length,
-      result: invoices
-    };
-  }
-
   public async getTaxes(): Promise<BillingTax[]> {
     const taxes = [] as BillingTax[];
     let request;
@@ -273,33 +209,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return collectedCustomerIDs;
   }
 
-  public async getOpenedInvoice(user: BillingPartialUser): Promise<BillingInvoice> {
-    if (!user.billingData || !user.billingData.customerID) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        message: 'User has no Billing data',
-        module: MODULE_NAME,
-        method: 'getOpenedInvoice',
-        action: Action.BILLING_GET_OPENED_INVOICE
-      });
-    }
-    try {
-      const userOpenedInvoices = (await this.getUserInvoices(user, { status: BillingInvoiceStatus.DRAFT })).result;
-      if (userOpenedInvoices.length > 0) {
-        return userOpenedInvoices[0];
-      }
-    } catch (error) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_GET_OPENED_INVOICE,
-        module: MODULE_NAME, method: 'getOpenedInvoice',
-        message: 'Failed to retrieve opened invoices',
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
-
-  public async createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
+  public async createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: Partial<BillingInvoice>; invoiceItem: BillingInvoiceItem }> {
     if (!user) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -318,15 +228,15 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     await this.checkConnection();
     const daysUntilDue = 30;
-    let invoice: BillingInvoice;
+    let stripeInvoice: IInvoice;
     try {
       // Invoice Items already exists
-      invoice = await this.stripe.invoices.create({
+      stripeInvoice = await this.stripe.invoices.create({
         customer: user.billingData.customerID,
         collection_method: 'send_invoice',
         days_until_due: daysUntilDue,
         auto_advance: true
-      }) as BillingInvoice;
+      });
     } catch (error) {
       // No pending invoice item found: Create one
       try {
@@ -336,12 +246,12 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           amount: invoiceItem.amount,
           description: invoiceItem.description,
         });
-        invoice = await this.stripe.invoices.create({
+        stripeInvoice = await this.stripe.invoices.create({
           customer: user.billingData.customerID,
           collection_method: 'send_invoice',
           days_until_due: daysUntilDue,
           auto_advance: true
-        }) as BillingInvoice;
+        });
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -352,10 +262,31 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         });
       }
     }
+    const invoice = {
+      invoiceID: stripeInvoice.id,
+      customerID: stripeInvoice.customer.toString(),
+      number: stripeInvoice.number,
+      amount: stripeInvoice.amount_due,
+      status: stripeInvoice.status as BillingInvoiceStatus,
+      currency: stripeInvoice.currency,
+      createdOn: new Date(),
+      nbrOfItems: stripeInvoice.lines.total_count
+    } as Partial<BillingInvoice>;
+    try {
+      invoice.id = await BillingStorage.saveInvoice(tenantId, invoice);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: Action.BILLING_CREATE_INVOICE,
+        module: MODULE_NAME, method: 'createInvoice',
+        message: 'Failed to save invoice in database',
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
     return { invoice: invoice, invoiceItem: invoiceItem };
   }
 
-  public async createInvoiceItem(user: BillingPartialUser, invoice: BillingInvoice, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem> {
+  public async createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem> {
     await this.checkConnection();
     if (!invoiceItem) {
       throw new BackendError({
@@ -384,10 +315,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async sendInvoiceToUser(invoiceId: string): Promise<BillingInvoice> {
+  public async sendInvoiceToUser(invoiceId: string): Promise<Partial<BillingInvoice>> {
     await this.checkConnection();
     try {
-      return await this.stripe.invoices.sendInvoice(invoiceId) as BillingInvoice;
+      return await this.stripe.invoices.sendInvoice(invoiceId) as Partial<BillingInvoice>;
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

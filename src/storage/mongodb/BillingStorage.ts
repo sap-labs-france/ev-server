@@ -137,13 +137,14 @@ export default class BillingStorage {
     const invoiceMDB: any = {
       _id: invoiceToSave.id ? invoiceToSave.id : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
+      number: invoiceToSave.number,
       userID: Utils.convertToObjectID(user.id),
       customerID: invoiceToSave.customerID,
-      amount: invoiceToSave.amountDue,
+      amount: invoiceToSave.amount,
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
       createdOn: invoiceToSave.createdOn,
-      nbrOfItems: invoiceToSave.items.length
+      nbrOfItems: invoiceToSave.nbrOfItems
     };
 
     // Modify and return the modified document

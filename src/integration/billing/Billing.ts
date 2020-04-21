@@ -304,15 +304,15 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract getUserInvoices(user: BillingPartialUser, filters?: HttpBillingInvoiceRequest): Promise<DataResult<BillingInvoice>>;
+  // async abstract getUserInvoices(user: BillingPartialUser, filters?: HttpBillingInvoiceRequest): Promise<DataResult<BillingInvoice>>;
 
-  async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
+  // async abstract getUserInvoice(user: BillingPartialUser, invoiceId: string): Promise<BillingInvoice>;
 
-  async abstract getOpenedInvoice(user: BillingPartialUser): Promise<BillingInvoice>;
+  // async abstract getOpenedInvoice(user: BillingPartialUser): Promise<BillingInvoice>;
 
-  async abstract createInvoiceItem(user: BillingPartialUser, invoice: BillingInvoice, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem>;
+  async abstract createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem>;
 
-  async abstract createInvoice(user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
+  async abstract createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: Partial<BillingInvoice>; invoiceItem: BillingInvoiceItem }>;
 
-  async abstract sendInvoiceToUser(invoiceId: string): Promise<BillingInvoice>;
+  async abstract sendInvoiceToUser(invoiceId: string): Promise<Partial<BillingInvoice>>;
 }

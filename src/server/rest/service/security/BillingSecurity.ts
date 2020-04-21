@@ -64,7 +64,7 @@ export default class BillingSecurity {
       filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
-      filteredInvoice.amountDue = invoice.amountDue;
+      filteredInvoice.amount = invoice.amount;
       filteredInvoice.createdOn = invoice.createdOn;
       filteredInvoice.downloadUrl = invoice.downloadUrl;
       filteredInvoice.payUrl = invoice.payUrl;

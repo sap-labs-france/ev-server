@@ -53,13 +53,11 @@ export interface BillingInvoice {
   invoiceID: string;
   number?: string;
   status?: BillingInvoiceStatus;
-  amountDue?: number;
+  amount?: number;
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  downloadUrl?: string;
-  payUrl?: string;
-  items?: BillingInvoiceItem[];
+  nbrOfItems?: number;
 }
 
 export interface BillingInvoiceItem {
