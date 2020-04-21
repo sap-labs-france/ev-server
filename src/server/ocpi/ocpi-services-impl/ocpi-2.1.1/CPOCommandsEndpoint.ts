@@ -208,7 +208,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
 
     const result = await chargingStationClient.remoteStartTransaction({
-      connectorId: connector.connectorId.toString(),
+      connectorId: connector.connectorId,
       idTag: startSession.token.uid
     });
 

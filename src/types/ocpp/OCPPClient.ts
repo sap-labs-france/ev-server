@@ -63,7 +63,7 @@ export enum OCPPConfigurationStatus {
 }
 
 export interface OCPPRemoteStartTransactionCommandParam extends OCPPCommandParam {
-  connectorId: string;
+  connectorId: number;
   idTag: string;
   chargingProfile?: ChargingProfile;
 }
