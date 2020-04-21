@@ -1144,7 +1144,7 @@ export default class OCPPService {
   }
 
   private async buildConsumptionFromTransactionAndMeterValue(tenantID: string, chargingStation: ChargingStation,
-      transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
+    transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
         OCPPUtils.isConsumptionMeterValue(meterValue)) {
@@ -1194,7 +1194,7 @@ export default class OCPPService {
   }
 
   private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction,
-      meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
+    meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
     // Build consumptions
     const consumptions: Consumption[] = [];
     for (const meterValue of meterValues.values) {
