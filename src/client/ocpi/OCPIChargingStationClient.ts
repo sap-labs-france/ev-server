@@ -1,10 +1,8 @@
-import ChargingStationClient from '../ocpp/ChargingStationClient';
-import {
-  OCPPAvailabilityStatus, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam
-} from '../../types/ocpp/OCPPClient';
-import EmspOCPIClient from './EmspOCPIClient';
 import ChargingStation from '../../types/ChargingStation';
 import { OCPICommandResponseType } from '../../types/ocpi/OCPICommandResponse';
+import { OCPPAvailabilityStatus, OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearCacheCommandResult, OCPPClearCacheStatus, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartStopStatus, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPResetStatus, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUnlockStatus, OCPPUpdateFirmwareCommandParam } from '../../types/ocpp/OCPPClient';
+import ChargingStationClient from '../ocpp/ChargingStationClient';
+import EmspOCPIClient from './EmspOCPIClient';
 
 export default class OCPIChargingStationClient extends ChargingStationClient {
 

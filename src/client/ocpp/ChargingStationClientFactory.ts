@@ -1,15 +1,15 @@
 import BackendError from '../../exception/BackendError';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import ChargingStation from '../../types/ChargingStation';
 import global from '../../types/GlobalType';
 import { OCPPProtocol } from '../../types/ocpp/OCPPServer';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import Utils from '../../utils/Utils';
+import OCPIClientFactory from '../ocpi/OCPIClientFactory';
 import ChargingStationClient from './ChargingStationClient';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
-import OCPIClientFactory from '../ocpi/OCPIClientFactory';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Utils from '../../utils/Utils';
-import TenantComponents from '../../types/TenantComponents';
 
 const MODULE_NAME = 'ChargingStationClientFactory';
 

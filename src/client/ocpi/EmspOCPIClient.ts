@@ -1,6 +1,7 @@
 import axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
+import uuid from 'uuid';
 import BackendError from '../../exception/BackendError';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
@@ -11,12 +12,18 @@ import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
+import ChargingStation from '../../types/ChargingStation';
 import Company from '../../types/Company';
+import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
+import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
+import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 import { OcpiSetting } from '../../types/Setting';
 import Site from '../../types/Site';
@@ -25,13 +32,6 @@ import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
-import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
-import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
-import uuid from 'uuid';
-import ChargingStation from '../../types/ChargingStation';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
-import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -490,10 +490,9 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async remoteStartSession(chargingStation: ChargingStation, connectorId: string, tagId: string): Promise<OCPICommandResponse> {
+  async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', Action.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
-
     const user = await UserStorage.getUserByTagId(this.tenant.id, tagId);
     if (!user || user.deleted || !user.issuer) {
       throw new BackendError({
@@ -515,21 +514,19 @@ export default class EmspOCPIClient extends OCPIClient {
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      'auth_id': user.id,
-      'visual_number': user.id,
+      auth_id: user.id,
+      visual_number: user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      'last_updated': new Date()
+      last_updated: new Date()
     };
-
     const payload: OCPIStartSession = {
-      'response_url': commandUrl + '/' + uuid(),
+      response_url: commandUrl + '/' + uuid(),
       token: token,
-      'evse_uid': chargingStation.imsi,
-      'location_id': chargingStation.iccid
+      evse_uid: chargingStation.imsi,
+      location_id: chargingStation.iccid
     };
-
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -542,7 +539,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const response = await axios.post(commandUrl, payload,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
         timeout: 10000
@@ -577,7 +574,6 @@ export default class EmspOCPIClient extends OCPIClient {
   async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', Action.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
-
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
     if (!transaction || !transaction.ocpiSession || transaction.issuer) {
       throw new BackendError({
@@ -587,12 +583,10 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { transaction: transaction }
       });
     }
-
     const payload: OCPIStopSession = {
-      'response_url': commandUrl + '/' + uuid(),
-      'session_id': transaction.ocpiSession.id
+      response_url: commandUrl + '/' + uuid(),
+      session_id: transaction.ocpiSession.id
     };
-
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -605,7 +599,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const response = await axios.post(commandUrl, payload,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.token}`,
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
         timeout: 10000

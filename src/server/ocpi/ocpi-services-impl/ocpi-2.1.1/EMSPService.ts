@@ -2,10 +2,10 @@ import { Configuration } from '../../../../types/configuration/Configuration';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CredentialsEndpoint from './CredentialsEndpoint';
 import EMSPCdrsEndpoint from './EMSPCdrsEndpoint';
+import EMSPCommandsEndpoint from './EMSPCommandsEndpoint';
 import EMSPLocationsEndpoint from './EMSPLocationsEndpoint';
 import EMSPSessionsEndpoint from './EMSPSessionsEndpoint';
 import EMSPTokensEndpoint from './EMSPTokensEndpoint';
-import EMSPCommandsEndpoint from './EMSPCommandsEndpoint';
 
 /**
  * OCPI Service 2.1.1  - Implementation

@@ -1,5 +1,6 @@
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import ChargingStation from '../../types/ChargingStation';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -10,9 +11,8 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
-import OCPIClient from './OCPIClient';
 import OCPIChargingStationClient from './OCPIChargingStationClient';
-import ChargingStation from '../../types/ChargingStation';
+import OCPIClient from './OCPIClient';
 
 const MODULE_NAME = 'OCPIClientFactory';
 
