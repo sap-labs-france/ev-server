@@ -14,6 +14,18 @@ import { Action } from '../../types/Authorization';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
+  getVersion() {
+    return '1.7';
+  }
+
+  isAsynchronous() {
+    return true;
+  }
+
+  getName() {
+    return 'UpdateChargingStationTemplatesTask';
+  }
+
   async migrate() {
     // Update Template
     await this.updateChargingStationTemplate();
@@ -167,17 +179,5 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     } catch (error) {
       Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
     }
-  }
-
-  getVersion() {
-    return '1.7';
-  }
-
-  isAsynchronous() {
-    return true;
-  }
-
-  getName() {
-    return 'UpdateChargingStationTemplatesTask';
   }
 }
