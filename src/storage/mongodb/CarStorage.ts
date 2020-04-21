@@ -206,6 +206,7 @@ export default class CarStorage {
           evsePhaseVolt: Utils.convertToInt(chargeStandardTable.evsePhaseVolt),
           evsePhaseAmp: Utils.convertToInt(chargeStandardTable.evsePhaseAmp),
           evsePhase: Utils.convertToInt(chargeStandardTable.evsePhase),
+          evsePhaseVoltCalculated: Utils.convertToInt(chargeStandardTable.evsePhaseVoltCalculated),
           chargePhaseVolt: Utils.convertToInt(chargeStandardTable.chargePhaseVolt),
           chargePhaseAmp: Utils.convertToInt(chargeStandardTable.chargePhaseAmp),
           chargePhase: Utils.convertToInt(chargeStandardTable.chargePhase),

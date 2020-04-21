@@ -41,6 +41,7 @@ export default class EVDabaseCar extends CarDatabase {
           evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
           evsePhase: data.Charge_Standard_Table[chargeStandard].EVSE_Phase,
+          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? 400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           chargePhaseVolt: data.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
           chargePhaseAmp: data.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
           chargePhase: data.Charge_Standard_Table[chargeStandard].Charge_Phase,
