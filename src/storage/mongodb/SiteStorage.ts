@@ -15,12 +15,13 @@ import SiteAreaStorage from './SiteAreaStorage';
 const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
-  public static async getSite(tenantID: string, id: string): Promise<Site> {
+  public static async getSite(tenantID: string, id: string,
+      params: { withCompany?: boolean } = {}): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSite');
     // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID,
-      { siteID: id, withCompany: true },
+      { siteID: id, withCompany: params.withCompany },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSite', uniqueTimerID, { id });
