@@ -29,7 +29,7 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
+import { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
@@ -1387,7 +1387,7 @@ export default class Utils {
     return {};
   }
 
-  private static isModuleAvailable(modulePath: string): boolean {
+  public static isModuleAvailable(modulePath: string): boolean {
     try {
       require.resolve(modulePath);
       return true;
