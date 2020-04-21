@@ -93,6 +93,8 @@ export enum Action {
   OCPI_PULL_TOKENS = 'OCPIPullTokens',
   OCPI_START_SESSION = 'OCPIStartSession',
   OCPI_STOP_SESSION = 'OCPIStopSession',
+  OCPI_RESERVE_NOW = 'OCPIReserveNow',
+  OCPI_UNLOCK_CONNECTOR = 'OCPIUnlockConnector',
   OCPI_GET_VERSIONS = 'OCPIGetVersions',
   OCPI_GET_LOCATIONS = 'OCPIGetLocations',
   OCPI_GET_SESSIONS = 'OCPIGetSessions',

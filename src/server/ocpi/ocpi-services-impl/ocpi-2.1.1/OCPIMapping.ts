@@ -54,7 +54,10 @@ export default class OCPIMapping {
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
-      connectors: []
+      connectors: [],
+      chargeBoxSerialNumber: evse.evse_id,
+      imsi: evse.uid,
+      iccid: location.id
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
@@ -174,12 +177,12 @@ export default class OCPIMapping {
       tokens.push({
         uid: tag.id,
         type: OCPITokenType.RFID,
-        'auth_id': tag.userID,
-        'visual_number': tag.userID,
+        auth_id: tag.userID,
+        visual_number: tag.userID,
         issuer: tenant.name,
         valid: valid,
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
+        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
     return {

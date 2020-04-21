@@ -1,6 +1,7 @@
 import axios from 'axios';
 import _ from 'lodash';
 import moment from 'moment';
+import uuid from 'uuid';
 import BackendError from '../../exception/BackendError';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
@@ -11,18 +12,23 @@ import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
+import ChargingStation from '../../types/ChargingStation';
 import Company from '../../types/Company';
+import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
+import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
+import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 import { OcpiSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../types/Tenant';
-import Transaction from '../../types/Transaction';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIClient from './OCPIClient';
@@ -484,10 +490,145 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async remoteStartSession() {
+  async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
+    // Get command endpoint url
+    const commandUrl = this.getEndpointUrl('commands', Action.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
+    const user = await UserStorage.getUserByTagId(this.tenant.id, tagId);
+    if (!user || user.deleted || !user.issuer) {
+      throw new BackendError({
+        action: Action.OCPI_START_SESSION,
+        message: `OCPI Remote Start session is not available for user with tag id ${tagId}`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { user: user }
+      });
+    }
+    const tag = user.tags.find((value) => value.id === tagId);
+    if (!tag || !tag.issuer || !tag.active) {
+      throw new BackendError({
+        action: Action.OCPI_START_SESSION,
+        message: `OCPI Remote Start session is not available for tag id ${tagId}`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { tag: tag }
+      });
+    }
+    const token: OCPIToken = {
+      uid: tag.id,
+      type: OCPITokenType.RFID,
+      auth_id: user.id,
+      visual_number: user.id,
+      issuer: this.tenant.name,
+      valid: true,
+      whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+      last_updated: new Date()
+    };
+    const payload: OCPIStartSession = {
+      response_url: commandUrl + '/' + uuid(),
+      token: token,
+      evse_uid: chargingStation.imsi,
+      location_id: chargingStation.iccid
+    };
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_START_SESSION,
+      message: `OCPI Remote Start session at ${commandUrl}`,
+      module: MODULE_NAME, method: 'remoteStartSession',
+      detailedMessages: { payload }
+    });
+    // Call IOP
+    const response = await axios.post(commandUrl, payload,
+      {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+    // Check response
+    if (!response.data) {
+      throw new BackendError({
+        action: Action.OCPI_START_SESSION,
+        message: `OCPI Remote Start session failed with status ${JSON.stringify(response)}`,
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { response: response.data }
+      });
+    }
+    if (!response.data.data) {
+      throw new BackendError({
+        action: Action.OCPI_START_SESSION,
+        message: 'OCPI Remote Start session response is invalid',
+        module: MODULE_NAME, method: 'remoteStartSession',
+        detailedMessages: { response: response.data }
+      });
+    }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_START_SESSION,
+      message: `OCPI Remote Start session response status ${response.status}`,
+      module: MODULE_NAME, method: 'remoteStartSession',
+      detailedMessages: { response: response.data }
+    });
+    return response.data.data as OCPICommandResponse;
   }
 
-  async remoteStopSession() {
+  async remoteStopSession(transactionId: number): Promise<OCPICommandResponse> {
+    // Get command endpoint url
+    const commandUrl = this.getEndpointUrl('commands', Action.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
+    const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
+    if (!transaction || !transaction.ocpiSession || transaction.issuer) {
+      throw new BackendError({
+        action: Action.OCPI_START_SESSION,
+        message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
+        module: MODULE_NAME, method: 'remoteStopSession',
+        detailedMessages: { transaction: transaction }
+      });
+    }
+    const payload: OCPIStopSession = {
+      response_url: commandUrl + '/' + uuid(),
+      session_id: transaction.ocpiSession.id
+    };
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_STOP_SESSION,
+      message: `OCPI Remote Stop session at ${commandUrl}`,
+      module: MODULE_NAME, method: 'remoteStopSession',
+      detailedMessages: { payload }
+    });
+    // Call IOP
+    const response = await axios.post(commandUrl, payload,
+      {
+        headers: {
+          'Authorization': `Token ${this.ocpiEndpoint.token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+    // Check response
+    if (!response.data) {
+      throw new BackendError({
+        action: Action.OCPI_STOP_SESSION,
+        message: `OCPI Remote Stop session failed with status ${response.status}`,
+        module: MODULE_NAME, method: 'remoteStopSession',
+        detailedMessages: { response: response.data }
+      });
+    }
+    if (!response.data.data) {
+      throw new BackendError({
+        action: Action.OCPI_STOP_SESSION,
+        message: 'OCPI Remote Stop session response is invalid',
+        module: MODULE_NAME, method: 'remoteStopSession',
+        detailedMessages: { response: response.data }
+      });
+    }
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: Action.OCPI_STOP_SESSION,
+      message: `OCPI Remote Stop session response status ${response.status}`,
+      module: MODULE_NAME, method: 'remoteStopSession',
+      detailedMessages: { response: response.data }
+    });
+    return response.data.data as OCPICommandResponse;
   }
 
   async triggerJobs() {
