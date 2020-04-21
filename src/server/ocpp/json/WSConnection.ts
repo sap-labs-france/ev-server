@@ -251,12 +251,12 @@ export default class WSConnection {
     return this.ip;
   }
 
-  public send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
+  public async send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
   }
 
-  public sendError(messageId, err) {
+  public async sendError(messageId, err) {
     // Check exception: only OCPP error are accepted
     const error = (err instanceof OCPPError ? err : new OCPPError({
       source: this.getChargingStationID(),
@@ -327,9 +327,7 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = [() => {
-        }, () => {
-        }];
+        self._requests[messageId] = [() => {}, () => {}];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

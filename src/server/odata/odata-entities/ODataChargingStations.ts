@@ -17,7 +17,7 @@ export default class ODataChargingStations extends AbstractODataEntities {
       params.IncludeDeleted = true;
       // Perform rest call
       const response = await centralServiceApi.getChargingStations(params);
-      // Push Latitute & Longitude
+      // Push Latitude & Longitude
       for (const chargingStation of response.data.result) {
         // Handle coordinates
         this.moveCoordinatesToRoot(chargingStation);

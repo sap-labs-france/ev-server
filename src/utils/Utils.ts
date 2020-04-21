@@ -1380,6 +1380,22 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
+  public static async importModule(modulePath: string) {
+    if (Utils.isModuleAvailable(modulePath)) {
+      return await import(modulePath);
+    }
+    return {};
+  }
+
+  private static isModuleAvailable(modulePath: string): boolean {
+    try {
+      require.resolve(modulePath);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   private static _isUserEmailValid(email: string): boolean {
     return validator.isEmail(email);
   }
@@ -1391,7 +1407,6 @@ export default class Utils {
   private static _isPhoneValid(phone: string): boolean {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
-
 
   private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);

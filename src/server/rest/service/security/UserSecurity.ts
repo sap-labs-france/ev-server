@@ -258,7 +258,7 @@ export default class UserSecurity {
       };
     }
     if (filteredTag.issuer) {
-      filteredTag.ocpiToken = tag.ocpiToken
+      filteredTag.ocpiToken = tag.ocpiToken;
     }
     return filteredTag;
   }
