@@ -40,14 +40,15 @@ export default abstract class CarDatabase {
           });
         } else if (Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
           // Car has changed: Update it
-          internalCar.hash = Cypher.hash(JSON.stringify(externalCar));
-          internalCar.lastChangedOn = new Date();
+          externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
+          externalCar.lastChangedOn = new Date();
+          externalCar.createdOn = internalCar.createdOn;
           // Get image
-          internalCar.image = await this.getCarCatalogThumb(internalCar);
+          externalCar.image = await this.getCarCatalogThumb(externalCar);
           // Get images
-          internalCar.images = await this.getCarCatalogImages(internalCar);
+          externalCar.images = await this.getCarCatalogImages(externalCar);
           // Save
-          await CarStorage.saveCarCatalog(internalCar, true);
+          await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
@@ -55,7 +56,7 @@ export default abstract class CarDatabase {
             source: Constants.CENTRAL_SERVER,
             action: Action.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
-            message: `${internalCar.id} - ${internalCar.vehicleMake} - ${internalCar.vehicleModel} has been updated successfully`,
+            message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been updated successfully`,
           });
         }
       } catch (error) {
