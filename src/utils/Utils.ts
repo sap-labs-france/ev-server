@@ -11,6 +11,7 @@ import uuidV4 from 'uuid/v4';
 import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
+import DummyModule from './DummyModule';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -1385,7 +1386,7 @@ export default class Utils {
     if (Utils.isModuleAvailable(modulePath)) {
       return await import(modulePath);
     }
-    return {};
+    return DummyModule;
   }
 
   public static isModuleAvailable(modulePath: string): boolean {
