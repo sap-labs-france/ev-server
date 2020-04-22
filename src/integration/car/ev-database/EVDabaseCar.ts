@@ -6,7 +6,6 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CarDatabase from '../CarDatabase';
-import Cypher from '../../../utils/Cypher';
 
 const MODULE_NAME = 'EVDabaseCar';
 
@@ -199,7 +198,6 @@ export default class EVDabaseCar extends CarDatabase {
         relatedVehicleIDSuccesor: data.Related_Vehicle_ID_Succesor,
         eVDBDetailURL: data.EVDB_Detail_URL,
         imageURLs: data.Images,
-        imagesHash: Cypher.hash(data.Images.toString()),
         images: [],
         videos: data.Videos,
       };
