@@ -27,6 +27,8 @@ export default abstract class CarDatabase {
           externalCar.image = await this.getCarCatalogThumb(externalCar);
           // Get images
           externalCar.images = await this.getCarCatalogImages(externalCar);
+          // Create the Hash
+          externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
           // Save
           externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
@@ -38,17 +40,25 @@ export default abstract class CarDatabase {
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
-        } else if (Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
+        } else if (!internalCar.imagesHash || Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
           // Car has changed: Update it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = internalCar.createdOn;
-          // Get image
-          externalCar.image = await this.getCarCatalogThumb(externalCar);
-          // Get images
-          externalCar.images = await this.getCarCatalogImages(externalCar);
-          // Save
-          await CarStorage.saveCarCatalog(externalCar, true);
+          // Images have changed?
+          if (!internalCar.imagesHash || (externalCar.imagesHash !== internalCar.imagesHash)) {
+            // Get image
+            externalCar.image = await this.getCarCatalogThumb(externalCar);
+            // Get images
+            externalCar.images = await this.getCarCatalogImages(externalCar);
+            // Create the Hash
+            externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, true);
+          } else {
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, false);
+          }
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({

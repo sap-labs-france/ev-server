@@ -125,7 +125,21 @@ export default class CpoOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async authorizeToken(token: OCPIToken, chargingStation: ChargingStation, connector?: Connector): Promise<string> {
+  async authorizeToken(token: OCPIToken, chargingStation: ChargingStation): Promise<string> {
+    if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
+      for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
+        if (remoteAuthorization.tagId === token.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: Action.OCPI_AUTHORIZE_TOKEN,
+            message: `Valid Remote Authorization found for tag ${token.uid}`,
+            module: MODULE_NAME, method: 'authorizeToken',
+            detailedMessages: { response: remoteAuthorization }
+          });
+          return remoteAuthorization.id;
+        }
+      }
+    }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', Action.OCPI_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
     let siteID;
@@ -139,7 +153,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const payload: OCPILocationReference =
       {
         'location_id': siteID,
-        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation, connector)]
+        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
       };
     // Log
     Logging.logDebug({

@@ -290,7 +290,8 @@ export default class CarStorage {
       videos: carToSave.videos,
       hash: carToSave.hash,
       imageURLs: carToSave.imageURLs,
-      image: carToSave.image
+      image: carToSave.image,
+      imagesHash: carToSave.imagesHash
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(carMDB, carToSave);

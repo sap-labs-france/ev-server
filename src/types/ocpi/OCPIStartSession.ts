@@ -5,4 +5,5 @@ export interface OCPIStartSession {
   token: OCPIToken;
   location_id: string;
   evse_uid: string;
+  authorization_id: string;
 }

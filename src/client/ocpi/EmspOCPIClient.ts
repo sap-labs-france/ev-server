@@ -521,11 +521,13 @@ export default class EmspOCPIClient extends OCPIClient {
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
       last_updated: new Date()
     };
+    const authorizationId = uuid();
     const payload: OCPIStartSession = {
       response_url: commandUrl + '/' + uuid(),
       token: token,
       evse_uid: chargingStation.imsi,
-      location_id: chargingStation.iccid
+      location_id: chargingStation.iccid,
+      authorization_id: authorizationId
     };
     // Log
     Logging.logDebug({

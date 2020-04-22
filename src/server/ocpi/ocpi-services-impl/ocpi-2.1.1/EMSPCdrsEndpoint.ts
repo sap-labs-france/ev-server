@@ -4,7 +4,6 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import { HTTPError } from '../../../../types/HTTPError';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import Tenant from '../../../../types/Tenant';

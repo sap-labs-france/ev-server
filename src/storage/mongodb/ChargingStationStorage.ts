@@ -496,6 +496,7 @@ export default class ChargingStationStorage {
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
       currentType: chargingStationToSave.currentType,
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
@@ -505,6 +506,9 @@ export default class ChargingStationStorage {
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
+    }
+    if (!chargingStationMDB.remoteAuthorizations) {
+      chargingStationMDB.remoteAuthorizations = [];
     }
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
