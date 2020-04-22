@@ -45,10 +45,15 @@ export default abstract class CarDatabase {
           externalCar.createdOn = internalCar.createdOn;
           // Get image
           externalCar.image = await this.getCarCatalogThumb(externalCar);
-          // Get images
-          externalCar.images = await this.getCarCatalogImages(externalCar);
-          // Save
-          await CarStorage.saveCarCatalog(externalCar, true);
+          if (externalCar.imagesHash !== internalCar.imagesHash) {
+            // Get images
+            externalCar.images = await this.getCarCatalogImages(externalCar);
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, true);
+          } else {
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, false);
+          }
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
