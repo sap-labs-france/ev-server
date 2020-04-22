@@ -16,7 +16,7 @@ const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string,
-      params: { withCompany?: boolean } = {}): Promise<Site> {
+    params: { withCompany?: boolean } = {}): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSite');
     // Query single Site

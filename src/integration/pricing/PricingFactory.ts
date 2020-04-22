@@ -7,6 +7,7 @@ import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import path from 'path';
 
 export default class PricingFactory {
   static async getPricingImpl(tenantID: string, transaction: Transaction): Promise<Pricing<PricingSetting>> {
@@ -20,7 +21,7 @@ export default class PricingFactory {
       if (pricingSetting) {
         // SAP Convergent Charging
         if (pricingSetting.type === PricingSettingsType.CONVERGENT_CHARGING) {
-          const ConvergentChargingPricing = await Utils.importModule('../pricing/convergent-charging/ConvergentChargingPricing');
+          const ConvergentChargingPricing = await Utils.importModule(path.join(__dirname, '/convergent-charging/ConvergentChargingPricing'));
           // Return the CC implementation
           return new ConvergentChargingPricing(tenantID, pricingSetting.convergentCharging, transaction);
         // Simple Pricing
