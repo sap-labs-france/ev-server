@@ -13,7 +13,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../../utils/Constants';
-import ChargingStation, { Connector } from '../../../../types/ChargingStation';
+import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
 import Logging from '../../../../utils/Logging';
@@ -21,11 +21,11 @@ import { Action } from '../../../../types/Authorization';
 import axios from 'axios';
 import BackendError from '../../../../exception/BackendError';
 import AppError from '../../../../exception/AppError';
-import { HTTPError } from '../../../../types/HTTPError';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIStopSession } from '../../../../types/ocpi/OCPIStopSession';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import HttpStatusCodes from 'http-status-codes';
+import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'CPOCommandsEndpoint';
@@ -87,6 +87,12 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
     const localToken = user.tags.find((tag) => tag.id === startSession.token.uid);
     if (!localToken || !localToken.active || !localToken.ocpiToken || !localToken.ocpiToken.valid) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_START_SESSION,
+        message: `Stat session token ${startSession.token.uid} is invalid`,
+        module: MODULE_NAME, method: 'remoteStartSession'
+      });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
 
@@ -107,15 +113,70 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       }
     }
 
-    if (!chargingStation || !connector) {
+    if (!chargingStation) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_START_SESSION,
+        message: `Charging station with evse_uid ${startSession.evse_uid} not found`,
+        module: MODULE_NAME, method: 'remoteStartSession'
+      });
+      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+    }
+    if (!connector) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_START_SESSION,
+        message: `Connector for charging station with evse_uid ${startSession.evse_uid} not found`,
+        module: MODULE_NAME, method: 'remoteStartSession'
+      });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (!chargingStation.issuer || chargingStation.private) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_START_SESSION,
+        message: `Charging station with evse_uid ${startSession.evse_uid} cannot be used in with OCPI`,
+        module: MODULE_NAME, method: 'remoteStartSession'
+      });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
     if (connector.status !== ChargePointStatus.AVAILABLE) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_STOP_SESSION,
+        message: `Charging station with evse_uid ${startSession.evse_uid} is not available`,
+        module: MODULE_NAME, method: 'remoteStartSession'
+      });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
     }
+    if (!chargingStation.remoteAuthorizations) {
+      chargingStation.remoteAuthorizations = [];
+    }
+    const existingAuthorization: RemoteAuthorization = chargingStation.remoteAuthorizations.find((authorization) => authorization.connectorId === connector.connectorId);
+    if (existingAuthorization) {
+      if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
+        Logging.logDebug({
+          tenantID: tenant.id,
+          action: Action.OCPI_START_SESSION,
+          message: `An existing remote authorization exists for charging station ${chargingStation.id} and connector ${connector.connectorId}`,
+          module: MODULE_NAME, method: 'remoteStartSession'
+        });
+        return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+      }
+      existingAuthorization.timestamp = moment().toDate();
+      existingAuthorization.id = startSession.authorization_id;
+      existingAuthorization.tagId = startSession.token.uid;
+    } else {
+      chargingStation.remoteAuthorizations.push(
+        {
+          id: startSession.authorization_id,
+          connectorId: connector.connectorId,
+          timestamp: new Date(),
+          tagId: startSession.token.uid
+        }
+      );
+    }
+    await ChargingStationStorage.saveChargingStation(Action.OCPI_START_SESSION, tenant.id, chargingStation);
 
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.remoteStartTransaction(tenant, chargingStation, connector, startSession, ocpiEndpoint);
@@ -169,6 +230,15 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
 
     const chargingStation = await ChargingStationStorage.getChargingStation(tenant.id, transaction.chargeBoxID);
+    if (!chargingStation) {
+      Logging.logDebug({
+        tenantID: tenant.id,
+        action: Action.OCPI_STOP_SESSION,
+        message: `Charging station ${transaction.chargeBoxID} not found`,
+        module: MODULE_NAME, method: 'remoteStopSession'
+      });
+      return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
+    }
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.remoteStopTransaction(tenant, chargingStation, transaction.id, stopSession, ocpiEndpoint);
 
@@ -185,6 +255,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       || !startSession.evse_uid
       || !startSession.location_id
       || !startSession.token
+      || !startSession.authorization_id
     ) {
       return false;
     }
