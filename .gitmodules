@@ -14,3 +14,7 @@
 	path = src/integration/refund/concur
 	url = git@github.com:LucasBrazi06/ev-sap-concur.git
 	branch = master-qa
+[submodule "src/integration/smart-charging/sap-smart-charging"]
+	path = src/integration/smart-charging/sap-smart-charging
+	url = git@github.com:LucasBrazi06/ev-sap-smart-charging.git
+	branch = master-qa
