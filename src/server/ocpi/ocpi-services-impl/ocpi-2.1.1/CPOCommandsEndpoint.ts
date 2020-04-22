@@ -91,7 +91,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_START_SESSION,
-        message: `Stat session token ${startSession.token.uid} is invalid`,
+        message: `Stat session token '${startSession.token.uid}' is invalid`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -118,7 +118,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_START_SESSION,
-        message: `Charging station with evse_uid ${startSession.evse_uid} not found`,
+        message: `Charging station with evse_uid '${startSession.evse_uid}' not found`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -127,7 +127,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_START_SESSION,
-        message: `Connector for charging station with evse_uid ${startSession.evse_uid} not found`,
+        message: `Connector for charging station with evse_uid '${startSession.evse_uid}' not found`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -136,7 +136,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_START_SESSION,
-        message: `Charging station with evse_uid ${startSession.evse_uid} cannot be used in with OCPI`,
+        message: `Charging station with evse_uid '${startSession.evse_uid}' cannot be used in with OCPI`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -145,7 +145,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_STOP_SESSION,
-        message: `Charging station with evse_uid ${startSession.evse_uid} is not available`,
+        message: `Charging station with evse_uid '${startSession.evse_uid}' is not available`,
         module: MODULE_NAME, method: 'remoteStartSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -160,7 +160,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
           tenantID: tenant.id,
           source: chargingStation.id,
           action: Action.OCPI_START_SESSION,
-          message: `An existing remote authorization exists for charging station ${chargingStation.id} and connector ${connector.connectorId}`,
+          message: `An existing remote authorization exists for charging station '${chargingStation.id}' and connector ${connector.connectorId}`,
           module: MODULE_NAME, method: 'remoteStartSession'
         });
         return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -207,7 +207,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_STOP_SESSION,
-        message: `Transaction with ocpi session id ${stopSession.session_id} does not exists`,
+        message: `Transaction with ocpi session id '${stopSession.session_id}' does not exists`,
         module: MODULE_NAME, method: 'remoteStopSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -216,7 +216,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_STOP_SESSION,
-        message: `Transaction with ocpi session id ${stopSession.session_id} has been issued locally`,
+        message: `Transaction with ocpi session id '${stopSession.session_id}' has been issued locally`,
         module: MODULE_NAME, method: 'remoteStopSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -225,7 +225,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       Logging.logDebug({
         tenantID: tenant.id,
         action: Action.OCPI_STOP_SESSION,
-        message: `Transaction with ocpi session id ${stopSession.session_id} is already stopped`,
+        message: `Transaction with ocpi session id '${stopSession.session_id}' is already stopped`,
         module: MODULE_NAME, method: 'remoteStopSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
@@ -237,7 +237,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
         tenantID: tenant.id,
         source: transaction.chargeBoxID,
         action: Action.OCPI_STOP_SESSION,
-        message: `Charging station ${transaction.chargeBoxID} not found`,
+        message: `Charging station '${transaction.chargeBoxID}' not found`,
         module: MODULE_NAME, method: 'remoteStopSession'
       });
       return this.getOCPIResponse(OCPICommandResponseType.REJECTED);
