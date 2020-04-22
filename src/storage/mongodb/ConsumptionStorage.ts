@@ -111,6 +111,7 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
+        limitWatts: { $last: '$limitSiteAreaWatts' },
       }
     });
     // Rebuild the date

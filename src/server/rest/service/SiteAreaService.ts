@@ -222,11 +222,9 @@ export default class SiteAreaService {
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
     });
-    // Get the Site Area Limit
-    const siteAreaLimit = siteArea.maximumPower;
     // Return
     res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(
-      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.SiteAreaID));
+      siteAreaConsumptionValues, filteredRequest.SiteAreaID));
     next();
   }
 

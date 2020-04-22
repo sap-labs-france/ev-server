@@ -134,15 +134,18 @@ export default class SiteAreaSecurity {
     siteAreas.result = filteredSiteAreas;
   }
 
-  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[],
-    siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
+  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[], siteAreaId: string): SiteAreaConsumption {
     // Create Site Area Consumption
     const siteAreaConsumption: SiteAreaConsumption = {
       siteAreaId: siteAreaId,
       values: []
     };
     for (const siteAreaConsumptionValue of siteAreaConsumptionValues) {
-      siteAreaConsumption.values.push({ date: siteAreaConsumptionValue.date, instantPower: siteAreaConsumptionValue.instantPower, limitWatts: siteAreaLimit });
+      siteAreaConsumption.values.push({
+        date: siteAreaConsumptionValue.date,
+        instantPower: siteAreaConsumptionValue.instantPower,
+        limitWatts: siteAreaConsumptionValue.limitWatts
+      });
     }
     // Add Values where no Consumption is available
     for (let i = 1; i < siteAreaConsumption.values.length; i++) {
@@ -151,6 +154,7 @@ export default class SiteAreaSecurity {
         const newDate = new Date(siteAreaConsumption.values[i - 1].date.getTime() + 60000);
         addedValue.date = newDate;
         addedValue.instantPower = 0;
+        addedValue.limitWatts = siteAreaConsumptionValues[i - 1].limitWatts;
         siteAreaConsumption.values.splice(i, 0, addedValue);
         i++;
       }
@@ -159,6 +163,7 @@ export default class SiteAreaSecurity {
         const newDate = new Date(siteAreaConsumption.values[i].date.getTime() - 60000);
         addedValue.date = newDate;
         addedValue.instantPower = 0;
+        addedValue.limitWatts = siteAreaConsumptionValues[i].limitWatts;
         siteAreaConsumption.values.splice(i, 0, addedValue);
         i++;
       }

@@ -1188,6 +1188,20 @@ export default class OCPPService {
         consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
+      // Get limit of the site area
+      if (chargingStation.siteArea.maximumPower) {
+        consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
+        consumption.limitSiteAreaAmps = chargingStation.siteArea.maximumPower / 230;
+      } else {
+        const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+        consumption.limitSiteAreaWatts = 0;
+        for (const charger of siteArea.chargingStations) {
+          for (const connector of charger.connectors) {
+            consumption.limitSiteAreaWatts = consumption.limitSiteAreaWatts + connector.power;
+          }
+        }
+        consumption.limitSiteAreaAmps = consumption.limitSiteAreaWatts / 230;
+      }
       // Return
       return consumption;
     }
