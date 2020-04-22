@@ -1,11 +1,11 @@
-import { BillingTransactionData } from './Billing';
 import ChargingStation from '../types/ChargingStation';
+import { BillingTransactionData } from './Billing';
 import Consumption from './Consumption';
-import User from './User';
-import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
-import { OCPISession } from './ocpi/OCPISession';
 import { OCPICdr } from './ocpi/OCPICdr';
-import { RefundStatus } from './Refund';
+import { OCPISession } from './ocpi/OCPISession';
+import { OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
+import { RefundTransactionData } from './Refund';
+import User from './User';
 
 export type InactivityStatusLevel =
  'info' |
@@ -61,12 +61,7 @@ export default interface Transaction {
     tagID: string;
     userID: string;
   };
-  refundData?: {
-    refundId: string;
-    refundedAt: Date;
-    reportId?: string;
-    status?: RefundStatus;
-  };
+  refundData?: RefundTransactionData;
   lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
   chargeBox?: ChargingStation;
   meterStart: number;
