@@ -118,6 +118,7 @@ export interface CarCatalog extends CreatedUpdatedProps{
   image?: string;
   videos?: string[];
   hash?: string;
+  imagesHash?: string;
 }
 
 export interface CarMaker {

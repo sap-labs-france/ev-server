@@ -27,6 +27,8 @@ export default abstract class CarDatabase {
           externalCar.image = await this.getCarCatalogThumb(externalCar);
           // Get images
           externalCar.images = await this.getCarCatalogImages(externalCar);
+          // Create the Hash
+          externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
           // Save
           externalCar.id = await CarStorage.saveCarCatalog(externalCar, true);
           actionsDone.inSuccess++;
@@ -43,12 +45,20 @@ export default abstract class CarDatabase {
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = internalCar.createdOn;
-          // Get image
-          externalCar.image = await this.getCarCatalogThumb(externalCar);
-          // Get images
-          externalCar.images = await this.getCarCatalogImages(externalCar);
-          // Save
-          await CarStorage.saveCarCatalog(externalCar, true);
+          // Images have changed?
+          if (externalCar.imagesHash !== internalCar.imagesHash) {
+            // Get image
+            externalCar.image = await this.getCarCatalogThumb(externalCar);
+            // Get images
+            externalCar.images = await this.getCarCatalogImages(externalCar);
+            // Create the Hash
+            externalCar.imagesHash = Cypher.hash(externalCar.imageURLs.toString()),
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, true);
+          } else {
+            // Save
+            await CarStorage.saveCarCatalog(externalCar, false);
+          }
           actionsDone.inSuccess++;
           // Log
           Logging.logDebug({
