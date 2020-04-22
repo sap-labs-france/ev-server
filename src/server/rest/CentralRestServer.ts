@@ -116,8 +116,8 @@ export default class CentralRestServer {
     CentralRestServer.socketIO.use((socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'start', action: Action.STARTUP,
+        module: MODULE_NAME, method: 'start',
+        action: Action.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketHandshake: socket.handshake }
       });
@@ -134,24 +134,30 @@ export default class CentralRestServer {
       if (!userToken || !userToken.tenantID) {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: 'start', action: Action.STARTUP,
+          module: MODULE_NAME, method: 'start',
+          action: Action.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
         Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: 'start', action: Action.STARTUP,
+          tenantID: userToken.tenantID,
+          module: MODULE_NAME, method: 'start',
+          action: Action.SOCKET_IO,
           message: 'SocketIO client is connected to tenant ' + userToken.tenantID,
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
         // Handle Socket IO connection
         socket.on('disconnect', () => {
-          // Nothing to do
+          Logging.logDebug({
+            tenantID: userToken.tenantID,
+            module: MODULE_NAME, method: 'start',
+            action: Action.SOCKET_IO,
+            message: 'SocketIO client is disconnected from tenant ' + userToken.tenantID,
+            detailedMessages: { socketHandshake: socket.handshake }
+          });
         });
       }
     });
