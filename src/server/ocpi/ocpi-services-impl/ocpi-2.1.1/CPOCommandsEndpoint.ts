@@ -1,34 +1,35 @@
+import axios from 'axios';
 import { NextFunction, Request, Response } from 'express';
+import HttpStatusCodes from 'http-status-codes';
+import moment from 'moment';
+import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
+import AppError from '../../../../exception/AppError';
+import BackendError from '../../../../exception/BackendError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { Action } from '../../../../types/Authorization';
+import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
+import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
+import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIStartSession } from '../../../../types/ocpi/OCPIStartSession';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { OCPIStopSession } from '../../../../types/ocpi/OCPIStopSession';
+import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
-import { OCPICommandType } from '../../../../types/ocpi/OCPICommandType';
-import { OCPICommandResponse, OCPICommandResponseType } from '../../../../types/ocpi/OCPICommandResponse';
-import { OCPIStartSession } from '../../../../types/ocpi/OCPIStartSession';
 import OCPITokensService from './OCPITokensService';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
-import ChargingStationClientFactory from '../../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import ChargingStation, { Connector, RemoteAuthorization } from '../../../../types/ChargingStation';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import { OCPPRemoteStartStopStatus } from '../../../../types/ocpp/OCPPClient';
-import Logging from '../../../../utils/Logging';
-import { Action } from '../../../../types/Authorization';
-import axios from 'axios';
-import BackendError from '../../../../exception/BackendError';
-import AppError from '../../../../exception/AppError';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { OCPIStopSession } from '../../../../types/ocpi/OCPIStopSession';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import HttpStatusCodes from 'http-status-codes';
-import moment from 'moment';
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'CPOCommandsEndpoint';
+
 /**
  * EMSP Tokens Endpoint
  */
@@ -157,6 +158,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
       if (OCPIUtils.isAuthorizationValid(existingAuthorization.timestamp)) {
         Logging.logDebug({
           tenantID: tenant.id,
+          source: chargingStation.id,
           action: Action.OCPI_START_SESSION,
           message: `An existing remote authorization exists for charging station ${chargingStation.id} and connector ${connector.connectorId}`,
           module: MODULE_NAME, method: 'remoteStartSession'
@@ -233,6 +235,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (!chargingStation) {
       Logging.logDebug({
         tenantID: tenant.id,
+        source: transaction.chargeBoxID,
         action: Action.OCPI_STOP_SESSION,
         message: `Charging station ${transaction.chargeBoxID} not found`,
         module: MODULE_NAME, method: 'remoteStopSession'
