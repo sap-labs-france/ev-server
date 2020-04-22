@@ -145,7 +145,7 @@ export default class CentralRestServer {
           tenantID: userToken.tenantID,
           module: MODULE_NAME, method: 'start',
           action: Action.SOCKET_IO,
-          message: 'SocketIO client is connected to tenant ' + userToken.tenantID,
+          message: 'SocketIO client is connected',
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
@@ -155,7 +155,7 @@ export default class CentralRestServer {
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'start',
             action: Action.SOCKET_IO,
-            message: 'SocketIO client is disconnected from tenant ' + userToken.tenantID,
+            message: 'SocketIO client is disconnected',
             detailedMessages: { socketHandshake: socket.handshake }
           });
         });
