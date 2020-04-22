@@ -14,6 +14,7 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
+import path from 'path';
 
 const MODULE_NAME = 'SettingService';
 
@@ -229,13 +230,13 @@ export default class SettingService {
     let modulePath: string;
     switch (settingType) {
       case RefundSettingsType.CONCUR:
-        modulePath = '../../../integration/refund/concur/ConcurRefundConnector';
+        modulePath = path.join(__dirname, '../../../integration/refund/concur/ConcurRefundConnector');
         break;
       case PricingSettingsType.CONVERGENT_CHARGING:
-        modulePath = '../../../integration/pricing/convergent-charging/ConvergentChargingPricing';
+        modulePath = path.join(__dirname, '../../../integration/pricing/convergent-charging/ConvergentChargingPricing');
         break;
       case SmartChargingSettingsType.SAP_SMART_CHARGING:
-        modulePath = '../../../integration/smart-charging/sap-smart-charging/SapSmartCharging';
+        modulePath = path.join(__dirname, '../../../integration/smart-charging/sap-smart-charging/SapSmartCharging');
         break;
     }
     return modulePath ? Utils.isModuleAvailable(modulePath) : true;
