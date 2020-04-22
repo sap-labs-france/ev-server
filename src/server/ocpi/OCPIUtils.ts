@@ -4,6 +4,7 @@ import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import moment from 'moment';
 
 /**
  * OCPI Utils
@@ -217,5 +218,9 @@ export default class OCPIUtils {
     newToken.zk = Math.floor(Math.random() * 100);
     // Return in Base64
     return OCPIUtils.btoa(JSON.stringify(newToken));
+  }
+
+  public static isAuthorizationValid(authorizationDate: Date) {
+    return authorizationDate && moment(authorizationDate).isAfter(moment().subtract(2, 'minutes'));
   }
 }

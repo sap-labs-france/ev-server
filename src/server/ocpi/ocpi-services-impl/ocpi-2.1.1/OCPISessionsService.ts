@@ -197,6 +197,7 @@ export default class OCPISessionsService {
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
+    transaction.lastUpdate = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
       extraInactivitySecs: 0,
@@ -209,8 +210,8 @@ export default class OCPISessionsService {
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
       totalConsumption: cdr.total_energy * 1000,
-      totalDurationSecs: Math.round(moment.duration(moment(cdr.stop_date_time).diff(moment(cdr.stop_date_time))).asSeconds()),
-      totalInactivitySecs: transaction.currentTotalInactivitySecs,
+      totalDurationSecs: cdr.total_time,
+      totalInactivitySecs: cdr.total_parking_time,
       inactivityStatus: transaction.currentInactivityStatus,
       userID: transaction.userID
     };
