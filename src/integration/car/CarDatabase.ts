@@ -40,13 +40,13 @@ export default abstract class CarDatabase {
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
-        } else if (Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
+        } else if (!internalCar.imagesHash || Cypher.hash(JSON.stringify(externalCar)) !== internalCar.hash) {
           // Car has changed: Update it
           externalCar.hash = Cypher.hash(JSON.stringify(externalCar));
           externalCar.lastChangedOn = new Date();
           externalCar.createdOn = internalCar.createdOn;
           // Images have changed?
-          if (externalCar.imagesHash !== internalCar.imagesHash) {
+          if (!internalCar.imagesHash || (externalCar.imagesHash !== internalCar.imagesHash)) {
             // Get image
             externalCar.image = await this.getCarCatalogThumb(externalCar);
             // Get images
