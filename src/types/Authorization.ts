@@ -115,6 +115,8 @@ export enum Action {
   LOCKING = 'Locking',
 
   STARTUP = 'Startup',
+  
+  SOCKET_IO = 'SocketIO',
 
   HEARTBEAT = 'Heartbeat',
 
