@@ -27,8 +27,9 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
+    // FIXME: catch missing file error
     const chargingStationTemplates =
-      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/templates/charging-stations.json`, 'utf8'));
+      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
