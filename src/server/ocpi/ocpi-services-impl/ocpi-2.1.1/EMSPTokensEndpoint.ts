@@ -16,7 +16,7 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
 import OCPIMapping from './OCPIMapping';
-import uuid = require('uuid');
+import uuid from 'uuid';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';

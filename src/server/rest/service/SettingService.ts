@@ -1,5 +1,4 @@
 import { Action, Entity } from '../../../types/Authorization';
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SmartChargingSettingsType } from '../../../types/Setting';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -11,7 +10,6 @@ import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import _ from 'lodash';
 
@@ -223,21 +221,5 @@ export default class SettingService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static isComponentModuleAvailable(settingType: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType): boolean {
-    let modulePath: string;
-    switch (settingType) {
-      case RefundSettingsType.CONCUR:
-        modulePath = '../../../integration/refund/concur/ConcurRefundConnector';
-        break;
-      case PricingSettingsType.CONVERGENT_CHARGING:
-        modulePath = '../../../integration/pricing/convergent-charging/ConvergentChargingPricing';
-        break;
-      case SmartChargingSettingsType.SAP_SMART_CHARGING:
-        modulePath = '../../../integration/smart-charging/sap-smart-charging/SapSmartCharging';
-        break;
-    }
-    return modulePath ? Utils.isModuleAvailable(modulePath) : true;
   }
 }

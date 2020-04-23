@@ -11,7 +11,6 @@ import uuidV4 from 'uuid/v4';
 import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
-import DummyModule from './DummyModule';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -36,8 +35,7 @@ import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
-import passwordGenerator = require('password-generator');
-import Logging from './Logging';
+import passwordGenerator from 'password-generator';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -1382,23 +1380,10 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  public static async importModule(modulePath: string) {
-    if (Utils.isModuleAvailable(modulePath)) {
-      return await import(modulePath);
-    }
-    return DummyModule;
-  }
-
   public static isModuleAvailable(modulePath: string): boolean {
     if (!path.isAbsolute(modulePath)) {
-      Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
-        action: Action.IMPORT_MODULE,
-        module: MODULE_NAME, method: 'isModuleAvailable',
-        message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
-      });
-      console.log('The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies');
+      const logMsg = 'The tested module path ' + modulePath + ' in Utils.isModuleAvailable() is not an absolute path, expect unattended inconsistencies';
+      console.log(logMsg);
     }
     try {
       require.resolve(modulePath);

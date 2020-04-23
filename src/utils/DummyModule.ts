@@ -12,7 +12,7 @@ export default class DummyModule {
       source: Constants.CENTRAL_SERVER,
       action: Action.IMPORT_MODULE,
       module: MODULE_NAME, method: 'constructor',
-      message: MODULE_NAME + ' have been dynamically imported, ensure its import follow its proper usage',
+      message: MODULE_NAME + ' have been imported, ensure its import follow its proper usage',
       detailedMessages: { stack: error.stack }
     });
   }

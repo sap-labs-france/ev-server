@@ -10,6 +10,7 @@ import CentralSystemServer from '../CentralSystemServer';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import WSServer from './WSServer';
+import WebSocket from 'ws';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private _serverName: string;

@@ -12,7 +12,7 @@ import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
-import moment = require('moment');
+import moment from 'moment';
 
 const MODULE_NAME = 'TransactionStorage';
 

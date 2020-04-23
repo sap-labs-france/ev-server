@@ -1,33 +1,34 @@
-import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import Authorizations from '../../../authorization/Authorizations';
-import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import Address from '../../../types/Address';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { UserInErrorType } from '../../../types/InError';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import TenantComponents from '../../../types/TenantComponents';
-import { UserStatus } from '../../../types/User';
-import UserNotifications from '../../../types/UserNotifications';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import UserSecurity from './security/UserSecurity';
-import UtilsService from './UtilsService';
+import { NextFunction, Request, Response } from 'express';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
-import path from 'path';
+import Address from '../../../types/Address';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
+import Constants from '../../../utils/Constants';
+import ERPService from '../../../integration/pricing/ERPServiceMod';
+import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import RatingService from '../../../integration/pricing/RatingServiceMod';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { UserInErrorType } from '../../../types/InError';
+import UserNotifications from '../../../types/UserNotifications';
+import UserSecurity from './security/UserSecurity';
+import { UserStatus } from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
+import fs from 'fs';
 
 const MODULE_NAME = 'UserService';
 
@@ -1105,9 +1106,7 @@ export default class UserService {
       });
     }
     // Create services
-    const RatingService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/RatingService'));
     const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const ERPService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/ERPService'));
     const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {

@@ -1,6 +1,7 @@
 import * as http from 'http';
+import { Action } from '../../../types/Authorization';
 import uuid from 'uuid/v4';
-import { OPEN } from 'ws';
+import WebSocket, { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -10,7 +11,6 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
-import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {

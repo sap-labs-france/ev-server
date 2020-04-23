@@ -534,7 +534,7 @@ export default class OCPIMapping {
     const chargingPeriod: OCPIChargingPeriod = {
       start_date_time: consumption.startedAt,
       dimensions: []
-    }
+    };
     if (consumption.consumption > 0) {
       chargingPeriod.dimensions.push({
         type: CdrDimensionType.ENERGY,

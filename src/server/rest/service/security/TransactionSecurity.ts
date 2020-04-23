@@ -1,4 +1,4 @@
-import moment = require('moment');
+import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';

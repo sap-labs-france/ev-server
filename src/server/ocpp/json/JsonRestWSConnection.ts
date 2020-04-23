@@ -1,4 +1,5 @@
 import * as http from 'http';
+import { Action } from '../../../types/Authorization';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import global from '../../../types/GlobalType';
@@ -6,7 +7,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import WSConnection from './WSConnection';
-import { Action } from '../../../types/Authorization';
+import WebSocket from 'ws';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 

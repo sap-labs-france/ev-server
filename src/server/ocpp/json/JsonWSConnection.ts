@@ -1,8 +1,8 @@
+import { Action } from '../../../types/Authorization';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
-import { Action } from '../../../types/Authorization';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
@@ -12,6 +12,7 @@ import Logging from '../../../utils/Logging';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationService from './services/JsonChargingStationService';
 import WSConnection from './WSConnection';
+import WebSocket from 'ws';
 
 const MODULE_NAME = 'JsonWSConnection';
 
