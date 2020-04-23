@@ -204,11 +204,11 @@ export default abstract class ChargingStationVendor {
           });
           const results = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
-            const result = await chargingStationClient.setChargingProfile({
+            const ret = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
               csChargingProfiles: schneiderChargingProfile.profile
             });
-            results.push(result);
+            results.push(ret);
           }
           Logging.logDebug({
             tenantID: tenantID,
@@ -311,10 +311,10 @@ export default abstract class ChargingStationVendor {
           const results = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
-            const result = await chargingStationClient.clearChargingProfile({
+            const ret = await chargingStationClient.clearChargingProfile({
               connectorId: connector.connectorId
             });
-            results.push(result);
+            results.push(ret);
           }
           // Reapply the current limitation
           await this.setPowerLimitation(tenantID, chargingStation, 0,

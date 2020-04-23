@@ -27,9 +27,15 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
-    // FIXME: catch missing file error
-    const chargingStationTemplates =
-      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
+    let chargingStationTemplates;
+    try {
+      chargingStationTemplates =
+        JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        throw error;
+      }
+    }
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
@@ -553,7 +559,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress: string}): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant
