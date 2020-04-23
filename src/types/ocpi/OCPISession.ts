@@ -12,7 +12,7 @@ export interface OCPISession {
   location: OCPILocation;
   meter_id?: string;
   currency: string;
-  charging_periods?: OCPIChargingPeriod;
+  charging_periods?: OCPIChargingPeriod[];
   total_cost?: number;
   status: OCPISessionStatus;
   last_updated: Date;
