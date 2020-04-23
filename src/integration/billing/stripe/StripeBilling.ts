@@ -321,11 +321,11 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async sendInvoiceToUser(invoiceId: string): Promise<Partial<BillingInvoice>> {
+  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<Partial<BillingInvoice>> {
     await this.checkConnection();
     try {
-      const invoice = await this.stripe.invoices.sendInvoice(invoiceId) as Partial<BillingInvoice>;
-      invoice.status = BillingInvoiceStatus.OPEN;
+      const stripeInvoice = await this.stripe.invoices.sendInvoice(invoice.invoiceID);
+      invoice.status = stripeInvoice.status as BillingInvoiceStatus;
       invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
       return invoice;
     } catch (error) {
@@ -515,7 +515,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
             description: description,
             amount: Math.round(transaction.stop.roundedPrice * 100)
           });
-          await this.sendInvoiceToUser(invoice.invoice.invoiceID);
+          await this.sendInvoiceToUser(invoice.invoice);
           break;
         // Periodic
         case Constants.BILLING_METHOD_PERIODIC:

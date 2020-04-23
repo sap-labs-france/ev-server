@@ -324,7 +324,7 @@ describe('Billing Service', function() {
       it('Should list filtered invoices', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (const invoice of response.data.result) {
-          expect(invoice.status).to.be.eq(BillingInvoiceStatus.DRAFT);
+          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
       });
 
@@ -439,14 +439,13 @@ describe('Billing Service', function() {
         for (let i = 0; i < response.data.result.length - 1; i++) {
           expect(response.data.result[i].userID).to.be.eq(basicUser.id);
           expect(response.data.result[i].amount).to.be.eq(100);
-          expect(response.data.result[i].status).to.be.eq(BillingInvoiceStatus.DRAFT);
         }
       });
 
       it('Should list filtered invoices', async () => {
         const response = await testData.userService.billingApi.readAll({ Status: BillingInvoiceStatus.OPEN }, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         for (const invoice of response.data.result) {
-          expect(invoice.status).to.be.eq(BillingInvoiceStatus.DRAFT);
+          expect(invoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
         }
       });
     });
@@ -481,12 +480,55 @@ describe('Billing Service', function() {
             testData.userContext
           );
         }
+        await TestData.setBillingSystemValidCredentials(testData);
       });
 
       it('should create an invoice after a transaction', async () => {
         let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesBefore = response.data.result;
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
+        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const invoicesAfter = response.data.result;
+        expect(invoicesAfter.length).to.be.eq(invoicesBefore.length + 1);
+        expect(invoicesAfter[invoicesAfter.length - 1].status).to.be.eq(BillingInvoiceStatus.OPEN);
+      });
+    });
+
+    describe('Where basic user', () => {
+      before(async () => {
+        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        assert(testData.userContext, 'User context cannot be null');
+        if (testData.userContext === testData.centralUserContext) {
+          // Reuse the central user service (to avoid double login)
+          testData.userService = testData.centralUserService;
+        } else {
+          testData.userService = new CentralServerService(
+            testData.tenantContext.getTenant().subdomain,
+            testData.userContext
+          );
+        }
+        await TestData.setBillingSystemValidCredentials(testData);
+      });
+
+      it('should create an invoice after a transaction', async () => {
+        let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
+        const invoicesBefore = response.data.result;
+        const adminUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        const basicUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        // Connect as Admin to Force synchronize basic user
+        testData.userContext = adminUser;
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
+        await testData.userService.billingApi.forceSynchronizeUser({ id: basicUser.id });
+        // Reconnect as Basic user
+        testData.userContext = basicUser;
+        testData.userService = new CentralServerService(
+          testData.tenantContext.getTenant().subdomain,
+          testData.userContext
+        );
         await generateTransaction(testData.userContext, testData.chargingStationContext);
         response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesAfter = response.data.result;

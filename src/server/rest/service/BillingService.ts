@@ -247,7 +247,8 @@ export default class BillingService {
     // });
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
-        userID: req.user.id
+        userID: req.user.id,
+        invoiceStatus: filteredRequest.status ? filteredRequest.status : null
       },
       {
         limit: filteredRequest.Limit,

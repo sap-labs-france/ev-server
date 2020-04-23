@@ -315,5 +315,5 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
-  async abstract sendInvoiceToUser(invoiceId: string): Promise<Partial<BillingInvoice>>;
+  async abstract sendInvoiceToUser(invoice: BillingInvoice): Promise<Partial<BillingInvoice>>;
 }

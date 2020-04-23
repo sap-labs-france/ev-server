@@ -143,7 +143,7 @@ export default class BillingStorage {
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
-      _id: invoiceToSave.id ? invoiceToSave.id : new ObjectID(),
+      _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       number: invoiceToSave.number,
       userID: Utils.convertToObjectID(user.id),
@@ -163,6 +163,6 @@ export default class BillingStorage {
     );
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveInvoice', uniqueTimerID, { invoiceMDB });
-    return invoiceToSave.invoiceID;
+    return invoiceMDB._id.toHexString();
   }
 }
