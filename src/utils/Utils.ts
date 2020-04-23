@@ -223,44 +223,6 @@ export default class Utils {
     }
   }
 
-  // Temporary method for Revenue Cloud concept
-  // static async pushTransactionToRevenueCloud(tenantID: string, action: Action, transaction: Transaction, user: User, actionOnUser: User) {
-  //   // Refund Transaction
-  //   const cloudRevenueAuth = new ClientOAuth2({
-  //     clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
-  //     clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
-  //     accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
-  //   });
-  //   // Get the token
-  //   const authResponse = await cloudRevenueAuth.credentials.getToken();
-  //   // Send HTTP request
-  //   const result = await axios.post(
-  //     'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
-  //     {
-  //       'metricId': 'ChargeCurrent_Trial',
-  //       'quantity': transaction.stop.totalConsumption / 1000,
-  //       'startedAt': transaction.timestamp,
-  //       'endedAt': transaction.stop.timestamp,
-  //       'userTechnicalId': transaction.tagID
-  //     },
-  //     {
-  //       'headers': {
-  //         'Authorization': 'Bearer ' + authResponse.accessToken,
-  //         'Content-Type': 'application/json'
-  //       }
-  //     }
-  //   );
-  //   // Log
-  //   Logging.logSecurityInfo({
-  //     user, actionOnUser, action,
-  //     tenantID: tenantID,
-  //     source: transaction.chargeBoxID,
-  //     module: MODULE_NAME, method: 'pushTransactionToRevenueCloud',
-  //     message: `Transaction ID '${transaction.id}' has been refunded successfully`,
-  //     detailedMessages: { data: result.data }
-  //   });
-  // }
-
   public static getLanguageFromLocale(locale: string) {
     let language = Constants.DEFAULT_LANGUAGE;
     // Set the User's locale
