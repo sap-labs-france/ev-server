@@ -754,7 +754,7 @@ export default class OCPPService {
         chargingStationID: chargingStation.id,
         connectorID: transaction.connectorId,
         profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
-        transactionId:  stopTransaction.transactionId
+        transactionId: stopTransaction.transactionId
       }, Constants.DB_PARAMS_MAX_LIMIT);
       // Delete all TxProfiles
       for (const chargingProfile of chargingProfiles.result) {
@@ -838,10 +838,10 @@ export default class OCPPService {
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
       // Finalize billing
       await this.billTransaction(headers.tenantID, transaction, TransactionAction.STOP);
-      // OCPI
-      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
+      // OCPI
+      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
@@ -1147,7 +1147,7 @@ export default class OCPPService {
     transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
-        OCPPUtils.isConsumptionMeterValue(meterValue)) {
+      OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Init
       const consumption: Consumption = {
         transactionId: transaction.id,
@@ -1222,7 +1222,7 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isConsumptionMeterValue(meterValue)) {
+        OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(
           tenantID, transaction, chargingStation, meterValue);
@@ -1443,6 +1443,7 @@ export default class OCPPService {
         await ocpiClient.updateSession(transaction);
         break;
       case TransactionAction.STOP:
+        transaction.values = await ConsumptionStorage.getOptimizedConsumptions(tenantID, { transactionId: transaction.id });
         await ocpiClient.stopSession(transaction);
         await ocpiClient.postCdr(transaction);
         break;

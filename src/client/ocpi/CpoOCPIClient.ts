@@ -296,13 +296,15 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiSession.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiSession.currency = transaction.priceUnit;
     transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
+    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
 
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiSession.kwh,
       last_updated: transaction.ocpiSession.last_updated,
       total_cost: transaction.ocpiSession.total_cost,
       currency: transaction.ocpiSession.currency,
-      status: transaction.ocpiSession.status
+      status: transaction.ocpiSession.status,
+      charging_periods: transaction.ocpiSession.charging_periods
     };
     // Log
     Logging.logDebug({
@@ -363,6 +365,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
     transaction.ocpiSession.last_updated = transaction.stop.timestamp;
     transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
+    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -430,17 +433,7 @@ export default class CpoOCPIClient extends OCPIClient {
       authorization_id: transaction.ocpiSession.authorization_id,
       auth_method: transaction.ocpiSession.auth_method,
       location: transaction.ocpiSession.location,
-      charging_periods: [
-        {
-          start_date_time: transaction.timestamp,
-          dimensions: [
-            {
-              type: CdrDimensionType.ENERGY,
-              volume: transaction.stop.totalConsumption / 1000
-            }
-          ]
-        }
-      ],
+      charging_periods: OCPIMapping.buildChargingPeriods(transaction),
       last_updated: transaction.stop.timestamp
     };
     // Log
