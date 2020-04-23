@@ -3,8 +3,8 @@ import HttpDatabaseRequest from "./requests/HttpDatabaseRequest";
 
 export interface BillingTransactionData {
   status?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
+  invoiceStatus?: BillingInvoiceStatus;
+  invoiceItem?: BillingInvoiceItem;
   lastUpdate?: Date;
 }
 
@@ -18,8 +18,8 @@ export interface BillingDataUpdate {
 
 export interface BillingDataStop {
   status?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
+  invoiceStatus?: BillingInvoiceStatus;
+  invoiceItem?: BillingInvoiceItem;
 }
 
 export interface BillingUserData {
@@ -51,6 +51,7 @@ export interface BillingTax {
 export interface BillingInvoice {
   id: string;
   invoiceID: string;
+  userID?: string;
   number?: string;
   status?: BillingInvoiceStatus;
   amount?: number;

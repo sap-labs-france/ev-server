@@ -10,6 +10,7 @@ import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import {TransactionIdemPotencyKey} from "./stripe/StripeBilling";
 
 const MODULE_NAME = 'Billing';
 
@@ -310,9 +311,9 @@ export default abstract class Billing<T extends BillingSetting> {
 
   // async abstract getOpenedInvoice(user: BillingPartialUser): Promise<BillingInvoice>;
 
-  async abstract createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem): Promise<BillingInvoiceItem>;
+  async abstract createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<BillingInvoiceItem>;
 
-  async abstract createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem): Promise<{ invoice: Partial<BillingInvoice>; invoiceItem: BillingInvoiceItem }>;
+  async abstract createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
   async abstract sendInvoiceToUser(invoiceId: string): Promise<Partial<BillingInvoice>>;
 }

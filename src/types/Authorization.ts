@@ -211,7 +211,6 @@ export enum Action {
   BILLING_CHECK_CONNECTION = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
   BILLING_SEND_INVOICE = 'BillingSendInvoice',
-  BILLING_GET_OPENED_INVOICE = 'BillingGetOpenedInvoice',
   BILLING_CREATE_INVOICE = 'BillingCreateInvoice',
   BILLING_CREATE_INVOICE_ITEM = 'BillingCreateInvoiceItem',
 

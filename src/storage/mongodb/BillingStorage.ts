@@ -50,9 +50,17 @@ export default class BillingStorage {
     // Create Aggregation
     const aggregation = [];
     // Set filters
+
     if (filters) {
       aggregation.push({
         $match: filters
+      });
+    }
+    if (params.userID) {
+      aggregation.push({
+        $match: {
+          'userID': { $eq: Utils.convertToObjectID(params.userID) }
+        }
       });
     }
     if (params.invoiceStatus) {
