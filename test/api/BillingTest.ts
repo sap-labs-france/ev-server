@@ -82,7 +82,7 @@ for (const key of Object.keys(billingSettings)) {
   }
 }
 
-describe('Billing Service', testData.pending ? null : function() {
+describe('Billing Service', function() {
   this.timeout(1000000);
   describe('With component Billing (tenant ut-billing)', () => {
     before(async () => {

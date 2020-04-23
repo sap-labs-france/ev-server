@@ -23,12 +23,10 @@ const testData: TestData = new TestData();
 describe('OCPI Service Tests', function() {
   this.timeout(100000);
 
-
   before(async () => {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
-
     testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
     testData.cpoService = new OCPIService(OCPIRole.CPO);
     testData.emspService = new OCPIService(OCPIRole.EMSP);
