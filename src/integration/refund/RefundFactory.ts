@@ -1,5 +1,5 @@
 import { RefundSetting, RefundSettingsType } from '../../types/Setting';
-import ConcurRefundConnector from './ConcurRefundConnectorMod';
+import ConcurRefundConnector from './ConcurRefundConnectorComponent';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import RefundConnector from './RefundConnector';
