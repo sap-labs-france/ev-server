@@ -120,7 +120,7 @@ export default class BillingStorage {
       })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSites', uniqueTimerID, { params });
+    Logging.traceEnd(MODULE_NAME, 'getInvoices', uniqueTimerID, { params });
     return {
       count: (invoicesCountMDB.length > 0 ?
         (invoicesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : invoicesCountMDB[0].count) : 0),
@@ -130,7 +130,7 @@ export default class BillingStorage {
 
   public static async saveInvoice(tenantId: string, invoiceToSave: Partial<BillingInvoice>): Promise<string> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveBilling');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoice');
     const user = await UserStorage.getUserByBillingID(tenantId, invoiceToSave.customerID);
     if (!user) {
       throw new BackendError({

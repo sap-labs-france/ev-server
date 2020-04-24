@@ -25,7 +25,6 @@ import TenantContext from './contextProvider/TenantContext';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-
 let billingImpl: Billing<BillingSetting>;
 
 class TestData {
@@ -255,61 +254,6 @@ describe('Billing Service', function() {
         const billingUserAfter = await billingImpl.getUserByEmail(fakeUser.email);
         expect(billingUserBefore.billingData.customerID).to.not.be.eq(billingUserAfter.billingData.customerID);
       });
-
-      // It('Should create an invoice', async () => {
-      //   if (!testData.isForcedSynchro) {
-      //     await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-      //     testData.isForcedSynchro = true;
-      //   }
-      //   const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
-      //   // const invoice = await billingImpl.createInvoice(testData.tenantContext.getTenant().id, billingUser, { description: 'Test invoice', amount: 5000 });
-      //   expect(invoice).to.not.be.undefined;
-      //   expect(invoice.invoice).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-      //   // const createdInvoiceId = await BillingStorage.saveInvoice(testData.tenantContext.getTenant().id, invoice.invoice);
-      //   // Const billingInvoice = await billingImpl.getUserInvoice(billingUser, invoice.invoice.invoiceID);
-      //   const createdInvoice = await BillingStorage.getInvoice(testData.tenantContext.getTenant().id, invoice.invoice.id);
-      //   expect(createdInvoice).to.not.be.undefined;
-      // });
-
-      // it('Should create an invoice with multiple invoice items', async () => {
-      //   if (!testData.isForcedSynchro) {
-      //     await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-      //     testData.isForcedSynchro = true;
-      //   }
-      //   const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
-      //   const invoice = await billingImpl.createInvoice(testData.tenantContext.getTenant().id, billingUser, { description: 'Test invoice', amount: 5000 });
-      //   expect(invoice).to.not.be.undefined;
-      //   expect(invoice.invoice).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-      //   // Const openedInvoice = await billingImpl.getOpenedInvoice(billingUser);
-      //   const openedInvoices = await BillingStorage.getInvoices(testData.tenantContext.getTenant().id, { invoiceStatus: BillingInvoiceStatus.OPEN }, Constants.DB_PARAMS_MAX_LIMIT);
-      //   expect(openedInvoices.result).to.include(invoice.invoice);
-      //
-      //   await billingImpl.createInvoiceItem(billingUser, openedInvoices.result[0], { description: 'Test invoice multiple items', amount: 1000 });
-      //   // const updatedInvoiceId = await BillingStorage.saveInvoice(testData.tenantContext.getTenant().id, openedInvoices.result[0]);
-      //   const updatedInvoice = await BillingStorage.getInvoice(testData.tenantContext.getTenant().id, invoice.invoice.id);
-      //   expect(updatedInvoice).to.not.be.undefined;
-      //   // expect(updatedInvoice.nbrOfItems).to.be.eq(2);
-      // });
-
-      // it('Should finalize and send an invoice', async () => {
-      //   if (!testData.isForcedSynchro) {
-      //     await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-      //     testData.isForcedSynchro = true;
-      //   }
-      //   const billingUser = await billingImpl.getUserByEmail(testData.userContext.email);
-      //   const invoice = await billingImpl.createInvoice(testData.tenantContext.getTenant().id, billingUser, { description: 'Test invoice', amount: 5000 });
-      //   expect(invoice).to.not.be.undefined;
-      //   expect(invoice.invoice).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.not.be.undefined;
-      //   expect(invoice.invoiceItem).to.containSubset({ description: 'Test invoice', amount: 5000 });
-      //   const billingInvoice = await billingImpl.sendInvoiceToUser(invoice.invoice.invoiceID);
-      //   expect(billingInvoice).to.not.be.undefined;
-      //   expect(billingInvoice.status).to.be.eq(BillingInvoiceStatus.OPEN);
-      // });
 
       it('Should list invoices', async () => {
         const response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');

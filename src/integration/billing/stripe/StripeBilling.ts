@@ -322,7 +322,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<Partial<BillingInvoice>> {
+  public async sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice> {
     await this.checkConnection();
     try {
       const stripeInvoice = await this.stripe.invoices.sendInvoice(invoice.invoiceID);
@@ -366,19 +366,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         });
       }
       if (billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE &&
-          billingUser.billingData.method !== Constants.BILLING_METHOD_PERIODIC &&
-          billingUser.billingData.method !== Constants.BILLING_METHOD_ADVANCE) {
+          billingUser.billingData.method !== Constants.BILLING_METHOD_PERIODIC) {
         throw new BackendError({
           message: 'Transaction user is assigned to unknown billing method',
-          source: Constants.CENTRAL_SERVER,
-          module: MODULE_NAME,
-          method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
-        });
-      }
-      if (billingUser.billingData.method === Constants.BILLING_METHOD_ADVANCE) {
-        throw new BackendError({
-          message: `Selected billing method '${billingUser.billingData.method}' currently not supported`,
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
@@ -448,7 +438,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           action: Action.BILLING_TRANSACTION
         });
       }
-      // Only relevant for Advance Billing to stop the running transaction, if the credit amount is no more sufficient
     } catch (error) {
       Logging.logError({
         tenantID: this.tenantID,
@@ -549,14 +538,14 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           invoice = await this.createInvoice(this.tenantID, billingUser, {
             description: description,
             amount: Math.round(transaction.stop.roundedPrice * 100)
-          });
+          }, idemPotencyKey);
           await this.sendInvoiceToUser(invoice.invoice);
           break;
         // Periodic
         case Constants.BILLING_METHOD_PERIODIC:
           invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
           if (invoice.invoice) {
-            // An invoice already exists : append a new invoice item
+            // A draft invoice already exists : append a new invoice item
             invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice, {
               description: description,
               amount: Math.round(transaction.stop.roundedPrice * 100)
@@ -650,8 +639,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       return false;
     }
     if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
-          (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
-          (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
+          (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed)) {
       Logging.logError({
         tenantID: this.tenantID,
         action: Action.USER_DELETE,
@@ -843,9 +831,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
     if (this.settings.periodicBillingAllowed) {
       return Constants.BILLING_METHOD_PERIODIC;
-    }
-    if (this.settings.advanceBillingAllowed) {
-      return Constants.BILLING_METHOD_ADVANCE;
     }
   }
 
