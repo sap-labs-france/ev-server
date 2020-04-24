@@ -1,19 +1,19 @@
-import {NextFunction, Request, Response} from 'express';
+import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import {Action, Entity} from '../../../types/Authorization';
-import {HTTPAuthError, HTTPError} from '../../../types/HTTPError';
+import { Action, Entity } from '../../../types/Authorization';
+import { BillingInvoiceStatus } from '../../../types/Billing';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import {BillingInvoiceStatus} from "../../../types/Billing";
 
 const MODULE_NAME = 'BillingService';
 
