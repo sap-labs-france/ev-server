@@ -1,13 +1,13 @@
+import BackendError from '../../../src/exception/BackendError';
+import BillingFactory from '../../../src/integration/billing/BillingFactory';
+import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
+import { StripeBillingSetting } from '../../../src/types/Setting';
+import User from '../../../src/types/User';
+import Constants from '../../../src/utils/Constants';
+import Cypher from '../../../src/utils/Cypher';
+import config from '../../config';
 import CONTEXTS from './ContextConstants';
 import TenantContext from './TenantContext';
-import BillingFactory from '../../../src/integration/billing/BillingFactory';
-import Constants from '../../../src/utils/Constants';
-import BackendError from '../../../src/exception/BackendError';
-import User from '../../../src/types/User';
-import { StripeBillingSetting } from '../../../src/types/Setting';
-import config from '../../config';
-import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
-import Cypher from '../../../src/utils/Cypher';
 
 export default class BillingContext {
 
@@ -54,6 +54,7 @@ export default class BillingContext {
         source: Constants.CENTRAL_SERVER,
         message: 'Billing service is not configured',
         method: 'createTestData',
+        module: 'BillingContext'
       });
     }
 

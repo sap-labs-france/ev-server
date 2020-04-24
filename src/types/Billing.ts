@@ -74,7 +74,9 @@ export enum BillingInvoiceStatus {
 }
 
 export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
-  status?: BillingInvoiceStatus;
-  startDateTime?: Date;
-  endDateTime?: Date;
+  Id?: string;
+  Status?: BillingInvoiceStatus;
+  StartDateTime?: Date;
+  EndDateTime?: Date;
+  Search: string;
 }

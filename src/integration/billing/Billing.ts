@@ -2,7 +2,7 @@ import BackendError from '../../exception/BackendError';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, HttpBillingInvoiceRequest, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
+import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
 import { DataResult } from '../../types/DataResult';
 import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
@@ -10,7 +10,7 @@ import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import {TransactionIdemPotencyKey} from "./stripe/StripeBilling";
+import { TransactionIdemPotencyKey } from './stripe/StripeBilling';
 
 const MODULE_NAME = 'Billing';
 

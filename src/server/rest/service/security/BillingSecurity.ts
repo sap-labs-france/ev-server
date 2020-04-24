@@ -86,14 +86,20 @@ export default class BillingSecurity {
 
   static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
+    if (request.Id) {
+      filteredRequest.Id = sanitize(request.Id);
+    }
     if (request.Status) {
-      filteredRequest.status = sanitize(request.Status);
+      filteredRequest.Status = sanitize(request.Status);
     }
     if (request.StartDateTime) {
-      filteredRequest.startDateTime = sanitize(request.StartDateTime);
+      filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     }
     if (request.EndDateTime) {
-      filteredRequest.endDateTime = sanitize(request.EndDateTime);
+      filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    }
+    if (request.Search) {
+      filteredRequest.Search = sanitize(request.Search);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

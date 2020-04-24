@@ -1,4 +1,6 @@
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
+import { BillingInvoice, BillingInvoiceStatus } from '../../types/Billing';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
@@ -6,9 +8,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
-import { BillingInvoice, BillingInvoiceStatus } from '../../types/Billing';
 import UserStorage from './UserStorage';
-import BackendError from '../../exception/BackendError';
 
 const MODULE_NAME = 'BillingStorage';
 
@@ -27,7 +27,7 @@ export default class BillingStorage {
 
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceId?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus;
+      invoiceId?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
@@ -63,10 +63,11 @@ export default class BillingStorage {
         }
       });
     }
-    if (params.invoiceStatus) {
+    // Status (Previously getUsersInError)
+    if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
       aggregation.push({
         $match: {
-          'status': { $eq: params.invoiceStatus }
+          'status': { $in: params.invoiceStatus }
         }
       });
     }
