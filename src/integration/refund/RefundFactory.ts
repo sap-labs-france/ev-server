@@ -1,4 +1,5 @@
 import { RefundSetting, RefundSettingsType } from '../../types/Setting';
+import ConcurRefundConnector from './concur/ConcurRefundConnector';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import RefundConnector from './RefundConnector';
@@ -22,7 +23,6 @@ export default class RefundFactory {
       if (setting) {
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            const ConcurRefundConnector = await Utils.importModule(path.join(__dirname, '/concur/ConcurRefundConnector'));
             return new ConcurRefundConnector(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
           default:
             break;

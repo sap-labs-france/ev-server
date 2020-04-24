@@ -1,4 +1,5 @@
 import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
+import SapSmartCharging from './sap-smart-charging/SapSmartCharging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SmartCharging from './SmartCharging';
 import Tenant from '../../types/Tenant';
@@ -18,7 +19,6 @@ export default class SmartChargingFactory {
       if (smartChargingSetting) {
         // SAP Convergent Charging
         if (smartChargingSetting.type === SmartChargingSettingsType.SAP_SMART_CHARGING) {
-          const SapSmartCharging = await Utils.importModule(path.join(__dirname, '/sap-smart-charging/SapSmartCharging'));
           // Return the CC implementation
           return new SapSmartCharging(tenantID, smartChargingSetting.sapSmartCharging);
         }
