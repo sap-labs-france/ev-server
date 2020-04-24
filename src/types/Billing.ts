@@ -78,5 +78,5 @@ export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
   Status?: BillingInvoiceStatus;
   StartDateTime?: Date;
   EndDateTime?: Date;
-  Search: string;
+  Search?: string;
 }
