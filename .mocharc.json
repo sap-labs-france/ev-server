@@ -11,6 +11,7 @@
   "timeout": 2000,
   "ui": "bdd",
   "full-trace": true,
+  "exit": true,
   "require": [
     "ts-node/register",
     "test/mocha.env.js"
