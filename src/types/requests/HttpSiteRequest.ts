@@ -1,4 +1,9 @@
+import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+
+export interface HttpSiteRequest extends HttpByIDRequest {
+  WithCompany?: boolean;
+}
 
 export interface HttpSitesRequest extends HttpDatabaseRequest {
   Issuer: boolean;

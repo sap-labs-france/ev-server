@@ -359,10 +359,8 @@ export default class OCPPService {
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
           // Handle Meter Values
           await this.updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
-
           // OCPI
           await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
-
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station Consumption
@@ -595,8 +593,8 @@ export default class OCPPService {
         user
       };
       // Build first Dummy consumption for pricing the Start Transaction
-      const consumption = this.buildConsumptionFromTransactionAndMeterValue(
-        transaction, transaction.timestamp, transaction.timestamp, {
+      const consumption = await this.buildConsumptionFromTransactionAndMeterValue(
+        headers.tenantID, chargingStation, transaction, transaction.timestamp, transaction.timestamp, {
           id: '666',
           chargeBoxID: transaction.chargeBoxID,
           connectorId: transaction.connectorId,
@@ -756,7 +754,7 @@ export default class OCPPService {
         chargingStationID: chargingStation.id,
         connectorID: transaction.connectorId,
         profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
-        transactionId:  stopTransaction.transactionId
+        transactionId: stopTransaction.transactionId
       }, Constants.DB_PARAMS_MAX_LIMIT);
       // Delete all TxProfiles
       for (const chargingProfile of chargingProfiles.result) {
@@ -825,8 +823,8 @@ export default class OCPPService {
       const lastMeterValue = this.updateTransactionWithStopTransaction(
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
-      const consumption: Consumption = this.buildConsumptionFromTransactionAndMeterValue(
-        transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
+      const consumption: Consumption = await this.buildConsumptionFromTransactionAndMeterValue(
+        headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
           id: '6969',
           chargeBoxID: transaction.chargeBoxID,
           connectorId: transaction.connectorId,
@@ -840,10 +838,10 @@ export default class OCPPService {
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
       // Finalize billing
       await this.billTransaction(headers.tenantID, transaction, TransactionAction.STOP);
-      // OCPI
-      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
+      // OCPI
+      await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.STOP);
       // Save the transaction
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
@@ -1099,7 +1097,7 @@ export default class OCPPService {
     }
   }
 
-  private buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue: OCPPNormalizedMeterValue): Consumption {
+  private async buildConsumptionAndUpdateTransactionFromMeterValue(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
@@ -1142,11 +1140,11 @@ export default class OCPPService {
     }
     // Compute consumption
     return this.buildConsumptionFromTransactionAndMeterValue(
-      transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+      tenantID, chargingStation, transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
-  private buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Consumption {
-
+  private async buildConsumptionFromTransactionAndMeterValue(tenantID: string, chargingStation: ChargingStation,
+    transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isConsumptionMeterValue(meterValue)) {
@@ -1176,12 +1174,27 @@ export default class OCPPService {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         consumption.toPrice = true;
       }
+      // Get the curent limit of the connector
+      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+      if (chargingStationVendor) {
+        // Get current limitation
+        const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+        consumption.limitAmps = connectorLimit.limitAmps;
+        consumption.limitWatts = connectorLimit.limitWatts;
+        consumption.limitSource = connectorLimit.limitSource;
+      } else {
+        // Default
+        consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
+        consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
+        consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
+      }
       // Return
       return consumption;
     }
   }
 
-  private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction, meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
+  private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction,
+    meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
     // Build consumptions
     const consumptions: Consumption[] = [];
     for (const meterValue of meterValues.values) {
@@ -1211,22 +1224,9 @@ export default class OCPPService {
       if (OCPPUtils.isSocMeterValue(meterValue) ||
         OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
+        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(
+          tenantID, transaction, chargingStation, meterValue);
         if (consumption) {
-          // Get the curent limit of the connector
-          const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
-          if (chargingStationVendor) {
-            // Get current limitation
-            const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
-            consumption.limitAmps = connectorLimit.limitAmps;
-            consumption.limitWatts = connectorLimit.limitWatts;
-            consumption.limitSource = connectorLimit.limitSource;
-          } else {
-            // Default
-            consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
-            consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
-            consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
-          }
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
             (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
@@ -1443,6 +1443,7 @@ export default class OCPPService {
         await ocpiClient.updateSession(transaction);
         break;
       case TransactionAction.STOP:
+        transaction.values = await ConsumptionStorage.getOptimizedConsumptions(tenantID, { transactionId: transaction.id });
         await ocpiClient.stopSession(transaction);
         await ocpiClient.postCdr(transaction);
         break;

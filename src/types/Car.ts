@@ -1,7 +1,6 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
-/*eslint-disable*/
-export interface Car extends CreatedUpdatedProps{
+export interface CarCatalog extends CreatedUpdatedProps{
   id: number;
   vehicleMake: string;
   vehicleModel: string;
@@ -119,6 +118,7 @@ export interface Car extends CreatedUpdatedProps{
   image?: string;
   videos?: string[];
   hash?: string;
+  imagesHash?: string;
 }
 
 export interface CarMaker {
@@ -152,6 +152,7 @@ export interface ChargeAlternativeTable {
 export interface ChargeStandardTable {
   type: string;
   evsePhaseVolt: number;
+  evsePhaseVoltCalculated: number;
   evsePhaseAmp: number;
   evsePhase: number;
   chargePhaseVolt: number;

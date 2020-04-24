@@ -34,6 +34,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
   connectors: Connector[];
+  remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
@@ -90,6 +91,13 @@ export interface Connector {
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
+}
+
+export interface RemoteAuthorization {
+  id: string;
+  connectorId: number;
+  tagId: string;
+  timestamp: Date;
 }
 
 export interface ConnectorCurrentLimit {
@@ -167,6 +175,11 @@ export interface ChargingStationCapabilities {
   supportStaticLimitationForChargingStation: boolean;
   supportStaticLimitationPerConnector: boolean;
   supportChargingProfiles: boolean;
+  supportCreditCard: boolean;
+  supportRemoteStartStopTransaction: boolean;
+  supportUnlockConnector: boolean;
+  supportReservation: boolean;
+  supportRFIDCard: boolean;
 }
 
 export interface ChargingStationOcppParameters {

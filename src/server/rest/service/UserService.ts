@@ -6,8 +6,6 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -29,6 +27,7 @@ import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
 import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
+import path from 'path';
 
 const MODULE_NAME = 'UserService';
 
@@ -554,7 +553,7 @@ export default class UserService {
           'user': user,
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
         }
-      );
+      ).catch(() => {});
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -1106,7 +1105,9 @@ export default class UserService {
       });
     }
     // Create services
+    const RatingService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/RatingService'));
     const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+    const ERPService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/ERPService'));
     const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {

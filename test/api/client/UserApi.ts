@@ -6,35 +6,35 @@ export default class UserApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/User');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Users');
   }
 
-  public readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/UsersInError');
   }
 
-  public create(data) {
+  public async create(data) {
     return super.create(data, '/client/api/UserCreate');
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/UserUpdate');
   }
 
-  public delete(id) {
+  public async delete(id) {
     return super.delete(id, '/client/api/UserDelete');
   }
 
-  public getByEmail(email) {
+  public async getByEmail(email) {
     return this.readAll({ Search : email });
   }
 
-  public getByTag(tag) {
+  public async getByTag(tag) {
     return this.readAll({ Search : tag });
   }
 }

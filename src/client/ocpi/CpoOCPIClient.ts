@@ -125,7 +125,21 @@ export default class CpoOCPIClient extends OCPIClient {
     return sendResult;
   }
 
-  async authorizeToken(token: OCPIToken, chargingStation: ChargingStation, connector?: Connector): Promise<string> {
+  async authorizeToken(token: OCPIToken, chargingStation: ChargingStation): Promise<string> {
+    if (chargingStation.remoteAuthorizations && chargingStation.remoteAuthorizations.length > 0) {
+      for (const remoteAuthorization of chargingStation.remoteAuthorizations) {
+        if (remoteAuthorization.tagId === token.uid && OCPIUtils.isAuthorizationValid(remoteAuthorization.timestamp)) {
+          Logging.logDebug({
+            tenantID: this.tenant.id,
+            action: Action.OCPI_AUTHORIZE_TOKEN,
+            message: `Valid Remote Authorization found for tag ${token.uid}`,
+            module: MODULE_NAME, method: 'authorizeToken',
+            detailedMessages: { response: remoteAuthorization }
+          });
+          return remoteAuthorization.id;
+        }
+      }
+    }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('tokens', Action.OCPI_AUTHORIZE_TOKEN)}/${token.uid}/authorize`;
     let siteID;
@@ -139,7 +153,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const payload: OCPILocationReference =
       {
         'location_id': siteID,
-        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation, connector)]
+        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
       };
     // Log
     Logging.logDebug({
@@ -282,13 +296,15 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiSession.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiSession.currency = transaction.priceUnit;
     transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
+    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
 
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiSession.kwh,
       last_updated: transaction.ocpiSession.last_updated,
       total_cost: transaction.ocpiSession.total_cost,
       currency: transaction.ocpiSession.currency,
-      status: transaction.ocpiSession.status
+      status: transaction.ocpiSession.status,
+      charging_periods: transaction.ocpiSession.charging_periods
     };
     // Log
     Logging.logDebug({
@@ -349,6 +365,7 @@ export default class CpoOCPIClient extends OCPIClient {
     transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
     transaction.ocpiSession.last_updated = transaction.stop.timestamp;
     transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
+    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -416,17 +433,7 @@ export default class CpoOCPIClient extends OCPIClient {
       authorization_id: transaction.ocpiSession.authorization_id,
       auth_method: transaction.ocpiSession.auth_method,
       location: transaction.ocpiSession.location,
-      charging_periods: [
-        {
-          start_date_time: transaction.timestamp,
-          dimensions: [
-            {
-              type: CdrDimensionType.ENERGY,
-              volume: transaction.stop.totalConsumption / 1000
-            }
-          ]
-        }
-      ],
+      charging_periods: OCPIMapping.buildChargingPeriods(transaction),
       last_updated: transaction.stop.timestamp
     };
     // Log

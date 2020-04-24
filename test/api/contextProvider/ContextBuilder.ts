@@ -48,6 +48,14 @@ export default class ContextBuilder {
     this.initialized = false;
   }
 
+  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
+    const newToken: any = {};
+    newToken.ak = role;
+    newToken.tid = tenantSubdomain;
+    newToken.zk = role;
+    return OCPIUtils.btoa(JSON.stringify(newToken));
+  }
+
   async init() {
     if (!this.initialized) {
       // Connect to the the DB
@@ -350,13 +358,5 @@ export default class ContextBuilder {
         await billingContext.createTestData();
     }
     return newTenantContext;
-  }
-
-  public static generateLocalToken(role: OCPIRole, tenantSubdomain: string) {
-    const newToken: any = {};
-    newToken.ak = role;
-    newToken.tid = tenantSubdomain;
-    newToken.zk = role;
-    return OCPIUtils.btoa(JSON.stringify(newToken));
   }
 }

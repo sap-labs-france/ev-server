@@ -1,7 +1,7 @@
 import { default as Axios, default as axios } from 'axios';
 import BackendError from '../../../exception/BackendError';
 import { Action } from '../../../types/Authorization';
-import { Car, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
+import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -10,24 +10,24 @@ import CarDatabase from '../CarDatabase';
 const MODULE_NAME = 'EVDabaseCar';
 
 export default class EVDabaseCar extends CarDatabase {
-  public async getCars(): Promise<Car[]> {
+  public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         message: 'No configuration is provided to access the EVDatabase system',
-        module: MODULE_NAME, method: 'getCars',
-        action: Action.SYNCHRONIZE_CARS,
+        module: MODULE_NAME, method: 'getCarCatalogs',
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
     const response = await Axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
-    const cars: Car[] = [];
+    const carCatalogs: CarCatalog[] = [];
     if (response.status !== 200) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         message: 'Error occurred while trying to retrieve the cars from EVDatabase',
-        module: MODULE_NAME, method: 'getCars',
-        action: Action.SYNCHRONIZE_CARS,
+        module: MODULE_NAME, method: 'getCarCatalogs',
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
     // Build result
@@ -41,6 +41,7 @@ export default class EVDabaseCar extends CarDatabase {
           evsePhaseVolt: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           evsePhaseAmp: data.Charge_Standard_Table[chargeStandard].EVSE_PhaseAmp,
           evsePhase: data.Charge_Standard_Table[chargeStandard].EVSE_Phase,
+          evsePhaseVoltCalculated: data.Charge_Standard_Table[chargeStandard].EVSE_Phase === 3 ? 400 : data.Charge_Standard_Table[chargeStandard].EVSE_PhaseVolt,
           chargePhaseVolt: data.Charge_Standard_Table[chargeStandard].Charge_PhaseVolt,
           chargePhaseAmp: data.Charge_Standard_Table[chargeStandard].Charge_PhaseAmp,
           chargePhase: data.Charge_Standard_Table[chargeStandard].Charge_Phase,
@@ -84,7 +85,7 @@ export default class EVDabaseCar extends CarDatabase {
           chargeOptionTables.push(chargeAlternativeTable);
         }
       }
-      const car: Car = {
+      const carCatalog: CarCatalog = {
         id: data.Vehicle_ID,
         vehicleMake: data.Vehicle_Make,
         vehicleModel: data.Vehicle_Model,
@@ -200,17 +201,17 @@ export default class EVDabaseCar extends CarDatabase {
         images: [],
         videos: data.Videos,
       };
-      cars.push(car);
+      carCatalogs.push(carCatalog);
     }
-    return cars;
+    return carCatalogs;
   }
 
-  public async getCarThumb(car: Car): Promise<string> {
+  public async getCarCatalogThumb(carCatalog: CarCatalog): Promise<string> {
     let image: string;
     // Create the car thumb using the first image URL
-    if (car.imageURLs && car.imageURLs.length > 0) {
+    if (carCatalog.imageURLs && carCatalog.imageURLs.length > 0) {
       try {
-        const imageURL = this.convertToThumbImage(car.imageURLs[0]);
+        const imageURL = this.convertToThumbImage(carCatalog.imageURLs[0]);
         const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
         const base64Image = Buffer.from(response.data).toString('base64');
         image = 'data:' + response.headers['content-type'] + ';base64,' + base64Image;
@@ -218,9 +219,9 @@ export default class EVDabaseCar extends CarDatabase {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CARS,
-          module: MODULE_NAME, method: 'getCarThumb',
-          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} - Cannot retrieve image from URL '${car.imageURLs[0]}'`,
+          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          module: MODULE_NAME, method: 'getCarCatalogThumb',
+          message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${carCatalog.imageURLs[0]}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
@@ -228,10 +229,10 @@ export default class EVDabaseCar extends CarDatabase {
     return image;
   }
 
-  public async getCarImages(car: Car): Promise<string[]> {
+  public async getCarCatalogImages(carCatalog: CarCatalog): Promise<string[]> {
     const images: string[] = [];
     // Retrieve all images
-    for (const imageURL of car.imageURLs) {
+    for (const imageURL of carCatalog.imageURLs) {
       try {
         const response = await axios.get(imageURL, { responseType: 'arraybuffer' });
         const base64Image = Buffer.from(response.data).toString('base64');
@@ -241,9 +242,9 @@ export default class EVDabaseCar extends CarDatabase {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CARS,
-          module: MODULE_NAME, method: 'getCarImages',
-          message: `${car.id} - ${car.vehicleMake} - ${car.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
+          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          module: MODULE_NAME, method: 'getCarCatalogImages',
+          message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }

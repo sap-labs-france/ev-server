@@ -6,7 +6,7 @@ import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
 import Tenant from '../../types/Tenant';
 import User from '../../types/User';
-import { BillingUserSynchronizationFailedNotification, CarSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -44,84 +44,163 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  public sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('new-registered-user', data, user, tenant, severity);
   }
 
-  public sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendRequestPassword(data: RequestPasswordNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('request-password', data, user, tenant, severity);
   }
 
-  public sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenant, severity);
   }
 
-  public sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndOfCharge(data: EndOfChargeNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('end-of-charge', data, user, tenant, severity);
   }
 
-  public sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndOfSession(data: EndOfSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('end-of-session', data, user, tenant, severity);
   }
 
-  public sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('end-of-signed-session', data, user, tenant, severity);
   }
 
-  public sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('charging-station-status-error', data, user, tenant, severity);
   }
 
-  public sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('charging-station-registered', data, user, tenant, severity);
   }
 
-  public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('user-account-status-changed', data, user, tenant, severity);
   }
 
-  public sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('unknown-user-badged', data, user, tenant, severity);
   }
 
-  public sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendSessionStarted(data: TransactionStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('session-started', data, user, tenant, severity);
   }
 
-  public sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendVerificationEmail(data: VerificationEmailNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('verification-email', data, user, tenant, severity);
   }
 
-  public sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('smtp-auth-error', data, user, tenant, severity, true);
   }
 
-  public sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenant, severity);
   }
 
-  public sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('user-account-inactivity', data, user, tenant, severity);
   }
 
-  public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('session-not-started', data, user, tenant, severity);
   }
 
-  public sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendSessionNotStarted(data: SessionNotStartedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('session-not-started-after-authorize', data, user, tenant, severity);
   }
 
-  public sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendOfflineChargingStations(data: OfflineChargingStationNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('offline-charging-station', data, user, tenant, severity);
   }
 
-  public sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendBillingUserSynchronizationFailed(data: BillingUserSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('billing-user-synchronization-failed', data, user, tenant, severity);
   }
 
-  public sendCarSynchronizationFailed(data: CarSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
+  public async sendCarCatalogSynchronizationFailed(data: CarCatalogSynchronizationFailedNotification, user: User, tenant: Tenant, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('car-synchronization-failed', data, user, tenant, severity);
+  }
+
+  private async sendEmail(email, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
+    // Create the message
+    const messageToSend = {
+      from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
+      to: email.to,
+      cc: email.cc,
+      bcc: (email.bccNeeded ? email.bcc : null),
+      subject: email.subject,
+      // pragma text: email.text
+      attachment: [
+        { data: email.html, alternative: true }
+      ]
+    };
+    // Send the message and get a callback with an error or details of the message that was sent
+    return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, async (err, messageSent) => {
+      if (err) {
+        // If authentifcation error in the primary email server then notify admins using the backup server
+        if (!retry && this.serverBackup) {
+          NotificationHandler.sendSmtpAuthError(
+            tenant.id,
+            {
+              'evseDashboardURL': data.evseDashboardURL
+            }
+          ).catch(() => {});
+        }
+        // Log
+        try {
+          Logging.logError({
+            tenantID: tenant.id,
+            source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
+            action: Action.EMAIL_NOTIFICATION,
+            module: MODULE_NAME, method: 'sendEmail',
+            message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
+            actionOnUser: user,
+            detailedMessages: [
+              {
+                email: {
+                  from: messageToSend.from,
+                  to: messageToSend.to,
+                  subject: messageToSend.subject
+                },
+              }, {
+                error: err.stack
+              }, {
+                content: email.html
+              }
+            ]
+          });
+          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
+        } catch (error) {}
+        // Retry?
+        if (!retry && this.serverBackup) {
+          return this.sendEmail(email, data, tenant, user, severity, true);
+        }
+      } else {
+        // Email sent successfully
+        Logging.logDebug({
+          tenantID: tenant.id,
+          source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
+          action: Action.EMAIL_NOTIFICATION,
+          module: MODULE_NAME, method: 'prepareAndSendEmail',
+          actionOnUser: user,
+          message: `Email Sent: '${messageToSend.subject}'`,
+          detailedMessages: [
+            {
+              email: {
+                from: messageToSend.from,
+                to: messageToSend.to,
+                subject: messageToSend.subject
+              },
+            }, {
+              content: email.html
+            }
+          ]
+        });
+      }
+    });
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenant: Tenant, severity: NotificationSeverity, retry = false): Promise<void> {
@@ -256,85 +335,5 @@ export default class EMailNotificationTask implements NotificationTask {
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
-  }
-
-  async sendEmail(email, data, tenant: Tenant, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
-    // Create the message
-    const messageToSend = {
-      from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
-      to: email.to,
-      cc: email.cc,
-      bcc: (email.bccNeeded ? email.bcc : null),
-      subject: email.subject,
-      // pragma text: email.text
-      attachment: [
-        { data: email.html, alternative: true }
-      ]
-    };
-    // Send the message and get a callback with an error or details of the message that was sent
-    return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
-      if (err) {
-        // If authentifcation error in the primary email server then notify admins using the backup server
-        if (!retry && this.serverBackup) {
-          NotificationHandler.sendSmtpAuthError(
-            tenant.id,
-            {
-              'evseDashboardURL': data.evseDashboardURL
-            }
-          );
-        }
-        // Log
-        try {
-          Logging.logError({
-            tenantID: tenant.id,
-            source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-            action: Action.EMAIL_NOTIFICATION,
-            module: MODULE_NAME, method: 'sendEmail',
-            message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
-            actionOnUser: user,
-            detailedMessages: [
-              {
-                email: {
-                  from: messageToSend.from,
-                  to: messageToSend.to,
-                  subject: messageToSend.subject
-                },
-              }, {
-                error: err.stack
-              }, {
-                content: email.html
-              }
-            ]
-          });
-          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
-        } catch (error) {
-        }
-        // Retry?
-        if (!retry && this.serverBackup) {
-          return this.sendEmail(email, data, tenant, user, severity, true);
-        }
-      } else {
-        // Email sent successfully
-        Logging.logDebug({
-          tenantID: tenant.id,
-          source: (Utils.objectHasProperty(data, 'chargeBoxID') ? data.chargeBoxID : undefined),
-          action: Action.EMAIL_NOTIFICATION,
-          module: MODULE_NAME, method: 'prepareAndSendEmail',
-          actionOnUser: user,
-          message: `Email Sent: '${messageToSend.subject}'`,
-          detailedMessages: [
-            {
-              email: {
-                from: messageToSend.from,
-                to: messageToSend.to,
-                subject: messageToSend.subject
-              },
-            }, {
-              content: email.html
-            }
-          ]
-        });
-      }
-    });
   }
 }

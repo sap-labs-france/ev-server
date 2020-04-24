@@ -1,8 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteOwnerRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 import Site from '../../../../types/Site';
 import UserToken from '../../../../types/UserToken';
 import CompanySecurity from './CompanySecurity';
@@ -40,9 +39,10 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteRequest(request: any): HttpByIDRequest {
+  public static filterSiteRequest(request: any): HttpSiteRequest {
     return {
-      ID: sanitize(request.ID)
+      ID: sanitize(request.ID),
+      WithCompany: sanitize(request.WithCompany)
     };
   }
 

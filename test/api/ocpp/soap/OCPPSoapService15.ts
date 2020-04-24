@@ -1,6 +1,6 @@
+import OCPPService from '../OCPPService';
 import { performance } from 'perf_hooks';
 import soap from 'strong-soap';
-import OCPPService from '../OCPPService';
 
 export default class OCPPSoapService15 extends OCPPService {
   public client: any;

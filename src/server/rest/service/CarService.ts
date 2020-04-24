@@ -14,26 +14,26 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'CarService';
 
 export default class CarService {
-  public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalogs(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS, MODULE_NAME, 'handleGetCars');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
     }
     // Check auth
-    if (!Authorizations.canListCars(req.user)) {
+    if (!Authorizations.canListCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.CARS,
+        entity: Entity.CAR_CATALOGS,
         module: MODULE_NAME,
-        method: 'handleGetCars'
+        method: 'handleGetCarCatalogs'
       });
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarsRequest(req.query);
+    const filteredRequest = CarSecurity.filterCarCatalogsRequest(req.query);
     // Get the cars
-    const cars = await CarStorage.getCars(
+    const carCatalogs = await CarStorage.getCarCatalogs(
       {
         search: filteredRequest.Search,
         carMaker: filteredRequest.CarMaker ? filteredRequest.CarMaker.split('|') : null
@@ -44,89 +44,89 @@ export default class CarService {
         'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
-    CarSecurity.filterCarsResponse(cars, req.user);
+    CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
     // Return
-    res.json(cars);
+    res.json(carCatalogs);
     next();
   }
 
-  public static async handleGetCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalog(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCars');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.LIST,
-        entity: Entity.CAR,
+        entity: Entity.CAR_CATALOG,
         module: MODULE_NAME,
-        method: 'handleGetCar'
+        method: 'handleGetCarCatalog'
       });
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
+    const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
 
-    let car;
+    let carCatalog;
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car
-      car = await CarStorage.getCar(filteredRequest.ID,
+      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID,
         ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed',
           'performanceTopspeed', 'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'drivetrainPropulsion',
           'drivetrainTorque', 'batteryCapacityUseable', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'chargePlugLocation', 'drivetrainPowerHP',
           'chargeStandardChargeSpeed', 'chargeStandardChargeTime', 'miscSeats', 'miscBody', 'miscIsofix', 'miscTurningCircle',
-          'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase']);
+          'miscSegment', 'miscIsofixSeats', 'chargeStandardTables', 'chargeStandardPower', 'chargeStandardPhase','image']);
     } else {
       // Get the car
-      car = await CarStorage.getCar(filteredRequest.ID);
+      carCatalog = await CarStorage.getCarCatalog(filteredRequest.ID);
     }
     // Return
-    res.json(CarSecurity.filterCarResponse(car, req.user));
+    res.json(CarSecurity.filterCarCatalogResponse(carCatalog, req.user));
     next();
   }
 
-  public static async handleGetCarImages(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalogImages(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCarImages');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ,
-        entity: Entity.CAR,
+        entity: Entity.CAR_CATALOG,
         module: MODULE_NAME,
-        method: 'handleGetCarImages'
+        method: 'handleGetCarCatalogImages'
       });
     }
     // Filter
-    const filteredRequest = CarSecurity.filterCarImagesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, MODULE_NAME, 'handleGetCarImages', req.user);
+    const filteredRequest = CarSecurity.filterCarCatalogImagesRequest(req.query);
+    UtilsService.assertIdIsProvided(action, filteredRequest.CarID, MODULE_NAME, 'handleGetCarCatalogImages', req.user);
     // Get the car
-    const carImages = await CarStorage.getCarImages(
+    const carCatalogImages = await CarStorage.getCarCatalogImages(
       filteredRequest.CarID,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip }
     );
     // Return
-    res.json(carImages);
+    res.json(carCatalogImages);
     next();
   }
 
-  public static async handleSynchronizeCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleSynchronizeCarCatalogs(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
-    if (!Authorizations.canSynchronizeCars(req.user)) {
+    if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.SYNCHRONIZE_CARS,
-        entity: Entity.CARS,
+        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        entity: Entity.CAR_CATALOGS,
         module: MODULE_NAME,
-        method: 'handleSynchronizeCars'
+        method: 'handleSynchronizeCarCatalogs'
       });
     }
     const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
@@ -136,10 +136,10 @@ export default class CarService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car service is not configured',
         module: MODULE_NAME,
-        method: 'handleSynchronizeCars'
+        method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const result = await carDatabaseImpl.synchronizeCars();
+    const result = await carDatabaseImpl.synchronizeCarCatalogs();
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
@@ -147,15 +147,15 @@ export default class CarService {
   public static async handleGetCarMakers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR, MODULE_NAME, 'handleGetCarMakers');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
     // Check auth
-    if (!Authorizations.canReadCar(req.user)) {
+    if (!Authorizations.canReadCarCatalog(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ,
-        entity: Entity.CAR,
+        entity: Entity.CAR_CATALOG,
         module: MODULE_NAME,
         method: 'handleGetCarMakers'
       });

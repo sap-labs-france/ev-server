@@ -469,12 +469,12 @@ export default class SiteService {
       });
     }
     // Get it
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID,
+      { withCompany: filteredRequest.WithCompany });
     UtilsService.assertObjectExists(action, site, `Site with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSite', req.user);
     // Return
     res.json(
-      // Filter
       SiteSecurity.filterSiteResponse(site, req.user)
     );
     next();

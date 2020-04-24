@@ -29,13 +29,14 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import { InactivityStatus, InactivityStatusLevel } from '../types/Transaction';
+import { InactivityStatus } from '../types/Transaction';
 import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
+import Logging from './Logging';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -1380,6 +1381,32 @@ export default class Utils {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
+  public static async importModule(modulePath: string) {
+    if (Utils.isModuleAvailable(modulePath)) {
+      return await import(modulePath);
+    }
+    return {};
+  }
+
+  public static isModuleAvailable(modulePath: string): boolean {
+    if (!path.isAbsolute(modulePath)) {
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: Constants.CENTRAL_SERVER,
+        action: Action.IMPORT_MODULE,
+        module: MODULE_NAME, method: 'isModuleAvailable',
+        message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
+      });
+      console.log('The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies');
+    }
+    try {
+      require.resolve(modulePath);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   private static _isUserEmailValid(email: string): boolean {
     return validator.isEmail(email);
   }
@@ -1391,7 +1418,6 @@ export default class Utils {
   private static _isPhoneValid(phone: string): boolean {
     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
-
 
   private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);

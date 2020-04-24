@@ -22,13 +22,13 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       // Exists?
-      if (user.notifications && Utils.objectHasProperty(user.notifications, 'sendCarSynchronizationFailed')) {
+      if (user.notifications && Utils.objectHasProperty(user.notifications, 'sendCarCatalogSynchronizationFailed')) {
         continue;
       }
       // No: Set it
       user.notificationsActive = true;
       user.notifications = {
-        sendCarSynchronizationFailed: true,
+        sendCarCatalogSynchronizationFailed: true,
       };
       // Update
       await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').findOneAndUpdate(

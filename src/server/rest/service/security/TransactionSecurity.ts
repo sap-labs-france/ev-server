@@ -280,6 +280,9 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'TransactionId')) {
       filteredRequest.TransactionId = Utils.convertToInt(sanitize(request.TransactionId));
     }
+    if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
+      filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
+    }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;

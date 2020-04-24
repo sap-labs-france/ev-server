@@ -6,11 +6,11 @@ export default class SiteAreaApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public readById(id) {
+  public async readById(id) {
     return super.readById(id, '/client/api/SiteArea');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public async readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/SiteAreas');
   }
 
@@ -27,15 +27,15 @@ export default class SiteAreaApi extends CrudApi {
     return siteArea;
   }
 
-  public update(data) {
+  public async update(data) {
     return super.update(data, '/client/api/SiteAreaUpdate');
   }
 
-  public delete(id) {
+  public async delete(id) {
     return super.delete(id, '/client/api/SiteAreaDelete');
   }
 
-  public readConsumption(SiteAreaId, StartDate, EndDate) {
+  public async readConsumption(SiteAreaId, StartDate, EndDate) {
     return super.read({
       SiteAreaID: SiteAreaId,
       StartDate: StartDate,

@@ -14,6 +14,18 @@ import { Action } from '../../types/Authorization';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
+  getVersion() {
+    return '1.7';
+  }
+
+  isAsynchronous() {
+    return true;
+  }
+
+  getName() {
+    return 'UpdateChargingStationTemplatesTask';
+  }
+
   async migrate() {
     // Update Template
     await this.updateChargingStationTemplate();
@@ -71,7 +83,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
             message: `Charging Station OCPP Parameters failed to be updated with Template ('${result.status}') in Tenant '${tenant.name}'`
           });
         }
-      } catch (error) {
+      } catch (err) {
         error++;
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
@@ -79,7 +91,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
           message: `Charging Station OCPP Parameters failed to be updated with Template in Tenant '${tenant.name}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: err.message, stack: err.stack }
         });
       }
     }
@@ -161,23 +173,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   private async updateChargingStationTemplate() {
-    try {
-      // Update current Chargers
-      ChargingStationStorage.updateChargingStationTemplatesFromFile();
-    } catch (error) {
-      Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
-    }
-  }
-
-  getVersion() {
-    return '1.6';
-  }
-
-  isAsynchronous() {
-    return true;
-  }
-
-  getName() {
-    return 'UpdateChargingStationTemplatesTask';
+    // Update current Chargers
+    ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
+      (error) => {
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      });
   }
 }

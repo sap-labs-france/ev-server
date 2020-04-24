@@ -30,3 +30,10 @@ export interface ConcurLocation {
   ID: string;
   URI: string;
 }
+
+export interface RefundTransactionData {
+  refundId: string;
+  refundedAt: Date;
+  reportId?: string;
+  status?: RefundStatus;
+}

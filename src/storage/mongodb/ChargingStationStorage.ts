@@ -27,8 +27,9 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
+    // FIXME: catch missing file error
     const chargingStationTemplates =
-      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/templates/charging-stations.json`, 'utf8'));
+      JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
@@ -495,6 +496,7 @@ export default class ChargingStationStorage {
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
+      remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
       currentType: chargingStationToSave.currentType,
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
@@ -504,6 +506,9 @@ export default class ChargingStationStorage {
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
+    }
+    if (!chargingStationMDB.remoteAuthorizations) {
+      chargingStationMDB.remoteAuthorizations = [];
     }
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);

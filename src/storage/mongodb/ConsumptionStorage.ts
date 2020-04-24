@@ -139,9 +139,38 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getAllConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllConsumptions');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        transactionId: Utils.convertToInt(params.transactionId)
+      }
+    });
+    // Convert Object ID to string
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
+    // Sort
+    aggregation.push({ $sort: { endedAt: 1 } });
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
+      .aggregate(aggregation, { allowDiskUse: true })
+      .toArray();
+
+    // Debug
+    Logging.traceEnd('ConsumptionStorage', 'getAllConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    return consumptionsMDB;
+  }
+
+  static async getOptimizedConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -213,7 +242,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(MODULE_NAME, 'getOptimizedConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
   }
 }

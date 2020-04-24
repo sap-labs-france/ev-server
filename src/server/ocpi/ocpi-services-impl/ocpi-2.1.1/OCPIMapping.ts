@@ -16,6 +16,10 @@ import Tenant from '../../../../types/Tenant';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
 import OCPIUtils from '../../OCPIUtils';
+import Transaction from '../../../../types/Transaction';
+import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
+import Consumption from '../../../../types/Consumption';
+import moment from 'moment';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -54,7 +58,10 @@ export default class OCPIMapping {
       maximumPower: 0,
       cannotChargeInParallel: true,
       issuer: false,
-      connectors: []
+      connectors: [],
+      chargeBoxSerialNumber: evse.evse_id,
+      imsi: evse.uid,
+      iccid: location.id
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
@@ -174,12 +181,12 @@ export default class OCPIMapping {
       tokens.push({
         uid: tag.id,
         type: OCPITokenType.RFID,
-        'auth_id': tag.userID,
-        'visual_number': tag.userID,
+        auth_id: tag.userID,
+        visual_number: tag.userID,
         issuer: tenant.name,
         valid: valid,
         whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-        'last_updated': tag.lastChangedOn ? tag.lastChangedOn : new Date()
+        last_updated: tag.lastChangedOn ? tag.lastChangedOn : new Date()
       });
     }
     return {
@@ -484,6 +491,73 @@ export default class OCPIMapping {
         return ChargePointStatus.UNAVAILABLE;
     }
   }
+
+  static buildChargingPeriods(transaction: Transaction): OCPIChargingPeriod[] {
+    if (!transaction || !transaction.timestamp) {
+      return [];
+    }
+
+    const chargingPeriods: OCPIChargingPeriod[] = [];
+
+    if (transaction.values) {
+      transaction.values.forEach((consumption) => {
+        const chargingPeriod = this.buildChargingPeriod(consumption);
+        if (chargingPeriod && chargingPeriod.dimensions && chargingPeriod.dimensions.length > 0) {
+          chargingPeriods.push(chargingPeriod);
+        }
+      });
+    } else {
+      const consumption: number = transaction.stop ? transaction.stop.totalConsumption : transaction.currentTotalConsumption;
+      chargingPeriods.push({
+        start_date_time: transaction.timestamp,
+        dimensions: [{
+          type: CdrDimensionType.ENERGY,
+          volume: consumption / 1000
+        }]
+      });
+      const inactivity: number = transaction.stop ? transaction.stop.totalInactivitySecs : transaction.currentTotalInactivitySecs;
+      if (inactivity > 0) {
+        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.lastUpdate;
+        chargingPeriods.push({
+          start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
+          dimensions: [{
+            type: CdrDimensionType.PARKING_TIME,
+            volume: parseFloat((inactivity / 3600).toFixed(3))
+          }]
+        });
+      }
+    }
+    return chargingPeriods;
+  }
+
+  static buildChargingPeriod(consumption: Consumption): OCPIChargingPeriod {
+    const chargingPeriod: OCPIChargingPeriod = {
+      start_date_time: consumption.startedAt,
+      dimensions: []
+    }
+    if (consumption.consumption > 0) {
+      chargingPeriod.dimensions.push({
+        type: CdrDimensionType.ENERGY,
+        volume: consumption.consumption / 1000
+      });
+      if (consumption.limitAmps > 0) {
+        chargingPeriod.dimensions.push({
+          type: CdrDimensionType.MAX_CURRENT,
+          volume: consumption.limitAmps
+        });
+      }
+    } else {
+      const duration: number = moment(consumption.endedAt).diff(consumption.startedAt, 'hours', true);
+      if (duration > 0) {
+        chargingPeriod.dimensions.push({
+          type: CdrDimensionType.PARKING_TIME,
+          volume: parseFloat(duration.toFixed(3))
+        });
+      }
+    }
+    return chargingPeriod;
+  }
+
 
   /**
    * Check if OCPI credential object contains mandatory fields

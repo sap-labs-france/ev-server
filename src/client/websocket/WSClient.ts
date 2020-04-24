@@ -1,8 +1,8 @@
-import WebSocket from 'ws';
 import { Action } from '../../types/Authorization';
-import { JsonWSClientConfiguration } from '../../types/configuration/WSClientConfiguration';
 import Constants from '../../utils/Constants';
+import { JsonWSClientConfiguration } from '../../types/configuration/WSClientConfiguration';
 import Logging from '../../utils/Logging';
+import WebSocket from 'ws';
 
 const MODULE_NAME = 'WSClient';
 

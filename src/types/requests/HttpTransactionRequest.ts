@@ -36,6 +36,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
 
 export interface HttpConsumptionFromTransactionRequest {
   TransactionId: number;
+  LoadAllConsumptions?: boolean;
   StartDateTime: Date;
   EndDateTime: Date;
 }
