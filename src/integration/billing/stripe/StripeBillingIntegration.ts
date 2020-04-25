@@ -47,7 +47,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: Action.CHECK_CONNECTION,
         message: 'No secret key provided for connection to Stripe'
       });
     }
@@ -67,7 +67,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: Action.CHECK_CONNECTION,
         message: `Error occurred when connecting to Stripe: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
@@ -76,7 +76,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: Action.CHECK_CONNECTION,
         message: 'Error occurred when connecting to Stripe: Invalid key'
       });
     }
@@ -187,7 +187,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_SYNCHRONIZE_USERS,
+        action: Action.SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -1026,7 +1026,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkIfStripeIsInitialized',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: Action.CHECK_CONNECTION,
         message: 'No connection to Stripe available'
       });
     }

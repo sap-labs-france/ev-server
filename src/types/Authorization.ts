@@ -1,3 +1,38 @@
+export interface AuthorizationDefinition {
+  superAdmin: {
+    grants: Grant[];
+    $extend?: any;
+  };
+  admin: {
+    grants: Grant[];
+    $extend?: any;
+  };
+  basic: {
+    grants: Grant[];
+    $extend?: any;
+  };
+  demo: {
+    grants: Grant[];
+    $extend?: any;
+  };
+  siteAdmin: {
+    grants: Grant[];
+    $extend?: any;
+  };
+  siteOwner: {
+    grants: Grant[];
+    $extend?: any;
+  };
+}
+
+export interface Grant {
+  resource: Entity;
+  action: Action|Action[];
+  attributes?: string[];
+  args?: any;
+  condition?: any;
+}
+
 export enum Entity {
   SITE = 'Site',
   SITES = 'Sites',
@@ -45,24 +80,44 @@ export enum Action {
   LOGOUT = 'Logout',
   LOGIN = 'Login',
   LIST = 'List',
+  SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
+  RESET = 'Reset',
+  CLEAR_CACHE = 'ClearCache',
+  GET_CONFIGURATION = 'GetConfiguration',
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
+  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
+  UNLOCK_CONNECTOR = 'UnlockConnector',
   AUTHORIZE = 'Authorize',
+  SET_CHARGING_PROFILE = 'SetChargingProfile',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
+  GET_DIAGNOSTICS = 'GetDiagnostics',
+  UPDATE_FIRMWARE = 'UpdateFirmware',
+  EXPORT_PARAMS = 'ExportParams',
+  CHANGE_AVAILABILITY = 'ChangeAvailability',
+  REFUND_TRANSACTION = 'RefundTransaction',
+  SYNCHRONIZE_USERS = 'SynchronizeUsers',
+  SYNCHRONIZE_USER = 'SynchronizeUser',
+  CHECK_CONNECTION = 'CheckConnection',
+  PING = 'Ping',
+  GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
+  REGISTER = 'Register',
+  TRIGGER_JOB = 'TriggerJob',
+  DOWNLOAD = 'Download',
+
+
+
   DATA_TRANSFER = 'DataTransfer',
   STOP_TRANSACTION = 'StopTransaction',
   UPDATE_TRANSACTION = 'UpdateTransaction',
   START_TRANSACTION = 'StartTransaction',
-  REFUND_TRANSACTION = 'RefundTransaction',
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
-  PING = 'Ping',
-  TRIGGER_JOB = 'TriggerJob',
-  REGISTER = 'Register',
   REGISTER_USER = 'RegisterUser',
-  GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
-  SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
   POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
   OCPP_PARAM_UPDATE = 'OCPPParamUpdate',
-  EXPORT_PARAMS = 'ExportParams',
   RESEND_VERIFICATION_MAIL = 'ResendVerificationEmail',
   END_USER_LICENSE_AGREEMENT = 'EndUserLicenseAgreement',
   CHECK_END_USER_LICENSE_AGREEMENT = 'CheckEndUserLicenseAgreement',
@@ -148,20 +203,7 @@ export enum Action {
 
   METER_VALUES = 'MeterValues',
 
-  CLEAR_CACHE = 'ClearCache',
-  GET_CONFIGURATION = 'GetConfiguration',
-  CHANGE_CONFIGURATION = 'ChangeConfiguration',
-  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
-  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
-  UNLOCK_CONNECTOR = 'UnlockConnector',
-  RESET = 'Reset',
-  SET_CHARGING_PROFILE = 'SetChargingProfile',
-  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
-  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
-  GET_DIAGNOSTICS = 'GetDiagnostics',
-  CHANGE_AVAILABILITY = 'ChangeAvailability',
-  UPDATE_FIRMWARE = 'UpdateFirmware',
-
+  
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
@@ -212,9 +254,6 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
-  BILLING_SYNCHRONIZE_USERS = 'BillingSynchronizeUsers',
-  BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
-  BILLING_CHECK_CONNECTION = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
   BILLING_SEND_INVOICE = 'BillingSendInvoice',
   BILLING_CREATE_INVOICE = 'BillingCreateInvoice',
