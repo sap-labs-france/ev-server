@@ -6,6 +6,8 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -1105,9 +1107,7 @@ export default class UserService {
       });
     }
     // Create services
-    const RatingService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/RatingService'));
     const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const ERPService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/ERPService'));
     const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {
