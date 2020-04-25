@@ -212,8 +212,8 @@ export enum Action {
   USER_UPDATE = 'UserUpdate',
 
   BILLING = 'Billing',
-  BILLING_SYNCHRONIZE = 'BillingSynchronizeUsers',
-  BILLING_FORCE_SYNCHRONIZE = 'BillingForceSynchronizeUser',
+  BILLING_SYNCHRONIZE_USERS = 'BillingSynchronizeUsers',
+  BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
   BILLING_CHECK_CONNECTION = 'BillingCheckConnection',
   BILLING_TRANSACTION = 'BillingTransaction',
   BILLING_SEND_INVOICE = 'BillingSendInvoice',

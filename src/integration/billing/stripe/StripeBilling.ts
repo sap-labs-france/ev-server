@@ -187,7 +187,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_SYNCHRONIZE,
+        action: Action.BILLING_SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
