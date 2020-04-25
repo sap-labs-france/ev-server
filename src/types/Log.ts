@@ -20,6 +20,10 @@ export interface Log {
   detailedMessages?: any;
 }
 
+export enum LogAction {
+  
+}
+
 export enum LogLevel {
   DEBUG = 'D',
   INFO = 'I',
