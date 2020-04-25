@@ -3,7 +3,7 @@ import Consumption from '../../types/Consumption';
 import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
 
-export default abstract class Pricing<T extends PricingSetting> {
+export default abstract class PricingIntegration<T extends PricingSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
   protected readonly transaction: Transaction;

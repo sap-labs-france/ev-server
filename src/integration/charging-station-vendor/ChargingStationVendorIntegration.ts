@@ -11,7 +11,7 @@ import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ChargingStationVendor';
 
-export default abstract class ChargingStationVendor {
+export default abstract class ChargingStationVendorIntegration {
   protected chargingStation: ChargingStation;
 
   constructor(chargingStation: ChargingStation) {

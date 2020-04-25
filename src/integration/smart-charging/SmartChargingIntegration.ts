@@ -10,7 +10,7 @@ import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'SmartCharging';
 
-export default abstract class SmartCharging<T extends SmartChargingSetting> {
+export default abstract class SmartChargingIntegration<T extends SmartChargingSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
 
