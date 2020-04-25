@@ -8,15 +8,15 @@ export interface BillingTransactionData {
   lastUpdate?: Date;
 }
 
-export interface BillingDataStart {
+export interface BillingDataTransactionStart {
   cancelTransaction?: boolean;
 }
 
-export interface BillingDataUpdate {
+export interface BillingDataTransactionUpdate {
   cancelTransaction?: boolean;
 }
 
-export interface BillingDataStop {
+export interface BillingDataTransactionStop {
   status?: string;
   invoiceStatus?: BillingInvoiceStatus;
   invoiceItem?: BillingInvoiceItem;
@@ -31,7 +31,7 @@ export interface BillingUserData {
   hasSynchroError?: boolean;
 }
 
-export interface BillingPartialUser {
+export interface BillingUser {
   email: string;
   name: string;
   billingData: BillingUserData;

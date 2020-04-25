@@ -4,7 +4,7 @@ import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import { Action } from '../../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingPartialUser, BillingTax, BillingUserData } from '../../../types/Billing';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser } from '../../../types/Billing';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -19,17 +19,9 @@ import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
 import IInvoice = Stripe.invoices.IInvoice;
 
-export interface TransactionIdemPotencyKey {
-  transactionID: number;
-  keyNewInvoiceItem: string;
-  keyNewInvoice: string;
-  timestamp: number;
-}
-
 const MODULE_NAME = 'StripeBilling';
 
 export default class StripeBilling extends Billing<StripeBillingSetting> {
-  private static transactionIdemPotencyKeys: TransactionIdemPotencyKey[];
   private static readonly STRIPE_MAX_LIST = 100;
   private stripe: Stripe;
 
@@ -44,12 +36,6 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       this.stripe = new Stripe(this.settings.secretKey);
     } catch (error) {
       delete this.stripe;
-    }
-    // Delete outdated keys for creating new invoices and invoice items
-    if (StripeBilling.transactionIdemPotencyKeys && StripeBilling.transactionIdemPotencyKeys.length > 0) {
-      const timeNow = new Date();
-      const pastTimeStamp = timeNow.getTime() - 24 * 60 * 60 * 1000; // Go back 24 hours
-      StripeBilling.transactionIdemPotencyKeys = StripeBilling.transactionIdemPotencyKeys.filter((record) => record.timestamp > pastTimeStamp);
     }
   }
 
@@ -96,7 +82,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUsers(): Promise<BillingPartialUser[]> {
+  public async getUsers(): Promise<BillingUser[]> {
     const users = [];
     let request;
     const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ICustomerListOptions;
@@ -119,7 +105,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return users;
   }
 
-  public async getUser(id: string): Promise<BillingPartialUser> {
+  public async getUser(id: string): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
     // Get customer
@@ -135,7 +121,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async getUserByEmail(email: string): Promise<BillingPartialUser> {
+  public async getUserByEmail(email: string): Promise<BillingUser> {
     // Check Stripe
     await this.checkConnection();
     // Get customer
@@ -210,7 +196,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return collectedCustomerIDs;
   }
 
-  public async createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
+  public async createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
     if (!user) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -238,10 +224,10 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         days_until_due: daysUntilDue,
         auto_advance: false
       }, {
-        idempotency_key: idemPotencyKey ? idemPotencyKey.keyNewInvoice : null
+        idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
       // Add new invoice item
-      await this.createInvoiceItem(user, { invoiceID: stripeInvoice.id }, invoiceItem, idemPotencyKey);
+      await this.createInvoiceItem(user, stripeInvoice.id, invoiceItem, idempotencyKey);
     } catch (error) {
       // No pending invoice item found: Create one
       try {
@@ -278,7 +264,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       nbrOfItems: stripeInvoice.lines.total_count
     } as Partial<BillingInvoice>;
     try {
-      invoice.id = await BillingStorage.saveInvoice(tenantId, invoice);
+      invoice.id = await BillingStorage.saveInvoice(this.tenantID, invoice);
       return { invoice: invoice as BillingInvoice, invoiceItem: invoiceItem };
     } catch (error) {
       throw new BackendError({
@@ -291,7 +277,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<BillingInvoiceItem> {
+  public async createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<BillingInvoiceItem> {
     await this.checkConnection();
     if (!invoiceItem) {
       throw new BackendError({
@@ -307,9 +293,9 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         currency: this.settings.currency.toLocaleLowerCase(),
         amount: invoiceItem.amount,
         description: invoiceItem.description,
-        invoice: invoice.invoiceID
+        invoice: invoiceID
       }, {
-        idempotency_key: idemPotencyKey ? idemPotencyKey.keyNewInvoiceItem : null
+        idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
     } catch (error) {
       throw new BackendError({
@@ -340,7 +326,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     }
   }
 
-  public async startTransaction(transaction: Transaction): Promise<BillingDataStart> {
+  public async startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart> {
     try {
       // Check Stripe
       await this.checkConnection();
@@ -424,7 +410,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     };
   }
 
-  public async updateTransaction(transaction: Transaction): Promise<BillingDataUpdate> {
+  public async updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate> {
     try {
       // Check Stripe
       await this.checkConnection();
@@ -454,7 +440,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     };
   }
 
-  public async stopTransaction(transaction: Transaction): Promise<BillingDataStop> {
+  public async stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop> {
     try {
       // Check Stripe
       await this.checkConnection();
@@ -512,33 +498,15 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       // if (this.settings.taxID) {
       //   taxRates.push(this.settings.taxID);
       // }
-      let idemPotencyKey: TransactionIdemPotencyKey = {} as TransactionIdemPotencyKey;
-      if (!StripeBilling.transactionIdemPotencyKeys) {
-        idemPotencyKey.transactionID = transaction.id;
-        idemPotencyKey.keyNewInvoice = Utils.generateGUID();
-        idemPotencyKey.keyNewInvoiceItem = Utils.generateGUID();
-        idemPotencyKey.timestamp = new Date().getTime();
-        StripeBilling.transactionIdemPotencyKeys = [idemPotencyKey];
-      } else {
-        idemPotencyKey = StripeBilling.transactionIdemPotencyKeys.find((record) => record.transactionID === transaction.id);
-        if (!idemPotencyKey || idemPotencyKey.transactionID !== transaction.id) {
-          idemPotencyKey = {} as TransactionIdemPotencyKey;
-          idemPotencyKey.transactionID = transaction.id;
-          idemPotencyKey.keyNewInvoice = Utils.generateGUID();
-          idemPotencyKey.keyNewInvoiceItem = Utils.generateGUID();
-          idemPotencyKey.timestamp = new Date().getTime();
-          StripeBilling.transactionIdemPotencyKeys.push(idemPotencyKey);
-        }
-      }
       let invoice = {} as { invoice: BillingInvoice; invoiceItem: BillingInvoiceItem };
       // Billing Method
       switch (transaction.user.billingData.method) {
         // Immediate
         case Constants.BILLING_METHOD_IMMEDIATE:
-          invoice = await this.createInvoice(this.tenantID, billingUser, {
+          invoice = await this.createInvoice(billingUser, {
             description: description,
             amount: Math.round(transaction.stop.roundedPrice * 100)
-          }, idemPotencyKey);
+          }, transaction.id);
           await this.sendInvoiceToUser(invoice.invoice);
           break;
         // Periodic
@@ -546,21 +514,19 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
           invoice.invoice = (await BillingStorage.getInvoices(this.tenantID, { invoiceStatus: [BillingInvoiceStatus.DRAFT] }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
           if (invoice.invoice) {
             // A draft invoice already exists : append a new invoice item
-            invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice, {
+            invoice.invoiceItem = await this.createInvoiceItem(billingUser, invoice.invoice.id, {
               description: description,
               amount: Math.round(transaction.stop.roundedPrice * 100)
-            }, idemPotencyKey);
+            }, transaction.id);
           } else {
             // No draft invoice : create a new invoice with invoice item
-            invoice.invoice = (await this.createInvoice(this.tenantID, billingUser, {
+            invoice.invoice = (await this.createInvoice(billingUser, {
               description: description,
               amount: Math.round(transaction.stop.roundedPrice * 100)
-            }, idemPotencyKey)).invoice;
+            }, transaction.id)).invoice;
           }
           break;
       }
-      StripeBilling.transactionIdemPotencyKeys =
-        StripeBilling.transactionIdemPotencyKeys.filter((record) => record.transactionID !== transaction.id);
       return {
         status: Constants.BILLING_STATUS_BILLED,
         invoiceStatus: invoice.invoice.status,
@@ -745,7 +711,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return true;
   }
 
-  public async createUser(user: User): Promise<BillingUserData> {
+  public async createUser(user: User): Promise<BillingUser> {
     // Check
     const success = await this.checkIfUserCanBeUpdated(user);
     if (!success) {
@@ -760,7 +726,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return this.modifyUser(user);
   }
 
-  public async updateUser(user: User): Promise<BillingUserData> {
+  public async updateUser(user: User): Promise<BillingUser> {
     // Check
     const success = await this.checkIfUserCanBeUpdated(user);
     if (!success) {
@@ -772,7 +738,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
         message: 'Cannot update the user'
       });
     }
-    return await this.modifyUser(user);
+    return this.modifyUser(user);
   }
 
   public async deleteUser(user: User) {
@@ -845,11 +811,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     return '';
   }
 
-  private checkIfTestMode(): boolean {
-    return this.settings.secretKey.substr(0, 7) === 'sk_test';
-  }
-
-  private async modifyUser(user: User): Promise<BillingUserData> {
+  private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
     let locale = user.locale;
     const fullName = Utils.buildUserFullName(user);
@@ -1046,12 +1008,16 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
       }
     }
     return {
-      method: billingMethod,
-      customerID: customer.id,
-      cardID: (customer.default_source && typeof (customer.default_source) === 'string' && customer.default_source.substr(0, 4) === 'card') ? customer.default_source : '',
-      subscriptionID: subscription && subscription.id ? subscription.id : '',
-      lastChangedOn: new Date(),
-      hasSynchroError: false
+      name: customer.name,
+      email: customer.email,
+      billingData: {
+        method: billingMethod,
+        customerID: customer.id,
+        cardID: (customer.default_source && typeof (customer.default_source) === 'string' && customer.default_source.substr(0, 4) === 'card') ? customer.default_source : '',
+        subscriptionID: subscription && subscription.id ? subscription.id : '',
+        lastChangedOn: new Date(),
+        hasSynchroError: false
+      }
     };
   }
 

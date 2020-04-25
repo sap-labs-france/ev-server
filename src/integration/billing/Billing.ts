@@ -2,15 +2,13 @@ import BackendError from '../../exception/BackendError';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import { Action } from '../../types/Authorization';
-import { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingInvoice, BillingInvoiceItem, BillingPartialUser, BillingTax, BillingUserData, BillingUserSynchronizeAction } from '../../types/Billing';
-import { DataResult } from '../../types/DataResult';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
 import { UserInErrorType } from '../../types/InError';
 import { BillingSetting } from '../../types/Setting';
 import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import { TransactionIdemPotencyKey } from './stripe/StripeBilling';
 
 const MODULE_NAME = 'Billing';
 
@@ -185,14 +183,14 @@ export default abstract class Billing<T extends BillingSetting> {
   public async synchronizeUser(user: User, tenantID) {
     try {
       const exists = await this.userExists(user);
-      let newBillingData: BillingUserData;
+      let newUser: BillingUser;
       if (!exists) {
-        newBillingData = await this.createUser(user);
+        newUser = await this.createUser(user);
       } else {
-        newBillingData = await this.updateUser(user);
+        newUser = await this.updateUser(user);
       }
       try {
-        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+        await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
@@ -240,9 +238,9 @@ export default abstract class Billing<T extends BillingSetting> {
       }
       // Recreate the Billing user
       delete user.billingData;
-      const newBillingData = await this.createUser(user);
+      const newUser = await this.createUser(user);
       try {
-        await UserStorage.saveUserBillingData(tenantID, user.id, newBillingData);
+        await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
@@ -277,11 +275,11 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
 
-  async abstract startTransaction(transaction: Transaction): Promise<BillingDataStart>;
+  async abstract startTransaction(transaction: Transaction): Promise<BillingDataTransactionStart>;
 
-  async abstract updateTransaction(transaction: Transaction): Promise<BillingDataUpdate>;
+  async abstract updateTransaction(transaction: Transaction): Promise<BillingDataTransactionUpdate>;
 
-  async abstract stopTransaction(transaction: Transaction): Promise<BillingDataStop>;
+  async abstract stopTransaction(transaction: Transaction): Promise<BillingDataTransactionStop>;
 
   async abstract checkIfUserCanBeCreated(user: User): Promise<boolean>;
 
@@ -289,15 +287,15 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract checkIfUserCanBeDeleted(user: User): Promise<boolean>;
 
-  async abstract getUser(id: string): Promise<BillingPartialUser>;
+  async abstract getUser(id: string): Promise<BillingUser>;
 
-  async abstract getUserByEmail(email: string): Promise<BillingPartialUser>;
+  async abstract getUserByEmail(email: string): Promise<BillingUser>;
 
-  async abstract getUsers(): Promise<BillingPartialUser[]>;
+  async abstract getUsers(): Promise<BillingUser[]>;
 
-  async abstract createUser(user: User): Promise<BillingUserData>;
+  async abstract createUser(user: User): Promise<BillingUser>;
 
-  async abstract updateUser(user: User): Promise<BillingUserData>;
+  async abstract updateUser(user: User): Promise<BillingUser>;
 
   async abstract deleteUser(user: User);
 
@@ -305,9 +303,9 @@ export default abstract class Billing<T extends BillingSetting> {
 
   async abstract getTaxes(): Promise<BillingTax[]>;
 
-  async abstract createInvoiceItem(user: BillingPartialUser, invoice: Partial<BillingInvoice>, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<BillingInvoiceItem>;
+  async abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<BillingInvoiceItem>;
 
-  async abstract createInvoice(tenantId: string, user: BillingPartialUser, invoiceItem: BillingInvoiceItem, idemPotencyKey?: TransactionIdemPotencyKey): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
+  async abstract createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }>;
 
   async abstract sendInvoiceToUser(invoice: BillingInvoice): Promise<BillingInvoice>;
 }
