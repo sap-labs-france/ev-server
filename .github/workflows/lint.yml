@@ -1,9 +1,9 @@
-name: Node CI
+name: Lint CI
 
-on: [push]
+on: [pull_request, push]
 
 jobs:
-  build:
+  lint:
 
     runs-on: ubuntu-latest
 
@@ -12,15 +12,14 @@ jobs:
         node-version: [12.x]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install, lint and build:prod
+    - name: npm install and run lint
       run: |
         npm ci
         npm run lint
-        npm run build:prod
       env:
         CI: true

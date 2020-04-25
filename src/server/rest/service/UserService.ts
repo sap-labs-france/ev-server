@@ -5,6 +5,8 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -1091,7 +1093,7 @@ export default class UserService {
   //     Logging.logException(
   //       new Error('Convergent Charging setting is missing'),
   //       Action.USER_INVOICE, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-
+  //
   //     throw new AppError({
   //       source: Constants.CENTRAL_SERVER,
   //       errorCode: HTTPError.GENERAL_ERROR,

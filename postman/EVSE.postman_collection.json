@@ -1805,7 +1805,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"charsgeBoxID\": \"SAP-Mougins-12\",\n\t\"args\": {\n\t\t\"transactionId\": 2\n\t}\n}"
+					"raw": "{\n\t\"chargeBoxID\": \"SAP-Mougins-12\",\n\t\"args\": {\n\t\t\"transactionId\": 2\n\t}\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/client/api/ChargingStationStopTransaction",
