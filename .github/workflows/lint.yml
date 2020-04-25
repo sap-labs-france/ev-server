@@ -1,4 +1,4 @@
-name: Node CI
+name: Lint CI
 
 on: [pull_request, push]
 
@@ -13,16 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        submodules: true
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install and run build:prod
+    - name: npm install and run lint
       run: |
         npm ci
-        npm run build:prod
+        npm run lint
       env:
         CI: true
