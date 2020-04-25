@@ -320,7 +320,7 @@ export default class OCPPUtils {
       });
     }
     // Get Vendor Instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
@@ -388,7 +388,7 @@ export default class OCPPUtils {
       });
     }
     // Get Vendor Instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingStation.id,

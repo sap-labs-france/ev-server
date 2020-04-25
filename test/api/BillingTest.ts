@@ -2,8 +2,8 @@ import chai, { assert, expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import { ObjectID } from 'mongodb';
-import Billing from '../../src/integration/billing/Billing';
-import StripeBilling from '../../src/integration/billing/stripe/StripeBilling';
+import BillingIntegration from '../../src/integration/billing/BillingIntegration';
+import StripeBillingIntegration from '../../src/integration/billing/stripe/StripeBillingIntegration';
 import { BillingInvoiceStatus } from '../../src/types/Billing';
 import { HTTPAuthError } from '../../src/types/HTTPError';
 import { UserInErrorType } from '../../src/types/InError';
@@ -25,7 +25,7 @@ import TenantContext from './contextProvider/TenantContext';
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-let billingImpl: Billing<BillingSetting>;
+let billingImpl: BillingIntegration<BillingSetting>;
 
 class TestData {
   public tenantContext: TenantContext;
@@ -44,7 +44,7 @@ class TestData {
     const stripeSettings = TestData.getStripeSettings();
     await TestData.saveBillingSettings(testData, stripeSettings);
     stripeSettings.secretKey = Cypher.encrypt(stripeSettings.secretKey);
-    billingImpl = new StripeBilling(testData.tenantContext.getTenant().id, stripeSettings);
+    billingImpl = new StripeBillingIntegration(testData.tenantContext.getTenant().id, stripeSettings);
     expect(billingImpl).to.not.be.null;
   }
 
@@ -52,7 +52,7 @@ class TestData {
     const stripeSettings = TestData.getStripeSettings();
     stripeSettings.secretKey = Cypher.encrypt('sk_test_invalid_credentials');
     await TestData.saveBillingSettings(testData, stripeSettings);
-    billingImpl = new StripeBilling(testData.tenantContext.getTenant().id, stripeSettings);
+    billingImpl = new StripeBillingIntegration(testData.tenantContext.getTenant().id, stripeSettings);
     expect(billingImpl).to.not.be.null;
   }
 

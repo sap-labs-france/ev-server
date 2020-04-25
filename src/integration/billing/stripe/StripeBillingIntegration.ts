@@ -13,7 +13,7 @@ import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import Billing from '../Billing';
+import BillingIntegration from '../BillingIntegration';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
@@ -21,7 +21,7 @@ import IInvoice = Stripe.invoices.IInvoice;
 
 const MODULE_NAME = 'StripeBilling';
 
-export default class StripeBilling extends Billing<StripeBillingSetting> {
+export default class StripeBillingIntegration extends BillingIntegration<StripeBillingSetting> {
   private static readonly STRIPE_MAX_LIST = 100;
   private stripe: Stripe;
 
@@ -85,7 +85,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async getUsers(): Promise<BillingUser[]> {
     const users = [];
     let request;
-    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ICustomerListOptions;
+    const requestParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST } as ICustomerListOptions;
     // Check Stripe
     await this.checkConnection();
     do {
@@ -140,7 +140,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
   public async getTaxes(): Promise<BillingTax[]> {
     const taxes = [] as BillingTax[];
     let request;
-    const requestParams = { limit: StripeBilling.STRIPE_MAX_LIST } as ItaxRateSearchOptions;
+    const requestParams = { limit: StripeBillingIntegration.STRIPE_MAX_LIST } as ItaxRateSearchOptions;
     do {
       request = await this.stripe.taxRates.list(requestParams);
       for (const tax of request.data) {
@@ -164,7 +164,7 @@ export default class StripeBilling extends Billing<StripeBillingSetting> {
     const collectedCustomerIDs: string[] = [];
     const request = {
       created: { gt: createdSince },
-      limit: StripeBilling.STRIPE_MAX_LIST,
+      limit: StripeBillingIntegration.STRIPE_MAX_LIST,
       type: 'customer.*',
     };
     try {

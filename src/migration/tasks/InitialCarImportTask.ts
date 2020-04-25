@@ -1,15 +1,15 @@
-import CarDatabaseFactory from '../../integration/car/CarDatabaseFactory';
 import { Action } from '../../types/Authorization';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import CarFactory from '../../integration/car/CarFactory';
 
 const MODULE_NAME = 'InitialCarImportTask';
 
 export default class InitialCarImportTask extends MigrationTask {
   async migrate() {
     try {
-      const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+      const carDatabaseImpl = await CarFactory.getCarImpl();
       if (carDatabaseImpl) {
         await carDatabaseImpl.synchronizeCarCatalogs();
       }

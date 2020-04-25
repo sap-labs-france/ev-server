@@ -6,13 +6,13 @@ import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Billing from './Billing';
-import StripeBilling from './stripe/StripeBilling';
+import BillingIntegration from './BillingIntegration';
+import StripeBillingIntegration from './stripe/StripeBillingIntegration';
 
 const MODULE_NAME = 'BillingFactory';
 
 export default class BillingFactory {
-  static async getBillingImpl(tenantID: string): Promise<Billing<BillingSetting>> {
+  static async getBillingImpl(tenantID: string): Promise<BillingIntegration<BillingSetting>> {
     // Prevent default user from generating billing
     if (tenantID === Constants.DEFAULT_TENANT) {
       return null;
@@ -27,7 +27,7 @@ export default class BillingFactory {
       if (settings) {
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            return new StripeBilling(tenantID, settings.stripe);
+            return new StripeBillingIntegration(tenantID, settings.stripe);
           default:
             break;
         }

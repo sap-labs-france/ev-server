@@ -12,7 +12,7 @@ import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'Billing';
 
-export default abstract class Billing<T extends BillingSetting> {
+export default abstract class BillingIntegration<T extends BillingSetting> {
   protected readonly tenantID: string; // Assuming GUID or other string format ID
   protected settings: T;
 

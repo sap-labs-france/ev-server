@@ -1,19 +1,18 @@
-import { RefundSetting, RefundSettingsType } from '../../types/Setting';
-import ConcurRefundConnector from './concur/ConcurRefundConnector';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import RefundConnector from './RefundConnector';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { RefundSetting, RefundSettingsType } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import path from 'path';
+import ConcurRefundIntegration from './concur/ConcurRefundIntegration';
+import RefundIntegration from './RefundIntegration';
 
 const MODULE_NAME = 'RefundFactory';
 
 export default class RefundFactory {
-  static async getRefundConnector(tenantID: string): Promise<RefundConnector<RefundSetting>> {
+  static async getRefundImpl(tenantID: string): Promise<RefundIntegration<RefundSetting>> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if refund component is active
@@ -23,7 +22,7 @@ export default class RefundFactory {
       if (setting) {
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            return new ConcurRefundConnector(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+            return new ConcurRefundIntegration(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
           default:
             break;
         }
@@ -31,7 +30,7 @@ export default class RefundFactory {
       Logging.logDebug({
         tenantID: tenant.id,
         module: MODULE_NAME,
-        method: 'getRefundConnector',
+        method: 'getRefundImpl',
         message: 'Refund settings are not configured'
       });
     }
