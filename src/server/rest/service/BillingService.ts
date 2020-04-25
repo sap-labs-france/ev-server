@@ -244,7 +244,6 @@ export default class BillingService {
       {
         userID: req.user.id,
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
-        invoiceId: filteredRequest.Id ? filteredRequest.Id : null,
         search: filteredRequest.Search ? filteredRequest.Search : null
       },
       {

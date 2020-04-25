@@ -18,7 +18,7 @@ export default class BillingStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoice');
     // Query single Site
     const invoicesMDB = await BillingStorage.getInvoices(tenantID,
-      { invoiceId: id },
+      { invoiceID: id },
       Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { id });
@@ -27,7 +27,7 @@ export default class BillingStorage {
 
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceId?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
+      invoiceID?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
@@ -40,8 +40,8 @@ export default class BillingStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
     const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
-    if (params.invoiceId) {
-      filters._id = Utils.convertToInt(params.userID);
+    if (params.invoiceID) {
+      filters._id = Utils.convertToInt(params.invoiceID);
     } else if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }

@@ -1,5 +1,4 @@
 import { ActionsResponse } from './GlobalType';
-import HttpDatabaseRequest from "./requests/HttpDatabaseRequest";
 
 export interface BillingTransactionData {
   status?: string;
@@ -71,12 +70,4 @@ export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
-}
-
-export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
-  Id?: string;
-  Status?: BillingInvoiceStatus;
-  StartDateTime?: Date;
-  EndDateTime?: Date;
-  Search?: string;
 }
