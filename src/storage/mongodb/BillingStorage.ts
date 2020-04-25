@@ -39,9 +39,9 @@ export default class BillingStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
-    const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
+    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
     if (params.invoiceID) {
-      filters._id = Utils.convertToInt(params.invoiceID);
+      filters._id = Utils.convertToObjectID(params.invoiceID);
     } else if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
@@ -140,7 +140,6 @@ export default class BillingStorage {
         message: 'User does not exists'
       });
     }
-
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
@@ -149,13 +148,12 @@ export default class BillingStorage {
       number: invoiceToSave.number,
       userID: Utils.convertToObjectID(user.id),
       customerID: invoiceToSave.customerID,
-      amount: invoiceToSave.amount,
+      amount: Utils.convertToFloat(invoiceToSave.amount),
       status: invoiceToSave.status,
       currency: invoiceToSave.currency,
-      createdOn: invoiceToSave.createdOn,
-      nbrOfItems: invoiceToSave.nbrOfItems
+      createdOn: Utils.convertToDate(invoiceToSave.createdOn),
+      nbrOfItems: Utils.convertToInt(invoiceToSave.nbrOfItems)
     };
-
     // Modify and return the modified document
     await global.database.getCollection<BillingInvoice>(tenantId, 'invoices').findOneAndReplace(
       { _id: invoiceMDB._id },
