@@ -1,11 +1,11 @@
-import Pricing from '../Pricing';
+import PricingIntegration from '../PricingIntegration';
 import Transaction from '../../../types/Transaction';
 import Consumption from '../../../types/Consumption';
 import { SimplePricingSetting } from '../../../types/Setting';
 import { PricedConsumption } from '../../../types/Pricing';
 import Utils from '../../../utils/Utils';
 
-export default class SimplePricing extends Pricing<SimplePricingSetting> {
+export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {
   constructor(tenantID: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
     super(tenantID, settings, transaction);
   }

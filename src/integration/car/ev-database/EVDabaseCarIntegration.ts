@@ -5,11 +5,11 @@ import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTa
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import CarDatabase from '../CarDatabase';
+import CarIntegration from '../CarIntegration';
 
 const MODULE_NAME = 'EVDabaseCar';
 
-export default class EVDabaseCar extends CarDatabase {
+export default class EVDabaseCarIntegration extends CarIntegration {
   public async getCarCatalogs(): Promise<CarCatalog[]> {
     const evDatabaseConfig = Configuration.getEVDatabaseConfig();
     if (!evDatabaseConfig) {

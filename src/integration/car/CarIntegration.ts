@@ -8,7 +8,7 @@ import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'CarDatabase';
 
-export default abstract class CarDatabase {
+export default abstract class CarIntegration {
   public async synchronizeCarCatalogs(): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,

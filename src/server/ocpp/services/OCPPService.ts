@@ -1175,7 +1175,7 @@ export default class OCPPService {
         consumption.toPrice = true;
       }
       // Get the curent limit of the connector
-      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (chargingStationVendor) {
         // Get current limitation
         const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);

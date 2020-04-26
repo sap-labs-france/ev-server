@@ -92,7 +92,7 @@ export default class ConnectionService {
     // Filter
     const filteredRequest = ConnectionSecurity.filterConnectionCreateRequest(req.body);
     // Get factory
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
     // Create
     const connection = await refundConnector.createConnection(filteredRequest.userId, filteredRequest.data);
     // Check

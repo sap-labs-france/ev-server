@@ -538,15 +538,11 @@ export default class Authorizations {
   }
 
   public static canSynchronizeUsersBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE_USERS);
   }
 
   public static canSynchronizeUserBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE);
-  }
-
-  public static canForceUserSynchronizationBilling(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_FORCE_SYNCHRONIZE);
+    return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.BILLING_SYNCHRONIZE_USER);
   }
 
   public static canReadBillingTaxes(loggedUser: UserToken): boolean {

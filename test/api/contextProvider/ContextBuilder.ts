@@ -28,6 +28,7 @@ import CONTEXTS, { TenantDefinition } from './ContextConstants';
 import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
+import BillingContext from './BillingContext';
 
 export default class ContextBuilder {
 
@@ -342,6 +343,7 @@ export default class ContextBuilder {
     newTenantContext.addSiteContext(siteContext);
     // Create transaction/session data for a specific tenants:
     const statisticContext = new StatisticsContext(newTenantContext);
+    const billingContext = new BillingContext(newTenantContext);
     switch (tenantContextDef.tenantName) {
       case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
         console.log(`Create transactions for chargers of site area ${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`);
@@ -351,6 +353,9 @@ export default class ContextBuilder {
         console.log('Create transactions for unassigned chargers');
         await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.NO_SITE, CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
         break;
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING:
+        console.log('Creating invoices for users');
+        await billingContext.createTestData();
     }
     return newTenantContext;
   }

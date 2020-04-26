@@ -1,22 +1,22 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
-import ChargingStationVendor from './ChargingStationVendor';
-import DeltaChargingStationVendor from './delta/DeltaChargingStationVendor';
-import SchneiderChargingStationVendor from './schneider/SchneiderChargingStationVendor';
-import WebastoChargingStationVendor from './webasto/WebastoChargingStationVendor';
+import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
+import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
+import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
+import WebastoChargingStationVendorIntegration from './webasto/WebastoChargingStationVendorIntegration';
 
 export default class ChargingStationVendorFactory {
 
-  static getChargingStationVendorInstance(chargingStation: ChargingStation): ChargingStationVendor {
+  static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
     switch (chargingStation.chargePointVendor) {
       // Schneider
       case ChargerVendor.SCHNEIDER:
-        return new SchneiderChargingStationVendor(chargingStation);
+        return new SchneiderChargingStationVendorIntegration(chargingStation);
       // Webasto
       case ChargerVendor.WEBASTO:
-        return new WebastoChargingStationVendor(chargingStation);
+        return new WebastoChargingStationVendorIntegration(chargingStation);
       // Delta
       case ChargerVendor.DELTA:
-        return new DeltaChargingStationVendor(chargingStation);
+        return new DeltaChargingStationVendorIntegration(chargingStation);
     }
     return null;
   }
