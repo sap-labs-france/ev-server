@@ -6,7 +6,7 @@ import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -32,13 +32,13 @@ describe('Tenant Settings test', function() {
       email: config.get('superadmin.username'),
       password: config.get('superadmin.password')
     });
-    testData.centralService = new CentralServerService(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
+    testData.centralService = new CentralServerService(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS, {
       email: config.get('admin.username'),
       password: config.get('admin.password')
     });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
+    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS }, {
       limit: Constants.UNLIMITED,
       skip: 0
     });
@@ -49,9 +49,9 @@ describe('Tenant Settings test', function() {
     // Reset components before leaving
     testData.data = {
       id: testData.credentials.tenantId,
-      name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+      name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
       email: testData.credentials.email,
-      subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+      subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
       components: {
         ocpi: { active: false, type: null },
         organization: { active: false, type: null },
@@ -78,9 +78,9 @@ describe('Tenant Settings test', function() {
       // Fill in the data
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: true, type: RoamingSettingsType.GIREVE },
           organization: { active: false, type: null },
@@ -105,9 +105,9 @@ describe('Tenant Settings test', function() {
       // Fill in the data
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -134,9 +134,9 @@ describe('Tenant Settings test', function() {
       // Fill in the data
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -156,9 +156,9 @@ describe('Tenant Settings test', function() {
       // Fill in the data
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -185,9 +185,9 @@ describe('Tenant Settings test', function() {
       // Test only Refund (should fail)
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -207,9 +207,9 @@ describe('Tenant Settings test', function() {
       // Test Refund with Pricing
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -235,9 +235,9 @@ describe('Tenant Settings test', function() {
       // Test only Smart Charging (should fail)
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -256,9 +256,9 @@ describe('Tenant Settings test', function() {
       // Test Smart Charging with Pricing
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: true, type: null },
@@ -283,9 +283,9 @@ describe('Tenant Settings test', function() {
       // Test SAP CC with Pricing
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -311,9 +311,9 @@ describe('Tenant Settings test', function() {
       // Test SAP CC with Pricing
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -339,9 +339,9 @@ describe('Tenant Settings test', function() {
       // Test only Asset (should fail)
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: false, type: null },
@@ -360,9 +360,9 @@ describe('Tenant Settings test', function() {
       // Test Asset with Organization
       testData.data = {
         id: testData.credentials.tenantId,
-        name: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        name: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         email: testData.credentials.email,
-        subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+        subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
         components: {
           ocpi: { active: false, type: null },
           organization: { active: true, type: null },

@@ -4,7 +4,7 @@ import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import config from '../../config';
-import CONTEXTS from '../contextProvider/ContextConstants';
+import ContextDefinition from '../contextProvider/ContextDefinition';
 import AssetApi from './AssetApi';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';
@@ -79,7 +79,7 @@ export default class CentralServerService {
     }
     // Create the Authenticated API
     if (!tenantSubdomain && tenantSubdomain !== '') {
-      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
     } else {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }

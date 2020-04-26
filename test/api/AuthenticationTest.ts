@@ -5,7 +5,7 @@ import config from '../config';
 import UserFactory from '../factories/UserFactory';
 import User from '../types/User';
 import CentralServerService from './client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 
 chai.use(chaiSubset);
 
@@ -14,7 +14,7 @@ const testData = {
   adminPassword: null,
   superAdminEmail: null,
   superAdminPassword: null,
-  adminTenant: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+  adminTenant: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
   createdUsersAdminTenant: [],
   centralServiceDefaultTenant: null,
   createdUsersDefaultTenant: []

@@ -4,7 +4,7 @@ import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
 import User from '../../src/types/User';
 import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 import ContextProvider from './contextProvider/ContextProvider';
 import TenantContext from './contextProvider/TenantContext';
 import OCPIService from './ocpi/OCPIService';
@@ -30,9 +30,9 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
-    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI);
-    testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-    testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
+    testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+    testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     expect(testData.userContext).to.not.be.null;
     testData.centralUserService = new CentralServerService(
       testData.tenantContext.getTenant().subdomain,

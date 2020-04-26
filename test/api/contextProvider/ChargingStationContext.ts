@@ -1,4 +1,4 @@
-import CONTEXTS from '../contextProvider/ContextConstants';
+import ContextDefinition from './ContextDefinition';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
 import { OCPPFirmwareStatus } from '../../../src/types/ocpp/OCPPServer';
@@ -53,7 +53,7 @@ export default class ChargingStationContext {
 
   async readChargingStation(userService?: CentralServerService) {
     if (!userService) {
-      userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
+      userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN));
     }
     return await userService.chargingStationApi.readById(this.chargingStation.id);
   }

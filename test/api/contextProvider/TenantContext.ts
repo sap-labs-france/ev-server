@@ -3,7 +3,7 @@ import config from '../../config';
 import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStationContext from './ChargingStationContext';
-import CONTEXTS from './ContextConstants';
+import ContextDefinition from './ContextDefinition';
 import Factory from '../../factories/Factory';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
@@ -153,7 +153,7 @@ export default class TenantContext {
     return this.context.users.find((user) => {
       let conditionMet = null;
       for (const key in params) {
-        const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
+        const userContextDef = ContextDefinition.TENANT_USER_LIST.find((userList) => userList.id === user.id);
         if (Utils.objectHasProperty(user, key)) {
           if (conditionMet !== null) {
             conditionMet = conditionMet && user[key] === params[key];

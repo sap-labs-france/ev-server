@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 import ContextProvider from './contextProvider/ContextProvider';
 import SiteAreaContext from './contextProvider/SiteAreaContext';
 import SiteContext from './contextProvider/SiteContext';
@@ -40,11 +40,11 @@ describe('Firmware Update Status Tests', function() {
   describe('With all components (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       await testData.chargingStationContext.sendHeartbeat();
     });
 
