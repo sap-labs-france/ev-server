@@ -38,7 +38,7 @@ describe('Company Org tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant ut-org)', () => {
+  describe('With component Organization (tenant utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);

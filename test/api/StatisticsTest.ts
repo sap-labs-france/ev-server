@@ -82,7 +82,7 @@ describe('Statistics tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without activated component (tenant ut-nothing)', () => {
+  describe('Without activated component (tenant utnothing)', () => {
 
     describe('Where even admin user', () => {
 
@@ -162,7 +162,7 @@ describe('Statistics tests', function() {
 
   });
 
-  describe('With activated component (tenant ut-all)', () => {
+  describe('With activated component (tenant utall)', () => {
 
     describe('Where admin user', () => {
 

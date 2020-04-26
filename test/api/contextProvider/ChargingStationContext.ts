@@ -51,14 +51,6 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async isAuthorized(userService: CentralServerService) {
-    return await userService.chargingStationApi.isAuthorized('ConnectorsAction', this.chargingStation.id);
-  }
-
-  async isAuthorizedToStopTransaction(userService: CentralServerService, transactionId: string) {
-    return await userService.chargingStationApi.isAuthorized('StopTransaction', this.chargingStation.id, transactionId);
-  }
-
   async readChargingStation(userService?: CentralServerService) {
     if (!userService) {
       userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));

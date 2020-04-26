@@ -40,7 +40,7 @@ describe('Transaction tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With components Organization and Pricing (tenant ut-all)', () => {
+  describe('With components Organization and Pricing (tenant utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
@@ -72,10 +72,6 @@ describe('Transaction tests', function() {
 
         after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
         });
 
         it('Should be authorized on a started transaction by itself', async () => {
@@ -291,10 +287,6 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
@@ -383,7 +375,7 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('With component Organization without ACL (tenant ut-org)', () => {
+  describe('With component Organization without ACL (tenant utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -417,9 +409,6 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
 
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
@@ -528,10 +517,6 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
@@ -596,7 +581,7 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('Without any component (tenant ut-nothing)', () => {
+  describe('Without any component (tenant utnothing)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
@@ -625,10 +610,6 @@ describe('Transaction tests', function() {
 
         after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
         });
 
         it('Should be authorized on a started transaction by itself', async () => {
@@ -778,10 +759,6 @@ describe('Transaction tests', function() {
 
         after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
         });
 
         it('Should be authorized on a started transaction by itself', async () => {

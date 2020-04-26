@@ -105,7 +105,7 @@ export default class CentralServerService {
     this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 
-  public static get DefaultInstance(): CentralServerService {
+  public static get defaultInstance(): CentralServerService {
     if (CentralServerService._defaultInstance) {
       return CentralServerService._defaultInstance;
     }
@@ -280,4 +280,4 @@ export default class CentralServerService {
   }
 }
 
-const DefaultCentralServerService = CentralServerService.DefaultInstance;
+const DefaultCentralServerService = CentralServerService.defaultInstance;

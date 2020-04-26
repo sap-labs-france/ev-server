@@ -43,7 +43,7 @@ describe('Asset Test', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Asset (tenant ut-asset)', () => {
+  describe('With component Asset (tenant utasset)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET);

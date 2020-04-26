@@ -37,7 +37,7 @@ describe('Firmware Update Status Tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all components (tenant ut-all)', () => {
+  describe('With all components (tenant utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);

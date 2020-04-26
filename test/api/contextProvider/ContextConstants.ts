@@ -21,16 +21,16 @@ export interface TenantDefinition {
 
 export default class CONTEXTS {
   static readonly TENANT_CONTEXTS: any = {
-    TENANT_WITH_ALL_COMPONENTS: 'ut-all', // All components are active
-    TENANT_WITH_NO_COMPONENTS: 'ut-nothing', // No components are active
-    TENANT_ORGANIZATION: 'ut-org', // Only organization component is active
-    TENANT_SIMPLE_PRICING: 'ut-pricing', // Only pricing component is active
-    TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
-    TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
-    TENANT_FUNDING: 'ut-refund', // Only refund component is active
-    TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
-    TENANT_ASSET: 'ut-asset', // Only asset component is active
-    TENANT_CAR: 'ut-car', // Only car component is active
+    TENANT_WITH_ALL_COMPONENTS: 'utall', // All components are active
+    TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
+    TENANT_ORGANIZATION: 'utorg', // Only organization component is active
+    TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
+    TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
+    TENANT_OCPI: 'utocpi', // Only ocpi component is active
+    TENANT_FUNDING: 'utrefund', // Only refund component is active
+    TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
+    TENANT_ASSET: 'utasset', // Only asset component is active
+    TENANT_CAR: 'utcar', // Only car component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -90,7 +90,7 @@ export default class CONTEXTS {
   static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
-    subdomain: 'utall',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     componentSettings: {
       pricing: {
         content: {
@@ -178,12 +178,12 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
-    subdomain: 'utnothing',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
   },
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
-    subdomain: 'utorg',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     componentSettings: {
       organization: {}
     }
@@ -191,7 +191,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
-    subdomain: 'utprice',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     componentSettings: {
       pricing: {
         content: {
@@ -207,7 +207,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-    subdomain: 'utconvcharg',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     componentSettings: {
       pricing: {
         content: {
@@ -225,7 +225,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
-    subdomain: 'utocpi',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     componentSettings: {
       ocpi: {
         content: {
@@ -251,7 +251,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
-    subdomain: 'utrefund',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     componentSettings: {
       refund: {
         content: {
@@ -274,7 +274,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa8',
-    subdomain: 'utbilling',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
     componentSettings: {
       pricing: {
         content: {
@@ -306,7 +306,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
-    subdomain: 'utasset',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET,
     componentSettings: {
       asset: {},
       organization: {}
@@ -315,7 +315,7 @@ export default class CONTEXTS {
   {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CAR,
     id: 'aaaaaaaaaaaaaaaaaaaaaab1',
-    subdomain: 'utcar',
+    subdomain: CONTEXTS.TENANT_CONTEXTS.TENANT_CAR,
     componentSettings: {
       car: {},
     }

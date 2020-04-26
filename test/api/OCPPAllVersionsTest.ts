@@ -42,7 +42,7 @@ describe('OCPP tests (all versions)', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without any component (tenant ut-nothing)', () => {
+  describe('Without any component (tenant utnothing)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
@@ -308,7 +308,7 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With component Organization only (tenant ut-org)', () => {
+  describe('With component Organization only (tenant utorg)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -669,7 +669,7 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With components Organization and Pricing (tenant ut-all)', () => {
+  describe('With components Organization and Pricing (tenant utall)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);

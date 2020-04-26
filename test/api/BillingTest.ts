@@ -105,7 +105,7 @@ for (const key of Object.keys(billingSettings)) {
 
 describe('Billing Service', function() {
   this.timeout(1000000);
-  describe('With component Billing (tenant ut-billing)', () => {
+  describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -395,7 +395,7 @@ describe('Billing Service', function() {
     });
   });
 
-  describe('With component Billing (tenant ut-all)', () => {
+  describe('With component Billing (tenant utall)', () => {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);

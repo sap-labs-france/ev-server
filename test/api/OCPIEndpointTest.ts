@@ -19,7 +19,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPI Endpoint tests (tenant ut-ocpi)', function() {
+describe('OCPI Endpoint tests (tenant utocpi)', function() {
   this.timeout(30000);
   before(async () => {
     testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI);

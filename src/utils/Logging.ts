@@ -500,6 +500,9 @@ export default class Logging {
     if (typeof log.message === 'string' && log.message && log.message.length > 0) {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
     }
+    if (!log.tenantID || log.tenantID === '') {
+      log.tenantID = Constants.DEFAULT_TENANT;
+    }
     // Log
     await LoggingStorage.saveLog(log.tenantID, log);
     // Log in Cloud Foundry
