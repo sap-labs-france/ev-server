@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import BackendError from '../../../exception/AppError';
-import CarDatabaseFactory from '../../../integration/car/CarDatabaseFactory';
+import CarFactory from '../../../integration/car/CarFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
@@ -129,7 +129,7 @@ export default class CarService {
         method: 'handleSynchronizeCarCatalogs'
       });
     }
-    const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+    const carDatabaseImpl = await CarFactory.getCarImpl();
     if (!carDatabaseImpl) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

@@ -2,23 +2,23 @@ import { ActionsResponse } from './GlobalType';
 
 export interface BillingTransactionData {
   status?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
+  invoiceStatus?: BillingInvoiceStatus;
+  invoiceItem?: BillingInvoiceItem;
   lastUpdate?: Date;
 }
 
-export interface BillingDataStart {
+export interface BillingDataTransactionStart {
   cancelTransaction?: boolean;
 }
 
-export interface BillingDataUpdate {
+export interface BillingDataTransactionUpdate {
   cancelTransaction?: boolean;
 }
 
-export interface BillingDataStop {
+export interface BillingDataTransactionStop {
   status?: string;
-  invoiceStatus?: string;
-  invoiceItem?: string;
+  invoiceStatus?: BillingInvoiceStatus;
+  invoiceItem?: BillingInvoiceItem;
 }
 
 export interface BillingUserData {
@@ -30,7 +30,7 @@ export interface BillingUserData {
   hasSynchroError?: boolean;
 }
 
-export interface BillingPartialUser {
+export interface BillingUser {
   email: string;
   name: string;
   billingData: BillingUserData;
@@ -49,15 +49,15 @@ export interface BillingTax {
 
 export interface BillingInvoice {
   id: string;
+  invoiceID: string;
+  userID?: string;
   number?: string;
   status?: BillingInvoiceStatus;
-  amountDue?: number;
+  amount?: number;
   currency?: string;
   customerID?: string;
   createdOn?: Date;
-  downloadUrl?: string;
-  payUrl?: string;
-  items?: BillingInvoiceItem[];
+  nbrOfItems?: number;
 }
 
 export interface BillingInvoiceItem {
@@ -70,10 +70,4 @@ export enum BillingInvoiceStatus {
   PAID = 'paid',
   OPEN = 'open',
   DRAFT = 'draft',
-}
-
-export interface BillingInvoiceFilter {
-  status?: BillingInvoiceStatus;
-  startDateTime?: Date;
-  endDateTime?: Date;
 }

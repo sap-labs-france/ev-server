@@ -258,7 +258,7 @@ export default class ChargingStationService {
       });
     }
     // Get the Vendor instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
       throw new AppError({
         source: chargingStation.id,
@@ -1006,7 +1006,7 @@ export default class ChargingStationService {
         });
       }
       // Get the Vendor instance
-      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+      const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (!chargingStationVendor) {
         throw new AppError({
           source: chargingStation.id,
@@ -1429,7 +1429,7 @@ export default class ChargingStationService {
             // Refresh Configuration
             await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
             // Check update with Vendor
-            const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+            const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
             if (chargingStationVendor) {
               await chargingStationVendor.checkUpdateOfOCPPParams(tenantID, chargingStation, params.key, params.value);
             }

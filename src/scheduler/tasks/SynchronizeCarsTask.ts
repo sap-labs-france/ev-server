@@ -1,4 +1,4 @@
-import CarDatabaseFactory from '../../integration/car/CarDatabaseFactory';
+import CarFactory from '../../integration/car/CarFactory';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { Action } from '../../types/Authorization';
 import { TaskConfig } from '../../types/TaskConfig';
@@ -12,7 +12,7 @@ const MODULE_NAME = 'SynchronizeCarsTask';
 export default class SynchronizeCarsTask extends SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     try {
-      const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+      const carDatabaseImpl = await CarFactory.getCarImpl();
       if (carDatabaseImpl) {
         const synchronizeAction = await carDatabaseImpl.synchronizeCarCatalogs();
         if (synchronizeAction.inError > 0) {

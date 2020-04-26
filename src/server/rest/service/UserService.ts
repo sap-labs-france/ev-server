@@ -406,8 +406,8 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          const billingData = await billingImpl.updateUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+          const billingUser = await billingImpl.updateUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
         } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
@@ -971,8 +971,8 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-          const billingData = await billingImpl.createUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+          const billingUser = await billingImpl.createUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
           Logging.logInfo({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleCreateUser',

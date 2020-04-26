@@ -119,7 +119,7 @@ export default class TransactionService {
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User with ID '${req.user.id}' does not exist`,
       MODULE_NAME, 'handleRefundTransactions', req.user);
-    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(req.user.tenantID);
     if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -936,7 +936,7 @@ export default class TransactionService {
       notFoundIDs: []
     };
     // Check if transaction has been refunded
-    const refundConnector = await RefundFactory.getRefundConnector(loggedUser.tenantID);
+    const refundConnector = await RefundFactory.getRefundImpl(loggedUser.tenantID);
     for (const transactionId of transactionsIDs) {
       // Get
       const transaction = await TransactionStorage.getTransaction(loggedUser.tenantID, transactionId);
