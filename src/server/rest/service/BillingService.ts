@@ -94,7 +94,7 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
-        action: ServerAction.SYNCHRONIZE_USERS,
+        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
         user: req.user
       });
     }
@@ -126,13 +126,13 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
-        action: ServerAction.SYNCHRONIZE_USER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USER,
         user: req.user
       });
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(ServerAction.SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(ServerAction.BILLING_SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
@@ -162,13 +162,13 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleForceSynchronizeUser',
-        action: ServerAction.SYNCHRONIZE_USER,
+        action: ServerAction.BILLING_SYNCHRONIZE_USER,
         user: req.user
       });
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(ServerAction.SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(ServerAction.BILLING_SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);

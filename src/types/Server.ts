@@ -5,8 +5,6 @@ export enum ServerAction {
   RESET = 'Reset',
   PING = 'Ping',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
-  SYNCHRONIZE_USERS = 'SynchronizeUsers',
-  SYNCHRONIZE_USER = 'SynchronizeUser',
   CHECK_CONNECTION = 'CheckConnection',
   CLEAR_CACHE = 'ClearCache',
   GET_CONFIGURATION = 'GetConfiguration',
@@ -172,13 +170,13 @@ export enum ServerAction {
   BILLING_SEND_INVOICE = 'BillingSendInvoice',
   BILLING_CREATE_INVOICE = 'BillingCreateInvoice',
   BILLING_CREATE_INVOICE_ITEM = 'BillingCreateInvoiceItem',
+  BILLING_SYNCHRONIZE_USERS = 'BillingSynchronizeUsers',
+  BILLING_SYNCHRONIZE_USER = 'BillingSynchronizeUser',
 
   MONGO_DB = 'MongoDB',
-
-  EMPTY_ACTION = '',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SMART_CHARGING = 'SmartCharging',
 
-  IMPORT_MODULE = 'ImportModule',  
+  IMPORT_MODULE = 'ImportModule',
 }
