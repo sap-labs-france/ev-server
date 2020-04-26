@@ -104,7 +104,7 @@ export enum ServerAction {
   OCPI_ENPOINT_SEND_TOKENS = 'OcpiEndpointSendTokens',
   OCPI_ENPOINT_GENERATE_LOCAL_TOKEN = 'OcpiEndpointGenerateLocalToken',
   OCPI_ENDPOINTS = 'OcpiEndpoints',
-  OCPI_ENDPOINT = 'OcpiEndPoint',
+  OCPI_ENDPOINT = 'OcpiEndpoint',
   OCPI_REGISTER = 'OcpiRegister',
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
   OCPI_PATCH_LOCATIONS = 'OcpiPatchLocations',

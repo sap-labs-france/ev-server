@@ -1,10 +1,11 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import config from '../config';
 import jwt from 'jsonwebtoken';
-import CentralServerService from './client/CentralServerService';
+import config from '../config';
 import UserFactory from '../factories/UserFactory';
 import User from '../types/User';
+import CentralServerService from './client/CentralServerService';
+import CONTEXTS from './contextProvider/ContextConstants';
 
 chai.use(chaiSubset);
 
@@ -13,7 +14,7 @@ const testData = {
   adminPassword: null,
   superAdminEmail: null,
   superAdminPassword: null,
-  adminTenant: null,
+  adminTenant: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
   createdUsersAdminTenant: [],
   centralServiceDefaultTenant: null,
   createdUsersDefaultTenant: []
@@ -28,7 +29,6 @@ describe('Authentication Service', function() {
     testData.adminPassword = config.get('admin.password');
     testData.superAdminEmail = config.get('superadmin.username');
     testData.superAdminPassword = config.get('superadmin.password');
-    testData.adminTenant = config.get('admin.tenant');
   });
 
   after(() => {

@@ -1,12 +1,13 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
-import Factory from '../factories/Factory';
-import OCPIService from './ocpi/OCPIService';
 import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
-import ContextProvider from './contextProvider/ContextProvider';
+import User from '../../src/types/User';
+import Factory from '../factories/Factory';
+import CentralServerService from './client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
+import ContextProvider from './contextProvider/ContextProvider';
 import TenantContext from './contextProvider/TenantContext';
+import OCPIService from './ocpi/OCPIService';
 
 chai.use(chaiSubset);
 
@@ -16,18 +17,27 @@ class TestData {
   public emspService: OCPIService;
   public tenantContext: TenantContext;
   public newOcpiEndpoint: any;
+  public centralUserService: CentralServerService;
+  public centralUserContext: any;
+  public userContext: User;
 }
 
 const testData: TestData = new TestData();
 
-describe('OCPI Service Tests', function() {
+describe('OCPI Service Tests (tenant ut-ocpi)', function() {
   this.timeout(100000);
-
   before(async () => {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
-    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI);
+    testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+    testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+    expect(testData.userContext).to.not.be.null;
+    testData.centralUserService = new CentralServerService(
+      testData.tenantContext.getTenant().subdomain,
+      testData.centralUserContext
+    );
     testData.cpoService = new OCPIService(OCPIRole.CPO);
     testData.emspService = new OCPIService(OCPIRole.EMSP);
   });
@@ -466,8 +476,8 @@ describe('OCPI Service Tests', function() {
         // Check
         expect(testData.newOcpiEndpoint).to.not.be.null;
         // Create the entity
-        testData.newOcpiEndpoint = await CentralServerService.DefaultInstance.createEntity(
-          CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build());
+        testData.newOcpiEndpoint = await testData.centralUserService.createEntity(
+          testData.centralUserService.ocpiEndpointApi, Factory.ocpiEndpoint.build());
       });
 
 
@@ -475,8 +485,8 @@ describe('OCPI Service Tests', function() {
         // Change entity
         testData.newOcpiEndpoint.localToken = OCPIService.getToken(OCPIRole.CPO);
         // Update
-        await CentralServerService.DefaultInstance.updateEntity(
-          CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);
+        await testData.centralUserService.updateEntity(
+          testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
       });
 
       // // Check access for each evse
@@ -513,8 +523,8 @@ describe('OCPI Service Tests', function() {
 
       it('Should delete the created ocpiEndpoint', async () => {
         // Delete the created entity
-        await CentralServerService.DefaultInstance.deleteEntity(
-          CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);
+        await testData.centralUserService.deleteEntity(
+          testData.centralUserService.ocpiEndpointApi, testData.newOcpiEndpoint);
       });
     });
 
