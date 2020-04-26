@@ -1,23 +1,23 @@
-import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
-import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
-import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import cron from 'node-cron';
+import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
-import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
-import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
-import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
-import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import cron from 'node-cron';
-import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
+import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
+import CheckOfflineChargingStationsTask from './tasks/CheckOfflineChargingStationsTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
+import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
-import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
-import CheckSessionNotStartedAfterAuthorizeTask from './tasks/CheckSessionNotStartedAfterAuthorizeTask';
+import OCPIGetTokensTask from './tasks/ocpi/OCPIGetTokensTask';
+import OCPIPatchLocationsTask from './tasks/ocpi/OCPIPatchLocationsTask';
+import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
-import CheckAndComputeSmartChargingTask from './tasks/CheckAndComputeSmartChargingTask';
-import { Action } from '../types/Authorization';
+import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 
 const MODULE_NAME = 'SchedulerManager';
 
@@ -30,7 +30,7 @@ export default class SchedulerManager {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.SCHEDULER,
+        action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'init',
         message: 'The Scheduler is active'
       });
@@ -40,7 +40,7 @@ export default class SchedulerManager {
         if (!task.active) {
           Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT,
-            action: Action.SCHEDULER,
+            action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'init',
             message: `The task '${task.name}' is inactive`
           });
@@ -97,7 +97,7 @@ export default class SchedulerManager {
           default:
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
-              action: Action.SCHEDULER,
+              action: ServerAction.SCHEDULER,
               module: MODULE_NAME, method: 'init',
               message: `The task '${task.name}' is unknown`
             });
@@ -106,7 +106,7 @@ export default class SchedulerManager {
           cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
-            action: Action.SCHEDULER,
+            action: ServerAction.SCHEDULER,
             module: MODULE_NAME, method: 'init',
             message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
           });
@@ -116,7 +116,7 @@ export default class SchedulerManager {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.SCHEDULER,
+        action: ServerAction.SCHEDULER,
         module: MODULE_NAME, method: 'init',
         message: 'The Scheduler is inactive'
       });

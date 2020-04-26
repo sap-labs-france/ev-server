@@ -7,6 +7,7 @@ import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import Site from '../../../types/Site';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
@@ -20,7 +21,7 @@ const MODULE_NAME = 'SiteService';
 
 export default class SiteService {
 
-  public static async handleAddUsersToSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAddUsersToSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleAddUsersToSite');
@@ -88,7 +89,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteUserAdmin(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteUserAdmin(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSiteUserAdmin');
@@ -199,7 +200,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteOwner(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteOwner(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.canCreateSite(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -286,7 +287,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleRemoveUsersFromSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRemoveUsersFromSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleRemoveUsersFromSite');
@@ -343,7 +344,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetUsers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleGetUsersFromSite');
@@ -410,7 +411,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleDeleteSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE, MODULE_NAME, 'handleDeleteSite');
@@ -449,7 +450,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSite');
@@ -480,7 +481,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITES, MODULE_NAME, 'handleGetSites');
@@ -527,7 +528,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleGetSiteImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE, MODULE_NAME, 'handleGetSiteImage');
@@ -558,7 +559,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleCreateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE, MODULE_NAME, 'handleCreateSite');
@@ -603,7 +604,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSite(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSite(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');

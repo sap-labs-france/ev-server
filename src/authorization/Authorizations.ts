@@ -12,6 +12,7 @@ import { Action, AuthorizationContext, Entity } from '../types/Authorization';
 import ChargingStation from '../types/ChargingStation';
 import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
 import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import { ServerAction } from '../types/Server';
 import { PricingSettingsType } from '../types/Setting';
 import Tag from '../types/Tag';
 import TenantComponents from '../types/TenantComponents';
@@ -777,7 +778,7 @@ export default class Authorizations {
         tenantID: tenantID, user: user,
         module: MODULE_NAME, method: 'checkAndGetUserTagIDOnChargingStation',
         message: `User with ID '${user.id}' with Tag ID '${tagID}' has been restored`,
-        action: action
+        action: ServerAction.USER_READ
       });
       // Save
       user.id = await UserStorage.saveUser(tenantID, user);
@@ -838,7 +839,7 @@ export default class Authorizations {
     if (!authorized && Authorizations.getConfiguration().debug) {
       Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,
-        action: Action.AUTHORIZATIONS,
+        action: ServerAction.AUTHORIZATIONS,
         module: MODULE_NAME, method: 'canPerformAction',
         message: `Role ${loggedUser.role} Cannot ${action} on ${entity} with context ${JSON.stringify(context)}`,
       });

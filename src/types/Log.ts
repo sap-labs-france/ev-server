@@ -1,4 +1,4 @@
-import { Action } from './Authorization';
+import { ServerAction } from './Server';
 import User from './User';
 import UserToken from './UserToken';
 
@@ -12,16 +12,12 @@ export interface Log {
   module: string;
   method: string;
   timestamp?: Date;
-  action?: Action;
+  action?: ServerAction;
   type?: LogType;
   message: string|object;
   user?: User|UserToken|string;
   actionOnUser?: User|UserToken|string;
   detailedMessages?: any;
-}
-
-export enum LogAction {
-  
 }
 
 export enum LogLevel {

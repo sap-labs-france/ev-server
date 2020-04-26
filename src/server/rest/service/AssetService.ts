@@ -4,9 +4,10 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import { Action, Entity } from '../../../types/Authorization';
 import Asset from '../../../types/Asset';
+import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -18,7 +19,7 @@ const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
 
-  public static async handleAssignAssetsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignAssetsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
@@ -71,7 +72,7 @@ export default class AssetService {
       }
     }
     // Save
-    if (action === Action.ADD_ASSET_TO_SITE_AREA) {
+    if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
       await AssetStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
     } else {
       await AssetStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
@@ -90,7 +91,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleDeleteAsset(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.DELETE, Entity.ASSET, MODULE_NAME, 'handleDeleteAsset');
@@ -132,7 +133,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleGetAsset(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetAsset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAsset');
@@ -165,7 +166,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleGetAssetImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetAssetImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.READ, Entity.ASSET, MODULE_NAME, 'handleGetAssetImage');
@@ -195,7 +196,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleGetAssets(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetAssets(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssets');
@@ -230,7 +231,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleCreateAsset(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateAsset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.CREATE, Entity.ASSET, MODULE_NAME, 'handleCreateAsset');
@@ -277,7 +278,7 @@ export default class AssetService {
     next();
   }
 
-  public static async handleUpdateAsset(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateAsset(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
       Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleUpdateAsset');

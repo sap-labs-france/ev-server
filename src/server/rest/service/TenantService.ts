@@ -5,10 +5,12 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import { SettingDB, SettingDBContent } from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
 import User, { UserRole } from '../../../types/User';
@@ -18,13 +20,12 @@ import Utils from '../../../utils/Utils';
 import TenantValidator from '../validation/TenantValidation';
 import TenantSecurity from './security/TenantSecurity';
 import UtilsService from './UtilsService';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  public static async handleDeleteTenant(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteTenant(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, id, MODULE_NAME, 'handleDeleteTenant', req.user);
@@ -73,7 +74,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenant(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetTenant(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, tenantID, MODULE_NAME, 'handleGetTenant', req.user);
@@ -102,7 +103,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleGetTenants(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTenants(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError({
@@ -127,7 +128,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleCreateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Validate
     const filteredRequest = TenantValidator.getInstance().validateTenantCreation(req.body);
     // Check auth
@@ -222,7 +223,7 @@ export default class TenantService {
     next();
   }
 
-  public static async handleUpdateTenant(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateTenant(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check
     const tenantUpdate = TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Check auth

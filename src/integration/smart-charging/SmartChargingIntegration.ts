@@ -1,8 +1,8 @@
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import { ActionsResponse } from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import { SmartChargingSetting } from '../../types/Setting';
 import SiteArea from '../../types/SiteArea';
 import Constants from '../../utils/Constants';
@@ -26,7 +26,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     };
     Logging.logDebug({
       tenantID: this.tenantID,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles is being called',
       module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
       detailedMessages: { siteArea }
@@ -35,7 +35,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
     if (!chargingProfiles) {
       throw new BackendError({
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
         message: `No Charging Profiles have been built for Site Area '${siteArea.name}'`,
       });
@@ -52,7 +52,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         Logging.logError({
           tenantID: this.tenantID,
           source: chargingProfile.chargingStationID,
-          action: Action.CHARGING_PROFILE_UPDATE,
+          action: ServerAction.CHARGING_PROFILE_UPDATE,
           module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
           message: `Setting Charging Profiles for Site Area '${siteArea.name}' failed`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -63,7 +63,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       Logging.logError({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
         module: MODULE_NAME, method: 'processTenant',
         message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed and ${actionsResponse.inError} have failed`
       });
@@ -71,7 +71,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       Logging.logInfo({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
         module: MODULE_NAME, method: 'processTenant',
         message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed`
       });
@@ -79,7 +79,7 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       Logging.logError({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
         module: MODULE_NAME, method: 'processTenant',
         message: `${actionsResponse.inError} charging plan(s) have failed to be pushed`
       });
@@ -87,14 +87,14 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       Logging.logWarning({
         tenantID: this.tenantID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
         module: MODULE_NAME, method: 'processTenant',
         message: 'No charging stations have been updated with charging plans'
       });
     }
     Logging.logDebug({
       tenantID: this.tenantID,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       message: 'Compute and Apply Charging Profiles has been called',
       module: MODULE_NAME, method: 'computeAndApplyChargingProfiles'
     });

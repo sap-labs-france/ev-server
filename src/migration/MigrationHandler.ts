@@ -1,9 +1,9 @@
 import cluster from 'cluster';
 import moment from 'moment';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import { Action } from '../types/Authorization';
-import Constants from '../utils/Constants';
 import LockManager from '../locking/LockManager';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import { ServerAction } from '../types/Server';
+import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -39,7 +39,7 @@ export default class MigrationHandler {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: 'Running migration tasks...'
       });
@@ -95,14 +95,14 @@ export default class MigrationHandler {
       const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `The migration has been run in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: error.toString(),
         detailedMessages: { error: error.message, stack: error.stack }
@@ -118,7 +118,7 @@ export default class MigrationHandler {
       // Log Start Task
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
       });
@@ -142,7 +142,7 @@ export default class MigrationHandler {
       });
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
       });

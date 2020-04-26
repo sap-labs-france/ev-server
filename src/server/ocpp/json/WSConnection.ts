@@ -5,12 +5,12 @@ import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import { ServerAction } from '../../../types/Server';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
-import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -102,15 +102,15 @@ export default class WSConnection {
           // Update CF Instance
           chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
           // Save it
-          await ChargingStationStorage.saveChargingStation(Action.WS_CONNECTION, this.tenantID, chargingStation);
+          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
         }
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, Action.WS_CONNECTION , this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      Logging.logException(error, ServerAction.WS_CONNECTION , this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError({
         source: this.getChargingStationID(),
-        action: Action.WS_CONNECTION,
+        action: ServerAction.WS_CONNECTION,
         module: MODULE_NAME, method: 'initialize',
         message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -174,7 +174,7 @@ export default class WSConnection {
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: 'sendMessage',
-            action: Action.WS_ERROR,
+            action: ServerAction.WS_ERROR,
             message: `Error occured when calling the command '${commandName}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });

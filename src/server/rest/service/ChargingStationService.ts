@@ -21,6 +21,7 @@ import ChargingStation, { OCPPParams, StaticLimitAmps } from '../../../types/Cha
 import { DataResult } from '../../../types/DataResult';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ChargingStationInErrorType } from '../../../types/InError';
+import { ServerAction } from '../../../types/Server';
 import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import TenantComponents from '../../../types/TenantComponents';
@@ -38,7 +39,7 @@ const MODULE_NAME = 'ChargingStationService';
 
 export default class ChargingStationService {
 
-  public static async handleAssignChargingStationsToSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignChargingStationsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
       req.user, TenantComponents.ORGANIZATION,
@@ -93,7 +94,7 @@ export default class ChargingStationService {
       }
     }
     // Save
-    if (action === Action.ADD_CHARGING_STATION_TO_SITE_AREA) {
+    if (action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
       await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     } else {
       await ChargingStationStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
@@ -112,7 +113,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleUpdateChargingStationParams(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
     // Check existence
@@ -193,7 +194,7 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
-    await ChargingStationStorage.saveChargingStation(action, req.user.tenantID, chargingStation);
+    await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -210,7 +211,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleChargingStationLimitPower(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleChargingStationLimitPower(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationLimitPowerRequest(req.body);
     // Check
@@ -346,7 +347,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingProfiles(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
     // Check
@@ -370,10 +371,10 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleTriggerSmartCharging(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleTriggerSmartCharging(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
-      action, Entity.CHARGING_STATION, MODULE_NAME, 'handleTriggerSmartCharging');
+      Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleTriggerSmartCharging');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterTriggerSmartCharging(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleTriggerSmartCharging', req.user);
@@ -422,7 +423,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleUpdateChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
     // Check Mandatory fields
@@ -467,7 +468,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleDeleteChargingProfile(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check existence
     const chargingProfileID = ChargingStationSecurity.filterChargingProfileRequestByID(req.query);
     // Get Profile
@@ -515,7 +516,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStationOcppParameters(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationOcppParametersRequest(req.query);
     // Check
@@ -544,7 +545,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleRequestChargingStationOcppParameters(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRequestChargingStationOcppParameters(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterRequestChargingStationOcppParametersRequest(req.body);
     UtilsService.assertIdIsProvided(action, filteredRequest.chargeBoxID, MODULE_NAME, 'handleRequestChargingStationOcppParameters', req.user);
@@ -573,7 +574,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleDeleteChargingStation(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Check Mandatory fields
@@ -643,7 +644,7 @@ export default class ChargingStationService {
       { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_COUNT_ONLY);
     if (transactions.count > 0) {
       // Delete logically
-      await ChargingStationStorage.saveChargingStation(action, req.user.tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     } else {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(req.user.tenantID, chargingStation.id);
@@ -661,7 +662,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStation(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStation(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query);
     // Check
@@ -702,12 +703,12 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetChargingStations(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStations(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     res.json(await ChargingStationService.getChargingStations(req));
     next();
   }
 
-  public static async handleChargingStationsOCPPParamsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleChargingStationsOCPPParamsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
     req.query.WithSite = true;
     // Get Charging Stations
@@ -756,7 +757,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleGetChargingStationsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     // Build export
@@ -778,7 +779,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleGetChargingStationsInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -827,7 +828,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetStatusNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetStatusNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -851,7 +852,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetBootNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBootNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -875,7 +876,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleGetFirmware(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetFirmware(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationGetFirmwareRequest(req.query);
     if (!filteredRequest.FileName) {
@@ -900,7 +901,7 @@ export default class ChargingStationService {
     bucketStream.on('error', (error) => {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.FIRMWARE_DOWNLOAD,
+        action: ServerAction.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has not been found!`,
         module: MODULE_NAME, method: 'handleGetFirmware',
         detailedMessages: { error: error.message, stack: error.stack },
@@ -911,7 +912,7 @@ export default class ChargingStationService {
     bucketStream.on('end', () => {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.FIRMWARE_DOWNLOAD,
+        action: ServerAction.FIRMWARE_DOWNLOAD,
         message: `Firmware '${filteredRequest.FileName}' has been downloaded with success`,
         module: MODULE_NAME, method: 'handleGetFirmware',
       });
@@ -919,7 +920,7 @@ export default class ChargingStationService {
     });
   }
 
-  public static async handleAction(command: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleAction(command: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest =
       ChargingStationSecurity.filterChargingStationActionRequest(req.body);
@@ -930,7 +931,7 @@ export default class ChargingStationService {
       MODULE_NAME, 'handleAction', req.user);
     let result;
     // Remote Stop Transaction / Unlock Connector
-    if (command === Action.REMOTE_STOP_TRANSACTION) {
+    if (command === ServerAction.REMOTE_STOP_TRANSACTION) {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
         throw new AppError({
@@ -940,12 +941,12 @@ export default class ChargingStationService {
           module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
-          action: command as unknown as Action,
+          action: command,
         });
       }
       // Get Transaction
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
-      UtilsService.assertObjectExists(command as unknown as Action, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
+      UtilsService.assertObjectExists(command, transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
         MODULE_NAME, 'handleAction', req.user);
       // Add connector ID
       filteredRequest.args.connectorId = transaction.connectorId;
@@ -958,7 +959,7 @@ export default class ChargingStationService {
           module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
-          action: command as unknown as Action,
+          action: command,
         });
       }
       // Check if user is authorized
@@ -975,7 +976,7 @@ export default class ChargingStationService {
       // Ok: Execute it
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
       // Remote Start Transaction
-    } else if (command === Action.REMOTE_START_TRANSACTION) {
+    } else if (command === ServerAction.REMOTE_START_TRANSACTION) {
       // Check Tag ID
       if (!filteredRequest.args || !filteredRequest.args.tagID) {
         throw new AppError({
@@ -985,7 +986,7 @@ export default class ChargingStationService {
           module: MODULE_NAME,
           method: 'handleAction',
           user: req.user,
-          action: command as unknown as Action,
+          action: command,
         });
       }
       // Check if user is authorized
@@ -993,7 +994,7 @@ export default class ChargingStationService {
         req.user.tenantID, chargingStation, filteredRequest.args.tagID);
       // Ok: Execute it
       result = await this.handleChargingStationCommand(req.user.tenantID, req.user, chargingStation, command, filteredRequest.args);
-    } else if (command === Action.GET_COMPOSITE_SCHEDULE) {
+    } else if (command === ServerAction.GET_COMPOSITE_SCHEDULE) {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {
         throw new AppAuthError({
@@ -1010,7 +1011,7 @@ export default class ChargingStationService {
       if (!chargingStationVendor) {
         throw new AppError({
           source: chargingStation.id,
-          action: command as unknown as Action,
+          action: command,
           errorCode: HTTPError.FEATURE_NOT_SUPPORTED_ERROR,
           message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for limiting the charge`,
           module: MODULE_NAME, method: 'handleAction',
@@ -1040,7 +1041,7 @@ export default class ChargingStationService {
     next();
   }
 
-  public static async handleIsAuthorized(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleIsAuthorized(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
     let result = [{ 'IsAuthorized': false }];
@@ -1298,17 +1299,17 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  static async handleCheckSmartChargingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if Component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
-      action, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
+      Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
         entity: Entity.SETTING,
+        action: Action.UPDATE,
         module: MODULE_NAME,
         method: 'handleCheckSmartChargingConnection'
       });
@@ -1377,14 +1378,14 @@ export default class ChargingStationService {
   }
 
   private static async handleChargingStationCommand(tenantID: string, user: UserToken, chargingStation: ChargingStation,
-    command: Action, params: any): Promise<any> {
+    command: ServerAction, params: any): Promise<any> {
     let result: any;
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: command as unknown as Action,
+        action: command,
         module: MODULE_NAME, method: 'handleChargingStationCommand',
         message: 'Charging Station is not connected to the backend',
       });
@@ -1393,19 +1394,19 @@ export default class ChargingStationService {
       // Handle Requests
       switch (command) {
         // Reset
-        case Action.RESET:
+        case ServerAction.RESET:
           result = await chargingStationClient.reset({ type: params.type });
           break;
         // Clear cache
-        case Action.CLEAR_CACHE:
+        case ServerAction.CLEAR_CACHE:
           result = await chargingStationClient.clearCache();
           break;
         // Get Configuration
-        case Action.GET_CONFIGURATION:
+        case ServerAction.GET_CONFIGURATION:
           result = await chargingStationClient.getConfiguration({ key: params.key });
           break;
         // Set Configuration
-        case Action.CHANGE_CONFIGURATION:
+        case ServerAction.CHANGE_CONFIGURATION:
           // Change the config
           result = await chargingStationClient.changeConfiguration({
             key: params.key,
@@ -1436,31 +1437,31 @@ export default class ChargingStationService {
           }
           break;
         // Unlock Connector
-        case Action.UNLOCK_CONNECTOR:
+        case ServerAction.UNLOCK_CONNECTOR:
           result = await chargingStationClient.unlockConnector({ connectorId: params.connectorId });
           break;
         // Start Transaction
-        case Action.REMOTE_START_TRANSACTION:
+        case ServerAction.REMOTE_START_TRANSACTION:
           result = await chargingStationClient.remoteStartTransaction({
             connectorId: params.connectorId,
             idTag: params.tagID
           });
           break;
         // Stop Transaction
-        case Action.REMOTE_STOP_TRANSACTION:
+        case ServerAction.REMOTE_STOP_TRANSACTION:
           result = await chargingStationClient.remoteStopTransaction({
             transactionId: params.transactionId
           });
           break;
         // Change availability
-        case Action.CHANGE_AVAILABILITY:
+        case ServerAction.CHANGE_AVAILABILITY:
           result = await chargingStationClient.changeAvailability({
             connectorId: params.connectorId,
             type: params.type
           });
           break;
         // Get diagnostic
-        case Action.GET_DIAGNOSTICS:
+        case ServerAction.GET_DIAGNOSTICS:
           result = await chargingStationClient.getDiagnostics({
             location: params.location,
             retries: params.retries,
@@ -1470,7 +1471,7 @@ export default class ChargingStationService {
           });
           break;
         // Update Firmware
-        case Action.UPDATE_FIRMWARE:
+        case ServerAction.UPDATE_FIRMWARE:
           result = await chargingStationClient.updateFirmware({
             location: params.location,
             retries: params.retries,
@@ -1509,7 +1510,7 @@ export default class ChargingStationService {
       // Throw error
       throw new AppError({
         source: chargingStation.id,
-        action: command as unknown as Action,
+        action: command,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unknown OCPP command '${command}'`,
         module: MODULE_NAME,
@@ -1519,7 +1520,7 @@ export default class ChargingStationService {
     } catch (error) {
       throw new AppError({
         source: chargingStation.id,
-        action: command as unknown as Action,
+        action: command,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `OCPP Command '${command}' has failed`,
         module: MODULE_NAME, method: 'handleChargingStationCommand',

@@ -2,8 +2,6 @@ import fs from 'fs';
 import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import UtilsService from '../../server/rest/service/UtilsService';
-import { Action } from '../../types/Authorization';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
@@ -11,6 +9,7 @@ import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
+import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -44,7 +43,7 @@ export default class ChargingStationStorage {
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
       }
     }
     // Debug
@@ -445,13 +444,11 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async saveChargingStation(action: Action, tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
+  public static async saveChargingStation(tenantID: string, chargingStationToSave: ChargingStation): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID is provided
-    UtilsService.assertIdIsProvided(action, chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
     // Build Request
     const chargingStationFilter = {
       _id: chargingStationToSave.id

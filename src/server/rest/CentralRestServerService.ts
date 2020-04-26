@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
+import { ServerAction } from '../../types/Server';
 import Logging from '../../utils/Logging';
-import BillingService from './service/BillingService';
 import AssetService from './service/AssetService';
+import BillingService from './service/BillingService';
 import CarService from './service/CarService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
@@ -32,11 +33,11 @@ class RequestMapper {
       // Create
       case 'POST':
         this.registerOneActionManyPaths(
-          async (action: Action, req: Request, res: Response, next: NextFunction) => {
+          async (action: ServerAction, req: Request, res: Response, next: NextFunction) => {
             // Keep the action (remove ChargingStation)
-            action = action.slice(15) as Action;
+            action = action.slice(15) as ServerAction;
             // Type it
-            const chargingStationCommand: Action = action;
+            const chargingStationCommand: ServerAction = action;
             // Delegate
             await ChargingStationService.handleAction(chargingStationCommand, req, res, next);
           },
@@ -265,7 +266,7 @@ export default {
   // eslint-disable-next-line no-unused-vars
   async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
-    const action = req.params.action as Action;
+    const action = req.params.action as ServerAction;
     // Check Context
     switch (req.method) {
       // Create Request
@@ -273,11 +274,11 @@ export default {
         // Check Context
         switch (action) {
           // Ping
-          case Action.PING:
+          case ServerAction.PING:
             res.sendStatus(200);
             break;
           // FirmwareDownload
-          case Action.FIRMWARE_DOWNLOAD:
+          case ServerAction.FIRMWARE_DOWNLOAD:
             try {
               await ChargingStationService.handleGetFirmware(action, req, res, next);
             } catch (error) {
@@ -294,7 +295,7 @@ export default {
 
   async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = req.params.action as Action;
+    const action = req.params.action as ServerAction;
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
