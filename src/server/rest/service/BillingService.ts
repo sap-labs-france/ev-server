@@ -94,7 +94,7 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+        action: action,
         user: req.user
       });
     }
@@ -126,13 +126,13 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleSynchronizeUser',
-        action: ServerAction.BILLING_SYNCHRONIZE_USER,
+        action: action,
         user: req.user
       });
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(ServerAction.BILLING_SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.synchronizeUser(userToSynchronize, tenant.id);
@@ -162,13 +162,13 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleForceSynchronizeUser',
-        action: ServerAction.BILLING_SYNCHRONIZE_USER,
+        action: action,
         user: req.user
       });
     }
     // Get user
     const userToSynchronize = await UserStorage.getUser(tenant.id, filteredRequest.id);
-    UtilsService.assertObjectExists(ServerAction.BILLING_SYNCHRONIZE_USER, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, userToSynchronize, `User '${filteredRequest.id}' doesn't exist anymore.`,
       MODULE_NAME, 'handleSynchronizeUser', req.user);
     // Sync user
     await billingImpl.forceSynchronizeUser(userToSynchronize, tenant.id);
@@ -198,7 +198,7 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleGetBillingTaxes',
-        action: ServerAction.BILLING_TAX,
+        action: action,
         user: req.user
       });
     }
@@ -231,14 +231,14 @@ export default class BillingService {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
         module: MODULE_NAME, method: 'handleGetUserInvoices',
-        action: ServerAction.USER_INVOICES,
+        action: action,
         user: req.user
       });
     }
     const filteredRequest = BillingSecurity.filterGetUserInvoicesRequest(req.query);
     // Get user
     const billingUser = await billingImpl.getUserByEmail(req.user.email);
-    UtilsService.assertObjectExists(ServerAction.USER_INVOICES, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
       MODULE_NAME, 'handleGetUserInvoices', req.user);
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,

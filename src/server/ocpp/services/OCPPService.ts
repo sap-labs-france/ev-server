@@ -721,7 +721,7 @@ export default class OCPPService {
         tenantID: headers.tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'handleDataTransfer',
-        action: ServerAction.DATA_TRANSFER, message: 'Data Transfer has been saved'
+        action: ServerAction.CHARGING_STATION_DATA_TRANSFER, message: 'Data Transfer has been saved'
       });
       // Return
       return {
@@ -731,7 +731,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.DATA_TRANSFER, error);
+      Logging.logActionExceptionMessage(headers.tenantID, ServerAction.CHARGING_STATION_DATA_TRANSFER, error);
       return {
         'status': OCPPDataTransferStatus.REJECTED
       };

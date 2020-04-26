@@ -381,7 +381,7 @@ export default abstract class ChargingStationVendorIntegration {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: ServerAction.GET_COMPOSITE_SCHEDULE,
+      action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
       message: 'Get Composite Schedule is being called',
       module: MODULE_NAME, method: 'getCompositeSchedule',
       detailedMessages: { connectorID, durationSecs }
@@ -390,7 +390,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station does not support charging profiles'
       });
@@ -400,7 +400,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station is not connected to the backend',
       });
@@ -419,7 +419,7 @@ export default abstract class ChargingStationVendorIntegration {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.GET_COMPOSITE_SCHEDULE,
+            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { result }
@@ -437,7 +437,7 @@ export default abstract class ChargingStationVendorIntegration {
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.GET_COMPOSITE_SCHEDULE,
+            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule has been called',
             module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { results }
@@ -447,7 +447,7 @@ export default abstract class ChargingStationVendorIntegration {
         Logging.logDebug({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: ServerAction.GET_COMPOSITE_SCHEDULE,
+          action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
           message: 'Get Composite Schedule has been called',
           module: MODULE_NAME, method: 'getCompositeSchedule',
           detailedMessages: { result }
@@ -464,7 +464,7 @@ export default abstract class ChargingStationVendorIntegration {
       Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: ServerAction.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Get Composite Schedule has been called',
         module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { result }
@@ -474,7 +474,7 @@ export default abstract class ChargingStationVendorIntegration {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: ServerAction.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { error: error.message, stack: error.stack }

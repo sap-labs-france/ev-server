@@ -509,7 +509,7 @@ export default class OCPPUtils {
       if (!chargingStationClient) {
         throw new BackendError({
           source: chargingStation.id,
-          action: ServerAction.CHANGE_CONFIGURATION,
+          action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
           message: 'Charging Station is not connected to the backend',
         });
@@ -520,7 +520,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: ServerAction.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Command sent with success',
         detailedMessages: { ocppConfiguration }
@@ -550,14 +550,14 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: ServerAction.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Configuration has been saved'
       });
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, ServerAction.GET_CONFIGURATION, error);
+      Logging.logActionExceptionMessage(tenantID, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
@@ -568,7 +568,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: ServerAction.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
         message: 'Charging Station has no Standard/Vendor OCPP Parameters to change'
       });
@@ -579,7 +579,7 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
       });
@@ -597,7 +597,7 @@ export default class OCPPUtils {
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
           });
@@ -608,7 +608,7 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' has the correct value '${currentOcppParam.value}'`
           });
@@ -626,7 +626,7 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
           });
@@ -634,7 +634,7 @@ export default class OCPPUtils {
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: ServerAction.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
           });
@@ -643,7 +643,7 @@ export default class OCPPUtils {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: ServerAction.CHANGE_CONFIGURATION,
+          action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
           message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -664,7 +664,7 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
       });

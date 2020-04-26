@@ -276,11 +276,11 @@ export default { /* Services */
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DATA_TRANSFER, [ headers, args ]);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.CHARGING_STATION_DATA_TRANSFER, [ headers, args ]);
           // Handle
           const result = await global.centralSystemSoap.getChargingStationService(OCPPVersion.VERSION_15).handleDataTransfer(headers, args);
           // Log
-          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.DATA_TRANSFER, {
+          Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.CHARGING_STATION_DATA_TRANSFER, {
             'result': result
           });
           callback({
@@ -290,7 +290,7 @@ export default { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, ServerAction.DATA_TRANSFER, headers.chargeBoxIdentity,
+          Logging.logException(error, ServerAction.CHARGING_STATION_DATA_TRANSFER, headers.chargeBoxIdentity,
             MODULE_NAME, 'DataTransfer', (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'dataTransferResponse': {
