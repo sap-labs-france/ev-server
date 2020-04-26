@@ -3,11 +3,11 @@ import BackendError from '../../exception/BackendError';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { Action } from '../../types/Authorization';
 import { HTTPError } from '../../types/HTTPError';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { ServerAction } from '../../types/Server';
 import { OcpiSetting } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
@@ -77,7 +77,7 @@ export default abstract class OCPIClient {
       // If not found trigger exception
       if (!versionFound) {
         throw new BackendError({
-          action: Action.OCPI_PUSH_TOKENS,
+          action: ServerAction.OCPI_PUSH_TOKENS,
           message: 'OCPI Endpoint version 2.1.1 not found',
           module: MODULE_NAME, method: 'constructor',
         });
@@ -119,7 +119,7 @@ export default abstract class OCPIClient {
       // If not found trigger exception
       if (!versionFound) {
         throw new BackendError({
-          action: Action.OCPI_REGISTER,
+          action: ServerAction.OCPI_REGISTER,
           message: 'OCPI Endpoint version 2.1.1 not found',
           module: MODULE_NAME, method: 'register',
         });
@@ -158,7 +158,7 @@ export default abstract class OCPIClient {
   async getVersions() {
     Logging.logInfo({
       tenantID: this.tenant.id,
-      action: Action.OCPI_GET_VERSIONS,
+      action: ServerAction.OCPI_GET_VERSIONS,
       message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
@@ -171,7 +171,7 @@ export default abstract class OCPIClient {
     // Check response
     if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
       throw new BackendError({
-        action: Action.OCPI_GET_VERSIONS,
+        action: ServerAction.OCPI_GET_VERSIONS,
         message: `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`,
         module: MODULE_NAME, method: 'getVersions',
         detailedMessages: { response: respOcpiVersions.data }
@@ -187,7 +187,7 @@ export default abstract class OCPIClient {
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
-      action: Action.OCPI_GET_VERSIONS,
+      action: ServerAction.OCPI_GET_VERSIONS,
       message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
       module: MODULE_NAME, method: 'getServices'
     });
@@ -200,7 +200,7 @@ export default abstract class OCPIClient {
     // Check response
     if (!respOcpiServices.data || !respOcpiServices.data.data) {
       throw new BackendError({
-        action: Action.OCPI_GET_VERSIONS,
+        action: ServerAction.OCPI_GET_VERSIONS,
         message: `Invalid response from GET ${this.ocpiEndpoint.versionUrl}`,
         module: MODULE_NAME, method: 'getServices',
         detailedMessages: { response: respOcpiServices.data }
@@ -211,11 +211,11 @@ export default abstract class OCPIClient {
 
   async deleteCredentials() {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', Action.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: `Delete credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials'
     });
@@ -231,7 +231,7 @@ export default abstract class OCPIClient {
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
       throw new BackendError({
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from delete credentials',
         module: MODULE_NAME, method: 'deleteCredentials',
         detailedMessages: { response: respOcpiCredentials.data }
@@ -245,12 +245,12 @@ export default abstract class OCPIClient {
    */
   async postCredentials() {
     // Get credentials url
-    const credentialsUrl = this.getEndpointUrl('credentials', Action.OCPI_POST_CREDENTIALS);
+    const credentialsUrl = this.getEndpointUrl('credentials', ServerAction.OCPI_POST_CREDENTIALS);
     const credentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, this.ocpiEndpoint.localToken, this.ocpiEndpoint.role);
     // Log
     Logging.logInfo({
       tenantID: this.tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: `Post credentials at ${credentialsUrl}`,
       module: MODULE_NAME, method: 'postCredentials',
       detailedMessages: { credentials }
@@ -267,7 +267,7 @@ export default abstract class OCPIClient {
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
       throw new BackendError({
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Invalid response from post credentials',
         module: MODULE_NAME, method: 'postCredentials',
         detailedMessages: { response: respOcpiCredentials.data }
@@ -276,7 +276,7 @@ export default abstract class OCPIClient {
     return respOcpiCredentials;
   }
 
-  getLocalCountryCode(action: Action): string {
+  getLocalCountryCode(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI settings are missing for role ${this.role}`,
@@ -292,7 +292,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].countryCode;
   }
 
-  getLocalPartyID(action: Action): string {
+  getLocalPartyID(action: ServerAction): string {
     if (!this.settings[this.role]) {
       throw new BackendError({
         action, message: `OCPI settings are missing for role ${this.role}`,
@@ -310,7 +310,7 @@ export default abstract class OCPIClient {
 
   async abstract triggerJobs();
 
-  protected getEndpointUrl(service, action: Action) {
+  protected getEndpointUrl(service, action: ServerAction) {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }

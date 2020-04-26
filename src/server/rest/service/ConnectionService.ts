@@ -7,6 +7,7 @@ import RefundFactory from '../../../integration/refund/RefundFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import ConnectionValidator from '../validation/ConnectionValidator';
@@ -16,7 +17,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'ConnectionService';
 
 export default class ConnectionService {
-  public static async handleGetConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
     // Charge Box is mandatory
@@ -54,7 +55,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleGetConnections(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetConnections(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
       throw new AppAuthError({
@@ -77,7 +78,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleCreateConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError({
@@ -109,7 +110,7 @@ export default class ConnectionService {
     next();
   }
 
-  public static async handleDeleteConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const connectionID = ConnectionSecurity.filterConnectionRequestByID(req.query);
     if (!connectionID) {

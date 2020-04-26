@@ -55,6 +55,22 @@ export interface OcppCommand {
   parameters: string[];
 }
 
+export enum Command {
+  CLEAR_CACHE = 'ClearCache',
+  GET_CONFIGURATION = 'GetConfiguration',
+  CHANGE_CONFIGURATION = 'ChangeConfiguration',
+  REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction',
+  REMOTE_START_TRANSACTION = 'RemoteStartTransaction',
+  UNLOCK_CONNECTOR = 'UnlockConnector',
+  RESET = 'Reset',
+  SET_CHARGING_PROFILE = 'SetChargingProfile',
+  CLEAR_CHARGING_PROFILE = 'ClearChargingProfile',
+  GET_DIAGNOSTICS = 'GetDiagnostics',
+  GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
+  CHANGE_AVAILABILITY = 'ChangeAvailability',
+  UPDATE_FIRMWARE = 'UpdateFirmware',
+}
+
 export interface OcppAdvancedCommands {
   command: string|OcppCommand;
 }

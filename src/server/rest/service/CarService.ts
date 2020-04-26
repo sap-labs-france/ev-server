@@ -6,6 +6,7 @@ import CarFactory from '../../../integration/car/CarFactory';
 import CarStorage from '../../../storage/mongodb/CarStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import CarSecurity from './security/CarSecurity';
@@ -14,7 +15,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'CarService';
 
 export default class CarService {
-  public static async handleGetCarCatalogs(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CAR_CATALOGS, MODULE_NAME, 'handleGetCarCatalogs');
@@ -50,7 +51,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetCarCatalog(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalog(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalog');
@@ -88,7 +89,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetCarCatalogImages(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarCatalogImages(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarCatalogImages');
@@ -117,7 +118,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleSynchronizeCarCatalogs(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleSynchronizeCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
@@ -144,7 +145,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetCarMakers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');

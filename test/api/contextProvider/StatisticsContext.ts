@@ -3,7 +3,7 @@ import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../../helpers/responseHelper';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from '../contextProvider/ContextConstants';
+import ContextDefinition from './ContextDefinition';
 import TenantContext from './TenantContext';
 import User from '../../types/User';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
@@ -16,8 +16,8 @@ chai.use(responseHelper);
 export default class StatisticsContext {
 
   static readonly USERS: any = [
-    CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN,
-    CONTEXTS.USER_CONTEXTS.BASIC_USER
+    ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN,
+    ContextDefinition.USER_CONTEXTS.BASIC_USER
   ];
 
   static readonly CONSTANTS: any = {

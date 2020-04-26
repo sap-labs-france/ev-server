@@ -1,8 +1,8 @@
 import auth from 'basic-auth';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
-import { Action } from '../../../types/Authorization';
 import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CentralServiceApi from '../client/CentralServiceApi';
@@ -44,7 +44,7 @@ export default class ODataSchema {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         source: 'ODataServer', method: 'getSchema',
-        action: Action.ODATA_SERVER,
+        action: ServerAction.ODATA_SERVER,
         message: 'Unauthorized Access',
         detailedMessages: { error: error.message, stack: error.stack }
       });

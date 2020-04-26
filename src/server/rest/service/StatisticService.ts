@@ -6,6 +6,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
@@ -17,7 +18,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'StatisticService';
 
 export default class StatisticService {
-  static async handleGetChargingStationConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationConsumptionStatistics');
@@ -46,7 +47,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetChargingStationUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationUsageStatistics');
@@ -75,7 +76,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetChargingStationInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationInactivityStatistics');
@@ -104,7 +105,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetChargingStationTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationTransactionsStatistics');
@@ -133,7 +134,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetChargingStationPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetChargingStationPricingStatistics');
@@ -162,7 +163,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetUserConsumptionStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserConsumptionStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserConsumptionStatistics');
@@ -191,7 +192,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetUserUsageStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserUsageStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserUsageStatistics');
@@ -220,7 +221,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetUserInactivityStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserInactivityStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserInactivityStatistics');
@@ -249,7 +250,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetUserTransactionsStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserTransactionsStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserTransactionsStatistics');
@@ -278,7 +279,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetUserPricingStatistics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserPricingStatistics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetUserPricingStatistics');
@@ -307,7 +308,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetCurrentMetrics(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetCurrentMetrics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
@@ -328,7 +329,7 @@ export default class StatisticService {
     next();
   }
 
-  static async handleGetStatisticsExport(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetStatisticsExport(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.STATISTICS,
       Action.LIST, Entity.TRANSACTIONS, MODULE_NAME, 'handleGetStatisticsExport');

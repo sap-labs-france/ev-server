@@ -1,118 +1,120 @@
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
+import { Action, Entity, AuthorizationDefinition } from '../types/Authorization';
 import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
 
-const GRANTS = {
+const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
     grants: [
-      { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
+      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE], attributes: ['*'] },
       {
-        resource: 'User', action: 'Delete', attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+        resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
+          condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: 'Loggings', action: 'List', attributes: ['*'] },
-      { resource: 'Logging', action: 'Read', attributes: ['*'] },
-      { resource: 'Tenants', action: 'List', attributes: ['*'] },
-      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
-      { resource: 'CarCatalogs', action: 'SynchronizeCarCatalogs', attributes: ['*'] },
-      { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
+      { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.TENANTS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TENANT, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CAR_CATALOGS, action: Action.SYNCHRONIZE_CAR_CATALOGS, attributes: ['*'] },
+      { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
     ]
   },
   admin: {
     grants: [
-      { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
+      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE], attributes: ['*'] },
       {
-        resource: 'User', action: 'Delete', attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+        resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
+          condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: 'Companies', action: 'List', attributes: ['*'] },
-      { resource: 'Company', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Sites', action: 'List', attributes: ['*'] },
-      { resource: 'Site', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
-      { resource: 'SiteArea', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE_AREA, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'ChargingStation', action: ['Create', 'Read', 'Update', 'Delete',
-          'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
-          'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
-          'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'ExportParams', 'ChangeAvailability'], attributes: ['*']
+        resource: Entity.CHARGING_STATION, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE,
+          Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
+          Action.REMOTE_START_TRANSACTION, Action.REMOTE_STOP_TRANSACTION, Action.UNLOCK_CONNECTOR,
+          Action.AUTHORIZE, Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE,
+          Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.EXPORT_PARAMS, Action.CHANGE_AVAILABILITY], attributes: ['*']
       },
-      { resource: 'Transactions', action: 'List', attributes: ['*'] },
+      { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Transaction',
-        action: ['Read', 'Update', 'Delete'],
+        resource: Entity.TRANSACTION,
+        action: [Action.READ, Action.UPDATE, Action.DELETE],
         attributes: ['*']
       },
       {
-        resource: 'Report', action: ['Read'], attributes: ['*']
+        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
       },
-      { resource: 'Loggings', action: 'List', attributes: ['*'] },
-      { resource: 'Logging', action: 'Read', attributes: ['*'] },
-      { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
+      { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.PRICING, action: [Action.READ, Action.UPDATE], attributes: ['*'] },
       {
-        resource: 'Billing',
-        action: ['BillingCheckConnection', 'BillingSynchronizeUsers', 'BillingSynchronizeUser']
+        resource: Entity.BILLING,
+        action: [Action.CHECK_CONNECTION, Action.SYNCHRONIZE_USER, Action.SYNCHRONIZE_USERS]
       },
-      { resource: 'Taxes', action: ['List'], attributes: ['*'] },
-      { resource: 'Invoices', action: ['List'], attributes: ['*'] },
-      { resource: 'Asset', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Assets', action: 'List', attributes: ['*'] },
-      { resource: 'Settings', action: 'List', attributes: ['*'] },
-      { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'Tokens', action: 'List', attributes: ['*'] },
-      { resource: 'Token', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
-      { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
+      { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SETTING, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.TOKEN, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.OCPI_ENDPOINTS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'OcpiEndpoint',
-        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'TriggerJob'],
+        resource: Entity.OCPI_ENDPOINT,
+        action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE, Action.PING, Action.GENERATE_LOCAL_TOKEN,
+          Action.REGISTER, Action.TRIGGER_JOB],
         attributes: ['*']
       },
-      { resource: 'Connections', action: 'List', attributes: ['*'] },
-      { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
-      { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
-      { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
+      { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
+      { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
     ]
   },
   basic: {
     grants: [
       {
-        resource: 'User', action: ['Read', 'Update'], attributes: ['*'],
+        resource: Entity.USER, action: [Action.READ, Action.UPDATE], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
-      { resource: 'Assets', action: 'List', attributes: ['*'] },
-      { resource: 'Asset', action: 'Read', attributes: ['*'] },
-      { resource: 'Companies', action: 'List', attributes: ['*'] },
+      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Company', action: 'Read', attributes: ['*'],
+        resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
-      { resource: 'Invoices', action: ['List'], attributes: ['*'] },
-      { resource: 'Invoice', action: ['Download'], attributes: ['*'] },
-      { resource: 'Sites', action: 'List', attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
+      { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Site', action: 'Read', attributes: ['*'],
+        resource: Entity.SITE, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
-      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'SiteArea', action: 'Read', attributes: ['*'],
+        resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
-      { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
+      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'ChargingStation',
-        action: ['Read', 'UnlockConnector'],
+        resource: Entity.CHARGING_STATION,
+        action: [Action.READ, Action.UNLOCK_CONNECTOR],
         attributes: ['*']
       },
       {
-        resource: 'ChargingStation',
-        action: ['RemoteStartTransaction', 'Authorize'],
+        resource: Entity.CHARGING_STATION,
+        action: [Action.REMOTE_START_TRANSACTION, Action.AUTHORIZE],
         attributes: ['*'],
         condition: {
           Fn: 'OR',
@@ -131,8 +133,8 @@ const GRANTS = {
         }
       },
       {
-        resource: 'ChargingStation',
-        action: 'RemoteStopTransaction',
+        resource: Entity.CHARGING_STATION,
+        action: Action.REMOTE_STOP_TRANSACTION,
         attributes: ['*'],
         condition: {
           Fn: 'OR',
@@ -150,9 +152,9 @@ const GRANTS = {
           ]
         }
       },
-      { resource: 'Transactions', action: 'List', attributes: ['*'] },
+      { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Transaction', action: ['Read'], attributes: ['*'],
+        resource: Entity.TRANSACTION, action: [Action.READ], attributes: ['*'],
         condition: {
           Fn: 'OR',
           args: [
@@ -169,32 +171,32 @@ const GRANTS = {
           ]
         }
       },
-      { resource: 'Settings', action: 'List', attributes: ['*'] },
-      { resource: 'Setting', action: 'Read', attributes: ['*'] },
-      { resource: 'Connections', action: 'List', attributes: ['*'] },
-      { resource: 'Connection', action: ['Create'], attributes: ['*'] },
+      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SETTING, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CONNECTIONS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CONNECTION, action: [Action.CREATE], attributes: ['*'] },
       {
-        resource: 'Connection', action: ['Read', 'Delete'], attributes: ['*'],
+        resource: Entity.CONNECTION, action: [Action.READ, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
   },
   demo: {
     grants: [
-      { resource: 'User', action: 'Read', attributes: ['*'] },
-      { resource: 'Assets', action: 'List', attributes: ['*'] },
-      { resource: 'Asset', action: 'Read', attributes: ['*'] },
-      { resource: 'Companies', action: 'List', attributes: ['*'] },
-      { resource: 'Company', action: 'Read', attributes: ['*'] },
-      { resource: 'Sites', action: 'List', attributes: ['*'] },
-      { resource: 'Site', action: 'Read', attributes: ['*'] },
-      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
-      { resource: 'SiteArea', action: 'Read', attributes: ['*'] },
-      { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
-      { resource: 'ChargingStation', action: 'Read', attributes: ['*'] },
-      { resource: 'Transactions', action: 'List', attributes: ['*'] },
+      { resource: Entity.USER, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.ASSET, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.COMPANY, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.SITE_AREAS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.SITE_AREA, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CHARGING_STATIONS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CHARGING_STATION, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.TRANSACTIONS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Transaction', action: 'Read', attributes: ['*'],
+        resource: Entity.TRANSACTION, action: Action.READ, attributes: ['*'],
         condition: {
           Fn: 'OR',
           args: [
@@ -211,9 +213,9 @@ const GRANTS = {
           ]
         }
       },
-      { resource: 'Settings', action: 'List', attributes: ['*'] },
+      { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Setting', action: 'Read', attributes: ['*'],
+        resource: Entity.SETTING, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'identifier': TenantComponents.ANALYTICS } }
       },
     ]
@@ -223,38 +225,39 @@ const GRANTS = {
       'basic': {}
     },
     grants: [
-      { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Read'], attributes: ['*'] },
+      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
       {
-        resource: 'Site', action: ['Update'], attributes: ['*'],
+        resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'SiteArea', action: ['Create', 'Update', 'Delete'], attributes: ['*'],
+        resource: Entity.SITE_AREA, action: [Action.CREATE, Action.UPDATE, Action.DELETE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {
-        resource: 'ChargingStation',
-        action: ['Update', 'Delete',
-          'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
-          'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction', 'ExportParams', 'ChangeAvailability'],
+        resource: Entity.CHARGING_STATION,
+        action: [Action.UPDATE, Action.DELETE,
+          Action.RESET, Action.CLEAR_CACHE, Action.GET_CONFIGURATION, Action.CHANGE_CONFIGURATION,
+          Action.SET_CHARGING_PROFILE, Action.GET_COMPOSITE_SCHEDULE, Action.CLEAR_CHARGING_PROFILE,
+          Action.GET_DIAGNOSTICS, Action.UPDATE_FIRMWARE, Action.REMOTE_STOP_TRANSACTION, Action.EXPORT_PARAMS,
+          Action.CHANGE_AVAILABILITY],
         attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'Transaction', action: ['Read'], attributes: ['*'],
+        resource: Entity.TRANSACTION, action: [Action.READ], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'Report', action: ['Read'], attributes: ['*']
+        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
       },
-      { resource: 'Loggings', action: 'List', attributes: ['*'] },
-      { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
-      { resource: 'Tokens', action: 'List', attributes: ['*'] },
+      { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'], args: { 'sites': '$.site' } },
+      { resource: Entity.TOKENS, action: Action.LIST, attributes: ['*'] },
       {
-        resource: 'Token',
-        action: ['Create', 'Read'],
+        resource: Entity.TOKEN,
+        action: [Action.CREATE, Action.READ],
         attributes: ['*'],
         args: { 'sites': '$.site' }
       },
@@ -265,18 +268,18 @@ const GRANTS = {
       'basic': {}
     },
     grants: [
-      { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Read'], attributes: ['*'] },
+      { resource: Entity.USERS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.USER, action: [Action.READ], attributes: ['*'] },
       {
-        resource: 'Site', action: ['Update'], attributes: ['*'],
+        resource: Entity.SITE, action: [Action.UPDATE], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
       },
       {
-        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
+        resource: Entity.TRANSACTION, action: [Action.READ, Action.REFUND_TRANSACTION], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
       },
       {
-        resource: 'Report', action: ['Read'], attributes: ['*']
+        resource: Entity.REPORT, action: [Action.READ], attributes: ['*']
       },
     ]
   },
@@ -291,7 +294,7 @@ export default class AuthorizationsDefinition {
 
   private constructor() {
     try {
-      this.accessControl = new AccessControl(GRANTS);
+      this.accessControl = new AccessControl(AUTHORIZATION_DEFINITION);
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,

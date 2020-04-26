@@ -19,7 +19,7 @@ import Factory from '../../factories/Factory';
 import TenantFactory from '../../factories/TenantFactory';
 import UserFactory from '../../factories/UserFactory';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS, { TenantDefinition } from './ContextConstants';
+import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import TenantContext from './TenantContext';
@@ -114,7 +114,7 @@ export default class ContextBuilder {
   /**
    * It will first destroy all Unit Test tenants
    * Then it will create new ones with the minimum entities
-   * All definition is coming from ContextConstants.js
+   * All definition is coming from ContextDefinition.ts
    *
    * @memberof ContextBuilder
    */
@@ -179,10 +179,10 @@ export default class ContextBuilder {
     let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
-      defaultAdminUser = existingUserList.find((user) => user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
+      defaultAdminUser = existingUserList.find((user) => user.id === ContextDefinition.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
         user.role === 'A');
     }
-    if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
+    if ((defaultAdminUser.id !== ContextDefinition.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so first delete it
       await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
       // Generate the password hash
@@ -190,13 +190,13 @@ export default class ContextBuilder {
       // Update the email
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
-      defaultAdminUser.tags = CONTEXTS.TENANT_USER_LIST[0].tags ? CONTEXTS.TENANT_USER_LIST[0].tags : [
+      defaultAdminUser.tags = ContextDefinition.TENANT_USER_LIST[0].tags ? ContextDefinition.TENANT_USER_LIST[0].tags : [
         { id: faker.random.alphaNumeric(8).toUpperCase(), issuer: true, active: true }];
       // Fix id
-      defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
+      defaultAdminUser.id = ContextDefinition.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
-      await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);
-      await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
+      await UserStorage.saveUserStatus(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].status);
+      await UserStorage.saveUserRole(buildTenant.id, userId, ContextDefinition.TENANT_USER_LIST[0].role);
       await UserStorage.saveUserPassword(buildTenant.id, userId, { password: newPasswordHashed });
     }
 
@@ -241,9 +241,9 @@ export default class ContextBuilder {
     for (let index = 1; index <= NBR_USERS; index++) {
       const userDef = {
         id: '',
-        role: CONTEXTS.USER_CONTEXTS.BASIC_USER.role,
-        status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
-        assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
+        role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
+        status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
+        assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
         emailPrefix: 'basic-',
         tags: [
           {
@@ -298,7 +298,7 @@ export default class ContextBuilder {
         for (let counterSite = 1; counterSite <= NBR_SITES; counterSite++) {
           const siteContextDef = {
             id: new ObjectID().toHexString(),
-            name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
+            name: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
             autoUserSiteAssignment: false,
             companyID: companyDef.id
           };
@@ -321,7 +321,7 @@ export default class ContextBuilder {
           for (let counterSiteA = 1; counterSiteA <= NBR_SITEAREAS; counterSiteA++) {
             const siteAreaDef = {
               id: new ObjectID().toHexString(),
-              name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+              name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,
               siteName: siteTemplate.name
             };

@@ -1,8 +1,8 @@
-import { Action } from '../../types/Authorization';
+import CarFactory from '../../integration/car/CarFactory';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import CarFactory from '../../integration/car/CarFactory';
 
 const MODULE_NAME = 'InitialCarImportTask';
 
@@ -17,7 +17,7 @@ export default class InitialCarImportTask extends MigrationTask {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
-        action: Action.CAR_CATALOG_SYNCHRONIZATION,
+        action: ServerAction.CAR_CATALOG_SYNCHRONIZATION,
         message: `Error while importing the Cars: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

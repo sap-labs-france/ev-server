@@ -34,8 +34,7 @@ export default class BillingFactory {
       }
       Logging.logDebug({
         tenantID: tenant.id,
-        module: MODULE_NAME,
-        method: 'getBillingImpl',
+        module: MODULE_NAME, method: 'getBillingImpl',
         message: 'Billing settings are not configured'
       });
     }

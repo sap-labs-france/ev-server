@@ -6,14 +6,14 @@ import User from '../../../src/types/User';
 import Constants from '../../../src/utils/Constants';
 import Cypher from '../../../src/utils/Cypher';
 import config from '../../config';
-import CONTEXTS from './ContextConstants';
+import ContextDefinition from './ContextDefinition';
 import TenantContext from './TenantContext';
 
 export default class BillingContext {
 
   static readonly USERS: any = [
-    CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN,
-    CONTEXTS.USER_CONTEXTS.BASIC_USER
+    ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN,
+    ContextDefinition.USER_CONTEXTS.BASIC_USER
   ];
 
   private tenantContext: TenantContext;

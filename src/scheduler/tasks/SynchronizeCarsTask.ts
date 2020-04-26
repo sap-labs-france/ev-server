@@ -1,6 +1,6 @@
 import CarFactory from '../../integration/car/CarFactory';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { Action } from '../../types/Authorization';
+import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -26,7 +26,7 @@ export default class SynchronizeCarsTask extends SchedulerTask {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'run',
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         message: `Error while running the task '${name}': ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
