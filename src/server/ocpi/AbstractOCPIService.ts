@@ -95,7 +95,7 @@ export default abstract class AbstractOCPIService {
     // Check action
     switch (action) {
       // If empty - return available endpoints
-      case '':
+      case '' as ServerAction:
         this.getSupportedEndpoints(req, res, next);
         break;
       default:
