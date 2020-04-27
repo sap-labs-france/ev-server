@@ -28,6 +28,7 @@ export default class BillingStorage {
   public static async getInvoices(tenantID: string,
     params: {
       invoiceID?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
+      startDateTime?: Date; endDateTime?: Date;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
     // Debug
@@ -63,11 +64,27 @@ export default class BillingStorage {
         }
       });
     }
-    // Status (Previously getUsersInError)
+    // Status
     if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
       aggregation.push({
         $match: {
           'status': { $in: params.invoiceStatus }
+        }
+      });
+    }
+    // Start date
+    if (params.startDateTime) {
+      aggregation.push({
+        $match: {
+          'createdOn': { $gte: Utils.convertToDate(params.startDateTime) }
+        }
+      });
+    }
+    // End date
+    if (params.endDateTime) {
+      aggregation.push({
+        $match: {
+          'createdOn': { $lte: Utils.convertToDate(params.endDateTime) }
         }
       });
     }
