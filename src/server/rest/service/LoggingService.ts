@@ -5,6 +5,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
@@ -16,7 +17,7 @@ import LoggingSecurity from './security/LoggingSecurity';
 const MODULE_NAME = 'LoggingService';
 
 export default class LoggingService {
-  static async handleGetLoggings(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -83,7 +84,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLoggingsExport(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLoggingsExport(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -140,7 +141,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLogging(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetLogging(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query);

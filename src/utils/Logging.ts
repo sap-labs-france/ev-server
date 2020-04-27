@@ -9,9 +9,9 @@ import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
-import { Action } from '../types/Authorization';
 import { HTTPError } from '../types/HTTPError';
 import { Log, LogLevel, LogType } from '../types/Log';
+import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Configuration from '../utils/Configuration';
@@ -138,7 +138,7 @@ export default class Logging {
   }
 
   // Log
-  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: Action, payload: any): void {
+  public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, payload: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -150,7 +150,7 @@ export default class Logging {
   }
 
   // Log
-  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: Action, args: any): void {
+  public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -162,7 +162,7 @@ export default class Logging {
   }
 
   // Log
-  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: Action, detailedMessages: any): void {
+  public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any): void {
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({
         tenantID: tenantID,
@@ -185,7 +185,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error: Error, action: Action, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
+  public static logException(error: Error, action: ServerAction, source: string, module: string, method: string, tenantID: string, user?: UserToken|User|string): void {
     const log: Log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -199,7 +199,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessage(tenantID: string, action: Action, exception: Error): void {
+  public static logActionExceptionMessage(tenantID: string, action: ServerAction, exception: Error): void {
     // Log App Error
     if (exception instanceof AppError) {
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
@@ -215,9 +215,9 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessageAndSendResponse(action: Action, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
+  public static logActionExceptionMessageAndSendResponse(action: ServerAction, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
-    if (action === 'Login' && req.body.password) {
+    if (action === ServerAction.LOGIN && req.body.password) {
       req.body.password = '####';
     }
     if (req.user && req.user.tenantID) {
@@ -254,7 +254,7 @@ export default class Logging {
     return LoggingStorage.getLogs(tenantID, params, dbParams);
   }
 
-  private static _logActionExceptionMessage(tenantID: string, action: Action, exception: any): void {
+  private static _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any): void {
     // Log
     Logging.logError({
       tenantID: tenantID,
@@ -268,7 +268,7 @@ export default class Logging {
     });
   }
 
-  private static _logActionAppExceptionMessage(tenantID: string, action: Action, exception: AppError): void {
+  private static _logActionAppExceptionMessage(tenantID: string, action: ServerAction, exception: AppError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -294,7 +294,7 @@ export default class Logging {
     });
   }
 
-  private static _logActionBackendExceptionMessage(tenantID: string, action: Action, exception: BackendError): void {
+  private static _logActionBackendExceptionMessage(tenantID: string, action: ServerAction, exception: BackendError): void {
     // Add Exception stack
     if (exception.params.detailedMessages) {
       exception.params.detailedMessages = {
@@ -321,7 +321,7 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionAppAuthExceptionMessage(tenantID: string, action: Action, exception: AppAuthError): void {
+  private static _logActionAppAuthExceptionMessage(tenantID: string, action: ServerAction, exception: AppAuthError): void {
     // Log
     Logging.logSecurityError({
       tenantID: tenantID,
@@ -337,7 +337,7 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action: Action, source: string, module: string,
+  private static _buildLog(error, action: ServerAction, source: string, module: string,
     method: string, tenantID: string, user: UserToken|User|string): Log {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (error.params) {
@@ -499,6 +499,9 @@ export default class Logging {
     // First char always in Uppercase
     if (typeof log.message === 'string' && log.message && log.message.length > 0) {
       log.message = log.message[0].toUpperCase() + log.message.substring(1);
+    }
+    if (!log.tenantID || log.tenantID === '') {
+      log.tenantID = Constants.DEFAULT_TENANT;
     }
     // Log
     await LoggingStorage.saveLog(log.tenantID, log);

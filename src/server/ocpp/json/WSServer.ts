@@ -3,11 +3,11 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import WebSocket, { AddressInfo } from 'ws';
+import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import { Action } from '../../../types/Authorization';
 
 const MODULE_NAME = 'WSServer';
 
@@ -114,7 +114,7 @@ export default class WSServer extends WebSocket.Server {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         method: 'startListening',
         message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${(this.httpServer.address() as AddressInfo).address}:${(this.httpServer.address() as AddressInfo).port}'`
       });

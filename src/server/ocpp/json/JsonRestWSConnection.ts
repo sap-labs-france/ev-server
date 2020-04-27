@@ -1,5 +1,4 @@
 import * as http from 'http';
-import { Action } from '../../../types/Authorization';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import global from '../../../types/GlobalType';
@@ -7,6 +6,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import WSConnection from './WSConnection';
+import { ServerAction } from '../../../types/Server';
 import WebSocket from 'ws';
 
 const MODULE_NAME = 'JsonRestWSConnection';
@@ -28,7 +28,7 @@ export default class JsonRestWSConnection extends WSConnection {
       Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
-        action: Action.WS_REST_CONNECTION_OPENED,
+        action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
         message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
@@ -40,7 +40,7 @@ export default class JsonRestWSConnection extends WSConnection {
     Logging.logError({
       tenantID: this.getTenantID(),
       module: MODULE_NAME, method: 'onError',
-      action: Action.WS_REST_CONNECTION_ERROR,
+      action: ServerAction.WS_REST_CONNECTION_ERROR,
       message: event
     });
   }
@@ -51,7 +51,7 @@ export default class JsonRestWSConnection extends WSConnection {
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
       module: MODULE_NAME, method: 'onClose',
-      action: Action.WS_REST_CONNECTION_CLOSED,
+      action: ServerAction.WS_REST_CONNECTION_CLOSED,
       message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });
     // Remove the connection

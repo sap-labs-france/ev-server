@@ -1,23 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
 import AppError from '../../../../exception/AppError';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import { Action } from '../../../../types/Authorization';
 import { HTTPError } from '../../../../types/HTTPError';
-import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIEvse } from '../../../../types/ocpi/OCPIEvse';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import { ServerAction } from '../../../../types/Server';
 import Tenant from '../../../../types/Tenant';
 import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
 import OCPILocationsService from './OCPILocationsService';
+import OCPIMapping from './OCPIMapping';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';
@@ -61,8 +57,8 @@ const RECORDS_LIMIT = 20;
     // Define get option
     const options = {
       addChargeBoxID: true,
-      countryID: ocpiClient.getLocalCountryCode(Action.OCPI_GET_LOCATIONS),
-      partyID: ocpiClient.getLocalPartyID(Action.OCPI_GET_LOCATIONS)
+      countryID: ocpiClient.getLocalCountryCode(ServerAction.OCPI_GET_LOCATIONS),
+      partyID: ocpiClient.getLocalPartyID(ServerAction.OCPI_GET_LOCATIONS)
     };
     // Process request
     if (locationId && evseUid && connectorId) {
@@ -72,7 +68,7 @@ const RECORDS_LIMIT = 20;
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: Action.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
@@ -85,7 +81,7 @@ const RECORDS_LIMIT = 20;
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: Action.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
@@ -100,7 +96,7 @@ const RECORDS_LIMIT = 20;
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'getLocationRequest',
-          action: Action.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_GET_LOCATIONS,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site id '${locationId}' not found`,
           ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR

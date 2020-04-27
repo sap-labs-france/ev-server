@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 import ContextProvider from './contextProvider/ContextProvider';
 import TenantContext from './contextProvider/TenantContext';
 import Factory from '../factories/Factory';
@@ -43,11 +43,11 @@ describe('Asset Test', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Asset (tenant ut-asset)', () => {
+  describe('With component Asset (tenant utasset)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.centralUserContext).to.not.be.null;
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
@@ -97,7 +97,7 @@ describe('Asset Test', function() {
     describe('Where admin user', () => {
 
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
           testData.userService = testData.centralUserService;

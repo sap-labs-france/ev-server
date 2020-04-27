@@ -3,8 +3,8 @@ import moment from 'moment';
 import Stripe, { IResourceObject } from 'stripe';
 import BackendError from '../../../exception/BackendError';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import { Action } from '../../../types/Authorization';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser } from '../../../types/Billing';
+import { ServerAction } from '../../../types/Server';
 import { StripeBillingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
@@ -47,7 +47,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: ServerAction.CHECK_CONNECTION,
         message: 'No secret key provided for connection to Stripe'
       });
     }
@@ -67,7 +67,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: ServerAction.CHECK_CONNECTION,
         message: `Error occurred when connecting to Stripe: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
@@ -76,7 +76,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkConnection',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: ServerAction.CHECK_CONNECTION,
         message: 'Error occurred when connecting to Stripe: Invalid key'
       });
     }
@@ -187,7 +187,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_SYNCHRONIZE_USERS,
+        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -200,7 +200,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!user) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_CREATE_INVOICE,
+        action: ServerAction.BILLING_CREATE_INVOICE,
         module: MODULE_NAME, method: 'createInvoice',
         message: 'Billing User not provided',
       });
@@ -208,7 +208,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_CREATE_INVOICE,
+        action: ServerAction.BILLING_CREATE_INVOICE,
         module: MODULE_NAME, method: 'createInvoice',
         message: 'Invoice item not provided',
       });
@@ -246,7 +246,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       } catch (error) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
-          action: Action.BILLING_CREATE_INVOICE,
+          action: ServerAction.BILLING_CREATE_INVOICE,
           module: MODULE_NAME, method: 'createInvoice',
           message: 'Failed to create invoice',
           detailedMessages: { error: error.message, stack: error.stack }
@@ -269,7 +269,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_CREATE_INVOICE,
+        action: ServerAction.BILLING_CREATE_INVOICE,
         module: MODULE_NAME, method: 'createInvoice',
         message: 'Failed to save invoice in database',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -282,7 +282,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!invoiceItem) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_CREATE_INVOICE_ITEM,
+        action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
         module: MODULE_NAME, method: 'createInvoiceItem',
         message: 'Invoice item not provided',
       });
@@ -300,7 +300,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_CREATE_INVOICE_ITEM,
+        action: ServerAction.BILLING_CREATE_INVOICE_ITEM,
         module: MODULE_NAME, method: 'createInvoiceItem',
         message: 'Failed to create invoice item',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -318,7 +318,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     } catch (error) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_SEND_INVOICE,
+        action: ServerAction.BILLING_SEND_INVOICE,
         module: MODULE_NAME, method: 'sendInvoice',
         message: 'Failed to send invoice',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -337,7 +337,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       // Get User
@@ -348,7 +348,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       if (billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE &&
@@ -358,7 +358,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       if (!billingUser.billingData.subscriptionID &&
@@ -368,7 +368,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       if (billingUser.billingData.subscriptionID &&
@@ -380,7 +380,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME,
             method: 'startTransaction',
-            action: Action.BILLING_TRANSACTION
+            action: ServerAction.BILLING_TRANSACTION
           });
         }
       }
@@ -391,7 +391,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'startTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
     } catch (error) {
@@ -399,7 +399,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_TRANSACTION,
+        action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'startTransaction',
         message: `Billing error in Start Transaction: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -421,7 +421,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'updateTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
     } catch (error) {
@@ -429,7 +429,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_TRANSACTION,
+        action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'updateTransaction',
         message: `Billing error in Update Transaction: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -451,7 +451,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'stopTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       // Check Charging Station
@@ -461,7 +461,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'stopTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       if (!transaction.user.billingData) {
@@ -470,7 +470,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'stopTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       const billingUser = await this.getUser(transaction.user.billingData.customerID);
@@ -480,7 +480,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME,
           method: 'stopTransaction',
-          action: Action.BILLING_TRANSACTION
+          action: ServerAction.BILLING_TRANSACTION
         });
       }
       const chargeBox = transaction.chargeBox;
@@ -537,7 +537,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         tenantID: this.tenantID,
         user: transaction.userID,
         source: Constants.CENTRAL_SERVER,
-        action: Action.BILLING_TRANSACTION,
+        action: ServerAction.BILLING_TRANSACTION,
         module: MODULE_NAME, method: 'stopTransaction',
         message: `Billing error in Stop Transaction: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -586,7 +586,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!paymentMethod && !this.settings.noCardAllowed) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No payment method`
@@ -597,7 +597,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!billingMethod) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing method was selected`
@@ -608,7 +608,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed)) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing method '${billingMethod}' not allowed`
@@ -624,7 +624,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (!billingPlan && !subscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
         message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: No billing plan provided`
@@ -636,7 +636,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       if (!plan || !plan.id || plan.id !== billingPlan) {
         Logging.logError({
           tenantID: this.tenantID,
-          action: Action.USER_DELETE,
+          action: ServerAction.USER_DELETE,
           actionOnUser: user,
           module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' does not exist`
@@ -645,7 +645,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       } else if (plan.currency.toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
         Logging.logError({
           tenantID: this.tenantID,
-          action: Action.USER_DELETE,
+          action: ServerAction.USER_DELETE,
           actionOnUser: user,
           module: MODULE_NAME, method: 'checkIfUserCanBeUpdated',
           message: `User '${Utils.buildUserFullName(user, false)}' cannot be created/updated in Stripe: Billing plan '${billingPlan}' uses wrong currency ${plan.currency}`
@@ -673,7 +673,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (list && list.data && list.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Opened invoice still exist in Stripe'
@@ -687,7 +687,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (list && list.data && list.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Draft invoice still exist in Stripe'
@@ -701,7 +701,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     if (itemsList && itemsList.data && itemsList.data.length > 0) {
       Logging.logError({
         tenantID: this.tenantID,
-        action: Action.USER_DELETE,
+        action: ServerAction.USER_DELETE,
         actionOnUser: user,
         module: MODULE_NAME, method: 'checkIfUserCanBeDeleted',
         message: 'Cannot delete user: Pending invoice still exist in Stripe'
@@ -718,7 +718,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'createUser',
-        action: Action.USER_CREATE,
+        action: ServerAction.USER_CREATE,
         user: user,
         message: 'Cannot create the user'
       });
@@ -733,7 +733,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateUser',
-        action: Action.USER_CREATE,
+        action: ServerAction.USER_CREATE,
         user: user,
         message: 'Cannot update the user'
       });
@@ -754,7 +754,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'updateUser',
-          action: Action.USER_CREATE,
+          action: ServerAction.USER_CREATE,
           user: user,
           message: 'Cannot delete the User',
           detailedMessages: { error: error.message, stack: error.stack }
@@ -838,7 +838,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'modifyUser',
-          action: Action.USER_CREATE,
+          action: ServerAction.USER_CREATE,
           user: user,
           message: 'Impossible to create a Stripe customer',
           detailedMessages: { error: error.message, stack: error.stack }
@@ -872,7 +872,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'modifyUser',
-          action: Action.USER_CREATE,
+          action: ServerAction.USER_CREATE,
           user: user,
           message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -891,7 +891,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     //     throw new BackendError({
     //       source: Constants.CENTRAL_SERVER,
     //       module: MODULE_NAME, method: 'modifyUser',
-    //       action: Action.USER_CREATE,
+    //       action: ServerAction.USER_CREATE,
     //       user: user,
     //       message: `Impossible to update Stripe customer '${customer.id}' with email '${user.email}'`,
     //       detailedMessages: { error: error.message, stack: error.stack }
@@ -938,7 +938,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'modifyUser',
-            action: Action.USER_CREATE,
+            action: ServerAction.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: { error: error.message, stack: error.stack }
@@ -956,7 +956,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           throw new BackendError({
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'modifyUser',
-            action: Action.CREATE,
+            action: ServerAction.USER_CREATE,
             user: user,
             message: `Impossible to update Stripe customer's subscription '${subscription.id}' with email '${user.email}'`,
             detailedMessages: { error: error.message, stack: error.stack }
@@ -1000,7 +1000,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'modifyUser',
-          action: Action.USER_CREATE,
+          action: ServerAction.USER_CREATE,
           user: user,
           message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -1026,7 +1026,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'checkIfStripeIsInitialized',
-        action: Action.BILLING_CHECK_CONNECTION,
+        action: ServerAction.CHECK_CONNECTION,
         message: 'No connection to Stripe available'
       });
     }

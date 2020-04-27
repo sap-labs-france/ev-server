@@ -1,10 +1,10 @@
 import * as HttpStatus from 'http-status-codes';
 import express, { NextFunction, Request, Response } from 'express';
-import { Action } from '../types/Authorization';
 import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+import { ServerAction } from '../types/Server';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
 import cluster from 'cluster';
@@ -91,7 +91,7 @@ export default class ExpressTools {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'start',
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         message: logMsg
       });
       // eslint-disable-next-line no-console

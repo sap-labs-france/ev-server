@@ -3,6 +3,7 @@ import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import { Action } from '../types/Authorization';
 import Lock from '../types/Lock';
+import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Cypher from '../utils/Cypher';
@@ -22,7 +23,7 @@ export default class LockManager {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'init',
-        action: Action.LOCKING,
+        action: ServerAction.LOCKING,
         message: logMsg
       });
       // eslint-disable-next-line no-console
@@ -59,7 +60,7 @@ export default class LockManager {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'release',
-        action: Action.LOCKING,
+        action: ServerAction.LOCKING,
         message: logMsg
       });
       // eslint-disable-next-line no-console

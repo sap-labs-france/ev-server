@@ -1,6 +1,6 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import { RefundStatus } from '../../types/Refund';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -31,7 +31,7 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${result.modifiedCount} Refunded Transaction(s) has been updated in Tenant '${tenant.name}'`
       });

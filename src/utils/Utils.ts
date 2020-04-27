@@ -15,7 +15,6 @@ import BackendError from '../exception/BackendError';
 import global from '../types/GlobalType';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
-import { Action } from '../types/Authorization';
 import Asset from '../types/Asset';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
@@ -24,6 +23,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ServerAction } from '../types/Server';
 import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
@@ -666,7 +666,7 @@ export default class Utils {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
-      bcrypt.genSalt(10, (error, salt) => {
+      bcrypt.genSalt(10, (err, salt) => {
         // Hash
         bcrypt.hash(password, salt, (err, hash) => {
           // Error?
@@ -805,7 +805,7 @@ export default class Utils {
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -817,7 +817,7 @@ export default class Utils {
         !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -827,7 +827,7 @@ export default class Utils {
     if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile\'s Schedule',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -837,7 +837,7 @@ export default class Utils {
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -847,7 +847,7 @@ export default class Utils {
     // pragma if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
-    //     action: Action.CHARGING_PROFILE_UPDATE,
+    //     action: ServerAction.CHARGING_PROFILE_UPDATE,
     //     errorCode: HTTPError.GENERAL_ERROR,
     //     message: 'Charging Profile\'s start date must not be in the past',
     //     module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -860,7 +860,7 @@ export default class Utils {
     if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule should not exeed 24 hours',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -872,7 +872,7 @@ export default class Utils {
       if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          action: Action.CHARGING_PROFILE_UPDATE,
+          action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',

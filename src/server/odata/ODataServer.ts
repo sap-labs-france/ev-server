@@ -1,6 +1,6 @@
 import express from 'express';
 import morgan from 'morgan';
-import { Action } from '../../types/Authorization';
+import { ServerAction } from '../../types/Server';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -31,7 +31,7 @@ export default class ODataServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: Action.EXPRESS_SERVER,
+                action: ServerAction.EXPRESS_SERVER,
                 message: message
               });
             }

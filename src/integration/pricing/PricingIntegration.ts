@@ -1,7 +1,7 @@
-import Transaction from '../../types/Transaction';
 import Consumption from '../../types/Consumption';
 import { PricedConsumption } from '../../types/Pricing';
 import { PricingSetting } from '../../types/Setting';
+import Transaction from '../../types/Transaction';
 
 export default abstract class PricingIntegration<T extends PricingSetting> {
   protected readonly tenantID: string;

@@ -8,6 +8,7 @@ import Logging from '../../../../utils/Logging';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
 import AbstractEndpoint from '../AbstractEndpoint';
+import { ServerAction } from '../../../../types/Server';
 
 const EP_IDENTIFIER = 'commands';
 const MODULE_NAME = 'EMSPCommandsEndpoint';
@@ -54,16 +55,16 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     }
   }
 
-  private getAction(command: OCPICommandType): Action {
+  private getAction(command: OCPICommandType): ServerAction {
     switch (command) {
       case OCPICommandType.START_SESSION:
-        return Action.OCPI_START_SESSION;
+        return ServerAction.OCPI_START_SESSION;
       case OCPICommandType.STOP_SESSION:
-        return Action.OCPI_STOP_SESSION;
+        return ServerAction.OCPI_STOP_SESSION;
       case OCPICommandType.RESERVE_NOW:
-        return Action.OCPI_RESERVE_NOW;
+        return ServerAction.OCPI_RESERVE_NOW;
       case OCPICommandType.UNLOCK_CONNECTOR:
-        return Action.OCPI_UNLOCK_CONNECTOR;
+        return ServerAction.OCPI_UNLOCK_CONNECTOR;
     }
   }
 }

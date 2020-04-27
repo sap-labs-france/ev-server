@@ -17,6 +17,7 @@ import Consumption from '../../../types/Consumption';
 import { ActionsResponse } from '../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { TransactionInErrorType } from '../../../types/InError';
+import { ServerAction } from '../../../types/Server';
 import { RefundStatus } from '../../../types/Refund';
 import TenantComponents from '../../../types/TenantComponents';
 import Transaction from '../../../types/Transaction';
@@ -34,7 +35,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'TransactionService';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleSynchronizeRefundedTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError({
@@ -61,7 +62,7 @@ export default class TransactionService {
     }
   }
 
-  public static async handleRefundTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleRefundTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
     if (!filteredRequest.transactionIds) {
@@ -146,7 +147,7 @@ export default class TransactionService {
   }
 
 
-  public static async handleGetUnassignedTransactionsCount(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -182,7 +183,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleAssignTransactionsToUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignTransactionsToUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError({
@@ -218,7 +219,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleDeleteTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
@@ -242,7 +243,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleDeleteTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionsIds = TransactionSecurity.filterTransactionRequestByIDs(req.body);
     // Check auth
@@ -262,7 +263,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleTransactionSoftStop(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleTransactionSoftStop(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
     // Transaction Id is mandatory
@@ -325,7 +326,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionConsumption(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
@@ -379,7 +380,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransaction(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransaction(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetTransaction', req.user);
@@ -407,7 +408,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetChargingStationTransactions(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetChargingStationTransactions(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -443,7 +444,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionYears(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionYears(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get Transactions
     const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
     const result: any = {};
@@ -456,7 +457,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsActive(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsActive(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -510,7 +511,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsCompleted(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsCompleted(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -578,7 +579,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsToRefund(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefund(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -643,7 +644,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetRefundReports(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetRefundReports(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -684,7 +685,7 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetTransactionsExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -758,7 +759,7 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsToRefundExport(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsToRefundExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
       throw new AppAuthError({
@@ -842,7 +843,7 @@ export default class TransactionService {
     });
   }
 
-  public static async handleGetTransactionsInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetTransactionsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
       throw new AppAuthError({
@@ -923,7 +924,7 @@ export default class TransactionService {
     return csv;
   }
 
-  private static async deleteTransactions(action: Action, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
+  private static async deleteTransactions(action: ServerAction, loggedUser: UserToken, transactionsIDs: number[]): Promise<ActionsResponse> {
     const transactionsIDsToDelete = [];
     const result: ActionsResponse = {
       inSuccess: 0,
@@ -961,7 +962,7 @@ export default class TransactionService {
             if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
               // Clear connector
               OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
-              await ChargingStationStorage.saveChargingStation(action, loggedUser.tenantID, transaction.chargeBox);
+              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
             }
             // To Delete
             transactionsIDsToDelete.push(transactionId);

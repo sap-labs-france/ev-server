@@ -9,6 +9,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { BillingInvoiceStatus } from '../../../types/Billing';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -19,19 +20,19 @@ const MODULE_NAME = 'BillingService';
 
 export default class BillingService {
 
-  public static async handleCheckBillingConnection(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCheckBillingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canCheckConnectionBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.BILLING, action: Action.BILLING_CHECK_CONNECTION,
+        entity: Entity.BILLING, action: Action.CHECK_CONNECTION,
         module: MODULE_NAME, method: 'handleGetBillingConnection',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleGetBillingConnection');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleGetBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
@@ -73,18 +74,18 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUsers(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUsers(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canSynchronizeUsersBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USERS, action: Action.BILLING_SYNCHRONIZE_USERS,
+        entity: Entity.USERS, action: Action.SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'handleSynchronizeUsers',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUsers');
+      Action.SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUsers');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -104,19 +105,19 @@ export default class BillingService {
     next();
   }
 
-  public static async handleSynchronizeUser(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE_USER,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'handleSynchronizeUser',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUser');
+      Action.SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -140,19 +141,19 @@ export default class BillingService {
     next();
   }
 
-  public static async handleForceSynchronizeUser(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleForceSynchronizeUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     const filteredRequest = BillingSecurity.filterSynchronizeUserRequest(req.body);
     if (!Authorizations.canSynchronizeUserBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.BILLING_SYNCHRONIZE_USER,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_USER,
         module: MODULE_NAME, method: 'handleForceSynchronizeUser',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.BILLING_SYNCHRONIZE_USER, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUser');
+      Action.SYNCHRONIZE_USER, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUser');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
@@ -176,7 +177,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetBillingTaxes(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canReadBillingTaxes(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
@@ -210,7 +211,7 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetUserInvoices(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     if (!Authorizations.canReadBillingInvoices(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
