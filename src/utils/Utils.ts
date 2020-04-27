@@ -12,7 +12,6 @@ import validator from 'validator';
 import Authorizations from '../authorization/Authorizations';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import global from '../types/GlobalType';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Asset from '../types/Asset';
@@ -666,7 +665,7 @@ export default class Utils {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
-      bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.genSalt(10, (error, salt) => {
         // Hash
         bcrypt.hash(password, salt, (err, hash) => {
           // Error?
@@ -1341,24 +1340,6 @@ export default class Utils {
   public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  public static isModuleAvailable(modulePath: string): boolean {
-    const suffixLogMsg = ` is not a absolute path and a child directory of ${global.appRoot}, expect inconsistencies in path resolving`;
-    if (!Utils.isChildOfDir(global.appRoot, modulePath)) {
-      console.log('The tested module path ' + modulePath + suffixLogMsg);
-    }
-    try {
-      require.resolve(modulePath);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  private static isChildOfDir(parentDir: string, childDir: string) {
-    const relative = path.relative(parentDir, childDir);
-    return relative && !relative.startsWith('..') && !path.isAbsolute(relative) && relative.length >= 0;
   }
 
   private static _isUserEmailValid(email: string): boolean {

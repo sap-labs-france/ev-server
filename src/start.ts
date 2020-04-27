@@ -22,7 +22,6 @@ import Constants from './utils/Constants';
 import I18nManager from './utils/I18nManager';
 import Logging from './utils/Logging';
 import Utils from './utils/Utils';
-import { Action } from './types/Authorization';
 import { ServerAction } from './types/Server';
 
 const MODULE_NAME = 'Bootstrap';
