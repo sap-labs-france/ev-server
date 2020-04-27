@@ -1,7 +1,7 @@
 import cfenv from 'cfenv';
 import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
-import Lock from '../types/Lock';
+import Lock, { LockType } from '../types/Lock';
 import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -16,7 +16,7 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static init(name: string, type = 'E', onMultipleHosts = true): Lock {
+  public static create(name: string, type = LockType.EXCLUSIVE, onMultipleHosts = true): Lock {
     if (!name) {
       const logMsg = 'Lock must have a unique name';
       Logging.logError({

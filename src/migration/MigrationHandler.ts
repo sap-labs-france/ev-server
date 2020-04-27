@@ -112,7 +112,7 @@ export default class MigrationHandler {
 
   static async _executeTask(currentMigrationTask): Promise<void> {
     // Create a Lock by migration name and version
-    const migrationLock = LockingManager.init(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
+    const migrationLock = LockingManager.create(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock
     if (await LockingManager.tryAcquire(migrationLock)) {
       // Log Start Task
