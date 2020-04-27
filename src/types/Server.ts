@@ -333,5 +333,5 @@ export enum ServerAction {
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SMART_CHARGING = 'SmartCharging',
 
-  IMPORT_MODULE = 'ImportModule',
+  INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
 }
