@@ -4,9 +4,9 @@ import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
 import User from '../../src/types/User';
 import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import TenantContext from './contextProvider/TenantContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TenantContext from './context/TenantContext';
 import OCPIService from './ocpi/OCPIService';
 
 chai.use(chaiSubset);

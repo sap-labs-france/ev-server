@@ -189,6 +189,7 @@
     "test:billing": "cross-env TS_NODE_FILES=true mocha test/**/BillingTest.ts",
     "test:asset": "cross-env TS_NODE_FILES=true mocha test/**/AssetTest.ts",
     "test:car": "cross-env TS_NODE_FILES=true mocha test/**/CarTest.ts",
+    "test:locking": "cross-env TS_NODE_FILES=true mocha test/**/LockingTest.ts",
     "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"

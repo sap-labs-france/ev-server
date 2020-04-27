@@ -1,13 +1,9 @@
-import cfenv from 'cfenv';
-import os from 'os';
 import global from '../../types/GlobalType';
 import Lock from '../../types/Lock';
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'LockingStorage';
 
@@ -18,6 +14,7 @@ export default class LockingStorage {
     const aggregation = [];
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'tenantID');
     // Read DB
     const locksMDB = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
       .aggregate(aggregation)
@@ -28,41 +25,13 @@ export default class LockingStorage {
     return locksMDB;
   }
 
-  public static async getLockStatus(lockToTest: Lock): Promise<boolean> {
-    //  Check
-    const locks = await LockingStorage.getLocks();
-    const lockFound: Lock = locks.find((lock: Lock): boolean => {
-      if (lockToTest.onMultipleHosts) {
-        // Same keyHash
-        return (lockToTest.keyHash === lock.keyHash);
-      }
-      // Same keyHash and hostname
-      return ((lockToTest.keyHash === lock.keyHash) &&
-          (lockToTest.hostname === lock.hostname));
-    });
-    if (lockFound) {
-      return true;
-    }
-    return false;
-  }
-
-  public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'cleanLocks');
-    // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .deleteMany({ hostname: hostname });
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'cleanLocks', uniqueTimerID);
-  }
-
-  public static async saveLock(lockToSave: Lock): Promise<void> {
+  public static async insertLock(lockToSave: Lock): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveLock');
     // Transfer
     const lockMDB = {
-      _id: lockToSave.id ? Utils.convertToObjectID(lockToSave.id) : new ObjectID(),
-      keyHash: lockToSave.keyHash,
+      _id: lockToSave.id,
+      tenantID: Utils.convertToObjectID(lockToSave.tenantID),
       name: lockToSave.name,
       type: lockToSave.type,
       timestamp: Utils.convertToDate(lockToSave.timestamp),
@@ -75,13 +44,17 @@ export default class LockingStorage {
     Logging.traceEnd(MODULE_NAME, 'saveLock', uniqueTimerID, { lock: lockToSave });
   }
 
-  public static async deleteLock(lockToDelete: Lock): Promise<void> {
+  public static async deleteLock(lockToDelete: Lock): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteLock');
     // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
-      .findOneAndDelete({ 'keyHash': lockToDelete.keyHash });
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+      .findOneAndDelete({ '_id': lockToDelete.id });
+    console.log('====================================');
+    console.log(result);
+    console.log('====================================');
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteLock', uniqueTimerID, { lock: lockToDelete });
+    return result.ok;
   }
 }

@@ -114,7 +114,7 @@ export default class MigrationHandler {
     // Create a Lock by migration name and version
     const migrationLock = LockingManager.create(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock
-    if (await LockingManager.tryAcquire(migrationLock)) {
+    if (await LockingManager.acquire(migrationLock)) {
       // Log Start Task
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,

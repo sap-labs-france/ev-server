@@ -71,7 +71,7 @@ export default class MongoDBStorage {
         if (!foundIndex) {
           // Index creation Lock
           const indexCreationLock = LockingManager.create(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await LockingManager.tryAcquire(indexCreationLock)) {
+          if (await LockingManager.acquire(indexCreationLock)) {
             // Create Index
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             // Release the index creation Lock
@@ -92,7 +92,7 @@ export default class MongoDBStorage {
           // Index drop Lock
           const indexDropLock = LockingManager.create(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
 
-          if (await LockingManager.tryAcquire(indexDropLock)) {
+          if (await LockingManager.acquire(indexDropLock)) {
             // Drop Index
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             // Release the index drop Lock
