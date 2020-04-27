@@ -31,7 +31,7 @@ export default class LockingStorage {
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
-      tenantID: Utils.convertToObjectID(lockToSave.tenantID),
+      tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? Utils.convertToObjectID(lockToSave.tenantID) : null,
       name: lockToSave.name,
       type: lockToSave.type,
       timestamp: Utils.convertToDate(lockToSave.timestamp),
@@ -50,9 +50,6 @@ export default class LockingStorage {
     // Delete
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .findOneAndDelete({ '_id': lockToDelete.id });
-    console.log('====================================');
-    console.log(result);
-    console.log('====================================');
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteLock', uniqueTimerID, { lock: lockToDelete });
     return result.ok;

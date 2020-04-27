@@ -8,7 +8,10 @@ import chaiSubset from 'chai-subset';
 import LockingManager from '../../src/locking/LockingManager';
 import Lock, { LockType } from '../../src/types/Lock';
 import Constants from '../../src/utils/Constants';
+import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import global from '../../src/types/GlobalType';
+import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -23,6 +26,12 @@ const testData = new TestData();
 describe('Locking Tests', function() {
   this.timeout(30000);
 
+  before(async () => {
+    // Start MongoDB
+    global.database = new MongoDBStorage(config.get('storage'));
+    await global.database.start();
+  });
+
   describe('Exclusive Locks', () => {
 
     it('Should create an exclusive lock', () => {
@@ -36,22 +45,22 @@ describe('Locking Tests', function() {
       expect(testData.exclusiveLock.type).to.eql(LockType.EXCLUSIVE);
     });
 
-    it('Should acquire an exclusive lock', () => {
-      const result = LockingManager.acquire(testData.exclusiveLock);
+    it('Should acquire an exclusive lock', async () => {
+      const result = await LockingManager.acquire(testData.exclusiveLock);
       expect(result).not.null;
       expect(result).to.eql(true);
     });
 
-    it('Should not acquire a second time an exclusive lock', () => {
-      const result = LockingManager.acquire(testData.exclusiveLock);
+    it('Should not acquire a second time an exclusive lock', async () => {
+      const result = await LockingManager.acquire(testData.exclusiveLock);
       expect(result).not.null;
       expect(result).to.eql(false);
     });
 
-    it('Should release an exclusive lock', () => {
-      const result = LockingManager.acquire(testData.exclusiveLock);
+    it('Should release an exclusive lock', async () => {
+      const result = await LockingManager.release(testData.exclusiveLock);
       expect(result).not.null;
-      expect(result).to.eql(false);
+      expect(result).to.eql(true);
     });
   });
 });

@@ -1,8 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
-import TenantComponents from '../../types/TenantComponents';
-import Constants from '../../utils/Constants';
+import TenantComponents from '../../../src/types/TenantComponents';
+import Constants from '../../../src/utils/Constants';
 import config from '../../config';
 import Factory from '../../factories/Factory';
 import CentralServerService from '../client/CentralServerService';
