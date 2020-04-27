@@ -5,8 +5,8 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
+// pragma import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+// import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -1046,140 +1046,140 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const id = UserSecurity.filterUserByIDRequest(req.query);
-    // User mandatory
-    if (!id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User\'s ID must be provided',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Check auth
-    if (!Authorizations.canReadUser(req.user, id)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.READ,
-        entity: Entity.USER,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        value: id
-      });
-    }
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, id);
-    UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
-      MODULE_NAME, 'handleGetUserInvoice', req.user);
-    // Deleted?
-    if (user.deleted) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with ID '${id}' is logically deleted`,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Get the settings
-    const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
-    if (!pricingSetting || !pricingSetting.convergentCharging) {
-      Logging.logException(
-        new Error('Convergent Charging setting is missing'),
-        action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    // Create services
-    const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    let invoiceNumber;
-    try {
-      await ratingService.loadChargedItemsToInvoicing();
-      invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'An issue occurred while creating the invoice',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-    if (!invoiceNumber) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: 404,
-        message: 'No invoices available',
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action
-      });
-    }
-    try {
-      const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      if (!invoice) {
-        // Retry to get invoice
-        invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
-      }
-      if (!invoice) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-          message: `An error occurred while requesting invoice ${invoiceNumber}`,
-          module: MODULE_NAME,
-          method: 'handleGetUserInvoice',
-          user: req.user,
-          action: action
-        });
-      }
-      const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => {
-        if (err) {
-          throw err;
-        }
-        res.download(filename, (err2) => {
-          if (err2) {
-            throw err2;
-          }
-          fs.unlink(filename, (err3) => {
-            if (err3) {
-              throw err3;
-            }
-          });
-        });
-      });
-    } catch (error) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
-        message: `An error occurred while requesting invoice ${invoiceNumber}`,
-        module: MODULE_NAME,
-        method: 'handleGetUserInvoice',
-        user: req.user,
-        action: action,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-    }
-  }
+  // pragma public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  //   // Filter
+  //   const id = UserSecurity.filterUserByIDRequest(req.query);
+  //   // User mandatory
+  //   if (!id) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.GENERAL_ERROR,
+  //       message: 'User\'s ID must be provided',
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action
+  //     });
+  //   }
+  //   // Check auth
+  //   if (!Authorizations.canReadUser(req.user, id)) {
+  //     throw new AppAuthError({
+  //       errorCode: HTTPAuthError.ERROR,
+  //       user: req.user,
+  //       action: Action.READ,
+  //       entity: Entity.USER,
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       value: id
+  //     });
+  //   }
+  //   // Get the user
+  //   const user = await UserStorage.getUser(req.user.tenantID, id);
+  //   UtilsService.assertObjectExists(action, user, `User '${id}' doesn't exist anymore.`,
+  //     MODULE_NAME, 'handleGetUserInvoice', req.user);
+  //   // Deleted?
+  //   if (user.deleted) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
+  //       message: `User with ID '${id}' is logically deleted`,
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action
+  //     });
+  //   }
+  //   // Get the settings
+  //   const pricingSetting = await SettingStorage.getPricingSettings(req.user.tenantID);
+  //   if (!pricingSetting || !pricingSetting.convergentCharging) {
+  //     Logging.logException(
+  //       new Error('Convergent Charging setting is missing'),
+  //       action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.GENERAL_ERROR,
+  //       message: 'An issue occurred while creating the invoice',
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action
+  //     });
+  //   }
+  //   // Create services
+  //   const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+  //   const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+  //   let invoiceNumber;
+  //   try {
+  //     await ratingService.loadChargedItemsToInvoicing();
+  //     invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
+  //   } catch (error) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.GENERAL_ERROR,
+  //       message: 'An issue occurred while creating the invoice',
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action,
+  //       detailedMessages: { error: error.message, stack: error.stack }
+  //     });
+  //   }
+  //   if (!invoiceNumber) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: 404,
+  //       message: 'No invoices available',
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action
+  //     });
+  //   }
+  //   try {
+  //     const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
+  //     let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+  //     if (!invoice) {
+  //       // Retry to get invoice
+  //       invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+  //     }
+  //     if (!invoice) {
+  //       throw new AppError({
+  //         source: Constants.CENTRAL_SERVER,
+  //         errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
+  //         message: `An error occurred while requesting invoice ${invoiceNumber}`,
+  //         module: MODULE_NAME,
+  //         method: 'handleGetUserInvoice',
+  //         user: req.user,
+  //         action: action
+  //       });
+  //     }
+  //     const filename = 'invoice.pdf';
+  //     fs.writeFile(filename, invoice, (err) => {
+  //       if (err) {
+  //         throw err;
+  //       }
+  //       res.download(filename, (err2) => {
+  //         if (err2) {
+  //           throw err2;
+  //         }
+  //         fs.unlink(filename, (err3) => {
+  //           if (err3) {
+  //             throw err3;
+  //           }
+  //         });
+  //       });
+  //     });
+  //   } catch (error) {
+  //     throw new AppError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       errorCode: HTTPError.PRICING_REQUEST_INVOICE_ERROR,
+  //       message: `An error occurred while requesting invoice ${invoiceNumber}`,
+  //       module: MODULE_NAME,
+  //       method: 'handleGetUserInvoice',
+  //       user: req.user,
+  //       action: action,
+  //       detailedMessages: { error: error.message, stack: error.stack }
+  //     });
+  //   }
+  // }
 }
