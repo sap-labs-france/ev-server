@@ -3,7 +3,7 @@ import mongoUriBuilder from 'mongo-uri-builder';
 import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
-import LockManager from '../../locking/LockManager';
+import LockingManager from '../../locking/LockingManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
 import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
@@ -70,12 +70,12 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index creation Lock
-          const indexCreationLock = LockManager.init(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await LockManager.tryAcquire(indexCreationLock)) {
+          const indexCreationLock = LockingManager.create(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
+          if (await LockingManager.tryAcquire(indexCreationLock)) {
             // Create Index
             await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             // Release the index creation Lock
-            await LockManager.release(indexCreationLock);
+            await LockingManager.release(indexCreationLock);
           }
         }
       }
@@ -90,13 +90,13 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index drop Lock
-          const indexDropLock = LockManager.init(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
+          const indexDropLock = LockingManager.create(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
 
-          if (await LockManager.tryAcquire(indexDropLock)) {
+          if (await LockingManager.tryAcquire(indexDropLock)) {
             // Drop Index
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
             // Release the index drop Lock
-            await LockManager.release(indexDropLock);
+            await LockingManager.release(indexDropLock);
           }
         }
       }

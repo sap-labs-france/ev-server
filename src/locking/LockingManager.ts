@@ -1,23 +1,22 @@
 import cfenv from 'cfenv';
 import os from 'os';
 import LockingStorage from '../storage/mongodb/LockingStorage';
-import { Action } from '../types/Authorization';
-import Lock from '../types/Lock';
+import Lock, { LockType } from '../types/Lock';
 import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 
-const MODULE_NAME = 'LockManager';
+const MODULE_NAME = 'LockingManager';
 
 /**
  * Namespace based runtime locking primitive management with a DB storage for sharing purpose among different hosts.
  * Implemented lock types:
  *  - E = mutually exclusive
  */
-export default class LockManager {
-  public static init(name: string, type = 'E', onMultipleHosts = true): Lock {
+export default class LockingManager {
+  public static create(name: string, type = LockType.EXCLUSIVE, onMultipleHosts = true): Lock {
     if (!name) {
       const logMsg = 'Lock must have a unique name';
       Logging.logError({
