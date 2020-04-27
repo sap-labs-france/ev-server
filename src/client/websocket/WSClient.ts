@@ -1,8 +1,9 @@
-import { Action } from '../../types/Authorization';
-import Constants from '../../utils/Constants';
-import { JsonWSClientConfiguration } from '../../types/configuration/WSClientConfiguration';
-import Logging from '../../utils/Logging';
 import WebSocket from 'ws';
+import { Action } from '../../types/Authorization';
+import { JsonWSClientConfiguration } from '../../types/configuration/WSClientConfiguration';
+import { ServerAction } from '../../types/Server';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'WSClient';
 
@@ -82,7 +83,7 @@ export default class WSClient {
           Logging.logInfo({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'reconnect',
-            action: Action.WS_CLIENT_INFO,
+            action: ServerAction.WS_CLIENT_INFO,
             message: `Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
           });
         } else {
@@ -98,7 +99,7 @@ export default class WSClient {
         Logging.logInfo({
           tenantID: this.logTenantID,
           module: MODULE_NAME, method: 'reconnect',
-          action: Action.WS_CLIENT_INFO,
+          action: ServerAction.WS_CLIENT_INFO,
           message: `Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
         });
       } else {
@@ -205,7 +206,7 @@ export default class WSClient {
           Logging.logError({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onError',
-            action: Action.WS_CLIENT_ERROR,
+            action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection refused to '${this.url}': ${error}`
           });
         } else {
@@ -220,7 +221,7 @@ export default class WSClient {
           Logging.logError({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onError',
-            action: Action.WS_CLIENT_ERROR,
+            action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection error to '${this.url}': ${error}`
           });
         } else {
@@ -243,7 +244,7 @@ export default class WSClient {
           Logging.logError({
             tenantID: this.logTenantID,
             module: MODULE_NAME, method: 'onClose',
-            action: Action.WS_CLIENT_ERROR,
+            action: ServerAction.WS_CLIENT_ERROR,
             message: `Connection closing error to '${this.url}': ${error}`
           });
         } else {

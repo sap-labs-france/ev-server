@@ -17,7 +17,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
-import CONTEXTS from './contextProvider/ContextConstants';
+import ContextDefinition from './contextProvider/ContextDefinition';
 import ContextProvider from './contextProvider/ContextProvider';
 import SiteContext from './contextProvider/SiteContext';
 import TenantContext from './contextProvider/TenantContext';
@@ -105,11 +105,11 @@ for (const key of Object.keys(billingSettings)) {
 
 describe('Billing Service', function() {
   this.timeout(1000000);
-  describe('With component Billing (tenant ut-billing)', () => {
+  describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.userContext).to.not.be.null;
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
@@ -120,7 +120,7 @@ describe('Billing Service', function() {
 
     describe('Where admin user', () => {
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -136,7 +136,7 @@ describe('Billing Service', function() {
         if (tenant.id) {
           await TestData.setBillingSystemValidCredentials(testData);
         } else {
-          throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
+          throw new Error(`Unable to get Tenant ID for tenant : ${ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING}`);
         }
       });
 
@@ -285,9 +285,9 @@ describe('Billing Service', function() {
 
     describe('Where basic user', () => {
       before(async () => {
-        testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING);
-        testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+        testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(testData.userContext).to.not.be.null;
         testData.centralUserService = new CentralServerService(
           testData.tenantContext.getTenant().subdomain,
@@ -307,7 +307,7 @@ describe('Billing Service', function() {
         if (tenant.id) {
           await TestData.setBillingSystemValidCredentials(testData);
         } else {
-          throw new Error(`Unable to get Tenant ID for tenant : ${CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING}`);
+          throw new Error(`Unable to get Tenant ID for tenant : ${ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING}`);
         }
       });
 
@@ -371,7 +371,7 @@ describe('Billing Service', function() {
       });
 
       it('Should list invoices', async () => {
-        const basicUser: User = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const basicUser: User = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
 
         // Set back userContext to BASIC to consult invoices
         testData.userService = new CentralServerService(
@@ -395,25 +395,25 @@ describe('Billing Service', function() {
     });
   });
 
-  describe('With component Billing (tenant ut-all)', () => {
+  describe('With component Billing (tenant utall)', () => {
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.userContext).to.not.be.null;
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
       );
       testData.isForcedSynchro = false;
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
     });
 
     describe('Where admin user', () => {
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -441,7 +441,7 @@ describe('Billing Service', function() {
 
     describe('Where basic user', () => {
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
@@ -458,8 +458,8 @@ describe('Billing Service', function() {
       it('should create an invoice after a transaction', async () => {
         let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesBefore = response.data.result;
-        const adminUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-        const basicUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         // Connect as Admin to Force synchronize basic user
         testData.userContext = adminUser;
         testData.userService = new CentralServerService(

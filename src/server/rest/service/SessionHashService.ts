@@ -3,8 +3,8 @@ import HttpStatus from 'http-status-codes';
 import AppError from '../../../exception/AppError';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action } from '../../../types/Authorization';
 import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import Tenant from '../../../types/Tenant';
 import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
@@ -49,7 +49,7 @@ export default class SessionHashService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(Action.SESSION_HASH_SERVICE, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(ServerAction.SESSION_HASH_SERVICE, err, req, res, next);
       return true;
     }
     return false;

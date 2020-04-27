@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import { Action } from '../../../types/Authorization';
+import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
+import { ServerAction } from '../../../types/Server';
 import Logging from '../../../utils/Logging';
 import NotificationSecurity from './security/NotificationSecurity';
-import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
 
 const MODULE_NAME = 'NotificationService';
 
 export default class NotificationService {
-  static async handleGetNotifications(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetNotifications(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);

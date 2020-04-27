@@ -1,11 +1,11 @@
 import NotificationHandler from '../../notification/NotificationHandler';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import { ServerAction } from '../../types/Server';
 import { CheckSessionNotStartedAfterAuthorizeTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
-import { Action } from '../../types/Authorization';
 
 export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerTask {
 
@@ -28,7 +28,7 @@ export default class CheckSessionNotStartedAfterAuthorizeTask extends SchedulerT
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, Action.PREPARING_SESSION_NOT_STARTED, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.PREPARING_SESSION_NOT_STARTED, error);
     }
   }
 }

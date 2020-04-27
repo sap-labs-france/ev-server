@@ -1,13 +1,13 @@
 import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import UserStorage from '../../storage/mongodb/UserStorage';
+import { ServerAction } from '../../types/Server';
 import { CheckUserAccountInactivityTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import SchedulerTask from '../SchedulerTask';
-import { Action } from '../../types/Authorization';
 
 export default class CheckUserAccountInactivityTask extends SchedulerTask {
 
@@ -37,7 +37,7 @@ export default class CheckUserAccountInactivityTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, Action.USER_ACCOUNT_INACTIVITY, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.USER_ACCOUNT_INACTIVITY, error);
     }
   }
 }

@@ -1,7 +1,7 @@
 import { default as Axios, default as axios } from 'axios';
 import BackendError from '../../../exception/BackendError';
-import { Action } from '../../../types/Authorization';
 import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
+import { ServerAction } from '../../../types/Server';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -17,7 +17,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         source: Constants.CENTRAL_SERVER,
         message: 'No configuration is provided to access the EVDatabase system',
         module: MODULE_NAME, method: 'getCarCatalogs',
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
     const response = await Axios.get(evDatabaseConfig.url + '/' + evDatabaseConfig.key);
@@ -27,7 +27,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         source: Constants.CENTRAL_SERVER,
         message: 'Error occurred while trying to retrieve the cars from EVDatabase',
         module: MODULE_NAME, method: 'getCarCatalogs',
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
       });
     }
     // Build result
@@ -219,7 +219,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'getCarCatalogThumb',
           message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${carCatalog.imageURLs[0]}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -242,7 +242,7 @@ export default class EVDabaseCarIntegration extends CarIntegration {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'getCarCatalogImages',
           message: `${carCatalog.id} - ${carCatalog.vehicleMake} - ${carCatalog.vehicleModel} - Cannot retrieve image from URL '${imageURL}'`,
           detailedMessages: { error: error.message, stack: error.stack }

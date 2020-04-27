@@ -5,6 +5,7 @@ import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import Company from '../../../types/Company';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
@@ -16,7 +17,7 @@ const MODULE_NAME = 'CompanyService';
 
 export default class CompanyService {
 
-  public static async handleDeleteCompany(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteCompany(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.COMPANY, MODULE_NAME, 'handleDeleteCompany');
@@ -56,7 +57,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompany');
@@ -88,7 +89,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompanyLogo(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompanyLogo(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.COMPANY, MODULE_NAME, 'handleGetCompanyLogo');
@@ -118,7 +119,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleGetCompanies(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCompanies(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.COMPANIES, MODULE_NAME, 'handleGetCompanies');
@@ -154,7 +155,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleCreateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.COMPANY, MODULE_NAME, 'handleCreateCompany');
@@ -195,7 +196,7 @@ export default class CompanyService {
     next();
   }
 
-  public static async handleUpdateCompany(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateCompany(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.COMPANY, MODULE_NAME, 'handleUpdateCompany');

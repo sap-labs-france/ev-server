@@ -1,21 +1,22 @@
-import cluster from 'cluster';
 import express, { NextFunction, Request, Response } from 'express';
-import sanitize from 'express-sanitizer';
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
+import ChangeNotification from '../../types/ChangeNotification';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import { Entity } from '../../types/Authorization';
+import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import SessionHashService from '../rest/service/SessionHashService';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
+import UserToken from '../../types/UserToken';
+import cluster from 'cluster';
+import expressTools from '../ExpressTools';
 import morgan from 'morgan';
+import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
 import util from 'util';
-import { Action, Entity } from '../../types/Authorization';
-import ChangeNotification from '../../types/ChangeNotification';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
-import UserToken from '../../types/UserToken';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import expressTools from '../ExpressTools';
-import SessionHashService from '../rest/service/SessionHashService';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
 
 
 const MODULE_NAME = 'CentralRestServer';
@@ -52,7 +53,7 @@ export default class CentralRestServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: Action.EXPRESS_SERVER,
+                action: ServerAction.EXPRESS_SERVER,
                 message: message
               });
             }
@@ -85,7 +86,7 @@ export default class CentralRestServer {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'constructor',
-        action: Action.EXPRESS_SERVER,
+        action: ServerAction.EXPRESS_SERVER,
         message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
         detailedMessages: 'Request: ' + util.inspect(req)
       });
@@ -106,7 +107,7 @@ export default class CentralRestServer {
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
-      action: Action.STARTUP,
+      action: ServerAction.STARTUP,
       message: logMsg
     });
     // eslint-disable-next-line no-console
@@ -117,7 +118,7 @@ export default class CentralRestServer {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
-        action: Action.SOCKET_IO,
+        action: ServerAction.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketHandshake: socket.handshake }
       });
@@ -135,7 +136,7 @@ export default class CentralRestServer {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'start',
-          action: Action.SOCKET_IO,
+          action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
         });
@@ -144,7 +145,7 @@ export default class CentralRestServer {
         Logging.logDebug({
           tenantID: userToken.tenantID,
           module: MODULE_NAME, method: 'start',
-          action: Action.SOCKET_IO,
+          action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is connected',
           detailedMessages: { socketHandshake: socket.handshake }
         });
@@ -154,7 +155,7 @@ export default class CentralRestServer {
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'start',
-            action: Action.SOCKET_IO,
+            action: ServerAction.SOCKET_IO,
             message: 'SocketIO client is disconnected',
             detailedMessages: { socketHandshake: socket.handshake }
           });

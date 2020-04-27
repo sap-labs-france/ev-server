@@ -3,11 +3,11 @@ import mongoUriBuilder from 'mongo-uri-builder';
 import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
-import { Action } from '../../types/Authorization';
+import LockManager from '../../locking/LockManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import LockManager from '../../locking/LockManager';
 import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -28,7 +28,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -47,7 +47,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Check Logs
@@ -112,7 +112,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     const name = new RegExp(`^${tenantID}.`);
@@ -189,7 +189,7 @@ export default class MongoDBStorage {
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: Action.MONGO_DB
+          action: ServerAction.MONGO_DB
         });
       }
       // Get all the collections
@@ -213,7 +213,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Migrate not prefixed collections
@@ -234,7 +234,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Get all the collections

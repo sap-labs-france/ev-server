@@ -139,6 +139,10 @@
     "xml2json": "^0.11.2"
   },
   "scripts": {
+    "git:sdiff": "git diff && git submodule foreach 'git diff'",
+    "git:supdate": "git submodule update --remote --merge",
+    "git:spush": "git push --recurse-submodules=on-demand",
+    "git:reset-hard": "git submodule foreach 'git reset —-hard'",
     "start": "npm run start:prod",
     "prestart": "npm run build:prod",
     "start:dev": "cross-env NODE_ENV=development ts-node-dev --max-old-space-size=4096 -- src/start.ts",
@@ -185,9 +189,6 @@
     "test:car": "cross-env TS_NODE_FILES=true mocha test/**/CarTest.ts",
     "test:firmwareUpdateStatus": "cross-env TS_NODE_FILES=true mocha test/**/FirmwareUpdateStatusTest.ts",
     "clinic:clean": "clinic clean",
-    "npm-check": "npm-check",
-    "git:sdiff": "git diff && git submodule foreach 'git diff'",
-    "git:supdate": "git submodule update --remote --merge",
-    "git:spush": "git push --recurse-submodules=on-demand"
+    "npm-check": "npm-check"
   }
 }

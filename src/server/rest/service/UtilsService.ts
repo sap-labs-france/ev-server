@@ -1,17 +1,19 @@
-import { NextFunction, Request, Response } from 'express';
-import AppError from '../../../exception/AppError';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPError } from '../../../types/HTTPError';
-import UserToken from '../../../types/UserToken';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { NextFunction, Request, Response } from 'express';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'UtilsService';
 
 export default class UtilsService {
-  static handleUnknownAction(action: Action, req: Request, res: Response, next: NextFunction) {
+  static handleUnknownAction(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log
@@ -24,7 +26,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertIdIsProvided(action: Action, id: string|number, module: string, method: string, userToken: UserToken) {
+  public static assertIdIsProvided(action: ServerAction, id: string|number, module: string, method: string, userToken: UserToken) {
     if (!id) {
       // Object does not exist
       throw new AppError({
@@ -39,7 +41,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertObjectExists(action: Action, object: any, errorMsg: string, module: string, method: string, userToken: UserToken) {
+  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken: UserToken) {
     if (!object) {
       throw new AppError({
         action,
@@ -59,13 +61,13 @@ export default class UtilsService {
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
     if (!active) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        message: `Component ${component} is inactive - Not allowed to perform '${action}' on '${entity}'`,
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        entity: entity,
         action: action,
         module: module,
         method: method,
-        errorCode: HTTPError.GENERAL_ERROR,
+        user: userToken
       });
     }
   }

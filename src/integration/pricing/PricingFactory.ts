@@ -1,13 +1,13 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
-import Transaction from '../../types/Transaction';
-import Utils from '../../utils/Utils';
 import ConvergentChargingPricingIntegration from './convergent-charging/ConvergentChargingPricingIntegration';
 import PricingIntegration from './PricingIntegration';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Transaction from '../../types/Transaction';
+import Utils from '../../utils/Utils';
 
 export default class PricingFactory {
   static async getPricingImpl(tenantID: string, transaction: Transaction): Promise<PricingIntegration<PricingSetting>> {

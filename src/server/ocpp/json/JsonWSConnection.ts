@@ -4,6 +4,7 @@ import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingSta
 import BackendError from '../../../exception/BackendError';
 import OCPPError from '../../../exception/OcppError';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import { ServerAction } from '../../../types/Server';
 import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Configuration from '../../../utils/Configuration';
@@ -68,7 +69,7 @@ export default class JsonWSConnection extends WSConnection {
       Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getChargingStationID(),
-        action: Action.WS_JSON_CONNECTION_OPENED,
+        action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
         message: `New Json connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
@@ -79,7 +80,7 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      action: Action.WS_ERROR,
+      action: ServerAction.WS_ERROR,
       module: MODULE_NAME, method: 'onError',
       message: event
     });
@@ -90,7 +91,7 @@ export default class JsonWSConnection extends WSConnection {
     Logging.logInfo({
       tenantID: this.getTenantID(),
       source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
-      action: Action.WS_JSON_CONNECTION_CLOSED,
+      action: ServerAction.WS_JSON_CONNECTION_CLOSED,
       module: MODULE_NAME, method: 'onClose',
       message: `Connection has been closed, Reason '${closeEvent.reason}', Code '${closeEvent.code}'`
     });

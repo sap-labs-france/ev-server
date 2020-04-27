@@ -22,34 +22,34 @@ describe('Tenant tests', function() {
   describe('Success cases', () => {
     it('Should be possible to create a valid tenant', async () => {
       // Create
-      testData.newTenant = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, Factory.tenant.build());
+      testData.newTenant = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, Factory.tenant.build());
     });
 
     it('Should find the created tenant by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      await CentralServerService.defaultInstance.getEntityById(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
     });
 
     it('Should find the created tenant in the tenant list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.DefaultInstance.checkEntityInList(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      await CentralServerService.defaultInstance.checkEntityInList(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
     });
 
     it('Should update the tenant', async () => {
       // Change entity
       testData.newTenant.name = 'New Name';
       // Update
-      await CentralServerService.DefaultInstance.updateEntity(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      await CentralServerService.defaultInstance.updateEntity(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
     });
 
     it('Should find the updated tenant by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      const updatedTenant = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      const updatedTenant = await CentralServerService.defaultInstance.getEntityById(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
       // Check
       expect(updatedTenant.name).to.equal(testData.newTenant.name);
     });
@@ -59,38 +59,38 @@ describe('Tenant tests', function() {
       // Cannot perform operation: a background operation is currently running for collection...
       await Utils.sleep(1000);
       // Delete the created entity
-      await CentralServerService.DefaultInstance.deleteEntity(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      await CentralServerService.defaultInstance.deleteEntity(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
     });
 
     it('Should not find the deleted tenant with its id', async () => {
       // Check if the deleted entity cannot be retrieved with its id
-      await CentralServerService.DefaultInstance.checkDeletedEntityById(
-        CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
+      await CentralServerService.defaultInstance.checkDeletedEntityById(
+        CentralServerService.defaultInstance.tenantApi, testData.newTenant);
     });
   });
 
   describe('Error cases', () => {
     it('Should not be possible to read an empty tenant', async () => {
       // Exec
-      const response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, { id: '' }, false);
+      const response = await CentralServerService.defaultInstance.getEntityById(
+        CentralServerService.defaultInstance.tenantApi, { id: '' }, false);
       // Check
       expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to read an invalid tenant', async () => {
       // Exec
-      const response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
+      const response = await CentralServerService.defaultInstance.getEntityById(
+        CentralServerService.defaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
       // Check
       expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to read an unknown tenant', async () => {
       // Exec
-      const response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, { id: '123456789012345678901234' }, false);
+      const response = await CentralServerService.defaultInstance.getEntityById(
+        CentralServerService.defaultInstance.tenantApi, { id: '123456789012345678901234' }, false);
       // Check
       expect(response.status).to.equal(550);
     });
@@ -100,8 +100,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       delete tenant.email;
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -111,8 +111,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       delete tenant.name;
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -122,8 +122,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       delete tenant.subdomain;
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -133,8 +133,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.email = '';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -144,8 +144,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.name = '';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -155,8 +155,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.subdomain = '';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -166,8 +166,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.email = 'missingAt';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -177,8 +177,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.name = 'A very long name impossible to store in database - A very long name impossible to store in database - A very long name impossible to store in database';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });
@@ -188,8 +188,8 @@ describe('Tenant tests', function() {
       const tenant = Factory.tenant.build();
       tenant.subdomain = 'Sub domain';
       // Call
-      const response = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.tenantApi, tenant, false);
+      const response = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(500);
     });

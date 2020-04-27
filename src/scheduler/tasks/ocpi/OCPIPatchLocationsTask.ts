@@ -1,6 +1,6 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
-import { Action } from '../../../types/Authorization';
+import { ServerAction } from '../../../types/Server';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -23,7 +23,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
         Logging.logDebug({
           tenantID: tenant.id,
           module: MODULE_NAME, method: 'run',
-          action: Action.OCPI_PATCH_LOCATIONS,
+          action: ServerAction.OCPI_PATCH_LOCATIONS,
           message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
         });
         // Skip execution
@@ -36,7 +36,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_PATCH_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_PATCH_LOCATIONS, error);
     }
   }
 
@@ -47,7 +47,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       Logging.logDebug({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'run',
-        action: Action.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATIONS,
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
       return;
@@ -55,7 +55,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       Logging.logDebug({
         tenantID: tenant.id,
         module: MODULE_NAME, method: 'run',
-        action: Action.OCPI_PATCH_LOCATIONS,
+        action: ServerAction.OCPI_PATCH_LOCATIONS,
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
       return;
@@ -63,7 +63,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
     Logging.logInfo({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'patch',
-      action: Action.OCPI_PATCH_LOCATIONS,
+      action: ServerAction.OCPI_PATCH_LOCATIONS,
       message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
     });
     // Build OCPI Client
@@ -73,7 +73,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
     Logging.logInfo({
       tenantID: tenant.id,
       module: MODULE_NAME, method: 'patch',
-      action: Action.OCPI_PATCH_LOCATIONS,
+      action: ServerAction.OCPI_PATCH_LOCATIONS,
       message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
     });
   }

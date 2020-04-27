@@ -1,6 +1,6 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -47,7 +47,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `updated Companies(s) have been updated in Tenant '${tenant.name}'`
       });
@@ -80,7 +80,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Sites(s) have been updated in Tenant '${tenant.name}'`
       });
@@ -113,7 +113,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} SiteArea(s) have been updated in Tenant '${tenant.name}'`
       });
@@ -146,7 +146,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} User(s) have been updated in Tenant '${tenant.name}'`
       });
@@ -179,7 +179,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Charging Station(s) have been updated in Tenant '${tenant.name}'`
       });

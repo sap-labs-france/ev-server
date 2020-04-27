@@ -1,4 +1,4 @@
-import { Action } from '../../types/Authorization';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
@@ -28,7 +28,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             Logging.logError({
               tenantID: tenant.id,
               module: MODULE_NAME, method: 'run',
-              action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+              action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
               message: 'No implementation available for the Smart Charging',
             });
           }
@@ -39,7 +39,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
           Logging.logError({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'run',
-            action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+            action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
             message: `Error while running the task '${CheckAndComputeSmartChargingTask.name}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });

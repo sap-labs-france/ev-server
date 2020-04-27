@@ -8,6 +8,7 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
 import SettingSecurity from './security/SettingSecurity';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import UtilsService from './UtilsService';
@@ -16,7 +17,7 @@ import _ from 'lodash';
 const MODULE_NAME = 'SettingService';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
@@ -51,7 +52,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
@@ -82,7 +83,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettings(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
@@ -113,7 +114,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleCreateSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
@@ -147,7 +148,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);

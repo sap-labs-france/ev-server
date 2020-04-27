@@ -1,6 +1,6 @@
 import moment from 'moment';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import { Action } from '../types/Authorization';
+import { ServerAction } from '../types/Server';
 import { TaskConfig } from '../types/TaskConfig';
 import Tenant from '../types/Tenant';
 import Constants from '../utils/Constants';
@@ -15,7 +15,7 @@ export default abstract class SchedulerTask {
     const startMigrationTime = moment();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      action: Action.SCHEDULER,
+      action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'run',
       message: `The task '${name}' is running...`
     });
@@ -27,7 +27,7 @@ export default abstract class SchedulerTask {
         const startMigrationTimeInTenant = moment();
         Logging.logInfo({
           tenantID: tenant.id,
-          action: Action.SCHEDULER,
+          action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `The task '${name}' is running...`
         });
@@ -37,14 +37,14 @@ export default abstract class SchedulerTask {
         const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
         Logging.logInfo({
           tenantID: tenant.id,
-          action: Action.SCHEDULER,
+          action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`
         });
       } catch (error) {
         Logging.logError({
           tenantID: tenant.id,
-          action: Action.SCHEDULER,
+          action: ServerAction.SCHEDULER,
           module: MODULE_NAME, method: 'run',
           message: `Error while running the task '${name}': ${error.message}`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -55,7 +55,7 @@ export default abstract class SchedulerTask {
     const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      action: Action.SCHEDULER,
+      action: ServerAction.SCHEDULER,
       module: MODULE_NAME, method: 'run',
       message: `The task '${name}' has been run in ${totalMigrationTimeSecs} secs over ${tenants.count} tenant(s)`
     });
