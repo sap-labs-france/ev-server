@@ -1,14 +1,14 @@
-import { ConcurRefundSetting } from '../../types/Setting';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import RefundIntegration from './RefundIntegration';
+import { RefundSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Transaction from '../../types/Transaction';
 
 const MODULE_NAME = 'DummyRefund';
 
-export default class DummyRefundIntegration extends RefundIntegration<ConcurRefundSetting> {
-  constructor(tenantID: string, setting: ConcurRefundSetting) {
+export default class DummyRefundIntegration extends RefundIntegration<RefundSetting> {
+  constructor(tenantID: string, setting: RefundSetting) {
     super(tenantID, setting);
     const error = new Error();
     Logging.logDebug({
