@@ -1,5 +1,5 @@
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
-import ConvergentChargingPricingIntegration from './convergent-charging/ConvergentChargingPricingIntegration';
+import ConvergentChargingPricingIntegration from './export-convergent-charging';
 import PricingIntegration from './PricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';

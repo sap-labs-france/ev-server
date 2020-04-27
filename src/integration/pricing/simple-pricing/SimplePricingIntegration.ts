@@ -1,8 +1,8 @@
-import PricingIntegration from '../PricingIntegration';
-import Transaction from '../../../types/Transaction';
 import Consumption from '../../../types/Consumption';
-import { SimplePricingSetting } from '../../../types/Setting';
 import { PricedConsumption } from '../../../types/Pricing';
+import PricingIntegration from '../PricingIntegration';
+import { SimplePricingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
 export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {

@@ -1,5 +1,5 @@
 import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
-import SapSmartChargingIntegration from './sap-smart-charging/SapSmartChargingIntegration';
+import SapSmartChargingIntegration from './export-sap-smart-charging';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SmartChargingIntegration from './SmartChargingIntegration';
 import Tenant from '../../types/Tenant';

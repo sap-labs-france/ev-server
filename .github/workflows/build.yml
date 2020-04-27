@@ -13,6 +13,27 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install and run build:prod
+      run: |
+        npm ci
+        npm run build:prod
+      env:
+        CI: true
+
+  build-submodules:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
       with:
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
         submodules: true

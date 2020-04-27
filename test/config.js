@@ -153,7 +153,7 @@ const config = convict({
     password: {
       doc: 'The admin password',
       format: String,
-      default: 'EQPQLwBIC0XgUgX@1Aa',
+      default: 'Slf.admin00',
       env: 'ADMIN_PASSWORD'
     }
   },
@@ -167,7 +167,7 @@ const config = convict({
     password: {
       doc: 'The super admin password',
       format: String,
-      default: 'EQPQLwBIC0XgUgX@1Aa',
+      default: 'Super.admin00',
       env: 'SUPERADMIN_PASSWORD'
     }
   },
