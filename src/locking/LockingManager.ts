@@ -23,7 +23,7 @@ export default class LockingManager {
         action: ServerAction.LOCKING,
         module: MODULE_NAME,
         method: 'init',
-        message: 'Lock must have a unique name'
+        message: 'Lock must have a name'
       });
     }
     // Return the built lock
@@ -47,7 +47,7 @@ export default class LockingManager {
           throw new BackendError({
             action: ServerAction.LOCKING,
             module: MODULE_NAME, method: 'acquire',
-            message: `Unknown lock type ${lock.type}`,
+            message: `Cannot acquire a lock with an unknown type ${lock.type}`,
             detailedMessages: { lock }
           });
       }
@@ -64,7 +64,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Cannot aquire the lock '${lock.name}' of type '${lock.type}'`,
+        message: `Cannot acquire the lock '${lock.name}' of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
       return false;
@@ -74,19 +74,19 @@ export default class LockingManager {
   public static async release(lock: Lock): Promise<boolean> {
     // Delete
     const result = await LockingStorage.deleteLock(lock);
-    if (result === 0) {
+    if (!result) {
       Logging.logError({
         tenantID: lock.tenantID,
-        module: MODULE_NAME, method: 'acquire',
+        module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
-        message: `Lock '${lock.name}' of type '${lock.type}' does not exist`,
+        message: `Lock '${lock.name}' of type '${lock.type}' does not exist and cannot be released`,
         detailedMessages: { lock }
       });
       return false;
     }
     Logging.logDebug({
       tenantID: lock.tenantID,
-      module: MODULE_NAME, method: 'acquire',
+      module: MODULE_NAME, method: 'release',
       action: ServerAction.LOCKING,
       message: `Lock '${lock.name}' of type '${lock.type}' has been released successfully`,
       detailedMessages: { lock }

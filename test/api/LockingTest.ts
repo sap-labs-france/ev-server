@@ -62,5 +62,11 @@ describe('Locking Tests', function() {
       expect(result).not.null;
       expect(result).to.eql(true);
     });
+
+    it('Should not release an already released exclusive lock', async () => {
+      const result = await LockingManager.release(testData.exclusiveLock);
+      expect(result).not.null;
+      expect(result).to.eql(false);
+    });
   });
 });

@@ -44,7 +44,7 @@ export default class LockingStorage {
     Logging.traceEnd(MODULE_NAME, 'saveLock', uniqueTimerID, { lock: lockToSave });
   }
 
-  public static async deleteLock(lockToDelete: Lock): Promise<number> {
+  public static async deleteLock(lockToDelete: Lock): Promise<boolean> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteLock');
     // Delete
@@ -52,6 +52,6 @@ export default class LockingStorage {
       .findOneAndDelete({ '_id': lockToDelete.id });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteLock', uniqueTimerID, { lock: lockToDelete });
-    return result.ok;
+    return result.value !== null;
   }
 }
