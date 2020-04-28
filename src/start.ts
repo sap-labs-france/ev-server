@@ -99,10 +99,6 @@ export default class Bootstrap {
         });
         Bootstrap.databaseDone = true;
       }
-      // Clean the locks in DB belonging to the current app/host
-      if (cluster.isMaster && Bootstrap.databaseDone) {
-        await LockingStorage.cleanLocks();
-      }
       if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
