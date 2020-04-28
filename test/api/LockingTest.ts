@@ -6,12 +6,12 @@ import chai, { expect } from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import LockingManager from '../../src/locking/LockingManager';
-import Lock, { LockType } from '../../src/types/Lock';
+import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
+import global from '../../src/types/GlobalType';
+import Lock, { LockEntity, LockType } from '../../src/types/Locking';
 import Constants from '../../src/utils/Constants';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
-import global from '../../src/types/GlobalType';
-import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -22,6 +22,7 @@ class TestData {
 }
 
 const testData = new TestData();
+const lockName = 'test-lock';
 
 describe('Locking Tests', function() {
   this.timeout(30000);
@@ -35,12 +36,13 @@ describe('Locking Tests', function() {
   describe('Exclusive Locks', () => {
 
     it('Should create an exclusive lock', () => {
-      testData.exclusiveLock = LockingManager.createLock('mylock')
+      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockName)
       expect(testData.exclusiveLock).not.null;
       expect(testData.exclusiveLock.id).not.null;
       expect(testData.exclusiveLock.hostname).not.null;
       expect(testData.exclusiveLock.timestamp).not.null;
-      expect(testData.exclusiveLock.name).to.eql('mylock');
+      expect(testData.exclusiveLock.name).to.eql(lockName);
+      expect(testData.exclusiveLock.entity).to.eql(LockEntity.DATABASE);
       expect(testData.exclusiveLock.tenantID).to.eql(Constants.DEFAULT_TENANT);
       expect(testData.exclusiveLock.type).to.eql(LockType.EXCLUSIVE);
     });

@@ -5,6 +5,7 @@ import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
 import LockingManager from '../../locking/LockingManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { LockEntity } from '../../types/Locking';
 import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
@@ -63,7 +64,7 @@ export default class MongoDBStorage {
       // Get current indexes
       const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
       // Index creation Lock
-      const indexCreationLock = LockingManager.createLock(`create~indexes`);
+      const indexCreationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `create-indexes`);
       if (await LockingManager.acquire(indexCreationLock)) {
         try {
           // Check each index that should be created

@@ -2,7 +2,7 @@ import cfenv from 'cfenv';
 import os from 'os';
 import BackendError from '../exception/BackendError';
 import LockingStorage from '../storage/mongodb/LockingStorage';
-import Lock, { LockType } from '../types/Lock';
+import Lock, { LockEntity, LockType } from '../types/Locking';
 import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
@@ -17,8 +17,8 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createLock(name: string, type = LockType.EXCLUSIVE, tenantID: string = Constants.DEFAULT_TENANT): Lock {
-    if (!name) {
+  private static createLock(tenantID: string, lockEntity: LockEntity, lockName: string, type: LockType = LockType.EXCLUSIVE): Lock {
+    if (!lockName) {
       throw new BackendError({
         action: ServerAction.LOCKING,
         module: MODULE_NAME,
@@ -28,13 +28,18 @@ export default class LockingManager {
     }
     // Return the built lock
     return {
-      id: Cypher.hash(`${name.toLowerCase()}~${type}~${tenantID}`),
+      id: Cypher.hash(`${tenantID}~${lockEntity}~${lockName.toLowerCase()}~${type}`),
       tenantID,
-      name: name.toLowerCase(),
+      entity: lockEntity,
+      name: lockName.toLowerCase(),
       type: type,
       timestamp: new Date(),
       hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
     };
+  }
+
+  public static createExclusiveLock(tenantID: string, lockEntity: LockEntity, lockName: string): Lock {
+    return this.createLock(tenantID, lockEntity, lockName, LockType.EXCLUSIVE);
   }
 
   public static async acquire(lock: Lock): Promise<boolean> {

@@ -1,5 +1,5 @@
 import global from '../../types/GlobalType';
-import Lock from '../../types/Lock';
+import Lock from '../../types/Locking';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -32,6 +32,7 @@ export default class LockingStorage {
     const lockMDB = {
       _id: lockToSave.id,
       tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? Utils.convertToObjectID(lockToSave.tenantID) : null,
+      entity: lockToSave.entity,
       name: lockToSave.name,
       type: lockToSave.type,
       timestamp: Utils.convertToDate(lockToSave.timestamp),
