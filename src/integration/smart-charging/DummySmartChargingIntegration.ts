@@ -15,7 +15,7 @@ export default class DummySapSmartChargingIntegration<SmartChargingSetting> exte
       source: Constants.CENTRAL_SERVER,
       action: ServerAction.INSTANTIATE_DUMMY_MODULE,
       module: MODULE_NAME, method: 'constructor',
-      message: MODULE_NAME + ' have been imported, ensure its import follow its proper usage',
+      message: MODULE_NAME + ' have been instantiated, ensure its instantiation follow its proper usage',
       detailedMessages: { stack: error.stack }
     });
   }

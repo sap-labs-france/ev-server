@@ -35,7 +35,7 @@ const config = {
     ]
   },
   plugins: [
-    new WebpackShellPlugin({ onBuildStart: ['node src/componentsInit.js'] }),
+    new WebpackShellPlugin({ onBuildStart: ['node src/componentsExport.js'] }),
     new webpack.WatchIgnorePlugin([
       /\.js$/,
       /\.d\.ts$/
