@@ -372,6 +372,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         message: 'All the invoices are up to date'
       });
     }
+    return actionsDone;
   }
 
   async abstract checkConnection();

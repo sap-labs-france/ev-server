@@ -41,9 +41,7 @@ export default class BillingStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
     const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
-    if (params.invoiceID) {
-      filters._id = Utils.convertToObjectID(params.invoiceID);
-    } else if (params.search) {
+    if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
@@ -61,6 +59,13 @@ export default class BillingStorage {
       aggregation.push({
         $match: {
           'userID': { $eq: Utils.convertToObjectID(params.userID) }
+        }
+      });
+    }
+    if (params.invoiceID) {
+      aggregation.push({
+        $match: {
+          'invoiceID': { $eq: params.invoiceID }
         }
       });
     }
@@ -149,21 +154,13 @@ export default class BillingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveInvoice');
     const user = await UserStorage.getUserByBillingID(tenantId, invoiceToSave.customerID);
-    if (!user) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'saveInvoice',
-        message: 'User does not exists'
-      });
-    }
     // Build Request
     // Properties to save
     const invoiceMDB: any = {
       _id: invoiceToSave.id ? Utils.convertToObjectID(invoiceToSave.id) : new ObjectID(),
       invoiceID: invoiceToSave.invoiceID,
       number: invoiceToSave.number,
-      userID: Utils.convertToObjectID(user.id),
+      userID: user ? Utils.convertToObjectID(user.id) : null,
       customerID: invoiceToSave.customerID,
       amount: Utils.convertToFloat(invoiceToSave.amount),
       status: invoiceToSave.status,

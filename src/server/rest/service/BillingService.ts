@@ -287,9 +287,9 @@ export default class BillingService {
       });
     }
     // Sync invoices
-    await billingImpl.synchronizeInvoices(req.user.tenantID);
+    const synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID);
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(Object.assign(synchronizeAction, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 }
