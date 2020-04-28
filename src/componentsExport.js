@@ -34,11 +34,11 @@ class Components {
     fs.writeFileSync(indexModuleFile, exportModuleString);
   }
 
-  static init() {
+  static export() {
     this.exportConcurRefundIntegrationImpl()
     this.exportSapSmartChargingIntegrationImpl()
     this.exportConvergentChargingIntegrationImpl()
   }
 }
 
-Components.init()
+Components.export()
