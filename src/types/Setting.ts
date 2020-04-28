@@ -165,7 +165,8 @@ export interface BillingSettings extends Setting{
 }
 
 export interface BillingSetting {
-  lastSynchronizedOn?: Date;
+  usersLastSynchronizedOn?: Date;
+  invoicesLastSynchronizedOn?: Date;
 }
 
 export interface StripeBillingSetting extends BillingSetting {

@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
-import { Action, Entity, AuthorizationDefinition } from '../types/Authorization';
+import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
 import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
 
@@ -11,7 +11,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
-          condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.LOGGINGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.LOGGING, action: Action.READ, attributes: ['*'] },
@@ -28,7 +28,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.USER, action: [Action.CREATE, Action.READ, Action.UPDATE], attributes: ['*'] },
       {
         resource: Entity.USER, action: Action.DELETE, attributes: ['*'],
-          condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
       },
       { resource: Entity.COMPANIES, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.COMPANY, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
@@ -61,7 +61,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.CHECK_CONNECTION, Action.SYNCHRONIZE_USER, Action.SYNCHRONIZE_USERS]
       },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
-      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE_INVOICES], attributes: ['*'] },
       { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
@@ -94,7 +94,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
-      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE_INVOICES], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       {

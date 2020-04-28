@@ -158,8 +158,25 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return taxes;
   }
 
+  public async getInvoice(id: string): Promise<BillingInvoice> {
+    // Check Stripe
+    await this.checkConnection();
+    // Get Invoice
+    const stripeInvoice = await this.stripe.invoices.retrieve(id);
+    return {
+      invoiceID: stripeInvoice.id,
+      customerID: stripeInvoice.customer.toString(),
+      number: stripeInvoice.number,
+      amount: stripeInvoice.amount_due,
+      status: stripeInvoice.status as BillingInvoiceStatus,
+      currency: stripeInvoice.currency,
+      createdOn: new Date(),
+      nbrOfItems: stripeInvoice.lines.total_count
+    } as BillingInvoice;
+  }
+
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
-    const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
+    const createdSince = this.settings.usersLastSynchronizedOn ? `${moment(this.settings.usersLastSynchronizedOn).unix()}` : '0';
     let events: Stripe.IList<Stripe.events.IEvent>;
     const collectedCustomerIDs: string[] = [];
     const request = {
@@ -190,6 +207,44 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         action: ServerAction.BILLING_SYNCHRONIZE_USERS,
         module: MODULE_NAME, method: 'getUpdatedCustomersForSynchronization',
         message: `Impossible to retrieve changed customers from Stripe Billing: ${error.message}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    return collectedCustomerIDs;
+  }
+
+  public async getUpdatedInvoiceIDsInBilling(): Promise<string[]> {
+    const createdSince = this.settings.invoicesLastSynchronizedOn ? `${moment(this.settings.invoicesLastSynchronizedOn).unix()}` : '0';
+    let events: Stripe.IList<Stripe.events.IEvent>;
+    const collectedCustomerIDs: string[] = [];
+    const request = {
+      created: { gt: createdSince },
+      limit: StripeBillingIntegration.STRIPE_MAX_LIST,
+      type: 'invoice.*',
+    };
+    try {
+      // Check Stripe
+      await this.checkConnection();
+      // Loop until all users are read
+      do {
+        events = await this.stripe.events.list(request);
+        for (const evt of events.data) {
+          if (evt.data.object.object === 'invoice' && (evt.data.object as IResourceObject).id) {
+            if (!collectedCustomerIDs.includes((evt.data.object as IResourceObject).id)) {
+              collectedCustomerIDs.push((evt.data.object as IResourceObject).id);
+            }
+          }
+        }
+        if (request['has_more']) {
+          request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
+        }
+      } while (request['has_more']);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'getUpdatedInvoiceIDsInBilling',
+        message: `Impossible to retrieve changed invoices from Stripe Billing: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }

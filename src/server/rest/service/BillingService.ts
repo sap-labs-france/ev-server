@@ -261,4 +261,35 @@ export default class BillingService {
     res.json(invoices);
     next();
   }
+
+  public static async handleSynchronizeInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'handleSynchronizeInvoices',
+      });
+    }
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
+      Action.SYNCHRONIZE_USERS, Entity.BILLING, MODULE_NAME, 'handleSynchronizeInvoices');
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+    if (!billingImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Billing service is not configured',
+        module: MODULE_NAME, method: 'handleSynchronizeInvoices',
+        action: action,
+        user: req.user
+      });
+    }
+    // Sync invoices
+    await billingImpl.synchronizeInvoices(req.user.tenantID);
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
 }

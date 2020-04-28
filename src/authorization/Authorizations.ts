@@ -554,6 +554,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
+  public static canSynchronizeInvoicesBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }

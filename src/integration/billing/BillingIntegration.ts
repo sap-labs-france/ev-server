@@ -9,6 +9,7 @@ import Transaction from '../../types/Transaction';
 import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import BillingStorage from '../../storage/mongodb/BillingStorage';
 
 const MODULE_NAME = 'Billing';
 
@@ -174,7 +175,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
     // Update last synchronization
     const billingSettings = await SettingStorage.getBillingSettings(tenantID);
-    billingSettings.stripe.lastSynchronizedOn = new Date();
+    billingSettings.stripe.usersLastSynchronizedOn = new Date();
     await SettingStorage.saveBillingSettings(tenantID, billingSettings);
     // Result
     return actionsDone;
@@ -271,6 +272,108 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
   }
 
+  public async synchronizeInvoices(tenantID: string) {
+    this.checkConnection();
+    const actionsDone: BillingUserSynchronizeAction = {
+      inSuccess: 0,
+      inError: 0
+    };
+    // Get recently updated invoices from Billing application
+    const invoiceBillingIDsChangedInBilling = await this.getUpdatedInvoiceIDsInBilling();
+    if (invoiceBillingIDsChangedInBilling.length > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'synchronizeInvoices',
+        message: `${invoiceBillingIDsChangedInBilling.length} billing invoice(s) are going to be synchronized with e-Mobility invoices`
+      });
+    }
+    for (const invoiceBillingIDChangedInBilling of invoiceBillingIDsChangedInBilling) {
+      // Get updated billing invoice
+      const invoiceBilling = await this.getInvoice(invoiceBillingIDChangedInBilling);
+      if (!invoiceBilling) {
+        actionsDone.inError++;
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          message: `Billing invoice with ID '${invoiceBillingIDChangedInBilling}' does not exist in Billing system`
+        });
+        continue;
+      }
+      // Get e-Mobility invoice
+      const invoice = (await BillingStorage.getInvoices(tenantID, { invoiceID: invoiceBilling.invoiceID }, Constants.DB_PARAMS_SINGLE_RECORD)).result[0];
+      if (invoice) {
+        // If invoice already exists, set back its e-Mobility ID before saving
+        invoiceBilling.id = invoice.id;
+      } else {
+        // Associate e-Mobility user to invoice according to invoice customer ID
+        try {
+          const user = await UserStorage.getUserByBillingID(tenantID, invoiceBilling.customerID);
+          invoiceBilling.userID = user ? user.id : null;
+        } catch (error) {
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'synchronizeInvoices',
+            action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+            message: 'Unable to retrieve user in e-Mobility',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
+      }
+      try {
+        await BillingStorage.saveInvoice(tenantID, invoiceBilling);
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          message: 'Successfully synchronized invoice',
+        });
+        actionsDone.inSuccess++;
+      } catch (error) {
+        actionsDone.inError++;
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          message: 'Unable to save Billing invoice in e-Mobility',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
+    if (actionsDone.inSuccess || actionsDone.inError) {
+      if (actionsDone.inSuccess > 0) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          message: `${actionsDone.inSuccess} invoice(s) were successfully synchronized`
+        });
+      }
+      if (actionsDone.inError > 0) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: Constants.CENTRAL_SERVER,
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          message: `Synchronization failed with ${actionsDone.inError} errors. Check your Billing system's logs.`
+        });
+      }
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'synchronizeInvoices',
+        message: 'All the invoices are up to date'
+      });
+    }
+  }
+
   async abstract checkConnection();
 
   async abstract getUpdatedUserIDsInBilling(): Promise<string[]>;
@@ -302,6 +405,10 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
   async abstract userExists(user: User): Promise<boolean>;
 
   async abstract getTaxes(): Promise<BillingTax[]>;
+
+  async abstract getInvoice(id: string): Promise<BillingInvoice>;
+
+  async abstract getUpdatedInvoiceIDsInBilling(): Promise<string[]>;
 
   async abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<BillingInvoiceItem>;
 
