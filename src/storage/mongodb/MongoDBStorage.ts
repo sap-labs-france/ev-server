@@ -62,42 +62,39 @@ export default class MongoDBStorage {
     if (indexes) {
       // Get current indexes
       const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Check each index that should be created
-      for (const index of indexes) {
-        // Create
-        // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-        // Found?
-        if (!foundIndex) {
-          // Index creation Lock
-          const indexCreationLock = LockingManager.create(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await LockingManager.acquire(indexCreationLock)) {
-            // Create Index
-            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            // Release the index creation Lock
-            await LockingManager.release(indexCreationLock);
+      // Index creation Lock
+      const indexCreationLock = LockingManager.createLock(`create~indexes`);
+      if (await LockingManager.acquire(indexCreationLock)) {
+        try {
+          // Check each index that should be created
+          for (const index of indexes) {
+            // Create
+            // Check if it exists
+            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            if (!foundIndex) {
+              // Create Index
+              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            }
           }
-        }
-      }
-      // Check each index that should be dropped
-      for (const databaseIndex of databaseIndexes) {
-        // Bypass ID
-        if (databaseIndex.key._id) {
-          continue;
-        }
-        // Exists?
-        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-        // Found?
-        if (!foundIndex) {
-          // Index drop Lock
-          const indexDropLock = LockingManager.create(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
-
-          if (await LockingManager.acquire(indexDropLock)) {
-            // Drop Index
-            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            // Release the index drop Lock
-            await LockingManager.release(indexDropLock);
+          // Check each index that should be dropped
+          for (const databaseIndex of databaseIndexes) {
+            // Bypass ID
+            if (databaseIndex.key._id) {
+              continue;
+            }
+            // Exists?
+            const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+            if (!foundIndex) {
+              // Drop Index
+              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+            }
           }
+          // Release the index creation Lock
+          await LockingManager.release(indexCreationLock);
+        } catch (error) {
+          // Release the index creation Lock
+          await LockingManager.release(indexCreationLock);
+          throw error;
         }
       }
     }
