@@ -372,6 +372,10 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         message: 'All the invoices are up to date'
       });
     }
+    // Update last synchronization
+    const billingSettings = await SettingStorage.getBillingSettings(tenantID);
+    billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
+    await SettingStorage.saveBillingSettings(tenantID, billingSettings);
     return actionsDone;
   }
 
