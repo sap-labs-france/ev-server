@@ -322,7 +322,7 @@ export default class ChargingStationService {
     // Call the limitation
     const result = await chargingStationVendor.setPowerLimitation(
       req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
-    if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+    if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -343,7 +343,7 @@ export default class ChargingStationService {
       detailedMessages: { result }
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json({status: result.status});
     next();
   }
 
