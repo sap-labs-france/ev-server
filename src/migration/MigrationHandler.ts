@@ -33,10 +33,10 @@ export default class MigrationHandler {
     if (!cluster.isMaster) {
       return;
     }
-    // Create a Lock by migration name and version
+    // Create a Lock for migration
     const migrationLock = LockingManager.createLock(`migration`);
     if (!(await LockingManager.acquire(migrationLock))) {
-      return;        
+      return;
     }
     try {
       const startMigrationTime = moment();
@@ -117,7 +117,7 @@ export default class MigrationHandler {
   }
 
   static async _executeTask(currentMigrationTask): Promise<void> {
-    // Create a Lock by migration name and version (for async tasks)
+    // Create a Lock by migration name (for async tasks)
     const migrateTaskLock = LockingManager.createLock(`migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
     if (!(await LockingManager.acquire(migrateTaskLock))) {

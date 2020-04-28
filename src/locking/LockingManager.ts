@@ -22,7 +22,7 @@ export default class LockingManager {
       throw new BackendError({
         action: ServerAction.LOCKING,
         module: MODULE_NAME,
-        method: 'init',
+        method: 'createLock',
         message: 'Lock must have a name'
       });
     }
