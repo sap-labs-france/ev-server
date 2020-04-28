@@ -272,6 +272,12 @@ describe('Billing Service', function() {
         }
       });
 
+      it('Should synchronize invoices', async () => {
+        const response = await testData.userService.billingApi.synchronizeInvoices({});
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+        expect(response.data).containSubset({ inError: 0 });
+      });
+
       after(async () => {
         await TestData.setBillingSystemValidCredentials(testData);
         for (const user of testData.createdUsers) {
