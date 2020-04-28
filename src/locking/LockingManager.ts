@@ -17,7 +17,7 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createLock(name: string, type = LockType.EXCLUSIVE, tenantID: string = Constants.DEFAULT_TENANT, onMultipleHosts = true): Lock {
+  public static createLock(name: string, type = LockType.EXCLUSIVE, tenantID: string = Constants.DEFAULT_TENANT): Lock {
     if (!name) {
       throw new BackendError({
         action: ServerAction.LOCKING,
