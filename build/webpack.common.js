@@ -1,7 +1,7 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const WebpackShellPlugin = require('webpack-shell-plugin');
+const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -35,7 +35,13 @@ const config = {
     ]
   },
   plugins: [
-    new WebpackShellPlugin({ onBuildStart: ['node src/componentsExport.js'] }),
+    new WebpackShellPluginNext({
+      onBuildStart: {
+        scripts: ['node src/componentsExport.js'],
+        blocking: true,
+        parallel: false,
+      },
+    }),
     new webpack.WatchIgnorePlugin([
       /\.js$/,
       /\.d\.ts$/
