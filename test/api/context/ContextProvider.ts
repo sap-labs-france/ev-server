@@ -28,7 +28,7 @@ export default class ContextProvider {
     this.initialized = false;
   }
 
-  public static get DefaultInstance(): ContextProvider {
+  public static get defaultInstance(): ContextProvider {
     if (!ContextProvider._defaultInstance) {
       ContextProvider._defaultInstance = new ContextProvider();
     }

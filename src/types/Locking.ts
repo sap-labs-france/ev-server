@@ -3,7 +3,7 @@ export default interface Lock {
   id?: string;
   tenantID: string;
   entity: LockEntity;
-  name: string;
+  key: string;
   type: LockType;
   timestamp: Date;
   hostname: string;
@@ -16,4 +16,5 @@ export enum LockType {
 export enum LockEntity {
   DATABASE = 'database',
   DATABASE_INDEX = 'database-index',
+  SITE_AREA = 'site-area',
 }

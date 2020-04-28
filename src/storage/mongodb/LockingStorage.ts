@@ -33,7 +33,7 @@ export default class LockingStorage {
       _id: lockToSave.id,
       tenantID: lockToSave.tenantID !== Constants.DEFAULT_TENANT ? Utils.convertToObjectID(lockToSave.tenantID) : null,
       entity: lockToSave.entity,
-      name: lockToSave.name,
+      key: lockToSave.key,
       type: lockToSave.type,
       timestamp: Utils.convertToDate(lockToSave.timestamp),
       hostname: lockToSave.hostname
