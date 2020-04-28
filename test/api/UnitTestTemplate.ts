@@ -3,8 +3,8 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -34,23 +34,23 @@ describe('Template for Dev Unit Test', function() {
 
   describe('Usage of tenant context with all components', () => {
     it('Basic charging station transaction', async () => {
-      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-      const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-      const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
       const response = await chargingStationContext.startTransaction(1, user.tags[0].id, 0, moment());
       expect(response).to.be.transactionValid;
-      const userCentralService = tenantContextAll.getUserCentralServerService(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+      const userCentralService = tenantContextAll.getUserCentralServerService(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       const tenantListResponse = await userCentralService.transactionApi.readAllActive({});
     });
 
     it('usage of non assigned CS', async () => {
-      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
-      const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.NO_SITE);
-      const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
-      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
+      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+      const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.NO_SITE);
+      const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);
+      const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
       const response = await chargingStationContext.startTransaction(1, user.tags[0].id, 0, moment());
       expect(response).to.be.transactionStatus('Rejected');
     });

@@ -1,6 +1,6 @@
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
-import { Action } from '../../../types/Authorization';
+import { ServerAction } from '../../../types/Server';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -22,7 +22,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       if (!Utils.isTenantComponentActive(tenant, TenantComponents.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
-          action: Action.OCPI_GET_LOCATIONS,
+          action: ServerAction.OCPI_GET_LOCATIONS,
           module: MODULE_NAME, method: 'run',
           message: 'OCPI Inactive for this tenant. The task \'OCPIGetLocationsTask\' is skipped.'
         });
@@ -36,7 +36,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, Action.OCPI_GET_LOCATIONS, error);
+      Logging.logActionExceptionMessage(tenant.id, ServerAction.OCPI_GET_LOCATIONS, error);
     }
   }
 
@@ -46,7 +46,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     if (ocpiEndpoint.status !== OCPIRegistrationStatus.REGISTERED) {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: Action.OCPI_GET_LOCATIONS,
+        action: ServerAction.OCPI_GET_LOCATIONS,
         module: MODULE_NAME, method: 'processOCPIEndpoint',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
@@ -54,7 +54,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     } else if (!ocpiEndpoint.backgroundPatchJob) {
       Logging.logDebug({
         tenantID: tenant.id,
-        action: Action.OCPI_GET_LOCATIONS,
+        action: ServerAction.OCPI_GET_LOCATIONS,
         module: MODULE_NAME, method: 'processOCPIEndpoint',
         message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
@@ -62,7 +62,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     }
     Logging.logInfo({
       tenantID: tenant.id,
-      action: Action.OCPI_GET_LOCATIONS,
+      action: ServerAction.OCPI_GET_LOCATIONS,
       module: MODULE_NAME, method: 'processOCPIEndpoint',
       message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
     });
@@ -72,7 +72,7 @@ export default class OCPIGetLocationsTask extends SchedulerTask {
     const result = await ocpiClient.pullLocations();
     Logging.logInfo({
       tenantID: tenant.id,
-      action: Action.OCPI_GET_LOCATIONS,
+      action: ServerAction.OCPI_GET_LOCATIONS,
       module: MODULE_NAME, method: 'processOCPIEndpoint',
       message: `The GET Locations process for endpoint ${ocpiEndpoint.name} is completed`,
       detailedMessages: { result }

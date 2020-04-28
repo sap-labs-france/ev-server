@@ -1,11 +1,11 @@
 import chai, { assert, expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from '../api/client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import SiteContext from './contextProvider/SiteContext';
-import TenantContext from './contextProvider/TenantContext';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 import User from '../types/User';
 
 chai.use(chaiSubset);
@@ -40,12 +40,12 @@ describe('User tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant ut-org)', () => {
+  describe('With component Organization (tenant utorg)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
@@ -66,7 +66,7 @@ describe('User tests', function() {
 
     describe('Where admin user', () => {
       before(() => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         assert(testData.userContext, 'User context cannot be null');
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)

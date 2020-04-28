@@ -2,6 +2,7 @@ import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import ChargingStation from '../../types/ChargingStation';
+import { ServerAction } from '../../types/Server';
 import { OCPPConfigurationStatus } from '../../types/ocpp/OCPPClient';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
@@ -9,7 +10,6 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
 import global from './../../types/GlobalType';
-import { Action } from '../../types/Authorization';
 
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
@@ -55,7 +55,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: chargingStation.id,
-          action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
           message: `Charging Station is inactive and its OCPP Parameters cannot be updated in Tenant '${tenant.name}'`
         });
@@ -69,7 +69,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: chargingStation.id,
-            action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
             message: `Charging Station OCPP Parameters have been updated with Template in Tenant '${tenant.name}'`
           });
@@ -78,27 +78,27 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             source: chargingStation.id,
-            action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
             message: `Charging Station OCPP Parameters failed to be updated with Template ('${result.status}') in Tenant '${tenant.name}'`
           });
         }
-      } catch (error) {
+      } catch (err) {
         error++;
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: chargingStation.id,
-          action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
           message: `Charging Station OCPP Parameters failed to be updated with Template in Tenant '${tenant.name}'`,
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: err.message, stack: err.stack }
         });
       }
     }
     if (updated > 0) {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
         message: `${updated} Charging Station(s) have been updated with Template in Tenant '${tenant.name}'`
       });
@@ -106,7 +106,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (error > 0) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'updateChargingStationsOCPPParametersInTemplate',
         message: `${error} Charging Station(s) have failed to be updated with Template in Tenant '${tenant.name}'`
       });
@@ -144,7 +144,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'updateChargingStationsWithTemplate',
         message: `${updated} Charging Stations have been updated with Template in Tenant '${tenant.name}'`
       });
@@ -165,7 +165,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     if (result.modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'removeChargingStationUnusedPropsInDB',
         message: `${result.modifiedCount} Charging Stations unused properties have been removed in Tenant '${tenant.name}'`
       });
@@ -173,11 +173,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   private async updateChargingStationTemplate() {
-    try {
-      // Update current Chargers
-      ChargingStationStorage.updateChargingStationTemplatesFromFile();
-    } catch (error) {
-      Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, Action.UPDATE_CHARGING_STATION_TEMPLATES, error);
-    }
+    // Update current Chargers
+    ChargingStationStorage.updateChargingStationTemplatesFromFile().catch(
+      (error) => {
+        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.UPDATE_CHARGING_STATION_TEMPLATES, error);
+      });
   }
 }

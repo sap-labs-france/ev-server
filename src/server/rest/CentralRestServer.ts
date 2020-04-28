@@ -5,8 +5,9 @@ import morgan from 'morgan';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
 import util from 'util';
-import { Action, Entity } from '../../types/Authorization';
+import { Entity } from '../../types/Authorization';
 import ChangeNotification from '../../types/ChangeNotification';
+import { ServerAction } from '../../types/Server';
 import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 import Configuration from '../../utils/Configuration';
@@ -52,7 +53,7 @@ export default class CentralRestServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: Action.EXPRESS_SERVER,
+                action: ServerAction.EXPRESS_SERVER,
                 message: message
               });
             }
@@ -85,7 +86,7 @@ export default class CentralRestServer {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'constructor',
-        action: Action.EXPRESS_SERVER,
+        action: ServerAction.EXPRESS_SERVER,
         message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
         detailedMessages: 'Request: ' + util.inspect(req)
       });
@@ -106,7 +107,7 @@ export default class CentralRestServer {
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME, method: 'startSocketIO',
-      action: Action.STARTUP,
+      action: ServerAction.STARTUP,
       message: logMsg
     });
     // eslint-disable-next-line no-console
@@ -116,8 +117,8 @@ export default class CentralRestServer {
     CentralRestServer.socketIO.use((socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: 'start', action: Action.STARTUP,
+        module: MODULE_NAME, method: 'start',
+        action: ServerAction.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketHandshake: socket.handshake }
       });
@@ -134,24 +135,30 @@ export default class CentralRestServer {
       if (!userToken || !userToken.tenantID) {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: 'start', action: Action.STARTUP,
+          module: MODULE_NAME, method: 'start',
+          action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
         Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: 'start', action: Action.STARTUP,
-          message: 'SocketIO client is connected to tenant ' + userToken.tenantID,
+          tenantID: userToken.tenantID,
+          module: MODULE_NAME, method: 'start',
+          action: ServerAction.SOCKET_IO,
+          message: 'SocketIO client is connected',
           detailedMessages: { socketHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
         // Handle Socket IO connection
         socket.on('disconnect', () => {
-          // Nothing to do
+          Logging.logDebug({
+            tenantID: userToken.tenantID,
+            module: MODULE_NAME, method: 'start',
+            action: ServerAction.SOCKET_IO,
+            message: 'SocketIO client is disconnected',
+            detailedMessages: { socketHandshake: socket.handshake }
+          });
         });
       }
     });

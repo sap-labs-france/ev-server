@@ -1,7 +1,7 @@
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Transaction from '../../types/Transaction';
 import Constants from '../../utils/Constants';
@@ -60,7 +60,7 @@ export default class AddInactivityStatusInTransactionsTask extends MigrationTask
     if (modifiedCount > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${modifiedCount} Transactions' inactivity status have been updated in Tenant '${tenant.name}'`
       });

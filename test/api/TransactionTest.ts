@@ -3,9 +3,9 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import TransactionCommonTests from './TransactionCommonTests';
 
 chai.use(chaiDatetime);
@@ -40,17 +40,17 @@ describe('Transaction tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With components Organization and Pricing (tenant ut-all)', () => {
+  describe('With components Organization and Pricing (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
       // Do not use the same site as used for creating test data in the context builder!
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
 
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
       await testData.transactionCommonTests.before();
     });
@@ -64,7 +64,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
       });
 
@@ -74,16 +74,12 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
         it('Should not be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
         });
 
@@ -92,7 +88,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should not be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
@@ -109,7 +105,7 @@ describe('Transaction tests', function() {
         });
 
         it('Cannot read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
@@ -281,7 +277,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
       });
 
@@ -291,16 +287,12 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
         it('Should be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
@@ -309,12 +301,12 @@ describe('Transaction tests', function() {
         });
 
         it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });
@@ -383,17 +375,17 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('With component Organization without ACL (tenant ut-org)', () => {
+  describe('With component Organization without ACL (tenant utorg)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
       // Do not use the same site as used for creating test data in the context builder!
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL);
 
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
       await testData.transactionCommonTests.before();
     });
@@ -407,7 +399,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
       });
 
@@ -417,9 +409,6 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
 
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
@@ -434,7 +423,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should not be authorized to stop a transaction started by another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
@@ -455,7 +444,7 @@ describe('Transaction tests', function() {
         });
 
         it('Cannot read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
@@ -518,7 +507,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
       });
 
@@ -528,16 +517,12 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
         it('Should be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
@@ -546,12 +531,12 @@ describe('Transaction tests', function() {
         });
 
         it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });
@@ -596,14 +581,14 @@ describe('Transaction tests', function() {
 
   });
 
-  describe('Without any component (tenant ut-nothing)', () => {
+  describe('Without any component (tenant utnothing)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.transactionCommonTests = new TransactionCommonTests(testData.tenantContext, testData.centralUserContext);
 
-      testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
+      testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
       testData.transactionCommonTests.setChargingStation(testData.chargingStationContext);
       await testData.transactionCommonTests.before();
     });
@@ -617,7 +602,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
         );
       });
 
@@ -627,16 +612,12 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
         it('Should not be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tags[0].id);
         });
 
@@ -645,7 +626,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should not be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tags[0].id);
         });
 
@@ -662,7 +643,7 @@ describe('Transaction tests', function() {
         });
 
         it('Cannot read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testReadTransactionOfUser(false, anotherUser.tags[0].id);
         });
 
@@ -770,7 +751,7 @@ describe('Transaction tests', function() {
 
       before(() => {
         testData.transactionCommonTests.setUser(
-          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+          testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
         );
       });
 
@@ -780,16 +761,12 @@ describe('Transaction tests', function() {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
-        it('Should be authorized to start a transaction', async () => {
-          await testData.transactionCommonTests.testIsAuthorizedWithoutTransaction(true, true);
-        });
-
         it('Should be authorized on a started transaction by itself', async () => {
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true);
         });
 
         it('Should be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tags[0].id);
         });
 
@@ -798,12 +775,12 @@ describe('Transaction tests', function() {
         });
 
         it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tags[0].id);
         });
 
         it('Can read a transaction of another user', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          const anotherUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testReadTransactionOfUser(true, anotherUser.tags[0].id);
         });
       });

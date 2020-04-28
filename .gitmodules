@@ -2,19 +2,19 @@
 	path = src/assets/configs-aws
 	url = git@github.com:LucasBrazi06/ev-aws.git
 	branch = master
-[submodule "firmwares"]
-	path = firmwares
-	url = git@github.com:LucasBrazi06/ev-sap-charging-station-firmwares.git
-	branch = master-qa
 [submodule "src/integration/pricing/convergent-charging"]
 	path = src/integration/pricing/convergent-charging
-	url = git@github.com:LucasBrazi06/ev-sap-convergent-charging.git
+	url = git@github.com:LucasBrazi06/ev-sap-pricing-convergent-charging.git
 	branch = master-qa
 [submodule "src/integration/refund/concur"]
 	path = src/integration/refund/concur
-	url = git@github.com:LucasBrazi06/ev-sap-concur.git
+	url = git@github.com:LucasBrazi06/ev-sap-refund-concur.git
 	branch = master-qa
 [submodule "src/integration/smart-charging/sap-smart-charging"]
 	path = src/integration/smart-charging/sap-smart-charging
 	url = git@github.com:LucasBrazi06/ev-sap-smart-charging.git
 	branch = master-qa
+[submodule "src/assets/charging-station-templates"]
+	path = src/assets/charging-station-templates
+	url = git@github.com:LucasBrazi06/ev-sap-charging-station-templates.git
+	branch = master

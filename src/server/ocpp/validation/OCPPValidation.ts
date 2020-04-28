@@ -1,8 +1,8 @@
 import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
-import { Action } from '../../../types/Authorization';
 import ChargingStation from '../../../types/ChargingStation';
 import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
@@ -72,7 +72,7 @@ export default class OCPPValidation extends SchemaValidator {
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateStartTransaction',
         message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        action: Action.START_TRANSACTION
+        action: ServerAction.START_TRANSACTION
       });
     }
   }
@@ -98,7 +98,7 @@ export default class OCPPValidation extends SchemaValidator {
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
-        action: Action.METER_VALUES,
+        action: ServerAction.METER_VALUES,
         message: 'Connector ID must not be \'0\' and has been reset to \'1\''
       });
       // Set to 1 (KEBA has only one connector)
@@ -112,7 +112,7 @@ export default class OCPPValidation extends SchemaValidator {
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
-        action: Action.METER_VALUES,
+        action: ServerAction.METER_VALUES,
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
@@ -130,7 +130,7 @@ export default class OCPPValidation extends SchemaValidator {
             tenantID: tenantID,
             source: chargingStation.id,
             module: MODULE_NAME, method: 'validateMeterValues',
-            action: Action.METER_VALUES,
+            action: ServerAction.METER_VALUES,
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
           });
         }
@@ -144,7 +144,7 @@ export default class OCPPValidation extends SchemaValidator {
         tenantID: tenantID,
         source: chargingStation.id,
         module: MODULE_NAME, method: 'validateMeterValues',
-        action: Action.METER_VALUES,
+        action: ServerAction.METER_VALUES,
         message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
       });
       // Override it

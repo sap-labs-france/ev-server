@@ -6,7 +6,7 @@ import Constants from '../../../src/utils/Constants';
 import config from '../../config';
 import Factory from '../../factories/Factory';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from './ContextConstants';
+import ContextDefinition from './ContextDefinition';
 import SiteContext from './SiteContext';
 import TenantContext from './TenantContext';
 
@@ -46,12 +46,12 @@ export default class ContextProvider {
   async prepareContexts(tenantContextNames?: string[]) {
     await this._init();
     // Prepare list of tenants to create
-    let tenantContexts = CONTEXTS.TENANT_CONTEXT_LIST;
+    let tenantContexts = ContextDefinition.TENANT_CONTEXT_LIST;
     if (tenantContextNames) {
       if (!Array.isArray(tenantContextNames)) {
         tenantContextNames = [tenantContextNames];
       }
-      tenantContexts = tenantContextNames.map((tenantName) => CONTEXTS.TENANT_CONTEXT_LIST.find((tenantContext) => {
+      tenantContexts = tenantContextNames.map((tenantName) => ContextDefinition.TENANT_CONTEXT_LIST.find((tenantContext) => {
         tenantContext.tenantName === tenantName;
       }));
     }
@@ -110,7 +110,7 @@ export default class ContextProvider {
 
     if (tenantEntity.components && tenantEntity.components[TenantComponents.ORGANIZATION] &&
       tenantEntity.components[TenantComponents.ORGANIZATION].active) {
-      for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
+      for (const siteContextDef of ContextDefinition.TENANT_SITE_LIST) {
         const jsonSite = siteList.find((site) => site.name === siteContextDef.name);
         const siteContext = new SiteContext(jsonSite, newTenantContext);
         const siteAreas = siteAreaList.filter((siteArea) => siteContext.getSite().id === siteArea.siteID);
@@ -131,13 +131,13 @@ export default class ContextProvider {
     }
 
     const registrationToken = faker.random.alphaNumeric(10);
-    const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: '1.5' });
+    const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: '1.5' });
     await newTenantContext.addChargingStation(unregisteredChargingStation15, registrationToken);
-    const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: '1.6' });
+    const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: '1.6' });
     await newTenantContext.addChargingStation(unregisteredChargingStation16, registrationToken);
-    const invalidChargingStation15 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15, ocppVersion: '1.5' });
+    const invalidChargingStation15 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15, ocppVersion: '1.5' });
     await newTenantContext.addChargingStation(invalidChargingStation15);
-    const invalidChargingStation16 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: '1.6' });
+    const invalidChargingStation16 = await Factory.chargingStation.build({ id: ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: '1.6' });
     await newTenantContext.addChargingStation(invalidChargingStation16);
 
     return newTenantContext;
@@ -150,7 +150,7 @@ export default class ContextProvider {
   }
 
   _getTenantContextDef(tenantContextName, checkValid = true) {
-    const tenantContext = CONTEXTS.TENANT_CONTEXT_LIST.find((context) => context.tenantName === tenantContextName);
+    const tenantContext = ContextDefinition.TENANT_CONTEXT_LIST.find((context) => context.tenantName === tenantContextName);
     if (!tenantContext && checkValid) {
       throw new Error('Unknown context name ' + tenantContextName);
     }

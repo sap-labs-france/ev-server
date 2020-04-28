@@ -6,6 +6,8 @@ import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
+import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -17,7 +19,9 @@ import Address from '../../../types/Address';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { UserInErrorType } from '../../../types/InError';
+import { ServerAction } from '../../../types/Server';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
 import TenantComponents from '../../../types/TenantComponents';
 import { UserStatus } from '../../../types/User';
 import UserNotifications from '../../../types/UserNotifications';
@@ -26,14 +30,12 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UserSecurity from './security/UserSecurity';
 import UtilsService from './UtilsService';
-import { OCPITokenType, OCPITokenWhitelist } from '../../../types/ocpi/OCPIToken';
-import path from 'path';
 
 const MODULE_NAME = 'UserService';
 
 export default class UserService {
 
-  public static async handleAssignSitesToUser(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleAssignSitesToUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
@@ -120,7 +122,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleDeleteUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // Check Mandatory fields
@@ -324,7 +326,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUser(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     let statusHasChanged = false;
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
@@ -407,8 +409,8 @@ export default class UserService {
       const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
       if (billingImpl) {
         try {
-          const billingData = await billingImpl.updateUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+          const billingUser = await billingImpl.updateUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
         } catch (error) {
           Logging.logError({
             tenantID: req.user.tenantID,
@@ -560,7 +562,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleUpdateUserMobileToken(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateUserMobileToken(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
     // Check Mandatory fields
@@ -626,7 +628,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUser(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUser(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
@@ -677,7 +679,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserImage(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetUserImage(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
     // User mandatory
@@ -727,7 +729,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetSites(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSites(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.USER, MODULE_NAME, 'handleGetSites');
     // Filter
@@ -794,7 +796,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsers(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
@@ -837,7 +839,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUsersInError(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
       throw new AppAuthError({
@@ -877,7 +879,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleCreateUser(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateUser(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       throw new AppAuthError({
@@ -972,8 +974,8 @@ export default class UserService {
       if (billingImpl) {
         try {
           const user = await UserStorage.getUser(req.user.tenantID, newUserID);
-          const billingData = await billingImpl.createUser(user);
-          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+          const billingUser = await billingImpl.createUser(user);
+          await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingUser.billingData);
           Logging.logInfo({
             tenantID: req.user.tenantID,
             module: MODULE_NAME, method: 'handleCreateUser',
@@ -1044,7 +1046,7 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserInvoice(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUserInvoice(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
@@ -1092,8 +1094,7 @@ export default class UserService {
     if (!pricingSetting || !pricingSetting.convergentCharging) {
       Logging.logException(
         new Error('Convergent Charging setting is missing'),
-        Action.USER_INVOICE, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
-
+        action, Constants.CENTRAL_SERVER, MODULE_NAME, 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -1105,9 +1106,7 @@ export default class UserService {
       });
     }
     // Create services
-    const RatingService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/RatingService'));
     const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const ERPService = await Utils.importModule(path.join(__dirname, '../../../integration/pricing/convergent-charging/ERPService'));
     const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {

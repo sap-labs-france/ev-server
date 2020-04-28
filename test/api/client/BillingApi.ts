@@ -11,14 +11,14 @@ export default class BillingApi extends CrudApi {
   }
 
   public async synchronizeUsers(params?, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return await super.create(params, '/client/api/SynchronizeUsersForBilling');
+    return await super.create(params, '/client/api/BillingSynchronizeUsers');
   }
 
   public async synchronizeUser(params?) {
-    return await super.create(params, '/client/api/SynchronizeUserForBilling');
+    return await super.create(params, '/client/api/BillingSynchronizeUser');
   }
 
   public async forceSynchronizeUser(params?) {
-    return await super.create(params, '/client/api/ForceSynchronizeUserForBilling');
+    return await super.create(params, '/client/api/BillingForceSynchronizeUser');
   }
 }

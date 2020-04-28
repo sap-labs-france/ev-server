@@ -36,27 +36,27 @@ describe('Car Service', function() {
         });
         it('Should not be able to get cars', async () => {
           const response = await testData.centralService.carApi.readAll({});
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(560);
         });
 
         it('Should not be able to get car by ID', async () => {
           const response = await testData.centralService.carApi.readById();
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(560);
         });
 
         it('Should not be able to get image of a car', async () => {
           const response = await testData.centralService.carApi.readCarImages();
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(560);
         });
 
         it('Should not be able to get car makers', async () => {
           const response = await testData.centralService.carApi.readCarMakers({});
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(560);
         });
 
         it('Should not be able to get a detailed car', async () => {
           const response = await testData.centralService.carApi.readById();
-          expect(response.status).to.equal(500);
+          expect(response.status).to.equal(560);
         });
       });
       describe('Where car component is active', () => {

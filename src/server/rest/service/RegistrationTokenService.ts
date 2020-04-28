@@ -8,6 +8,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import DbParams from '../../../types/database/DbParams';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import RegistrationToken from '../../../types/RegistrationToken';
 import TenantComponents from '../../../types/TenantComponents';
@@ -20,7 +21,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'RegistrationTokenService';
 
 export default class RegistrationTokenService {
-  static async handleCreateRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleCreateRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokenCreateRequest(req.body);
@@ -84,7 +85,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleDeleteRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleDeleteRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
@@ -132,7 +133,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleRevokeRegistrationToken(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleRevokeRegistrationToken(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
@@ -183,7 +184,7 @@ export default class RegistrationTokenService {
     }
   }
 
-  static async handleGetRegistrationTokens(action: Action, req: Request, res: Response, next: NextFunction) {
+  static async handleGetRegistrationTokens(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListRegistrationTokens(req.user)) {

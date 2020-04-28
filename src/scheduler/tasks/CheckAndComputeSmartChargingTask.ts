@@ -1,12 +1,12 @@
-import { Action } from '../../types/Authorization';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import SchedulerTask from '../SchedulerTask';
 
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
@@ -28,7 +28,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             Logging.logError({
               tenantID: tenant.id,
               module: MODULE_NAME, method: 'run',
-              action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+              action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
               message: 'No implementation available for the Smart Charging',
             });
           }
@@ -39,7 +39,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
           Logging.logError({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'run',
-            action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+            action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
             message: `Error while running the task '${name}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });

@@ -6,8 +6,8 @@ import User from '../../src/types/User';
 import { InactivityStatus } from '../../src/types/Transaction';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import TenantContext from './context/TenantContext';
 import Utils from './Utils';
 
 chai.use(chaiSubset);
@@ -1139,18 +1139,6 @@ export default class TransactionCommonTests {
     const startDate = moment();
     const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
-
-    const isAuthorizedResponse = await this.chargingStationContext.isAuthorized(this.transactionUserService);
-    if (allowed) {
-      expect(isAuthorizedResponse.status).eq(200);
-      expect(isAuthorizedResponse.data).not.null;
-      expect(isAuthorizedResponse.data.length).eq(this.chargingStationContext.getChargingStation().connectors.length);
-      expect(isAuthorizedResponse.data[0].isStartAuthorized).eq(false);
-      expect(isAuthorizedResponse.data[0].isStopAuthorized).eq(canStop);
-      expect(isAuthorizedResponse.data[0].isTransactionDisplayAuthorized).eq(canRead);
-    } else {
-      expect(isAuthorizedResponse.status).eq(560);
-    }
   }
 
   public async testIsAuthorizedToStopTransaction(allowed: boolean, canStop?: boolean, transactionTag?: string) {
@@ -1160,31 +1148,6 @@ export default class TransactionCommonTests {
     const startDate = moment();
     const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
-
-    const isAuthorizedResponse = await this.chargingStationContext.isAuthorizedToStopTransaction(this.transactionUserService, response.data.transactionId);
-    if (allowed) {
-      expect(isAuthorizedResponse.status).eq(200);
-      expect(isAuthorizedResponse.data).not.null;
-      expect(isAuthorizedResponse.data.IsAuthorized).eq(canStop);
-    } else {
-      expect(isAuthorizedResponse.status).eq(560);
-    }
-  }
-
-  public async testIsAuthorizedWithoutTransaction(allowed: boolean, canStart?: boolean) {
-    const isAuthorizedResponse = await this.chargingStationContext.isAuthorized(this.transactionUserService);
-    if (allowed) {
-      expect(isAuthorizedResponse.status).eq(200);
-      expect(isAuthorizedResponse.data).not.null;
-      expect(isAuthorizedResponse.data.length).eq(this.chargingStationContext.getChargingStation().connectors.length);
-      for (let i = 0; i < this.chargingStationContext.getChargingStation().connectors.length; i++) {
-        expect(isAuthorizedResponse.data[i].isStartAuthorized).eq(canStart);
-        expect(isAuthorizedResponse.data[i].isStopAuthorized).eq(false);
-        expect(isAuthorizedResponse.data[i].isTransactionDisplayAuthorized).eq(false);
-      }
-    } else {
-      expect(isAuthorizedResponse.status).eq(560);
-    }
   }
 
   public async testSessionsAmountIncreaseByOne(params) {

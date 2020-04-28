@@ -2,16 +2,16 @@ import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClien
 import BackendError from '../../exception/BackendError';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { Action } from '../../types/Authorization';
 import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
+import { ServerAction } from '../../types/Server';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ChargingStationVendor';
 
-export default abstract class ChargingStationVendor {
+export default abstract class ChargingStationVendorIntegration {
   protected chargingStation: ChargingStation;
 
   constructor(chargingStation: ChargingStation) {
@@ -23,7 +23,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.POWER_LIMITATION,
+      action: ServerAction.POWER_LIMITATION,
       message: 'Set Power limitation is being called',
       module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { connectorID, maxAmps }
@@ -32,7 +32,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: ServerAction.POWER_LIMITATION,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station does not support static power limitation'
       });
@@ -40,7 +40,7 @@ export default abstract class ChargingStationVendor {
     if (connectorID > 0) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: ServerAction.POWER_LIMITATION,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
       });
@@ -48,7 +48,7 @@ export default abstract class ChargingStationVendor {
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: ServerAction.POWER_LIMITATION,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
@@ -56,7 +56,7 @@ export default abstract class ChargingStationVendor {
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: ServerAction.POWER_LIMITATION,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'The Charging Station has no connector',
         detailedMessages: { maxAmps }
@@ -69,7 +69,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.POWER_LIMITATION,
+        action: ServerAction.POWER_LIMITATION,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station is not connected to the backend',
       });
@@ -98,12 +98,12 @@ export default abstract class ChargingStationVendor {
         connector.amperageLimit = maxAmpsPerConnector;
       }
       // Save it
-      await ChargingStationStorage.saveChargingStation(Action.POWER_LIMITATION, tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     }
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.POWER_LIMITATION,
+      action: ServerAction.POWER_LIMITATION,
       message: 'Set Power limitation has been called',
       module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { result }
@@ -116,7 +116,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.OCPP_PARAM_UPDATE,
+      action: ServerAction.OCPP_PARAM_UPDATE,
       message: 'Check update of OCPP Params is being called',
       module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
       detailedMessages: { ocppParamName, ocppParamValue }
@@ -127,11 +127,11 @@ export default abstract class ChargingStationVendor {
         connector.amperageLimit = Utils.convertToInt(ocppParamValue);
       }
       // Save it
-      await ChargingStationStorage.saveChargingStation(Action.POWER_LIMITATION, tenantID, chargingStation);
+      await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.OCPP_PARAM_UPDATE,
+        action: ServerAction.OCPP_PARAM_UPDATE,
         message: 'Charging Station power limit has been updated following an OCPP parameter update',
         module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
         detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
@@ -140,7 +140,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.OCPP_PARAM_UPDATE,
+      action: ServerAction.OCPP_PARAM_UPDATE,
       message: 'Check update of OCPP Params has been called',
       module: MODULE_NAME, method: 'checkUpdateOfOCPPParams'
     });
@@ -151,7 +151,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       message: 'Set Charging Profile is being called',
       module: MODULE_NAME, method: 'setChargingProfile',
       detailedMessages: { chargingProfile }
@@ -160,7 +160,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station does not support charging profiles'
       });
@@ -170,7 +170,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
@@ -197,23 +197,23 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHARGING_PROFILE_UPDATE,
+            action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { result }
           });
           const results = [] as OCPPSetChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
-            const result = await chargingStationClient.setChargingProfile({
+            const ret = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
               csChargingProfiles: schneiderChargingProfile.profile
             });
-            results.push(result);
+            results.push(ret);
           }
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHARGING_PROFILE_UPDATE,
+            action: ServerAction.CHARGING_PROFILE_UPDATE,
             message: 'Set Charging Profile has been called',
             module: MODULE_NAME, method: 'setChargingProfile',
             detailedMessages: { results }
@@ -223,7 +223,7 @@ export default abstract class ChargingStationVendor {
         Logging.logDebug({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: Action.CHARGING_PROFILE_UPDATE,
+          action: ServerAction.CHARGING_PROFILE_UPDATE,
           message: 'Set Charging Profile has been called',
           module: MODULE_NAME, method: 'setChargingProfile',
           detailedMessages: { result }
@@ -238,7 +238,7 @@ export default abstract class ChargingStationVendor {
       Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Set Charging Profile has been called',
         module: MODULE_NAME, method: 'setChargingProfile',
         detailedMessages: { result }
@@ -248,7 +248,7 @@ export default abstract class ChargingStationVendor {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         message: 'Error occurred while setting the Charging Profile',
         module: MODULE_NAME, method: 'setChargingProfile',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -267,7 +267,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.CHARGING_PROFILE_DELETE,
+      action: ServerAction.CHARGING_PROFILE_DELETE,
       message: 'Clear Charging Profile is being called',
       module: MODULE_NAME, method: 'clearChargingProfile',
       detailedMessages: { chargingProfile }
@@ -276,7 +276,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station does not support charging profiles'
       });
@@ -286,7 +286,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearChargingProfile',
         message: 'Charging Station is not connected to the backend',
       });
@@ -303,7 +303,7 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHARGING_PROFILE_DELETE,
+            action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearChargingProfile',
             message: 'Clear Charging Profile on Connector ID 0 has been rejected, will try connector per connector',
             detailedMessages: { result }
@@ -311,10 +311,10 @@ export default abstract class ChargingStationVendor {
           const results = [] as OCPPClearChargingProfileCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Clear the Profile
-            const result = await chargingStationClient.clearChargingProfile({
+            const ret = await chargingStationClient.clearChargingProfile({
               connectorId: connector.connectorId
             });
-            results.push(result);
+            results.push(ret);
           }
           // Reapply the current limitation
           await this.setPowerLimitation(tenantID, chargingStation, 0,
@@ -322,7 +322,7 @@ export default abstract class ChargingStationVendor {
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHARGING_PROFILE_DELETE,
+            action: ServerAction.CHARGING_PROFILE_DELETE,
             message: 'Clear Charging Profile has been called',
             module: MODULE_NAME, method: 'clearChargingProfile',
             detailedMessages: { results }
@@ -337,7 +337,7 @@ export default abstract class ChargingStationVendor {
         Logging.logDebug({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: Action.CHARGING_PROFILE_DELETE,
+          action: ServerAction.CHARGING_PROFILE_DELETE,
           message: 'Clear Charging Profile has been called',
           module: MODULE_NAME, method: 'clearChargingProfile',
           detailedMessages: { result }
@@ -357,7 +357,7 @@ export default abstract class ChargingStationVendor {
       Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Clear Charging Profile has been called',
         module: MODULE_NAME, method: 'clearChargingProfile',
         detailedMessages: { result }
@@ -367,7 +367,7 @@ export default abstract class ChargingStationVendor {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearChargingProfile',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -381,7 +381,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.GET_COMPOSITE_SCHEDULE,
+      action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
       message: 'Get Composite Schedule is being called',
       module: MODULE_NAME, method: 'getCompositeSchedule',
       detailedMessages: { connectorID, durationSecs }
@@ -390,7 +390,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station does not support charging profiles'
       });
@@ -400,7 +400,7 @@ export default abstract class ChargingStationVendor {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         module: MODULE_NAME, method: 'getCompositeSchedule',
         message: 'Charging Station is not connected to the backend',
       });
@@ -419,7 +419,7 @@ export default abstract class ChargingStationVendor {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.GET_COMPOSITE_SCHEDULE,
+            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule on Connector ID 0 has been rejected, will try connector per connector',
             module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { result }
@@ -437,7 +437,7 @@ export default abstract class ChargingStationVendor {
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.GET_COMPOSITE_SCHEDULE,
+            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
             message: 'Get Composite Schedule has been called',
             module: MODULE_NAME, method: 'getCompositeSchedule',
             detailedMessages: { results }
@@ -447,7 +447,7 @@ export default abstract class ChargingStationVendor {
         Logging.logDebug({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: Action.GET_COMPOSITE_SCHEDULE,
+          action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
           message: 'Get Composite Schedule has been called',
           module: MODULE_NAME, method: 'getCompositeSchedule',
           detailedMessages: { result }
@@ -464,7 +464,7 @@ export default abstract class ChargingStationVendor {
       Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Get Composite Schedule has been called',
         module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { result }
@@ -474,7 +474,7 @@ export default abstract class ChargingStationVendor {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.GET_COMPOSITE_SCHEDULE,
+        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
         message: 'Error occurred while getting the Composite Schedule',
         module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -493,7 +493,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+      action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
       message: 'Get Current Connector Limit is being called',
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { connectorID }
@@ -506,7 +506,7 @@ export default abstract class ChargingStationVendor {
       if (connectorID === 0) {
         throw new BackendError({
           source: chargingStation.id,
-          action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+          action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
           module: MODULE_NAME, method: 'getCurrentConnectorLimit',
           message: 'Cannot get the current connector limit on Connector ID 0',
         });
@@ -534,7 +534,7 @@ export default abstract class ChargingStationVendor {
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+            action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
             message: 'Get Current Connector Limit has been called',
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
@@ -562,7 +562,7 @@ export default abstract class ChargingStationVendor {
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+            action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
             message: 'Get Current Connector Limit has been called',
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
@@ -574,7 +574,7 @@ export default abstract class ChargingStationVendor {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+        action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -589,7 +589,7 @@ export default abstract class ChargingStationVendor {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.GET_CONNECTOR_CURRENT_LIMIT,
+      action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
       message: 'Get Current Connector Limit has been called',
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }

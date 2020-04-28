@@ -23,6 +23,7 @@ import I18nManager from './utils/I18nManager';
 import Logging from './utils/Logging';
 import Utils from './utils/Utils';
 import { Action } from './types/Authorization';
+import { ServerAction } from './types/Server';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -93,15 +94,11 @@ export default class Bootstrap {
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
-          action: Action.STARTUP,
+          action: ServerAction.STARTUP,
           module: MODULE_NAME, method: 'start',
           message: logMsg
         });
         Bootstrap.databaseDone = true;
-      }
-      // Clean the locks in DB belonging to the current app/host
-      if (cluster.isMaster && Bootstrap.databaseDone) {
-        await LockingStorage.cleanLocks();
       }
       if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.migrationConfig.active) {
         // Check and trigger migration (only master process can run the migration)
@@ -114,7 +111,7 @@ export default class Bootstrap {
         console.log('Unhandled Rejection at Promise: ', p, ' reason: ', reason);
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
-          action: Action.STARTUP,
+          action: ServerAction.STARTUP,
           module: MODULE_NAME, method: 'start',
           message: `Reason: ${(reason ? reason.message : 'Not provided')}`,
           detailedMessages: (reason ? reason.stack : null)
@@ -137,7 +134,7 @@ export default class Bootstrap {
       console.error(error);
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'start',
         message: 'Unexpected exception',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -152,7 +149,7 @@ export default class Bootstrap {
       const logMsg = `${serverName} server worker ${worker.id} is online`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
         message: logMsg
       });
@@ -165,7 +162,7 @@ export default class Bootstrap {
         '.\n Starting new ' + serverName + ' server worker';
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
         message: logMsg
       });
@@ -184,7 +181,7 @@ export default class Bootstrap {
       const logMsg = `Starting ${serverName} server worker ${i} of ${Bootstrap.numWorkers}...`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServerWorkers',
         message: logMsg
       });
@@ -206,7 +203,7 @@ export default class Bootstrap {
       console.error(error);
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startMasters',
         message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -293,7 +290,7 @@ export default class Bootstrap {
       console.error(error);
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         module: MODULE_NAME, method: 'startServersListening',
         message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`,
         detailedMessages: { error: error.message, stack: error.stack }

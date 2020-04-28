@@ -1,11 +1,13 @@
-import { ObjectID } from 'mongodb';
 
 export default interface Lock {
-  id?: ObjectID;
-  keyHash: string;
+  id?: string;
+  tenantID: string;
   name: string;
-  type: string;
+  type: LockType;
   timestamp: Date;
   hostname: string;
-  onMultipleHosts: boolean;
+}
+
+export enum LockType {
+  EXCLUSIVE = 'E'
 }

@@ -5,6 +5,7 @@ import BackendError from '../../../../exception/BackendError';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 import { Action } from '../../../../types/Authorization';
 import { HTTPError } from '../../../../types/HTTPError';
+import { ServerAction } from '../../../../types/Server';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
@@ -53,7 +54,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Log body
     Logging.logInfo({
       tenantID: tenant.id,
-      action: Action.OCPI_DELETE_CREDENTIALS,
+      action: ServerAction.OCPI_DELETE_CREDENTIALS,
       message: 'Received unregister',
       source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'deleteCredentials',
@@ -67,7 +68,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'deleteCredentials',
         errorCode: 405,
-        action: Action.OCPI_DELETE_CREDENTIALS,
+        action: ServerAction.OCPI_DELETE_CREDENTIALS,
         message: 'method not allowed if the client was not registered',
         ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
       });
@@ -88,7 +89,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Log body
     Logging.logDebug({
       tenantID: tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received credential object',
       source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
@@ -99,7 +100,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Credential Object',
         ocpiError: OCPIStatusCode.CODE_2000_GENERIC_CLIENT_ERROR
@@ -113,7 +114,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Log body
     Logging.logDebug({
       tenantID: tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Received token',
       source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
@@ -126,7 +127,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'OCPI Endpoint not available or wrong token',
         ocpiError: OCPIStatusCode.CODE_3000_GENERIC_SERVER_ERROR
@@ -141,7 +142,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Log updated ocpi endpoint
     Logging.logDebug({
       tenantID: tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'OCPI Server found and updated with credential object',
       source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',
@@ -160,7 +161,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.id,
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI Versions',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
@@ -169,7 +170,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Check response
       if (!ocpiVersions.data || !ocpiVersions.data.data) {
         throw new BackendError({
-          action: Action.OCPI_POST_CREDENTIALS,
+          action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `Invalid response from GET ${ocpiEndpoint.baseUrl}`,
           module: MODULE_NAME, method: 'postCredentials',
           detailedMessages: { data: ocpiVersions.data }
@@ -186,7 +187,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
           // Log correct OCPI service found
           Logging.logDebug({
             tenantID: tenant.id,
-            action: Action.OCPI_POST_CREDENTIALS,
+            action: ServerAction.OCPI_POST_CREDENTIALS,
             message: 'Correct OCPI version found',
             source: Constants.CENTRAL_SERVER,
             module: MODULE_NAME, method: 'postCredentials',
@@ -197,7 +198,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // If not found trigger exception
       if (!versionFound) {
         throw new BackendError({
-          action: Action.OCPI_POST_CREDENTIALS,
+          action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `OCPI Endpoint version ${this.getVersion()} not found`,
           module: MODULE_NAME, method: 'postCredentials',
           detailedMessages: { data: ocpiVersions.data }
@@ -213,7 +214,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Log available OCPI services
       Logging.logDebug({
         tenantID: tenant.id,
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         message: 'Available OCPI services',
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
@@ -222,7 +223,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       // Check response
       if (!endpoints.data || !endpoints.data.data) {
         throw new BackendError({
-          action: Action.OCPI_POST_CREDENTIALS,
+          action: ServerAction.OCPI_POST_CREDENTIALS,
           message: `Invalid response from GET ${ocpiEndpoint.versionUrl}`,
           module: MODULE_NAME, method: 'postCredentials',
           detailedMessages: { data: endpoints.data }
@@ -234,7 +235,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCredentials',
-        action: Action.OCPI_POST_CREDENTIALS,
+        action: ServerAction.OCPI_POST_CREDENTIALS,
         errorCode: HTTPError.GENERAL_ERROR,
         message: `Unable to use client API: ${error.message}`,
         ocpiError: OCPIStatusCode.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
@@ -253,7 +254,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     // Log available OCPI Versions
     Logging.logDebug({
       tenantID: tenant.id,
-      action: Action.OCPI_POST_CREDENTIALS,
+      action: ServerAction.OCPI_POST_CREDENTIALS,
       message: 'Response with credential object',
       source: Constants.CENTRAL_SERVER,
       module: MODULE_NAME, method: 'postCredentials',

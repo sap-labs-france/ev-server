@@ -1,6 +1,7 @@
 import CentralRestServer from '../../server/rest/CentralRestServer';
 import { Action, Entity } from '../../types/Authorization';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MongoDBStorage from './MongoDBStorage';
@@ -22,7 +23,7 @@ export default class MongoDBStorageNotification {
     this.centralRestServer = centralRestServer;
   }
 
-  static getActionFromOperation(operation: string): string {
+  static getActionFromOperation(operation: string): Action {
     if (operation) {
       switch (operation) {
         case 'insert':
@@ -40,7 +41,7 @@ export default class MongoDBStorageNotification {
   static handleDBInvalidChange(tenantID: string, collection: string, change: Event) {
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
-      action: Action.DB_WATCH,
+      action: ServerAction.DB_WATCH,
       module: MODULE_NAME, method: 'handleDBInvalidChange',
       message: `Invalid change received on collection ${tenantID}.${collection}`,
       detailedMessages: { change }
@@ -50,7 +51,7 @@ export default class MongoDBStorageNotification {
   static handleDBChangeStreamError(error: Error) { // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
-      action: Action.DB_WATCH,
+      action: ServerAction.DB_WATCH,
       module: MODULE_NAME, method: 'handleDBChangeStreamError',
       message: `Error occurred in watching database: ${error}`,
       detailedMessages: { error: error.message, stack: error.stack }
@@ -91,21 +92,21 @@ export default class MongoDBStorageNotification {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is active`
       });
     } else {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
-        action: Action.STARTUP,
+        action: ServerAction.STARTUP,
         message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
       });
     }

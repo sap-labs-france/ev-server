@@ -9,6 +9,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
+import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -24,21 +25,21 @@ describe('Setting tests', function() {
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : 'ut-all' }, { limit: Constants.UNLIMITED, skip: 0 });
+    const response = await testData.superCentralService.tenantApi.readAll({ 'Search' : ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS }, { limit: Constants.UNLIMITED, skip: 0 });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
   });
 
   after(async function() {
     // Housekeeping
     // Reset components before leaving
-    testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+    testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name": "${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email": "${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
     const res = await testData.superCentralService.updateEntity(
       testData.centralService.tenantApi, testData.data);
     expect(res.status).to.equal(200);
   });
 
 
-  describe('Success cases (tenant ut-all)', () => {
+  describe('Success cases (tenant utall)', () => {
     it('Check that retrieving refund settings filtered by identifier returns just one result', async () => {
       // Retrieve the setting id
       const read = await testData.centralService.settingApi.readAll({ 'Identifier' : 'refund' }, { limit: Constants.UNLIMITED, skip: 0 });
@@ -93,7 +94,7 @@ describe('Setting tests', function() {
       // Store the old setting
       const oldSetting = read.data.result[0];
       // Activate convergent charging
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
       // Update convergent charging setting
@@ -114,7 +115,7 @@ describe('Setting tests', function() {
       let update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(200);
       // Activate back simple pricing
-      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
+      testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"${ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS}","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
       // Restore default simple pricing setting

@@ -3,11 +3,11 @@ import mongoUriBuilder from 'mongo-uri-builder';
 import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
-import { Action } from '../../types/Authorization';
+import LockingManager from '../../locking/LockingManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import LockManager from '../../locking/LockManager';
 import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -28,7 +28,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -47,7 +47,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Check Logs
@@ -62,42 +62,39 @@ export default class MongoDBStorage {
     if (indexes) {
       // Get current indexes
       const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Check each index that should be created
-      for (const index of indexes) {
-        // Create
-        // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-        // Found?
-        if (!foundIndex) {
-          // Index creation Lock
-          const indexCreationLock = LockManager.init(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await LockManager.tryAcquire(indexCreationLock)) {
-            // Create Index
-            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            // Release the index creation Lock
-            await LockManager.release(indexCreationLock);
+      // Index creation Lock
+      const indexCreationLock = LockingManager.createLock(`create~indexes`);
+      if (await LockingManager.acquire(indexCreationLock)) {
+        try {
+          // Check each index that should be created
+          for (const index of indexes) {
+            // Create
+            // Check if it exists
+            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            if (!foundIndex) {
+              // Create Index
+              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            }
           }
-        }
-      }
-      // Check each index that should be dropped
-      for (const databaseIndex of databaseIndexes) {
-        // Bypass ID
-        if (databaseIndex.key._id) {
-          continue;
-        }
-        // Exists?
-        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-        // Found?
-        if (!foundIndex) {
-          // Index drop Lock
-          const indexDropLock = LockManager.init(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
-
-          if (await LockManager.tryAcquire(indexDropLock)) {
-            // Drop Index
-            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            // Release the index drop Lock
-            await LockManager.release(indexDropLock);
+          // Check each index that should be dropped
+          for (const databaseIndex of databaseIndexes) {
+            // Bypass ID
+            if (databaseIndex.key._id) {
+              continue;
+            }
+            // Exists?
+            const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+            if (!foundIndex) {
+              // Drop Index
+              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+            }
           }
+          // Release the index creation Lock
+          await LockingManager.release(indexCreationLock);
+        } catch (error) {
+          // Release the index creation Lock
+          await LockingManager.release(indexCreationLock);
+          throw error;
         }
       }
     }
@@ -112,7 +109,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     const name = new RegExp(`^${tenantID}.`);
@@ -189,7 +186,7 @@ export default class MongoDBStorage {
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: Action.MONGO_DB
+          action: ServerAction.MONGO_DB
         });
       }
       // Get all the collections
@@ -213,7 +210,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Migrate not prefixed collections
@@ -234,7 +231,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Get all the collections

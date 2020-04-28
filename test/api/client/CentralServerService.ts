@@ -4,9 +4,11 @@ import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import config from '../../config';
+import ContextDefinition from '../context/ContextDefinition';
+import AssetApi from './AssetApi';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';
-import AssetApi from './AssetApi';
+import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import LogsApi from './LogsApi';
@@ -23,7 +25,6 @@ import UserApi from './UserApi';
 import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import BaseApi from './utils/BaseApi';
 import Constants from './utils/Constants';
-import CarApi from './CarApi';
 
 // Set
 chai.use(chaiSubset);
@@ -78,7 +79,7 @@ export default class CentralServerService {
     }
     // Create the Authenticated API
     if (!tenantSubdomain && tenantSubdomain !== '') {
-      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, config.get('admin.tenant'));
+      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
     } else {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }
@@ -104,7 +105,7 @@ export default class CentralServerService {
     this.carApiSuperTenant = new CarApi(this.authenticatedSuperAdminApi);
   }
 
-  public static get DefaultInstance(): CentralServerService {
+  public static get defaultInstance(): CentralServerService {
     if (CentralServerService._defaultInstance) {
       return CentralServerService._defaultInstance;
     }
@@ -279,4 +280,4 @@ export default class CentralServerService {
   }
 }
 
-const DefaultCentralServerService = CentralServerService.DefaultInstance;
+const DefaultCentralServerService = CentralServerService.defaultInstance;

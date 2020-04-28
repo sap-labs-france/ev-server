@@ -14,7 +14,6 @@ import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
-import { Action } from '../types/Authorization';
 import Asset from '../types/Asset';
 import { ChargingProfile } from '../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
@@ -23,6 +22,7 @@ import ConnectorStats from '../types/ConnectorStats';
 import { HTTPError } from '../types/HTTPError';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ServerAction } from '../types/Server';
 import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
@@ -35,8 +35,8 @@ import UserToken from '../types/UserToken';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
-import passwordGenerator = require('password-generator');
 import Logging from './Logging';
+import passwordGenerator = require('password-generator');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -223,44 +223,6 @@ export default class Utils {
       }
     }
   }
-
-  // Temporary method for Revenue Cloud concept
-  // static async pushTransactionToRevenueCloud(tenantID: string, action: Action, transaction: Transaction, user: User, actionOnUser: User) {
-  //   // Refund Transaction
-  //   const cloudRevenueAuth = new ClientOAuth2({
-  //     clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
-  //     clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
-  //     accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
-  //   });
-  //   // Get the token
-  //   const authResponse = await cloudRevenueAuth.credentials.getToken();
-  //   // Send HTTP request
-  //   const result = await axios.post(
-  //     'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
-  //     {
-  //       'metricId': 'ChargeCurrent_Trial',
-  //       'quantity': transaction.stop.totalConsumption / 1000,
-  //       'startedAt': transaction.timestamp,
-  //       'endedAt': transaction.stop.timestamp,
-  //       'userTechnicalId': transaction.tagID
-  //     },
-  //     {
-  //       'headers': {
-  //         'Authorization': 'Bearer ' + authResponse.accessToken,
-  //         'Content-Type': 'application/json'
-  //       }
-  //     }
-  //   );
-  //   // Log
-  //   Logging.logSecurityInfo({
-  //     user, actionOnUser, action,
-  //     tenantID: tenantID,
-  //     source: transaction.chargeBoxID,
-  //     module: MODULE_NAME, method: 'pushTransactionToRevenueCloud',
-  //     message: `Transaction ID '${transaction.id}' has been refunded successfully`,
-  //     detailedMessages: { data: result.data }
-  //   });
-  // }
 
   public static getLanguageFromLocale(locale: string) {
     let language = Constants.DEFAULT_LANGUAGE;
@@ -843,7 +805,7 @@ export default class Utils {
     if (!filteredRequest.profile) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile is mandatory',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -855,7 +817,7 @@ export default class Utils {
         !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -865,7 +827,7 @@ export default class Utils {
     if (!filteredRequest.profile.chargingSchedule.chargingSchedulePeriod) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Invalid Charging Profile\'s Schedule',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -875,7 +837,7 @@ export default class Utils {
     if (filteredRequest.profile.chargingSchedule.chargingSchedulePeriod.length === 0) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule must not be empty',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -885,7 +847,7 @@ export default class Utils {
     // pragma if (new Date(filteredRequest.profile.chargingSchedule.startSchedule).getTime() < new Date().getTime()) {
     //   throw new AppError({
     //     source: Constants.CENTRAL_SERVER,
-    //     action: Action.CHARGING_PROFILE_UPDATE,
+    //     action: ServerAction.CHARGING_PROFILE_UPDATE,
     //     errorCode: HTTPError.GENERAL_ERROR,
     //     message: 'Charging Profile\'s start date must not be in the past',
     //     module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -898,7 +860,7 @@ export default class Utils {
     if (!moment(endScheduleDate).isBefore(moment(filteredRequest.profile.chargingSchedule.startSchedule).add('1', 'd').add('1', 'm'))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Charging Profile\'s schedule should not exeed 24 hours',
         module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -910,7 +872,7 @@ export default class Utils {
       if (chargingSchedulePeriod.limit < StaticLimitAmps.MIN_LIMIT) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          action: Action.CHARGING_PROFILE_UPDATE,
+          action: ServerAction.CHARGING_PROFILE_UPDATE,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Charging Schedule is below the min limitation (${StaticLimitAmps.MIN_LIMIT}A)`,
           module: MODULE_NAME, method: 'checkIfChargingProfileIsValid',
@@ -1393,7 +1355,7 @@ export default class Utils {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        action: Action.IMPORT_MODULE,
+        action: ServerAction.IMPORT_MODULE,
         module: MODULE_NAME, method: 'isModuleAvailable',
         message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
       });

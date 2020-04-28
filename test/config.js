@@ -155,12 +155,6 @@ const config = convict({
       format: String,
       default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'ADMIN_PASSWORD'
-    },
-    tenant: {
-      doc: 'The admin tenant',
-      format: String,
-      default: '',
-      env: 'ADMIN_TENANT'
     }
   },
   superadmin: {

@@ -1,17 +1,17 @@
-import chai, { expect } from 'chai';
-import config from '../../config';
+import { expect } from 'chai';
 import faker from 'faker';
-import CentralServerService from '../client/CentralServerService';
-import ChargingStationContext from './ChargingStationContext';
-import CONTEXTS from './ContextConstants';
+import Utils from '../../../src/utils/Utils';
+import config from '../../config';
 import Factory from '../../factories/Factory';
+import Tenant from '../../types/Tenant';
+import CentralServerService from '../client/CentralServerService';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
+import ChargingStationContext from './ChargingStationContext';
+import ContextDefinition from './ContextDefinition';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
-import Tenant from '../../types/Tenant';
-import Utils from '../../../src/utils/Utils';
 
 export default class TenantContext {
 
@@ -153,7 +153,7 @@ export default class TenantContext {
     return this.context.users.find((user) => {
       let conditionMet = null;
       for (const key in params) {
-        const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
+        const userContextDef = ContextDefinition.TENANT_USER_LIST.find((userList) => userList.id === user.id);
         if (Utils.objectHasProperty(user, key)) {
           if (conditionMet !== null) {
             conditionMet = conditionMet && user[key] === params[key];

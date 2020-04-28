@@ -3,10 +3,10 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import StatisticsApi from './client/StatisticsApi';
-import StatisticsContext from './contextProvider/StatisticsContext';
+import StatisticsContext from './context/StatisticsContext';
 import Utils from './Utils';
 
 chai.use(chaiDatetime);
@@ -40,16 +40,16 @@ describe('Statistics tests', function() {
     // Prepare data before the whole test chain is started
     await ContextProvider.DefaultInstance.prepareContexts();
 
-    tenantContextNothing = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
-    let adminUser = tenantContextNothing.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+    tenantContextNothing = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
+    let adminUser = tenantContextNothing.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     adminUserServerServiceNothing = new CentralServerService(tenantContextNothing.getTenant().subdomain, adminUser);
 
-    tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-    const basicUser = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+    tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+    const basicUser = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
     basicUserServerService = new CentralServerService(tenantContextAll.getTenant().subdomain, basicUser);
-    adminUser = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+    adminUser = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     adminUserServerService = new CentralServerService(tenantContextAll.getTenant().subdomain, adminUser);
-    const demoUser = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.DEMO_USER);
+    const demoUser = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.DEMO_USER);
     demoUserServerService = new CentralServerService(tenantContextAll.getTenant().subdomain, demoUser);
 
     const allYears = await adminUserServerService.statisticsApi.readAllYears();
@@ -59,8 +59,8 @@ describe('Statistics tests', function() {
     }
 
     // Chargers of only one site area were used in the context builder for generating transaction data:
-    const siteContextAll = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-    const siteAreaContextAll = siteContextAll.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+    const siteContextAll = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+    const siteAreaContextAll = siteContextAll.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
     const chargingStationsAll = siteAreaContextAll.getChargingStations();
     numberOfChargers = chargingStationsAll.length;
 
@@ -82,117 +82,87 @@ describe('Statistics tests', function() {
     await ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without activated component (tenant ut-nothing)', () => {
+  describe('Without activated component (tenant utnothing)', () => {
 
     describe('Where even admin user', () => {
 
       it('Is not authorized to access consumption data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserConsumption({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access usage data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserUsage({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access inactivity data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserInactivity({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access sessions data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserTransactions({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to access pricing data', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserPricing({ Year: firstYear });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
       it('Is not authorized to export data to file', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on consumption data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on usage data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on inactivity data per user should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Transactions', DataCategory: 'C', DataScope: 'total' });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on sessions data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
 
         adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
-        expect(adminUserListResponse.status).to.be.eql(500);
-        expect(adminUserListResponse.data.message,
-          `Message from query for year ${firstYear} on pricing data per charging station should contain "inactive"`
-        ).to.contain('inactive');
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message).to.contain('not authorized');
       });
 
     });
 
   });
 
-  describe('With activated component (tenant ut-all)', () => {
+  describe('With activated component (tenant utall)', () => {
 
     describe('Where admin user', () => {
 
@@ -220,7 +190,7 @@ describe('Statistics tests', function() {
       });
 
       it('Should see overall usage data for another user', async () => {
-        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationUsage({ UserID: user.id });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
@@ -244,9 +214,9 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual inactivity data for a specific charger', async () => {
-        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-        const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-        const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+        const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+        const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
@@ -270,10 +240,10 @@ describe('Statistics tests', function() {
       });
 
       it('Should see overall sessions data for multiple chargers', async () => {
-        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-        const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-        const chargingStationContext1 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-        const chargingStationContext2 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+        const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+        const chargingStationContext1 = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const chargingStationContext2 = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({
           ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
         });
@@ -303,7 +273,7 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual pricing data for another user', async () => {
-        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationPricing({ Year: firstYear, UserID: user.id });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
@@ -398,9 +368,9 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual inactivity data of a specific charger only for own user', async () => {
-        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-        const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-        const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+        const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+        const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationInactivity({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
         expect(basicUserListResponse.status).to.be.eql(200);
         expect(basicUserListResponse.data,
@@ -424,7 +394,7 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual sessions data of a specific site only for own user', async () => {
-        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+        const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
         let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, SiteID: siteContext.getSite().id });
         expect(basicUserListResponse.status).to.be.eql(200);
         expect(basicUserListResponse.data,
@@ -519,9 +489,9 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual usage data for a specific charger', async () => {
-        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-        const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-        const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+        const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+        const chargingStationContext = siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationUsage({ Year: firstYear, ChargeBoxID: chargingStationContext.getChargingStation().id });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
@@ -545,7 +515,7 @@ describe('Statistics tests', function() {
       });
 
       it('Should see overall inactivity data for another user', async () => {
-        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationInactivity({ UserID: user.id });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
@@ -569,7 +539,7 @@ describe('Statistics tests', function() {
       });
 
       it('Should see annual sessions data for another user', async () => {
-        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, UserID: user.id });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,

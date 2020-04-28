@@ -1,24 +1,25 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SmartChargingSettingsType } from '../../../types/Setting';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+import HttpStatusCodes from 'http-status-codes';
+import _ from 'lodash';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SmartChargingSettingsType } from '../../../types/Setting';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../../utils/Logging';
-import SettingSecurity from './security/SettingSecurity';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Utils from '../../../utils/Utils';
+import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
-import _ from 'lodash';
 
 const MODULE_NAME = 'SettingService';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleDeleteSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleDeleteSetting', req.user);
@@ -53,7 +54,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(action, settingID, MODULE_NAME, 'handleGetSetting', req.user);
@@ -84,7 +85,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleGetSettings(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleGetSettings(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
       throw new AppAuthError({
@@ -115,7 +116,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleCreateSetting(action: Action, req: Request, res: Response, next: NextFunction) {
+  public static async handleCreateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
       throw new AppAuthError({
@@ -149,7 +150,7 @@ export default class SettingService {
     next();
   }
 
-  public static async handleUpdateSetting(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSetting(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
     UtilsService.assertIdIsProvided(action, settingUpdate.id, MODULE_NAME, 'handleUpdateSetting', req.user);

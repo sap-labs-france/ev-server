@@ -1,9 +1,9 @@
-import { Action } from '../../types/Authorization';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import { TransactionInError, TransactionInErrorType } from '../../types/InError';
 import { NotifySessionNotStarted } from '../../types/Notification';
 import RefundReport, { RefundStatus } from '../../types/Refund';
+import { ServerAction } from '../../types/Server';
 import Transaction, { InactivityStatus } from '../../types/Transaction';
 import User from '../../types/User';
 import Constants from '../../utils/Constants';
@@ -996,7 +996,7 @@ export default class TransactionStorage {
         Logging.logWarning({
           tenantID: tenantID,
           module: MODULE_NAME, method: '_findAvailableID',
-          action: Action.TRANSACTION_STARTED,
+          action: ServerAction.TRANSACTION_STARTED,
           message: `Transaction ID '${id}' already exists, generating a new one...`
         });
       } else {
