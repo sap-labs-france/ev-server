@@ -3,10 +3,10 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import StatisticsApi from './client/StatisticsApi';
-import StatisticsContext from './contextProvider/StatisticsContext';
+import StatisticsContext from './context/StatisticsContext';
 import Utils from './Utils';
 
 chai.use(chaiDatetime);

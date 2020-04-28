@@ -1,5 +1,6 @@
 import cfenv from 'cfenv';
 import os from 'os';
+import BackendError from '../exception/BackendError';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Lock, { LockType } from '../types/Lock';
 import { ServerAction } from '../types/Server';
@@ -16,56 +17,80 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static create(name: string, type = LockType.EXCLUSIVE, onMultipleHosts = true): Lock {
+  public static createLock(name: string, type = LockType.EXCLUSIVE, tenantID: string = Constants.DEFAULT_TENANT): Lock {
     if (!name) {
-      const logMsg = 'Lock must have a unique name';
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'init',
+      throw new BackendError({
         action: ServerAction.LOCKING,
-        message: logMsg
+        module: MODULE_NAME,
+        method: 'init',
+        message: 'Lock must have a name'
       });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-      return;
     }
+    // Return the built lock
     return {
-      keyHash: Cypher.hash(name.toLowerCase() + '~' + type),
+      id: Cypher.hash(`${name.toLowerCase()}~${type}~${tenantID}`),
+      tenantID,
       name: name.toLowerCase(),
       type: type,
       timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname(),
-      onMultipleHosts: onMultipleHosts,
+      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
     };
   }
 
-  public static async acquire(lock: Lock): Promise<void> {
-    if (!await LockingStorage.getLockStatus(lock)) {
-      await LockingStorage.saveLock(lock);
-    }
-  }
-
-  public static async tryAcquire(lock: Lock): Promise<boolean> {
-    if (await LockingStorage.getLockStatus(lock)) {
+  public static async acquire(lock: Lock): Promise<boolean> {
+    try {
+      switch (lock.type) {
+        case LockType.EXCLUSIVE:
+          await LockingStorage.insertLock(lock);
+          break;
+        default:
+          throw new BackendError({
+            action: ServerAction.LOCKING,
+            module: MODULE_NAME, method: 'acquire',
+            message: `Cannot acquire a lock with an unknown type ${lock.type}`,
+            detailedMessages: { lock }
+          });
+      }
+      Logging.logDebug({
+        tenantID: lock.tenantID,
+        module: MODULE_NAME, method: 'acquire',
+        action: ServerAction.LOCKING,
+        message: `Lock '${lock.name}' of type '${lock.type}' has been acquired successfully`,
+        detailedMessages: { lock }
+      });
+      return true;
+    } catch (error) {
+      Logging.logError({
+        tenantID: lock.tenantID,
+        module: MODULE_NAME, method: 'acquire',
+        action: ServerAction.LOCKING,
+        message: `Cannot acquire the lock '${lock.name}' of type '${lock.type}'`,
+        detailedMessages: { lock, error: error.message, stack: error.stack }
+      });
       return false;
     }
-    await LockingStorage.saveLock(lock);
-    return true;
   }
 
-  public static async release(lock: Lock): Promise<void> {
-    if (!await LockingStorage.getLockStatus(lock)) {
-      const logMsg = `Lock ${this.name} is not acquired`;
+  public static async release(lock: Lock): Promise<boolean> {
+    // Delete
+    const result = await LockingStorage.deleteLock(lock);
+    if (!result) {
       Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
+        tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
-        message: logMsg
+        message: `Lock '${lock.name}' of type '${lock.type}' does not exist and cannot be released`,
+        detailedMessages: { lock }
       });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-      return;
+      return false;
     }
-    await LockingStorage.deleteLock(lock);
+    Logging.logDebug({
+      tenantID: lock.tenantID,
+      module: MODULE_NAME, method: 'release',
+      action: ServerAction.LOCKING,
+      message: `Lock '${lock.name}' of type '${lock.type}' has been released successfully`,
+      detailedMessages: { lock }
+    });
+    return true;
   }
 }

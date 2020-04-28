@@ -4,7 +4,7 @@ import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
 import TenantComponents from '../../../src/types/TenantComponents';
 import User from '../../../src/types/User';
 import config from '../../config';
-import ContextDefinition from '../contextProvider/ContextDefinition';
+import ContextDefinition from '../context/ContextDefinition';
 import AssetApi from './AssetApi';
 import AuthenticationApi from './AuthenticationApi';
 import BillingApi from './BillingApi';

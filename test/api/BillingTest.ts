@@ -16,11 +16,11 @@ import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import SiteContext from './contextProvider/SiteContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
