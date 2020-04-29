@@ -596,14 +596,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await this.buildConsumptionFromTransactionAndMeterValue(
         headers.tenantID, chargingStation, transaction, transaction.timestamp, transaction.timestamp, {
-          id: '666',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.timestamp,
-          value: transaction.meterStart,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '666',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
@@ -826,14 +826,14 @@ export default class OCPPService {
       // Build final consumption
       const consumption: Consumption = await this.buildConsumptionFromTransactionAndMeterValue(
         headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-          id: '6969',
-          chargeBoxID: transaction.chargeBoxID,
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.stop.timestamp,
-          value: transaction.stop.meterStop,
-          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-        }
+        id: '6969',
+        chargeBoxID: transaction.chargeBoxID,
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.stop.timestamp,
+        value: transaction.stop.meterStop,
+        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
@@ -1189,19 +1189,25 @@ export default class OCPPService {
         consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
-      // Get limit of the site area
-      if (chargingStation.siteArea.maximumPower) {
-        consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-        consumption.limitSiteAreaAmps = chargingStation.siteArea.maximumPower / 230;
-      } else {
-        const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
-        consumption.limitSiteAreaWatts = 0;
-        for (const charger of siteArea.chargingStations) {
-          for (const connector of charger.connectors) {
-            consumption.limitSiteAreaWatts = consumption.limitSiteAreaWatts + connector.power;
+      // Check Org
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get limit of the site area
+        if (chargingStation.siteArea.maximumPower) {
+          consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
+          consumption.limitSiteAreaAmps = Math.round(chargingStation.siteArea.maximumPower / 230);
+        } else {
+          const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
+          consumption.limitSiteAreaWatts = 0;
+          if (siteArea && siteArea.chargingStations) {
+            for (const charger of siteArea.chargingStations) {
+              for (const connector of charger.connectors) {
+                consumption.limitSiteAreaWatts = consumption.limitSiteAreaWatts + connector.power;
+              }
+            }
+            consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / 230);
           }
         }
-        consumption.limitSiteAreaAmps = consumption.limitSiteAreaWatts / 230;
       }
       // Return
       return consumption;
