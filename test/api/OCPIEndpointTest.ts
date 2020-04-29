@@ -22,7 +22,7 @@ const testData: TestData = new TestData();
 describe('OCPI Endpoint tests (tenant utocpi)', function() {
   this.timeout(30000);
   before(async () => {
-    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
+    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     expect(testData.userContext).to.not.be.null;

@@ -5,6 +5,7 @@ import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
 import LockingManager from '../../locking/LockingManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { LockEntity } from '../../types/Locking';
 import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
@@ -62,39 +63,27 @@ export default class MongoDBStorage {
     if (indexes) {
       // Get current indexes
       const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Index creation Lock
-      const indexCreationLock = LockingManager.createLock(`create~indexes`);
-      if (await LockingManager.acquire(indexCreationLock)) {
-        try {
-          // Check each index that should be created
-          for (const index of indexes) {
-            // Create
-            // Check if it exists
-            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-            if (!foundIndex) {
-              // Create Index
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            }
-          }
-          // Check each index that should be dropped
-          for (const databaseIndex of databaseIndexes) {
-            // Bypass ID
-            if (databaseIndex.key._id) {
-              continue;
-            }
-            // Exists?
-            const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-            if (!foundIndex) {
-              // Drop Index
-              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            }
-          }
-          // Release the index creation Lock
-          await LockingManager.release(indexCreationLock);
-        } catch (error) {
-          // Release the index creation Lock
-          await LockingManager.release(indexCreationLock);
-          throw error;
+      // Check each index that should be created
+      for (const index of indexes) {
+        // Create
+        // Check if it exists
+        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+        if (!foundIndex) {
+          // Create Index
+          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+        }
+      }
+      // Check each index that should be dropped
+      for (const databaseIndex of databaseIndexes) {
+        // Bypass ID
+        if (databaseIndex.key._id) {
+          continue;
+        }
+        // Exists?
+        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+        if (!foundIndex) {
+          // Drop Index
+          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
         }
       }
     }
@@ -281,7 +270,19 @@ export default class MongoDBStorage {
       .toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
-      await this.checkAndCreateTenantDatabase(tenantId);
+      // Index creation Lock
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, `create-database`);
+      if (await LockingManager.acquire(createDatabaseLock)) {
+        try {
+          // Create Database
+          await this.checkAndCreateTenantDatabase(tenantId);
+          // Release the index creation Lock
+          await LockingManager.release(createDatabaseLock);
+        } catch (error) {
+          // Release the index creation Lock
+          await LockingManager.release(createDatabaseLock);
+        }
+      }
     }
   }
 
