@@ -9,12 +9,13 @@ import AppError from '../../../exception/AppError';
 import BackendError from '../../../exception/BackendError';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import { Action, Entity } from '../../../types/Authorization';
 import { ChargingProfile } from '../../../types/ChargingProfile';
 import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
@@ -25,7 +26,6 @@ import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPCli
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
-import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
 import I18nManager from '../../../utils/I18nManager';
@@ -322,7 +322,7 @@ export default class ChargingStationService {
     // Call the limitation
     const result = await chargingStationVendor.setPowerLimitation(
       req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
-    if (result.status !== OCPPConfigurationStatus.ACCEPTED) {
+    if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -343,7 +343,7 @@ export default class ChargingStationService {
       detailedMessages: { result }
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json({status: result.status});
     next();
   }
 
@@ -406,17 +406,29 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    // Call
-    const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
-    if (actionsResponse && actionsResponse.inError > 0) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        action: action,
-        errorCode: HTTPError.GENERAL_ERROR,
-        module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-        user: req.user,
-        message: 'Error occurred while triggering the smart charging',
-      });
+    const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+    if (!siteAreaLock) {
+      return;        
+    }
+    try {
+      // Call
+      const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
+      if (actionsResponse && actionsResponse.inError > 0) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          action: action,
+          errorCode: HTTPError.GENERAL_ERROR,
+          module: MODULE_NAME, method: 'handleTriggerSmartCharging',
+          user: req.user,
+          message: 'Error occurred while triggering the smart charging',
+        });
+      }
+      // Release lock
+      await LockingManager.release(siteAreaLock);
+    } catch (error) {
+      // Release lock
+      await LockingManager.release(siteAreaLock);
+      throw error;
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

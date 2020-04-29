@@ -90,7 +90,8 @@ export default abstract class ChargingStationVendorIntegration {
       };
     }
     // Update the DB OCPP configuration
-    if (result.status === OCPPConfigurationStatus.ACCEPTED) {
+    if (result.status === OCPPConfigurationStatus.ACCEPTED ||
+        result.status === OCPPConfigurationStatus.REBOOT_REQUIRED) {
       // Refresh Configuration
       await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
       // Update the charger's connectors

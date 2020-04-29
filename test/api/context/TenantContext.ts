@@ -1,17 +1,17 @@
-import chai, { expect } from 'chai';
-import config from '../../config';
+import { expect } from 'chai';
 import faker from 'faker';
-import CentralServerService from '../client/CentralServerService';
-import ChargingStationContext from './ChargingStationContext';
-import ContextDefinition from './ContextDefinition';
+import Utils from '../../../src/utils/Utils';
+import config from '../../config';
 import Factory from '../../factories/Factory';
+import Tenant from '../../types/Tenant';
+import CentralServerService from '../client/CentralServerService';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPService from '../ocpp/OCPPService';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
+import ChargingStationContext from './ChargingStationContext';
+import ContextDefinition from './ContextDefinition';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
-import Tenant from '../../types/Tenant';
-import Utils from '../../../src/utils/Utils';
 
 export default class TenantContext {
 

@@ -16,11 +16,11 @@ import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import { default as ClientConstants } from './client/utils/Constants';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import SiteContext from './contextProvider/SiteContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -107,7 +107,7 @@ describe('Billing Service', function() {
   this.timeout(1000000);
   describe('With component Billing (tenant utbilling)', () => {
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.userContext).to.not.be.null;
@@ -285,7 +285,7 @@ describe('Billing Service', function() {
 
     describe('Where basic user', () => {
       before(async () => {
-        testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
+        testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING);
         testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
         expect(testData.userContext).to.not.be.null;
@@ -397,7 +397,7 @@ describe('Billing Service', function() {
 
   describe('With component Billing (tenant utall)', () => {
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       expect(testData.userContext).to.not.be.null;
