@@ -330,7 +330,6 @@ export enum ServerAction {
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
   BILLING_SYNCHRONIZE_USER_INVOICES = 'BillingSynchronizeUserInvoices',
 
-
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
