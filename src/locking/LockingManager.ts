@@ -2,10 +2,9 @@ import cfenv from 'cfenv';
 import os from 'os';
 import BackendError from '../exception/BackendError';
 import LockingStorage from '../storage/mongodb/LockingStorage';
-import Lock, { LockType } from '../types/Lock';
+import Lock, { LockEntity, LockType } from '../types/Locking';
 import { ServerAction } from '../types/Server';
 import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
 import Cypher from '../utils/Cypher';
 import Logging from '../utils/Logging';
 
@@ -17,24 +16,45 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  public static createLock(name: string, type = LockType.EXCLUSIVE, tenantID: string = Constants.DEFAULT_TENANT, onMultipleHosts = true): Lock {
-    if (!name) {
+  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
+    if (!tenantID) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME,
-        method: 'init',
-        message: 'Lock must have a name'
+        module: MODULE_NAME, method: 'init',
+        message: 'Tenant must be provided',
+        detailedMessages: { tenantID, entity, key, type }
+      });
+    }
+    if (!entity) {
+      throw new BackendError({
+        action: ServerAction.LOCKING,
+        module: MODULE_NAME, method: 'init',
+        message: 'Entity must be provided',
+        detailedMessages: { tenantID, entity, key, type }
+      });
+    }
+    if (!key) {
+      throw new BackendError({
+        action: ServerAction.LOCKING,
+        module: MODULE_NAME, method: 'init',
+        message: 'Key must be provided',
+        detailedMessages: { tenantID, entity, key, type }
       });
     }
     // Return the built lock
     return {
-      id: Cypher.hash(`${name.toLowerCase()}~${type}~${tenantID}`),
+      id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
       tenantID,
-      name: name.toLowerCase(),
+      entity: entity,
+      key: key.toLowerCase(),
       type: type,
       timestamp: new Date(),
       hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
     };
+  }
+
+  public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string): Lock {
+    return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE);
   }
 
   public static async acquire(lock: Lock): Promise<boolean> {
@@ -47,7 +67,7 @@ export default class LockingManager {
           throw new BackendError({
             action: ServerAction.LOCKING,
             module: MODULE_NAME, method: 'acquire',
-            message: `Cannot acquire a lock with an unknown type ${lock.type}`,
+            message: `Cannot acquire a Lock entity '${lock.entity}' ('${lock.key}') with an unknown type '${lock.type}'`,
             detailedMessages: { lock }
           });
       }
@@ -55,7 +75,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Lock '${lock.name}' of type '${lock.type}' has been acquired successfully`,
+        message: `Acquired successfully the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
       return true;
@@ -64,7 +84,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Cannot acquire the lock '${lock.name}' of type '${lock.type}'`,
+        message: `Cannot acquire the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
       return false;
@@ -79,7 +99,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'release',
         action: ServerAction.LOCKING,
-        message: `Lock '${lock.name}' of type '${lock.type}' does not exist and cannot be released`,
+        message: `Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}' does not exist and cannot be released`,
         detailedMessages: { lock }
       });
       return false;
@@ -88,7 +108,7 @@ export default class LockingManager {
       tenantID: lock.tenantID,
       module: MODULE_NAME, method: 'release',
       action: ServerAction.LOCKING,
-      message: `Lock '${lock.name}' of type '${lock.type}' has been released successfully`,
+      message: `Released successfully the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
     return true;
