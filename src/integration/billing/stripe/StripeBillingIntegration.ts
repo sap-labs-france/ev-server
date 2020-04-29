@@ -170,7 +170,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       amount: stripeInvoice.amount_due,
       status: stripeInvoice.status as BillingInvoiceStatus,
       currency: stripeInvoice.currency,
-      createdOn: new Date(),
+      createdOn: new Date(stripeInvoice.created * 1000),
       nbrOfItems: stripeInvoice.lines.total_count
     } as BillingInvoice;
   }
@@ -213,10 +213,17 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedCustomerIDs;
   }
 
-  public async getUpdatedInvoiceIDsInBilling(): Promise<string[]> {
-    const createdSince = this.settings.invoicesLastSynchronizedOn ? `${moment(this.settings.invoicesLastSynchronizedOn).unix()}` : '0';
+  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
+    let createdSince: string;
+    if (billingUser) {
+      // Start sync from last user sync
+      createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
+    } else {
+      // Start sync from last global sync
+      createdSince = this.settings.invoicesLastSynchronizedOn ? `${moment(this.settings.invoicesLastSynchronizedOn).unix()}` : '0';
+    }
     let events: Stripe.IList<Stripe.events.IEvent>;
-    const collectedCustomerIDs: string[] = [];
+    const collectedInvoiceIDs: string[] = [];
     const request = {
       created: { gt: createdSince },
       limit: StripeBillingIntegration.STRIPE_MAX_LIST,
@@ -225,18 +232,27 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     try {
       // Check Stripe
       await this.checkConnection();
-      // Loop until all users are read
+      // Loop until all invoices are read
       do {
         events = await this.stripe.events.list(request);
         for (const evt of events.data) {
-          if (evt.data.object.object === 'invoice' && (evt.data.object as IResourceObject).id) {
-            if (!collectedCustomerIDs.includes((evt.data.object as IResourceObject).id)) {
-              collectedCustomerIDs.push((evt.data.object as IResourceObject).id);
+          if (evt.data.object.object === 'invoice' && (evt.data.object as IInvoice).id) {
+            const invoice = (evt.data.object as IInvoice);
+            if (!collectedInvoiceIDs.includes(invoice.id)) {
+              if (billingUser) {
+                // Collect specific user's invoices
+                if (billingUser.billingData.customerID === invoice.customer) {
+                  collectedInvoiceIDs.push(invoice.id);
+                }
+              } else {
+                // Collect every invoices
+                collectedInvoiceIDs.push(invoice.id);
+              }
             }
           }
         }
         if (request['has_more']) {
-          request['starting_after'] = collectedCustomerIDs[collectedCustomerIDs.length - 1];
+          request['starting_after'] = collectedInvoiceIDs[collectedInvoiceIDs.length - 1];
         }
       } while (request['has_more']);
     } catch (error) {
@@ -248,7 +264,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         detailedMessages: { error: error.message, stack: error.stack }
       });
     }
-    return collectedCustomerIDs;
+    return collectedInvoiceIDs;
   }
 
   public async createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {

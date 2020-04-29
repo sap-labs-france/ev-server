@@ -272,14 +272,29 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
   }
 
-  public async synchronizeInvoices(tenantID: string) {
+  public async synchronizeInvoices(tenantID: string, billingUser?: BillingUser) {
+    if (billingUser && (!billingUser.billingData || !billingUser.billingData.customerID)) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME, method: 'synchronizeInvoices',
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        message: 'User has no Billing data'
+      });
+    }
     this.checkConnection();
     const actionsDone: BillingUserSynchronizeAction = {
       inSuccess: 0,
       inError: 0
     };
     // Get recently updated invoices from Billing application
-    const invoiceBillingIDsChangedInBilling = await this.getUpdatedInvoiceIDsInBilling();
+    let invoiceBillingIDsChangedInBilling: string[];
+    if (billingUser) {
+      const user = await UserStorage.getUserByBillingID(tenantID, billingUser.billingData.customerID);
+      billingUser.billingData = user.billingData;
+      invoiceBillingIDsChangedInBilling = await this.getUpdatedInvoiceIDsInBilling(billingUser);
+    } else {
+      invoiceBillingIDsChangedInBilling = await this.getUpdatedInvoiceIDsInBilling();
+    }
     if (invoiceBillingIDsChangedInBilling.length > 0) {
       Logging.logInfo({
         tenantID: tenantID,
@@ -372,10 +387,35 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         message: 'All the invoices are up to date'
       });
     }
-    // Update last synchronization
-    const billingSettings = await SettingStorage.getBillingSettings(tenantID);
-    billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
-    await SettingStorage.saveBillingSettings(tenantID, billingSettings);
+    if (billingUser) {
+      // Update user last synchronization
+      const user = await UserStorage.getUserByBillingID(tenantID, billingUser.billingData.customerID);
+      user.billingData.invoicesLastSynchronizedOn = new Date();
+      if (!user) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          message: 'User does not exists in e-Mobility',
+        });
+      }
+      try {
+        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
+      } catch (error) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          message: 'Unable to save user Billing data',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    } else {
+      // Update global last synchronization
+      const billingSettings = await SettingStorage.getBillingSettings(tenantID);
+      billingSettings.stripe.invoicesLastSynchronizedOn = new Date();
+      await SettingStorage.saveBillingSettings(tenantID, billingSettings);
+    }
     return actionsDone;
   }
 
@@ -413,7 +453,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   async abstract getInvoice(id: string): Promise<BillingInvoice>;
 
-  async abstract getUpdatedInvoiceIDsInBilling(): Promise<string[]>;
+  async abstract getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]>;
 
   async abstract createInvoiceItem(user: BillingUser, invoiceID: string, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<BillingInvoiceItem>;
 

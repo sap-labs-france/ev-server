@@ -453,6 +453,7 @@ export default class UserStorage {
       updatedUserMDB.billingData.method = billingData.method;
       updatedUserMDB.billingData.cardID = billingData.cardID;
       updatedUserMDB.billingData.hasSynchroError = billingData.hasSynchroError;
+      updatedUserMDB.billingData.invoicesLastSynchronizedOn = billingData.invoicesLastSynchronizedOn;
       if (!updatedUserMDB.billingData.cardID) {
         delete updatedUserMDB.billingData.cardID;
       }

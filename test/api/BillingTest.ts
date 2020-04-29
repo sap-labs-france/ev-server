@@ -69,7 +69,7 @@ class TestData {
     } as StripeBillingSetting;
   }
 
-  private static async saveBillingSettings(testData, stripeSettings) {
+  public static async saveBillingSettings(testData, stripeSettings: StripeBillingSetting) {
     const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
@@ -275,7 +275,7 @@ describe('Billing Service', function() {
       it('Should synchronize invoices', async () => {
         const response = await testData.userService.billingApi.synchronizeInvoices({});
         expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-        expect(response.data).containSubset({ inError: 0 });
+        expect(response.data.inError).to.be.eq(0);
       });
 
       after(async () => {
@@ -442,6 +442,14 @@ describe('Billing Service', function() {
         const invoicesAfter = response.data.result;
         expect(invoicesAfter.length).to.be.eq(invoicesBefore.length + 1);
         expect(invoicesAfter[invoicesAfter.length - 1].status).to.be.eq(BillingInvoiceStatus.OPEN);
+      });
+
+      it('should synchronize 1 invoice after a transaction', async () => {
+        await testData.userService.billingApi.synchronizeInvoices({});
+        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const response = await testData.userService.billingApi.synchronizeInvoices({});
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+        expect(response.data.inSuccess).to.be.eq(1);
       });
     });
 

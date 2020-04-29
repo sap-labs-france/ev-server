@@ -28,6 +28,7 @@ export interface BillingUserData {
   subscriptionID?: string;
   lastChangedOn?: Date;
   hasSynchroError?: boolean;
+  invoicesLastSynchronizedOn?: Date;
 }
 
 export interface BillingUser {
