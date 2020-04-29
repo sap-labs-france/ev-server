@@ -109,14 +109,14 @@ export default class AssetService {
     }
     // Filter
     const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
-    let _errorType = [];
-    _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
+    // Build error type
+    const errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
     // Get the assets
     const assets = await AssetStorage.getAssetsInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        errorType: _errorType
+        errorType
       },
       { limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
