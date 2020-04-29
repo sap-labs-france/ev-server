@@ -1,4 +1,3 @@
-import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
@@ -6,7 +5,6 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
@@ -26,7 +24,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
       for (const siteArea of siteAreas.result) {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
         if (!siteAreaLock) {
-          return;        
+          return;
         }
         try {
           // Get implementation
