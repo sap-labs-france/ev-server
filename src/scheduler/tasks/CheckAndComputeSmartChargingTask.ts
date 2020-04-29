@@ -4,6 +4,10 @@ import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
+import LockingHelper from '../../locking/LockingHelper';
+import LockingManager from '../../locking/LockingManager';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
 import Utils from '../../utils/Utils';
@@ -20,6 +24,10 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         Constants.DB_PARAMS_MAX_LIMIT);
       // Get Site Area
       for (const siteArea of siteAreas.result) {
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
+        if (!siteAreaLock) {
+          return;        
+        }
         try {
           // Get implementation
           const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
@@ -34,7 +42,11 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
           }
           // Apply Charging Profiles
           await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          // Release lock
+          await LockingManager.release(siteAreaLock);
         } catch (error) {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
           // Log error
           Logging.logError({
             tenantID: tenant.id,
