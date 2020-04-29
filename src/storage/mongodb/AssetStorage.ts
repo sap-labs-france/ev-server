@@ -205,8 +205,7 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-    params: { search?: string; assetID?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
-      withNoSiteArea?: boolean; errorType?: string[]; } = {},
+    params: { search?: string; siteAreaIDs?: string[]; errorType?: string[]; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('AssetStorage', 'getAssetsInError');
@@ -218,49 +217,24 @@ export default class AssetStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
-    // Build filter
-    if (params.assetID) {
-      filters._id = Utils.convertToObjectID(params.assetID);
-    } else if (params.search) {
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
       ];
     }
-    // With no Site Area
-    if (params.withNoSiteArea) {
-      filters.$and = [
-        { 'siteAreaID': null }
-      ];
-    } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+    if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
       filters.$and = [
         { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
       ];
     }
     // Create Aggregation
     const aggregation = [];
-    // Limit on Asset for Basic Users
-    if (params.assetIDs && params.assetIDs.length > 0) {
-      // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) }
-        }
-      });
-    }
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
-    }
-    // Site Area
-    if (params.withSiteArea) {
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        {
-          tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true
-        });
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
