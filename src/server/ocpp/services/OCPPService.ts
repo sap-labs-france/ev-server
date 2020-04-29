@@ -705,7 +705,7 @@ export default class OCPPService {
     if (siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
       if (!siteAreaLock) {
-        return;        
+        return;
       }
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
@@ -714,10 +714,10 @@ export default class OCPPService {
         }
         // Release lock
         await LockingManager.release(siteAreaLock);
-      } catch (error) {    
+      } catch (error) {
         // Release lock
         await LockingManager.release(siteAreaLock);
-        throw error;            
+        throw error;
       }
     }
   }
