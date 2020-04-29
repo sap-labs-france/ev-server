@@ -7,6 +7,7 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Asset from '../../../types/Asset';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { AssetInErrorType } from '../../../types/InError';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
@@ -88,6 +89,45 @@ export default class AssetService {
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
+    // Check auth
+    if (!Authorizations.canListAssets(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.ASSETS,
+        module: MODULE_NAME,
+        method: 'handleGetAssetsInError'
+      });
+    }
+    // Filter
+    const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
+    let _errorType = [];
+    _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
+    // Get the assets
+    const assets = await AssetStorage.getAssetsInError(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        errorType: _errorType
+      },
+      { limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+    );
+    // Filter
+    AssetSecurity.filterAssetsResponse(assets, req.user);
+    // Return
+    res.json(assets);
     next();
   }
 

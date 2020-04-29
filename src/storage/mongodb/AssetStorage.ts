@@ -3,6 +3,7 @@ import Asset from '../../types/Asset';
 import DbParams from '../../types/database/DbParams';
 import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { AssetInErrorType } from '../../types/InError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -203,6 +204,140 @@ export default class AssetStorage {
     };
   }
 
+  public static async getAssetsInError(tenantID: string,
+    params: { search?: string; assetID?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
+      withNoSiteArea?: boolean; errorType?: string[]; } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('AssetStorage', 'getAssetsInError');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    const limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
+    // Build filter
+    if (params.assetID) {
+      filters._id = Utils.convertToObjectID(params.assetID);
+    } else if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+      ];
+    }
+    // With no Site Area
+    if (params.withNoSiteArea) {
+      filters.$and = [
+        { 'siteAreaID': null }
+      ];
+    } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
+      filters.$and = [
+        { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
+      ];
+    }
+    // Create Aggregation
+    const aggregation = [];
+    // Limit on Asset for Basic Users
+    if (params.assetIDs && params.assetIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) }
+        }
+      });
+    }
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Site Area
+    if (params.withSiteArea) {
+      DatabaseUtils.pushSiteAreaLookupInAggregation(
+        {
+          tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true
+        });
+    }
+    // Build facets for each type of error if any
+    const facets: any = { $facet: {} };
+    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+      // Build facet only for one error type
+      const array = [];
+      params.errorType.forEach((type) => {
+        array.push(`$${type}`);
+        facets.$facet[type] = AssetStorage.getAssetInErrorFacet(type);
+      });
+      aggregation.push(facets);
+      // Manipulate the results to convert it to an array of document on root level
+      aggregation.push({ $project: { assetsInError: { $setUnion: array } } });
+      aggregation.push({ $unwind: '$assetsInError' });
+      aggregation.push({ $replaceRoot: { newRoot: '$assetsInError' } });
+    }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const assetsCountMDB = await global.database.getCollection<DataResult<Asset>>(tenantID, 'assets')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (assetsCountMDB.length > 0 ? assetsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
+    // Sort
+    if (dbParams.sort) {
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    } else {
+      aggregation.push({
+        $sort: { name: 1 }
+      });
+    }
+    // Skip
+    if (skip > 0) {
+      aggregation.push({ $skip: skip });
+    }
+    // Limit
+    aggregation.push({
+      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
+    });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const assets = await global.database.getCollection<any>(tenantID, 'assets')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+    // Debug
+    Logging.traceEnd('AssetStorage', 'getAssetsInError', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    // Ok
+    return {
+      count: (assetsCountMDB.length > 0 ?
+        (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
+      result: assets
+    };
+  }
+
   public static async deleteAsset(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('AssetStorage', 'deleteAsset');
@@ -287,5 +422,17 @@ export default class AssetStorage {
       { upsert: true });
     // Debug
     Logging.traceEnd('AssetStorage', 'saveAssetImage', uniqueTimerID, {});
+  }
+
+  private static getAssetInErrorFacet(errorType: string) {
+    switch (errorType) {
+      case AssetInErrorType.MISSING_SITE_AREA:
+        return [
+          { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
+          { $addFields: { 'errorCode': AssetInErrorType.MISSING_SITE_AREA } }
+        ];
+      default:
+        return [];
+    }
   }
 }
