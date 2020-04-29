@@ -290,6 +290,14 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     let invoiceBillingIDsChangedInBilling: string[];
     if (billingUser) {
       const user = await UserStorage.getUserByBillingID(tenantID, billingUser.billingData.customerID);
+      if (!user) {
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: MODULE_NAME, method: 'synchronizeInvoices',
+          action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+          message: 'User does not exists in e-Mobility'
+        });
+      }
       billingUser.billingData = user.billingData;
       invoiceBillingIDsChangedInBilling = await this.getUpdatedInvoiceIDsInBilling(billingUser);
     } else {
