@@ -5,7 +5,7 @@ import config from '../config';
 import UserFactory from '../factories/UserFactory';
 import User from '../types/User';
 import CentralServerService from './client/CentralServerService';
-import ContextDefinition from './contextProvider/ContextDefinition';
+import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 

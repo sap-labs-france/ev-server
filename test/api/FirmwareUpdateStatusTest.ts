@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import SiteAreaContext from './contextProvider/SiteAreaContext';
-import SiteContext from './contextProvider/SiteContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import SiteAreaContext from './context/SiteAreaContext';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 
@@ -25,7 +25,7 @@ describe('Firmware Update Status Tests', function() {
 
   before(async () => {
     chai.config.includeStack = true;
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
@@ -34,13 +34,13 @@ describe('Firmware Update Status Tests', function() {
 
   after(async () => {
     // Final cleanup at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('With all components (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);

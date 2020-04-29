@@ -1,7 +1,7 @@
 import ContextDefinition from './ContextDefinition';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
-import { OCPPFirmwareStatus } from '../../../src/types/ocpp/OCPPServer';
+import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
 import faker from 'faker';

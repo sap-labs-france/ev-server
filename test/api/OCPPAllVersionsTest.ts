@@ -2,13 +2,13 @@ import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TenantContext from './context/TenantContext';
 import OCPPCommonTests from './OCPPCommonTests';
-import SiteAreaContext from './contextProvider/SiteAreaContext';
-import SiteContext from './contextProvider/SiteContext';
+import SiteAreaContext from './context/SiteAreaContext';
+import SiteContext from './context/SiteContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -30,7 +30,7 @@ describe('OCPP tests (all versions)', function() {
 
   before(async () => {
     chai.config.includeStack = true;
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
@@ -39,13 +39,13 @@ describe('OCPP tests (all versions)', function() {
 
   after(async () => {
     // Final clean up at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('Without any component (tenant utnothing)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 
@@ -311,7 +311,7 @@ describe('OCPP tests (all versions)', function() {
   describe('With component Organization only (tenant utorg)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext);
 
@@ -672,7 +672,7 @@ describe('OCPP tests (all versions)', function() {
   describe('With components Organization and Pricing (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 

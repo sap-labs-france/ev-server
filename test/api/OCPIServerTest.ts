@@ -4,9 +4,9 @@ import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
 import User from '../../src/types/User';
 import Factory from '../factories/Factory';
 import CentralServerService from './client/CentralServerService';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
-import TenantContext from './contextProvider/TenantContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TenantContext from './context/TenantContext';
 import OCPIService from './ocpi/OCPIService';
 
 chai.use(chaiSubset);
@@ -30,7 +30,7 @@ describe('OCPI Service Tests (tenant utocpi)', function() {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
-    testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
+    testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI);
     testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     expect(testData.userContext).to.not.be.null;

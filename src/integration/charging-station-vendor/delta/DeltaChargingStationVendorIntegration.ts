@@ -8,6 +8,6 @@ export default class DeltaChargingStationVendorIntegration extends ChargingStati
   }
 
   public getOCPPParamNameForChargingLimitation(): string {
-    return 'GridCurrent';
+    return 'Device/GridCurrent';
   }
 }

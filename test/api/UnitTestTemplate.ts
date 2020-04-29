@@ -3,8 +3,8 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -19,12 +19,12 @@ describe('Template for Dev Unit Test', function() {
   before(async () => {
     chai.config.includeStack = true;
     // Used to prepare data before the whole test chain is started
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
     // Should be called after each UT to clean up created data
-    ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   after(async () => {
@@ -34,7 +34,7 @@ describe('Template for Dev Unit Test', function() {
 
   describe('Usage of tenant context with all components', () => {
     it('Basic charging station transaction', async () => {
-      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const tenantContextAll = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
       const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
@@ -46,7 +46,7 @@ describe('Template for Dev Unit Test', function() {
     });
 
     it('usage of non assigned CS', async () => {
-      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const tenantContextAll = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       const user = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
       const siteContext = tenantContextAll.getSiteContext(ContextDefinition.SITE_CONTEXTS.NO_SITE);
       const siteAreaContext = siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.NO_SITE);

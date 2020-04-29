@@ -3,10 +3,10 @@ import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
-import ContextDefinition from './contextProvider/ContextDefinition';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import StatisticsApi from './client/StatisticsApi';
-import StatisticsContext from './contextProvider/StatisticsContext';
+import StatisticsContext from './context/StatisticsContext';
 import Utils from './Utils';
 
 chai.use(chaiDatetime);
@@ -38,13 +38,13 @@ describe('Statistics tests', function() {
     chai.config.includeStack = true;
 
     // Prepare data before the whole test chain is started
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
 
-    tenantContextNothing = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
+    tenantContextNothing = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
     let adminUser = tenantContextNothing.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
     adminUserServerServiceNothing = new CentralServerService(tenantContextNothing.getTenant().subdomain, adminUser);
 
-    tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+    tenantContextAll = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
     const basicUser = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
     basicUserServerService = new CentralServerService(tenantContextAll.getTenant().subdomain, basicUser);
     adminUser = tenantContextAll.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
@@ -79,7 +79,7 @@ describe('Statistics tests', function() {
 
   after(async () => {
     // Final clean up at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
   describe('Without activated component (tenant utnothing)', () => {

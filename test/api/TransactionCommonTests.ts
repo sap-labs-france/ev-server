@@ -6,8 +6,8 @@ import User from '../../src/types/User';
 import { InactivityStatus } from '../../src/types/Transaction';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import TenantContext from './context/TenantContext';
 import Utils from './Utils';
 
 chai.use(chaiSubset);
