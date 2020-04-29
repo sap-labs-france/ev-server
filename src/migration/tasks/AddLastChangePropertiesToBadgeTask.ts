@@ -1,7 +1,7 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -50,7 +50,7 @@ export default class AddLastChangePropertiesToBadgeTask extends MigrationTask {
     if (counter > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${counter} Tags(s) have been updated in Tenant '${tenant.name}'`
       });

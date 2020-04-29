@@ -1,12 +1,12 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
-import SiteAreaContext from './contextProvider/SiteAreaContext';
-import SiteContext from './contextProvider/SiteContext';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import SiteAreaContext from './context/SiteAreaContext';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 
@@ -25,7 +25,7 @@ describe('Firmware Update Status Tests', function() {
 
   before(async () => {
     chai.config.includeStack = true;
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
@@ -34,17 +34,17 @@ describe('Firmware Update Status Tests', function() {
 
   after(async () => {
     // Final cleanup at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With all components (tenant ut-all)', () => {
+  describe('With all components (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
       await testData.chargingStationContext.sendHeartbeat();
     });
 

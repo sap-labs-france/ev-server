@@ -1,8 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { Action } from '../../../../types/Authorization';
 import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
-import ChargingStation from '../../../../types/ChargingStation';
+import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
 import { ChargingStationInError } from '../../../../types/InError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
@@ -354,8 +353,8 @@ export default class ChargingStationSecurity {
       Arg2: sanitize(request.Arg2),
       Arg3: sanitize(request.Arg3)
     };
-    if (filteredRequest.Action === Action.REMOTE_STOP_TRANSACTION) {
-      filteredRequest.Action = Action.REMOTE_STOP_TRANSACTION;
+    if (filteredRequest.Action === Command.REMOTE_STOP_TRANSACTION) {
+      filteredRequest.Action = Command.REMOTE_STOP_TRANSACTION;
     }
     return filteredRequest;
   }

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin';
-import { Action } from '../../types/Authorization';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import User, { UserStatus } from '../../types/User';
 import { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
@@ -33,7 +33,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       } catch (error) {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
-          action: Action.REMOTE_PUSH_NOTIFICATION,
+          action: ServerAction.REMOTE_PUSH_NOTIFICATION,
           module: MODULE_NAME, method: 'constructor',
           message: `Error initializing Firebase: '${error.message}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -302,7 +302,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       Logging.logWarning({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
-        action: Action.REMOTE_PUSH_NOTIFICATION,
+        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
@@ -323,7 +323,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       Logging.logDebug({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
-        action: Action.REMOTE_PUSH_NOTIFICATION,
+        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
@@ -333,7 +333,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       Logging.logError({
         tenantID: tenant.id,
         source: (data && Utils.objectHasProperty(data, 'chargeBoxID') ? data['chargeBoxID'] : null),
-        action: Action.REMOTE_PUSH_NOTIFICATION,
+        action: ServerAction.REMOTE_PUSH_NOTIFICATION,
         module: MODULE_NAME, method: 'sendRemotePushNotificationToUsers',
         message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,

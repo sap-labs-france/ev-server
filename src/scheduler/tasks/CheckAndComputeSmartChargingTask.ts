@@ -1,12 +1,14 @@
-import { Action } from '../../types/Authorization';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
+import LockingHelper from '../../locking/LockingHelper';
+import LockingManager from '../../locking/LockingManager';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import SchedulerTask from '../SchedulerTask';
 
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
@@ -20,6 +22,10 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
         Constants.DB_PARAMS_MAX_LIMIT);
       // Get Site Area
       for (const siteArea of siteAreas.result) {
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
+        if (!siteAreaLock) {
+          return;        
+        }
         try {
           // Get implementation
           const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
@@ -28,18 +34,22 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             Logging.logError({
               tenantID: tenant.id,
               module: MODULE_NAME, method: 'run',
-              action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+              action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
               message: 'No implementation available for the Smart Charging',
             });
           }
           // Apply Charging Profiles
           await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          // Release lock
+          await LockingManager.release(siteAreaLock);
         } catch (error) {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
           // Log error
           Logging.logError({
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'run',
-            action: Action.CHECK_AND_APPLY_SMART_CHARGING,
+            action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
             message: `Error while running the task '${name}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });

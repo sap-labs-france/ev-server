@@ -4,6 +4,8 @@ import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -11,6 +13,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import { ActionsResponse } from '../../../types/GlobalType';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
 import TenantComponents from '../../../types/TenantComponents';
 import Constants from '../../../utils/Constants';
@@ -23,7 +26,7 @@ import UtilsService from './UtilsService';
 const MODULE_NAME = 'SiteAreaService';
 
 export default class SiteAreaService {
-  public static async handleDeleteSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.DELETE, Entity.SITE_AREA, MODULE_NAME, 'handleDeleteSiteArea');
@@ -64,7 +67,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteArea');
@@ -97,7 +100,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreaImage(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreaImage(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.READ, Entity.SITE_AREA, MODULE_NAME, 'handleGetSiteAreaImage');
@@ -130,7 +133,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreas(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreas(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreas');
@@ -167,7 +170,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleGetSiteAreaConsumption(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetSiteAreaConsumption(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.LIST, Entity.SITE_AREAS, MODULE_NAME, 'handleGetSiteAreaConsumption');
@@ -230,7 +233,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleCreateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.CREATE, Entity.SITE_AREAS, MODULE_NAME, 'handleCreateSiteArea');
@@ -274,7 +277,7 @@ export default class SiteAreaService {
     next();
   }
 
-  public static async handleUpdateSiteArea(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
       Action.UPDATE, Entity.SITE_AREA, MODULE_NAME, 'handleUpdateSiteArea');
@@ -324,21 +327,29 @@ export default class SiteAreaService {
     // Regtrigger Smart Charging
     if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
       setTimeout(async () => {
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+          if (!siteAreaLock) {
+            return;        
           }
-        } catch (error) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME, method: 'handleUpdateSiteArea',
-            action: Action.UPDATE,
-            message: 'An error occurred while trying to call smart charging',
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
-        }
+          try {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+            // Release lock
+            await LockingManager.release(siteAreaLock);
+          } catch (error) {
+            // Release lock
+            await LockingManager.release(siteAreaLock);
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              source: Constants.CENTRAL_SERVER,
+              module: MODULE_NAME, method: 'handleUpdateSiteArea',
+              action: action,
+              message: 'An error occurred while trying to call smart charging',
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log

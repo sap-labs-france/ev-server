@@ -1,10 +1,10 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
-import TenantContext from './contextProvider/TenantContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 
@@ -26,7 +26,7 @@ describe('Company Org tests', function() {
 
   before(async () => {
     chai.config.includeStack = true;
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
@@ -35,14 +35,14 @@ describe('Company Org tests', function() {
 
   after(async () => {
     // Final clean up at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('With component Organization (tenant ut-org)', () => {
+  describe('With component Organization (tenant utorg)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
@@ -73,7 +73,7 @@ describe('Company Org tests', function() {
     describe('Where admin user', () => {
 
       before(async () => {
-        testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        testData.userContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
         if (testData.userContext === testData.centralUserContext) {
           // Reuse the central user service (to avoid double login)
           testData.userService = testData.centralUserService;

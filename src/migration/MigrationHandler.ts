@@ -1,9 +1,9 @@
 import cluster from 'cluster';
 import moment from 'moment';
+import LockingManager from '../locking/LockingManager';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import { Action } from '../types/Authorization';
+import { ServerAction } from '../types/Server';
 import Constants from '../utils/Constants';
-import LockManager from '../locking/LockManager';
 import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
@@ -24,26 +24,31 @@ import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
+import { LockEntity } from '../types/Locking';
 
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
   static async migrate() {
+    // Check we're on the master nodejs process
+    if (!cluster.isMaster) {
+      return;
+    }
+    // Create a Lock by migration name and version
+    const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration');
+    if (!(await LockingManager.acquire(migrationLock))) {
+      return;        
+    }
     try {
-      // Check we're on the master nodejs process
-      if (!cluster.isMaster) {
-        return;
-      }
       const startMigrationTime = moment();
       const currentMigrationTasks = [];
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: 'Running migration tasks...'
       });
-
       // Create tasks
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
@@ -64,10 +69,8 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
       currentMigrationTasks.push(new InitialCarImportTask());
       currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
-
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
-
       // Check
       for (const currentMigrationTask of currentMigrationTasks) {
         // Check if not already done
@@ -95,30 +98,37 @@ export default class MigrationHandler {
       const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `The migration has been run in ${totalMigrationTimeSecs} secs`
       });
+      // Release lock
+      await LockingManager.release(migrationLock);
     } catch (error) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: error.toString(),
         detailedMessages: { error: error.message, stack: error.stack }
       });
+      // Release lock
+      await LockingManager.release(migrationLock);
     }
   }
 
   static async _executeTask(currentMigrationTask): Promise<void> {
-    // Create a Lock by migration name and version
-    const migrationLock = LockManager.init(`migrate~task~${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
+    // Create a Lock by migration name and version (for async tasks)
+    const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
-    if (await LockManager.tryAcquire(migrationLock)) {
+    if (!(await LockingManager.acquire(migrateTaskLock))) {
+      return;
+    }
+    try {
       // Log Start Task
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
       });
@@ -142,7 +152,7 @@ export default class MigrationHandler {
       });
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
       });
@@ -150,7 +160,11 @@ export default class MigrationHandler {
       // eslint-disable-next-line no-console
       console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
       // Release the migration lock
-      await LockManager.release(migrationLock);
+      await LockingManager.release(migrateTaskLock);
+    } catch (error) {
+      // Release the migration lock
+      await LockingManager.release(migrateTaskLock);
+      throw error;
     }
   }
 }

@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { AnalyticsSettingsType, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SimplePricingSetting, SmartChargingSettingsType } from '../../../src/types/Setting';
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
 
 export interface TenantDefinition {
   id: string;
@@ -19,18 +19,18 @@ export interface TenantDefinition {
   };
 }
 
-export default class CONTEXTS {
+export default class ContextDefinition {
   static readonly TENANT_CONTEXTS: any = {
-    TENANT_WITH_ALL_COMPONENTS: 'ut-all', // All components are active
-    TENANT_WITH_NO_COMPONENTS: 'ut-nothing', // No components are active
-    TENANT_ORGANIZATION: 'ut-org', // Only organization component is active
-    TENANT_SIMPLE_PRICING: 'ut-pricing', // Only pricing component is active
-    TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
-    TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
-    TENANT_FUNDING: 'ut-refund', // Only refund component is active
-    TENANT_BILLING: 'ut-billing', // Only billing and pricing component is active
-    TENANT_ASSET: 'ut-asset', // Only asset component is active
-    TENANT_CAR: 'ut-car', // Only car component is active
+    TENANT_WITH_ALL_COMPONENTS: 'utall', // All components are active
+    TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
+    TENANT_ORGANIZATION: 'utorg', // Only organization component is active
+    TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
+    TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
+    TENANT_OCPI: 'utocpi', // Only ocpi component is active
+    TENANT_FUNDING: 'utrefund', // Only refund component is active
+    TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
+    TENANT_ASSET: 'utasset', // Only asset component is active
+    TENANT_CAR: 'utcar', // Only car component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
@@ -88,9 +88,9 @@ export default class CONTEXTS {
    * Definition of the different contexts
    */
   static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
-    subdomain: 'utall',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     componentSettings: {
       pricing: {
         content: {
@@ -176,22 +176,22 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
-    subdomain: 'utnothing',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
-    subdomain: 'utorg',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     componentSettings: {
       organization: {}
     }
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
-    subdomain: 'utprice',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     componentSettings: {
       pricing: {
         content: {
@@ -205,9 +205,9 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-    subdomain: 'utconvcharg',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     componentSettings: {
       pricing: {
         content: {
@@ -223,9 +223,9 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
-    subdomain: 'utocpi',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI,
     componentSettings: {
       ocpi: {
         content: {
@@ -249,9 +249,9 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_FUNDING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
-    subdomain: 'utrefund',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_FUNDING,
     componentSettings: {
       refund: {
         content: {
@@ -272,9 +272,9 @@ export default class CONTEXTS {
     }
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_BILLING,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa8',
-    subdomain: 'utbilling',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING,
     componentSettings: {
       pricing: {
         content: {
@@ -304,18 +304,18 @@ export default class CONTEXTS {
     },
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ASSET,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET,
     id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
-    subdomain: 'utasset',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET,
     componentSettings: {
       asset: {},
       organization: {}
     }
   },
   {
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CAR,
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CAR,
     id: 'aaaaaaaaaaaaaaaaaaaaaab1',
-    subdomain: 'utcar',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CAR,
     componentSettings: {
       car: {},
     }
@@ -332,10 +332,10 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.role,
-      status: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
-      tags: (CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
+      role: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.role,
+      status: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
+      tags: (ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
         id: 'A1234',
         issuer: false,
         active: true
@@ -349,11 +349,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
-      status: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
+      status: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
       emailPrefix: 'a-unassigned-',
-      tags: (CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
         id: 'A12341',
         issuer: false,
         active: true
@@ -367,11 +367,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.BASIC_USER.role,
-      status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
       emailPrefix: 'basic-',
-      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER.withTags ? [{
         id: 'A12342',
         issuer: false,
         active: true
@@ -385,11 +385,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.DEMO_USER.role,
-      status: CONTEXTS.USER_CONTEXTS.DEMO_USER.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.DEMO_USER.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.DEMO_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.DEMO_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.DEMO_USER.assignedToSite,
       emailPrefix: 'demo-',
-      tags: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.DEMO_USER.withTags ? [{
         id: 'A12343',
         issuer: false,
         active: true
@@ -403,11 +403,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
-      status: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
       emailPrefix: 'b-unassigned-',
-      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
         id: 'A12348',
         issuer: false,
         active: true
@@ -421,11 +421,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.role,
-      status: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
       emailPrefix: 'b-pending-',
-      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
         id: 'A12349',
         issuer: false,
         active: true
@@ -439,11 +439,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.role,
-      status: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
       emailPrefix: 'b-locked-',
-      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
         id: 'A123410',
         issuer: false,
         active: true
@@ -457,11 +457,11 @@ export default class CONTEXTS {
       phone: '66666666666',
       mobile: '66666666666',
       plateID: '666-FB-69',
-      role: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
-      status: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
-      assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
       emailPrefix: 'b-notTag',
-      tags: (CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
         id: 'A123411',
         issuer: false,
         active: true
@@ -479,23 +479,23 @@ export default class CONTEXTS {
   // List of sites created in a tenant where organization component is active
   static readonly TENANT_SITE_LIST: any = [
     { // Default site
-      // contextName: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
       id: '5ce249a2372f0b1c8caf9294',
-      name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
+      name: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with other user stop
-      // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       id: '5ce249a2372f0b1c8caf8367',
-      name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with auto user assignment
-      // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       id: '5ce249a2372f0b1c8caf6532',
-      name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       autoUserSiteAssignment: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     }
@@ -506,39 +506,39 @@ export default class CONTEXTS {
   static readonly TENANT_SITEAREA_LIST: any = [
     { // With access control
       id: '5ce249a2372f0b1c8caf9294',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       accessControl: true,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5476',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       accessControl: false,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_BASIC
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf1234',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       accessControl: true,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf4678',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       accessControl: false,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
       accessControl: true,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       accessControl: false,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     }
   ];
 
@@ -547,34 +547,34 @@ export default class CONTEXTS {
   // if siteAreaNames is null then the CS will not be assigned or created in tenant with no porganization, so the baseName MUST be unique
   static readonly TENANT_CHARGING_STATION_LIST: any = [
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
       ocppVersion: '1.6',
       siteAreaNames: [
-        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
     },
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName
       ocppVersion: '1.5',
       siteAreaNames: [
-        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
     },
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16,
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16,
       ocppVersion: '1.6',
       siteAreaNames: null,
     },
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15,
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15,
       ocppVersion: '1.5',
       siteAreaNames: null,
     }

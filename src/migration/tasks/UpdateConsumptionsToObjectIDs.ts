@@ -1,6 +1,6 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
@@ -72,7 +72,7 @@ export default class UpdateConsumptionsToObjectIDs extends MigrationTask {
     if (updated > 0) {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         module: MODULE_NAME, method: 'migrate',
         message: `Tenant ${tenant.name} (${tenant.id}): ${updated} consumptions have been updated`
       });

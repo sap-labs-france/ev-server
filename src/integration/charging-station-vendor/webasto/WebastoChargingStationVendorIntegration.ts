@@ -1,8 +1,8 @@
 
 import ChargingStation from '../../../types/ChargingStation';
-import ChargingStationVendor from '../ChargingStationVendor';
+import ChargingStationVendorIntegration from '../ChargingStationVendorIntegration';
 
-export default class WebastoChargingStationVendor extends ChargingStationVendor {
+export default class WebastoChargingStationVendorIntegration extends ChargingStationVendorIntegration {
   constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }

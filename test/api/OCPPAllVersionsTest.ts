@@ -2,13 +2,13 @@ import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './contextProvider/ChargingStationContext';
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
-import TenantContext from './contextProvider/TenantContext';
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TenantContext from './context/TenantContext';
 import OCPPCommonTests from './OCPPCommonTests';
-import SiteAreaContext from './contextProvider/SiteAreaContext';
-import SiteContext from './contextProvider/SiteContext';
+import SiteAreaContext from './context/SiteAreaContext';
+import SiteContext from './context/SiteContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -30,7 +30,7 @@ describe('OCPP tests (all versions)', function() {
 
   before(async () => {
     chai.config.includeStack = true;
-    await ContextProvider.DefaultInstance.prepareContexts();
+    await ContextProvider.defaultInstance.prepareContexts();
   });
 
   afterEach(() => {
@@ -39,14 +39,14 @@ describe('OCPP tests (all versions)', function() {
 
   after(async () => {
     // Final clean up at the end
-    await ContextProvider.DefaultInstance.cleanUpCreatedContent();
+    await ContextProvider.defaultInstance.cleanUpCreatedContent();
   });
 
-  describe('Without any component (tenant ut-nothing)', () => {
+  describe('Without any component (tenant utnothing)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 
       await testData.ocppCommonTests.before();
@@ -59,7 +59,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.5 (SOAP)', () => {
 
       before(() => {
-        testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
+        testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
@@ -155,7 +155,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
           );
         });
 
@@ -169,7 +169,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
           );
         });
 
@@ -184,7 +184,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.6 (JSON)', () => {
 
       before(() => {
-        testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
+        testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
@@ -280,7 +280,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
           );
         });
 
@@ -294,7 +294,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
           );
         });
 
@@ -308,15 +308,15 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With component Organization only (tenant ut-org)', () => {
+  describe('With component Organization only (tenant utorg)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext);
 
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
 
       await testData.ocppCommonTests.before();
     });
@@ -328,7 +328,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.5 (SOAP)', () => {
       describe('With unregistered charger', () => {
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -343,7 +343,7 @@ describe('OCPP tests (all versions)', function() {
 
       describe('With invalid charging station identifier', () => {
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -359,7 +359,7 @@ describe('OCPP tests (all versions)', function() {
       describe('With charger assigned to a site area', () => {
 
         before(() => {
-          testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+          testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -371,7 +371,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
           });
 
@@ -385,7 +385,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
           });
 
@@ -399,7 +399,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
           });
 
@@ -413,7 +413,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
           });
 
@@ -428,7 +428,7 @@ describe('OCPP tests (all versions)', function() {
       describe('With charger not assigned to a site area', () => {
 
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -440,7 +440,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
           });
 
@@ -454,7 +454,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
           });
 
@@ -468,7 +468,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
           });
 
@@ -482,7 +482,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
           });
 
@@ -499,7 +499,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.6 (JSON)', () => {
       describe('With unregistered charger', () => {
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -514,7 +514,7 @@ describe('OCPP tests (all versions)', function() {
 
       describe('With invalid charging station identifier', () => {
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -530,7 +530,7 @@ describe('OCPP tests (all versions)', function() {
       describe('With charger assigned to a site area', () => {
 
         before(() => {
-          testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+          testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -542,7 +542,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
           });
 
@@ -556,7 +556,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
           });
 
@@ -570,7 +570,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
           });
 
@@ -584,7 +584,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
           });
 
@@ -599,7 +599,7 @@ describe('OCPP tests (all versions)', function() {
       describe('With charger not assigned to a site area', () => {
 
         before(() => {
-          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
           testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
         });
 
@@ -611,7 +611,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
             );
           });
 
@@ -625,7 +625,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED)
             );
           });
 
@@ -639,7 +639,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
             );
           });
 
@@ -653,7 +653,7 @@ describe('OCPP tests (all versions)', function() {
 
           before(() => {
             testData.ocppCommonTests.setUsers(
-              testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED)
+              testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED)
             );
           });
 
@@ -669,15 +669,15 @@ describe('OCPP tests (all versions)', function() {
 
   });
 
-  describe('With components Organization and Pricing (tenant ut-all)', () => {
+  describe('With components Organization and Pricing (tenant utall)', () => {
 
     before(async () => {
-      testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
-      testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.tenantContext = await ContextProvider.defaultInstance.getTenantContext(ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      testData.centralUserContext = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
       testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 
-      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
-      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+      testData.siteContext = testData.tenantContext.getSiteContext(ContextDefinition.SITE_CONTEXTS.SITE_BASIC);
+      testData.siteAreaContext = testData.siteContext.getSiteAreaContext(ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL);
 
       await testData.ocppCommonTests.before();
       await testData.ocppCommonTests.assignAnyUserToSite(testData.siteContext);
@@ -690,7 +690,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.5 (SOAP)', () => {
 
       before(() => {
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
@@ -785,7 +785,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
           );
         });
 
@@ -831,8 +831,8 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER),
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER),
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
           );
         });
 
@@ -879,7 +879,7 @@ describe('OCPP tests (all versions)', function() {
     describe('For OCPP Version 1.6 (JSON)', () => {
 
       before(() => {
-        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        testData.chargingStationContext = testData.siteAreaContext.getChargingStationContext(ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
         testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
       });
 
@@ -975,7 +975,7 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER)
           );
         });
 
@@ -1073,8 +1073,8 @@ describe('OCPP tests (all versions)', function() {
 
         before(() => {
           testData.ocppCommonTests.setUsers(
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER),
-            testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER),
+            testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN)
           );
         });
 

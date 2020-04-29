@@ -7,6 +7,7 @@ build
 .git
 .gitignore
 .gitattributes
+.gitmodules
 .jshintrc
 .eslintrc.json
 .vscode

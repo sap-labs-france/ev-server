@@ -1,14 +1,14 @@
-import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import SmartCharging from './SmartCharging';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import path from 'path';
+import SapSmartChargingIntegration from './sap-smart-charging/SapSmartChargingIntegration';
+import SmartChargingIntegration from './SmartChargingIntegration';
 
 export default class SmartChargingFactory {
-  static async getSmartChargingImpl(tenantID: string): Promise<SmartCharging<SmartChargingSetting>> {
+  static async getSmartChargingImpl(tenantID: string): Promise<SmartChargingIntegration<SmartChargingSetting>> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if the pricing is active
@@ -18,9 +18,8 @@ export default class SmartChargingFactory {
       if (smartChargingSetting) {
         // SAP Convergent Charging
         if (smartChargingSetting.type === SmartChargingSettingsType.SAP_SMART_CHARGING) {
-          const SapSmartCharging = await Utils.importModule(path.join(__dirname, '/sap-smart-charging/SapSmartCharging'));
           // Return the CC implementation
-          return new SapSmartCharging(tenantID, smartChargingSetting.sapSmartCharging);
+          return new SapSmartChargingIntegration(tenantID, smartChargingSetting.sapSmartCharging);
         }
       }
     }

@@ -1,5 +1,5 @@
-import CarDatabaseFactory from '../../integration/car/CarDatabaseFactory';
-import { Action } from '../../types/Authorization';
+import CarFactory from '../../integration/car/CarFactory';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
@@ -9,7 +9,7 @@ const MODULE_NAME = 'InitialCarImportTask';
 export default class InitialCarImportTask extends MigrationTask {
   async migrate() {
     try {
-      const carDatabaseImpl = await CarDatabaseFactory.getCarDatabaseImpl();
+      const carDatabaseImpl = await CarFactory.getCarImpl();
       if (carDatabaseImpl) {
         await carDatabaseImpl.synchronizeCarCatalogs();
       }
@@ -17,7 +17,7 @@ export default class InitialCarImportTask extends MigrationTask {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrate',
-        action: Action.CAR_CATALOG_SYNCHRONIZATION,
+        action: ServerAction.CAR_CATALOG_SYNCHRONIZATION,
         message: `Error while importing the Cars: ${error.message}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });

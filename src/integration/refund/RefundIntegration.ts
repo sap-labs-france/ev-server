@@ -2,7 +2,7 @@ import Transaction from '../../types/Transaction';
 import { RefundSetting } from '../../types/Setting';
 import Connection from '../../types/Connection';
 
-export default abstract class RefundConnector<T extends RefundSetting> {
+export default abstract class RefundIntegration<T extends RefundSetting> {
   protected readonly tenantID: string;
   protected readonly setting: T;
 

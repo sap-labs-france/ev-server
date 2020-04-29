@@ -3,10 +3,10 @@ import sanitize from 'express-sanitizer';
 import fs from 'fs';
 import morgan from 'morgan';
 import { soap } from 'strong-soap';
-import { Action } from '../../../types/Authorization';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import expressTools from '../../ExpressTools';
@@ -41,7 +41,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME, method: 'constructor',
-                action: Action.EXPRESS_SERVER,
+                action: ServerAction.EXPRESS_SERVER,
                 message: message
               });
             }
@@ -114,7 +114,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
       method: 'start',
-      action: Action.EXPRESS_SERVER,
+      action: ServerAction.EXPRESS_SERVER,
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
     });
@@ -127,7 +127,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
         method: 'start',
-        action: Action.EXPRESS_SERVER,
+        action: ServerAction.EXPRESS_SERVER,
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }
       });

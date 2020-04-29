@@ -1,6 +1,6 @@
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { Action } from '../../types/Authorization';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -28,7 +28,7 @@ export default class AddActivePropertyToTagsTask extends MigrationTask {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'migrateTenant',
-        action: Action.MIGRATION,
+        action: ServerAction.MIGRATION,
         message: `${result.modifiedCount} Tag(s) have been updated in Tenant '${tenant.name}'`
       });
     }

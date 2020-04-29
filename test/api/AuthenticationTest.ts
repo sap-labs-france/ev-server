@@ -1,10 +1,11 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import config from '../config';
 import jwt from 'jsonwebtoken';
-import CentralServerService from './client/CentralServerService';
+import config from '../config';
 import UserFactory from '../factories/UserFactory';
 import User from '../types/User';
+import CentralServerService from './client/CentralServerService';
+import ContextDefinition from './context/ContextDefinition';
 
 chai.use(chaiSubset);
 
@@ -13,13 +14,13 @@ const testData = {
   adminPassword: null,
   superAdminEmail: null,
   superAdminPassword: null,
-  adminTenant: null,
+  adminTenant: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
   createdUsersAdminTenant: [],
   centralServiceDefaultTenant: null,
   createdUsersDefaultTenant: []
 };
 
-describe('Authentication Service', function() {
+describe('Authentication Service (tenant utall)', function() {
   this.timeout(50000);
 
   before(() => {
@@ -28,7 +29,6 @@ describe('Authentication Service', function() {
     testData.adminPassword = config.get('admin.password');
     testData.superAdminEmail = config.get('superadmin.username');
     testData.superAdminPassword = config.get('superadmin.password');
-    testData.adminTenant = config.get('admin.tenant');
   });
 
   after(() => {
@@ -39,14 +39,14 @@ describe('Authentication Service', function() {
       });
     }
     testData.createdUsersAdminTenant.forEach(async (user) => {
-      await CentralServerService.DefaultInstance.userApi.delete(user.id);
+      await CentralServerService.defaultInstance.userApi.delete(user.id);
     });
   });
 
   describe('Success cases', () => {
     it('Should authenticate a registered user', async () => {
       // Check Login
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
@@ -64,12 +64,12 @@ describe('Authentication Service', function() {
     it('Should be possible to register a new user', async () => {
       // Check Login
       const newUser = UserFactory.buildRegisterUser();
-      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
 
-      response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
+      response = await CentralServerService.defaultInstance.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
       const user: User = response.data.result[0];
@@ -109,7 +109,7 @@ describe('Authentication Service', function() {
 
     it('Should be possible to register a new user on the default tenant', async () => {
       const newUser = UserFactory.buildRegisterUser();
-      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, null);
+      let response = await CentralServerService.defaultInstance.authenticationApi.registerUser(newUser, null);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
@@ -136,18 +136,18 @@ describe('Authentication Service', function() {
     });
 
     it('Should be possible to reset a user password', async () => {
-      const newUser = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.userApi, UserFactory.build());
+      const newUser = await CentralServerService.defaultInstance.createEntity(
+        CentralServerService.defaultInstance.userApi, UserFactory.build());
       testData.createdUsersAdminTenant.push(newUser);
-      const response = await CentralServerService.DefaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
+      const response = await CentralServerService.defaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
     });
 
     // pragma it('Should be logged off when the locale is updated', async () => {
-    //   const newUser = await CentralServerService.DefaultInstance.createEntity(
-    //     CentralServerService.DefaultInstance.userApi, UserFactory.build());
+    //   const newUser = await CentralServerService.defaultInstance.createEntity(
+    //     CentralServerService.defaultInstance.userApi, UserFactory.build());
     //   testData.createdUsersAdminTenant.push(newUser);
     //   const userAPI = new CentralServerService(testData.adminTenant, {
     //     email: newUser.email,
@@ -159,8 +159,8 @@ describe('Authentication Service', function() {
     //   expect(validResponse.data.id).to.be.eql(newUser.id);
 
     //   newUser.locale = 'fr_FR';
-    //   await CentralServerService.DefaultInstance.updateEntity(
-    //     CentralServerService.DefaultInstance.userApi, newUser);
+    //   await CentralServerService.defaultInstance.updateEntity(
+    //     CentralServerService.defaultInstance.userApi, newUser);
 
     //   await Utils.sleep(1000);
 
@@ -176,8 +176,8 @@ describe('Authentication Service', function() {
     // });
 
     // it('Should be logged off when the tags are updated', async () => {
-    //   const newUser = await CentralServerService.DefaultInstance.createEntity(
-    //     CentralServerService.DefaultInstance.userApi, UserFactory.build());
+    //   const newUser = await CentralServerService.defaultInstance.createEntity(
+    //     CentralServerService.defaultInstance.userApi, UserFactory.build());
     //   testData.createdUsersAdminTenant.push(newUser);
     //   const userAPI = new CentralServerService(testData.adminTenant, {
     //     email: newUser.email,
@@ -192,8 +192,8 @@ describe('Authentication Service', function() {
     //   const tag2 = faker.random.alphaNumeric(7).toUpperCase();
 
     //   newUser.tagIDs = [tag1, tag2];
-    //   await CentralServerService.DefaultInstance.updateEntity(
-    //     CentralServerService.DefaultInstance.userApi, newUser);
+    //   await CentralServerService.defaultInstance.updateEntity(
+    //     CentralServerService.defaultInstance.userApi, newUser);
 
     //   await Utils.sleep(1000);
 
@@ -209,8 +209,8 @@ describe('Authentication Service', function() {
 
     //   // Same list in a different order
     //   newUser.tagIDs = [tag2, tag1];
-    //   await CentralServerService.DefaultInstance.updateEntity(
-    //     CentralServerService.DefaultInstance.userApi, newUser);
+    //   await CentralServerService.defaultInstance.updateEntity(
+    //     CentralServerService.defaultInstance.userApi, newUser);
 
     //   await Utils.sleep(1000);
 
@@ -223,7 +223,7 @@ describe('Authentication Service', function() {
   describe('Error cases', () => {
     it('Should not allow authentication of known user with wrong password', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
       // Check
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
@@ -231,7 +231,7 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without password', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, null, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(500);
@@ -240,7 +240,7 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication not accepting eula', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(520);
@@ -249,7 +249,7 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without eula', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(
         testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(520);
@@ -258,7 +258,7 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without email', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+      const response = await CentralServerService.defaultInstance.authenticationApi.login(
         null, testData.adminPassword, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(500);
@@ -267,31 +267,31 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication of unknown email', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true);
+      const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true);
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication without tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, null);
+      const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, null);
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication of unknown tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, 'unknown');
+      const response = await CentralServerService.defaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, 'unknown');
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not be possible to verify email for the Super Tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.verifyEmail('unknown@sap.com', 'unknownVerificationToken', '');
+      const response = await CentralServerService.defaultInstance.authenticationApi.verifyEmail('unknown@sap.com', 'unknownVerificationToken', '');
       expect(response.status).to.be.eql(500);
       expect(response.data.message).to.be.eq('Cannot verify email in the Super Tenant');
     });
 
     it('should not be possible to request verification email for the Super Tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.resendVerificationEmail('unknown@sap.com', '');
+      const response = await CentralServerService.defaultInstance.authenticationApi.resendVerificationEmail('unknown@sap.com', '');
       expect(response.status).to.be.eql(500);
       expect(response.data.message).to.be.eq('Cannot request a verification Email in the Super Tenant');
     });

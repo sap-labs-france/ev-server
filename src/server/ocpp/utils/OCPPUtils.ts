@@ -2,10 +2,10 @@ import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationCl
 import BackendError from '../../../exception/BackendError';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { Action } from '../../../types/Authorization';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import SiteArea from '../../../types/SiteArea';
@@ -174,7 +174,7 @@ export default class OCPPUtils {
         Logging.logInfo({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
           message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
           detailedMessages: { chargingStationTemplate }
@@ -185,7 +185,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
         message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
         detailedMessages: { chargingStationTemplate }
@@ -197,7 +197,7 @@ export default class OCPPUtils {
     Logging.logWarning({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
       message: 'No Template has been found!',
       detailedMessages: { chargingStation }
@@ -221,7 +221,7 @@ export default class OCPPUtils {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+            action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
             module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
             message: `No Connector found in Template for Connector ID '${connectorID}' on '${chargingStation.chargePointVendor}'`
           });
@@ -248,7 +248,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
         message: `Template for Connector ID '${connectorID}' has been applied successfully on '${chargingStation.chargePointVendor}'`,
         detailedMessages: { chargingStationTemplate }
@@ -259,7 +259,7 @@ export default class OCPPUtils {
     Logging.logWarning({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+      action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
       module: MODULE_NAME, method: 'enrichChargingStationConnectorWithTemplate',
       message: `No Template for Connector ID '${connectorID}' has been found for '${chargingStation.chargePointVendor}'`
     });
@@ -287,7 +287,7 @@ export default class OCPPUtils {
           Logging.logError({
             tenantID: tenantID,
             source: chargingProfile.chargingStationID,
-            action: Action.CHARGING_PROFILE_DELETE,
+            action: ServerAction.CHARGING_PROFILE_DELETE,
             module: MODULE_NAME, method: 'clearAndDeleteChargingProfilesForSiteArea',
             message: `Error while clearing the charging profile for chargingStation ${chargingProfile.chargingStationID}`,
             detailedMessages: { error: error.message, stack: error.stack }
@@ -303,7 +303,7 @@ export default class OCPPUtils {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
-      action: Action.CHARGING_PROFILE_DELETE,
+      action: ServerAction.CHARGING_PROFILE_DELETE,
       message: 'Clear and Delete Charging Profile is being called',
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
       detailedMessages: { chargingProfile }
@@ -314,17 +314,17 @@ export default class OCPPUtils {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportChargingProfiles) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
         message: `Charging Station '${chargingStation.id}' does not support the Charging Profiles`,
       });
     }
     // Get Vendor Instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
@@ -340,7 +340,7 @@ export default class OCPPUtils {
       Logging.logError({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_DELETE,
+        action: ServerAction.CHARGING_PROFILE_DELETE,
         message: 'Error occurred while clearing the Charging Profile',
         module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
         detailedMessages: { error: error.message, stack: error.stack }
@@ -353,7 +353,7 @@ export default class OCPPUtils {
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.CHARGING_PROFILE_DELETE,
+      action: ServerAction.CHARGING_PROFILE_DELETE,
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
       message: 'Charging Profile has been deleted successfully',
       detailedMessages: { chargingProfile }
@@ -361,7 +361,7 @@ export default class OCPPUtils {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
-      action: Action.CHARGING_PROFILE_DELETE,
+      action: ServerAction.CHARGING_PROFILE_DELETE,
       message: 'Clear and Delete Charging Profile has been called',
       module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
       detailedMessages: { chargingProfile }
@@ -372,7 +372,7 @@ export default class OCPPUtils {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       message: 'Set and Save Charging Profile is being called',
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
       detailedMessages: { chargingProfile, user }
@@ -382,17 +382,17 @@ export default class OCPPUtils {
     if (!chargingStation) {
       throw new BackendError({
         source: chargingProfile.chargingStationID,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: 'Charging Station not found',
       });
     }
     // Get Vendor Instance
-    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorInstance(chargingStation);
+    const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: `No vendor implementation is available (${chargingStation.chargePointVendor}) for setting a Charging Profile`,
       });
@@ -414,7 +414,7 @@ export default class OCPPUtils {
     if (resultStatus !== OCPPChargingProfileStatus.ACCEPTED) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHARGING_PROFILE_UPDATE,
+        action: ServerAction.CHARGING_PROFILE_UPDATE,
         module: MODULE_NAME, method: 'setAndSaveChargingProfile',
         message: 'Cannot set the Charging Profile!',
         detailedMessages: { result, chargingProfile },
@@ -425,7 +425,7 @@ export default class OCPPUtils {
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       module: MODULE_NAME, method: 'setAndSaveChargingProfile',
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
@@ -434,7 +434,7 @@ export default class OCPPUtils {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingProfile.chargingStationID,
-      action: Action.CHARGING_PROFILE_UPDATE,
+      action: ServerAction.CHARGING_PROFILE_UPDATE,
       message: 'Set and Save Charging Profile has been called',
       module: MODULE_NAME, method: 'setAndSaveChargingProfile'
     });
@@ -509,7 +509,7 @@ export default class OCPPUtils {
       if (!chargingStationClient) {
         throw new BackendError({
           source: chargingStation.id,
-          action: Action.CHANGE_CONFIGURATION,
+          action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
           message: 'Charging Station is not connected to the backend',
         });
@@ -520,7 +520,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Command sent with success',
         detailedMessages: { ocppConfiguration }
@@ -550,14 +550,14 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestAndSaveChargingStationOcppParameters',
         message: 'Configuration has been saved'
       });
       return { status: OCPPConfigurationStatus.ACCEPTED };
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, Action.GET_CONFIGURATION, error);
+      Logging.logActionExceptionMessage(tenantID, ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION, error);
       return { status: OCPPConfigurationStatus.REJECTED };
     }
   }
@@ -568,7 +568,7 @@ export default class OCPPUtils {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        action: Action.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
         message: 'Charging Station has no Standard/Vendor OCPP Parameters to change'
       });
@@ -579,7 +579,7 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
       });
@@ -597,7 +597,7 @@ export default class OCPPUtils {
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
           });
@@ -608,7 +608,7 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' has the correct value '${currentOcppParam.value}'`
           });
@@ -626,7 +626,7 @@ export default class OCPPUtils {
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
           });
@@ -634,7 +634,7 @@ export default class OCPPUtils {
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
-            action: Action.CHANGE_CONFIGURATION,
+            action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
             module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
             message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
           });
@@ -643,7 +643,7 @@ export default class OCPPUtils {
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
-          action: Action.CHANGE_CONFIGURATION,
+          action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
           module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
           message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -664,7 +664,7 @@ export default class OCPPUtils {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: Action.CHANGE_CONFIGURATION,
+        action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
         module: MODULE_NAME, method: 'requestChangeChargingStationOcppParameters',
         message: 'Charging Station is not connected to the backend',
       });

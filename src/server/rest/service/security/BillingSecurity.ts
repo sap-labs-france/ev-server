@@ -1,7 +1,8 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { BillingInvoice, BillingInvoiceFilter, BillingTax } from '../../../../types/Billing';
+import { BillingInvoice, BillingTax } from '../../../../types/Billing';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
 import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
@@ -61,13 +62,12 @@ export default class BillingSecurity {
     // Check auth
     if (Authorizations.canReadBillingInvoices(loggedUser)) {
       // Set only necessary info
-      filteredInvoice.id = invoice.id;
+      filteredInvoice.userID = invoice.userID;
+      filteredInvoice.invoiceID = invoice.invoiceID;
       filteredInvoice.number = invoice.number;
       filteredInvoice.status = invoice.status;
-      filteredInvoice.amountDue = invoice.amountDue;
+      filteredInvoice.amount = invoice.amount;
       filteredInvoice.createdOn = invoice.createdOn;
-      filteredInvoice.downloadUrl = invoice.downloadUrl;
-      filteredInvoice.payUrl = invoice.payUrl;
       filteredInvoice.currency = invoice.currency;
       filteredInvoice.customerID = invoice.customerID;
     }
@@ -85,16 +85,19 @@ export default class BillingSecurity {
     return filteredUser;
   }
 
-  static filterGetUserInvoicesRequest(request: any): BillingInvoiceFilter {
-    const filteredRequest = {} as BillingInvoiceFilter;
+  static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
+    const filteredRequest = {} as HttpBillingInvoiceRequest;
     if (request.Status) {
-      filteredRequest.status = sanitize(request.Status);
+      filteredRequest.Status = sanitize(request.Status);
     }
     if (request.StartDateTime) {
-      filteredRequest.startDateTime = sanitize(request.StartDateTime);
+      filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     }
     if (request.EndDateTime) {
-      filteredRequest.endDateTime = sanitize(request.EndDateTime);
+      filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    }
+    if (request.Search) {
+      filteredRequest.Search = sanitize(request.Search);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

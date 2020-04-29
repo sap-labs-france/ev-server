@@ -1,8 +1,9 @@
 import { Handler, NextFunction, Request, Response } from 'express';
 import { Action } from '../../types/Authorization';
-import AuthService from './service/AuthService';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import AuthService from './service/AuthService';
 import UtilsService from './service/UtilsService';
 
 export default {
@@ -17,7 +18,7 @@ export default {
 
   async authService(req: Request, res: Response, next: NextFunction) {
     // Parse the action
-    const action = req.params.action as Action;
+    const action = req.params.action as ServerAction;
     // Get the tenant
     let tenantID = Constants.DEFAULT_TENANT;
     if (req.body && req.body.tenant) {
@@ -35,25 +36,25 @@ export default {
           // Action
           switch (action) {
             // Login
-            case Action.LOGIN:
+            case ServerAction.LOGIN:
               // Delegate
               await AuthService.handleLogIn(action, req, res, next);
               break;
 
             // Register User
-            case Action.REGISTER_USER:
+            case ServerAction.REGISTER_USER:
               // Delegate
               await AuthService.handleRegisterUser(action, req, res, next);
               break;
 
             // Reset password
-            case Action.RESET:
+            case ServerAction.RESET:
               // Delegate
               await AuthService.handleUserPasswordReset(action, req, res, next);
               break;
 
             // Resend verification email
-            case Action.RESEND_VERIFICATION_MAIL:
+            case ServerAction.RESEND_VERIFICATION_MAIL:
               // Delegate
               await AuthService.handleResendVerificationEmail(action, req, res, next);
               break;
@@ -69,25 +70,25 @@ export default {
           // Action
           switch (action) {
             // Log out
-            case Action.LOGOUT:
+            case ServerAction.LOGOUT:
               // Delegate
               AuthService.handleUserLogOut(action, req, res, next);
               break;
 
             // End-user license agreement
-            case Action.END_USER_LICENSE_AGREEMENT:
+            case ServerAction.END_USER_LICENSE_AGREEMENT:
               // Delegate
               await AuthService.handleGetEndUserLicenseAgreement(action, req, res, next);
               break;
 
             // Check Eula
-            case Action.CHECK_END_USER_LICENSE_AGREEMENT:
+            case ServerAction.CHECK_END_USER_LICENSE_AGREEMENT:
               // Delegate
               await AuthService.handleCheckEndUserLicenseAgreement(action, req, res, next);
               break;
 
             // Verify Email
-            case Action.VERIFY_EMAIL:
+            case ServerAction.VERIFY_EMAIL:
               // Delegate
               await AuthService.handleVerifyEmail(action, req, res, next);
               break;

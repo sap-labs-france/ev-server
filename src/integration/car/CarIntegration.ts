@@ -1,14 +1,14 @@
 import CarStorage from '../../storage/mongodb/CarStorage';
-import { Action } from '../../types/Authorization';
 import { CarCatalog } from '../../types/Car';
 import { ActionsResponse } from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 
 const MODULE_NAME = 'CarDatabase';
 
-export default abstract class CarDatabase {
+export default abstract class CarIntegration {
   public async synchronizeCarCatalogs(): Promise<ActionsResponse> {
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
@@ -36,7 +36,7 @@ export default abstract class CarDatabase {
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_CAR_CATALOGS,
+            action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been created successfully`,
           });
@@ -64,7 +64,7 @@ export default abstract class CarDatabase {
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
             source: Constants.CENTRAL_SERVER,
-            action: Action.SYNCHRONIZE_CAR_CATALOGS,
+            action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
             module: MODULE_NAME, method: 'synchronizeCarCatalogs',
             message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} has been updated successfully`,
           });
@@ -74,7 +74,7 @@ export default abstract class CarDatabase {
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: Constants.CENTRAL_SERVER,
-          action: Action.SYNCHRONIZE_CAR_CATALOGS,
+          action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
           module: MODULE_NAME, method: 'synchronizeCarCatalogs',
           message: `${externalCar.id} - ${externalCar.vehicleMake} - ${externalCar.vehicleModel} got synchronization error`,
           detailedMessages: { error: error.message, stack: error.stack }
@@ -86,7 +86,7 @@ export default abstract class CarDatabase {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         module: MODULE_NAME, method: 'synchronizeCarCatalogs',
         message: `${actionsDone.inSuccess} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
       });
@@ -94,7 +94,7 @@ export default abstract class CarDatabase {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: Constants.CENTRAL_SERVER,
-        action: Action.SYNCHRONIZE_CAR_CATALOGS,
+        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
         module: MODULE_NAME, method: 'synchronizeCarCatalogs',
         message: 'All the cars are up to date'
       });

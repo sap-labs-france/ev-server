@@ -3,11 +3,12 @@ import mongoUriBuilder from 'mongo-uri-builder';
 import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
 import BackendError from '../../exception/BackendError';
-import { Action } from '../../types/Authorization';
+import LockingManager from '../../locking/LockingManager';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { LockEntity } from '../../types/Locking';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import LockManager from '../../locking/LockManager';
 import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
@@ -28,7 +29,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'getCollection',
         message: 'Not supposed to call getCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -47,7 +48,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'handleIndexesInCollection',
         message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Check Logs
@@ -67,16 +68,9 @@ export default class MongoDBStorage {
         // Create
         // Check if it exists
         const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-        // Found?
         if (!foundIndex) {
-          // Index creation Lock
-          const indexCreationLock = LockManager.init(`create~index~${tenantID}~${name}~${JSON.stringify(index.fields)}`);
-          if (await LockManager.tryAcquire(indexCreationLock)) {
-            // Create Index
-            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            // Release the index creation Lock
-            await LockManager.release(indexCreationLock);
-          }
+          // Create Index
+          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
         }
       }
       // Check each index that should be dropped
@@ -87,17 +81,9 @@ export default class MongoDBStorage {
         }
         // Exists?
         const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-        // Found?
         if (!foundIndex) {
-          // Index drop Lock
-          const indexDropLock = LockManager.init(`drop~index~${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
-
-          if (await LockManager.tryAcquire(indexDropLock)) {
-            // Drop Index
-            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            // Release the index drop Lock
-            await LockManager.release(indexDropLock);
-          }
+          // Drop Index
+          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
         }
       }
     }
@@ -112,7 +98,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkAndCreateTenantDatabase',
         message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     const name = new RegExp(`^${tenantID}.`);
@@ -189,7 +175,7 @@ export default class MongoDBStorage {
           module: MODULE_NAME,
           method: 'deleteTenantDatabase',
           message: 'Not supposed to call deleteTenantDatabase before database start',
-          action: Action.MONGO_DB
+          action: ServerAction.MONGO_DB
         });
       }
       // Get all the collections
@@ -213,7 +199,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'migrateTenantDatabase',
         message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Migrate not prefixed collections
@@ -234,7 +220,7 @@ export default class MongoDBStorage {
         module: MODULE_NAME,
         method: 'checkDatabase',
         message: 'Not supposed to call checkDatabase before database start',
-        action: Action.MONGO_DB
+        action: ServerAction.MONGO_DB
       });
     }
     // Get all the collections
@@ -284,7 +270,19 @@ export default class MongoDBStorage {
       .toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
-      await this.checkAndCreateTenantDatabase(tenantId);
+      // Index creation Lock
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, `create-database`);
+      if (await LockingManager.acquire(createDatabaseLock)) {
+        try {
+          // Create Database
+          await this.checkAndCreateTenantDatabase(tenantId);
+          // Release the index creation Lock
+          await LockingManager.release(createDatabaseLock);
+        } catch (error) {
+          // Release the index creation Lock
+          await LockingManager.release(createDatabaseLock);
+        }
+      }
     }
   }
 
