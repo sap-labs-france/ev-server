@@ -58,7 +58,9 @@ class RequestMapper {
         );
         // Register REST actions
         this.registerJsonActionsPaths({
+          AssignCar:CarService.handleAssignCar.bind(this),
           AddChargingStationsToSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea.bind(this),
+          CarCreate: CarService.handleCarCreate.bind(this),
           RemoveChargingStationsFromSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea.bind(this),
           RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           UserCreate: UserService.handleCreateUser.bind(this),
@@ -132,6 +134,7 @@ class RequestMapper {
           SiteArea: SiteAreaService.handleGetSiteArea.bind(this),
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage.bind(this),
           SiteAreaConsumption: SiteAreaService.handleGetSiteAreaConsumption.bind(this),
+          UserCars: CarService.handleGetUserCars.bind(this),
           Users: UserService.handleGetUsers.bind(this),
           UserSites: UserService.handleGetSites.bind(this),
           UsersInError: UserService.handleGetUsersInError.bind(this),

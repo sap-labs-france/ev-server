@@ -1,4 +1,5 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import User from './User';
 
 export interface CarCatalog extends CreatedUpdatedProps{
   id: number;
@@ -119,6 +120,23 @@ export interface CarCatalog extends CreatedUpdatedProps{
   videos?: string[];
   hash?: string;
   imagesHash?: string;
+}
+
+export interface Car extends CreatedUpdatedProps {
+  id: string;
+  vin: string;
+  licensePlate: string;
+  carCatalogID: number;
+  carCatalog?: CarCatalog;
+  userIDs?: string;
+}
+
+export interface UserCar extends CreatedUpdatedProps {
+  id: string;
+  userID: string;
+  carID: string;
+  user?: User;
+  car?: Car;
 }
 
 export interface CarMaker {

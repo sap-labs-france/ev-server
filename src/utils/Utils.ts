@@ -37,6 +37,7 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
 import Logging from './Logging';
+import { Car, UserCar } from '../types/Car';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -1404,6 +1405,82 @@ export default class Utils {
       return true;
     } catch (e) {
       return false;
+    }
+  }
+
+  public static checkIfCarValid(car: Partial<Car>, req: Request): void {
+    if (req.method !== 'POST' && !car.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.vin) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Vin Car is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.licensePlate) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'License Plate is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.carCatalogID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car Catalog ID  is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+  }
+
+  public static checkIfUserCarValid(userCar: Partial<UserCar>, req: Request): void {
+    if (req.method !== 'POST' && !userCar.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User Car ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfUserCarValid',
+        user: req.user.id
+      });
+    }
+    if (!userCar.carID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfUserCarValid',
+        user: req.user.id
+      });
+    }
+    if (!userCar.userID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfUserCarValid',
+        user: req.user.id
+      });
     }
   }
 

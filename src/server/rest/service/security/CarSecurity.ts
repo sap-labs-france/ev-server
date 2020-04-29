@@ -1,5 +1,5 @@
 import Authorizations from '../../../../authorization/Authorizations';
-import { CarCatalog, CarMaker } from '../../../../types/Car';
+import { Car, CarCatalog, CarMaker, UserCar } from '../../../../types/Car';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
@@ -144,5 +144,39 @@ export default class CarSecurity {
       }
     }
     carCatalogs.result = filteredCarCatalogs;
+  }
+
+  public static filterCarCreateRequest(request: any): Partial<Car> {
+    return CarSecurity._filterCarRequest(request);
+  }
+
+  public static filterUserCarCreateRequest(request: any): Partial<UserCar> {
+    return CarSecurity._filterUserCarRequest(request);
+  }
+
+  public static filterUserCarsRequest(request: any): any {
+    const filteredRequest: any = {
+      Search: sanitize(request.Search),
+      CarMaker: sanitize(request.CarMaker),
+    } as any;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  private static _filterCarRequest(request: any): Partial<Car> {
+    return {
+      vin: sanitize(request.vin),
+      licensePlate: sanitize(request.licensePlate),
+      carCatalogID: sanitize(request.carCatalogID),
+      userIDs: sanitize(request.userIDs),
+    };
+  }
+
+  private static _filterUserCarRequest(request: any): Partial<UserCar> {
+    return {
+      carID: sanitize(request.CarID),
+      userID: sanitize(request.UserID)
+    };
   }
 }

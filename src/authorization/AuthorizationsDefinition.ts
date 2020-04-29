@@ -19,6 +19,8 @@ const GRANTS = {
       { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
       { resource: 'CarCatalogs', action: 'SynchronizeCarCatalogs', attributes: ['*'] },
       { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
+      { resource: 'Car', action: 'Create', attributes: ['*'] },
+
     ]
   },
   admin: {
@@ -77,6 +79,7 @@ const GRANTS = {
       { resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'] },
       { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
       { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
+      { resource: 'Car', action: 'Create', attributes: ['*'] },
     ]
   },
   basic: {
@@ -88,6 +91,9 @@ const GRANTS = {
       { resource: 'Assets', action: 'List', attributes: ['*'] },
       { resource: 'Asset', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
+      { resource: 'CarCatalogs', action: 'List', attributes: ['*'] },
+      { resource: 'CarCatalog', action: 'Read', attributes: ['*'] },
+      { resource: 'Car', action: 'Create', attributes: ['*'] },
       {
         resource: 'Company', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }

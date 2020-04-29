@@ -49,6 +49,18 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('carcatalogs', {
+      ...lookupParams
+    });
+  }
+
+  public static pushCarLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('cars', {
+      ...lookupParams
+    });
+  }
+
   public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
       ...lookupParams

@@ -32,6 +32,10 @@ export enum Entity {
   ASSETS = 'Assets',
   CAR_CATALOG = 'CarCatalog',
   CAR_CATALOGS = 'CarCatalogs',
+  CAR = 'Car',
+  CARS = 'Cars',
+  USER_CAR = 'UserCar',
+  USER_CARS = 'UserCars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes'
@@ -115,7 +119,7 @@ export enum Action {
   LOCKING = 'Locking',
 
   STARTUP = 'Startup',
-  
+
   SOCKET_IO = 'SocketIO',
 
   HEARTBEAT = 'Heartbeat',
