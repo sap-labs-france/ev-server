@@ -144,7 +144,7 @@
     "git:sdiff": "git diff && git submodule foreach 'git diff'",
     "git:supdate": "git submodule update --remote --merge",
     "git:spush": "git push --recurse-submodules=on-demand",
-    "git:sreset": "git submodule foreach 'git reset —-hard'",
+    "git:sreset": "git submodule foreach 'git reset --hard'",
     "components:export": "node src/componentsExport.js",
     "start": "npm run start:prod",
     "prestart": "npm run build:prod",
