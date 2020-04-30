@@ -78,7 +78,7 @@ export default class AssetStorage {
     );
     // Save Image
     if (saveImage) {
-      await AssetStorage._saveAssetImage(tenantID, assetMDB._id.toHexString(), assetToSave.image);
+      await AssetStorage.saveAssetImage(tenantID, assetMDB._id.toHexString(), assetToSave.image);
     }
     // Debug
     Logging.traceEnd('AssetStorage', 'saveAsset', uniqueTimerID, { assetToSave });
@@ -162,10 +162,11 @@ export default class AssetStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -251,29 +252,11 @@ export default class AssetStorage {
       aggregation.push({ $unwind: '$assetsInError' });
       aggregation.push({ $replaceRoot: { newRoot: '$assetsInError' } });
     }
-    // Limit records?
-    if (!dbParams.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const assetsCountMDB = await global.database.getCollection<DataResult<Asset>>(tenantID, 'assets')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (assetsCountMDB.length > 0 ? assetsCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -295,7 +278,7 @@ export default class AssetStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const assets = await global.database.getCollection<any>(tenantID, 'assets')
+    const assetsMDB = await global.database.getCollection<any>(tenantID, 'assets')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
@@ -304,11 +287,13 @@ export default class AssetStorage {
     // Debug
     Logging.traceEnd('AssetStorage', 'getAssetsInError', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
+    console.log('====================================');
+    console.log(assetsMDB);
+    console.log('====================================');
     // Ok
     return {
-      count: (assetsCountMDB.length > 0 ?
-        (assetsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : assetsCountMDB[0].count) : 0),
-      result: assets
+      count: assetsMDB.length,
+      result: assetsMDB
     };
   }
 
@@ -384,7 +369,7 @@ export default class AssetStorage {
     });
   }
 
-  private static async _saveAssetImage(tenantID: string, assetID: string, assetImageToSave: string): Promise<void> {
+  private static async saveAssetImage(tenantID: string, assetID: string, assetImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('AssetStorage', 'saveAssetImage');
     // Check Tenant
