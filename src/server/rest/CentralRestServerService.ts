@@ -134,7 +134,7 @@ class RequestMapper {
           [ServerAction.USERS_IN_ERROR]: UserService.handleGetUsersInError.bind(this),
           [ServerAction.USER_IMAGE]: UserService.handleGetUserImage.bind(this),
           [ServerAction.USER]: UserService.handleGetUser.bind(this),
-          // [ServerAction.USER_INVOICE]: UserService.handleGetUserInvoice.bind(this),
+          [ServerAction.USER_INVOICE]: UserService.handleGetUserInvoice.bind(this),
           [ServerAction.NOTIFICATIONS]: NotificationService.handleGetNotifications.bind(this),
           [ServerAction.TRANSACTIONS_COMPLETED]: TransactionService.handleGetTransactionsCompleted.bind(this),
           [ServerAction.TRANSACTIONS_TO_REFUND]: TransactionService.handleGetTransactionsToRefund.bind(this),

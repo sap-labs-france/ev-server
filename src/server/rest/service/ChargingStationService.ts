@@ -343,7 +343,7 @@ export default class ChargingStationService {
       detailedMessages: { result }
     });
     // Ok
-    res.json({status: result.status});
+    res.json({ status: result.status });
     next();
   }
 
@@ -408,7 +408,7 @@ export default class ChargingStationService {
     }
     const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
     if (!siteAreaLock) {
-      return;        
+      return;
     }
     try {
       // Call

@@ -327,29 +327,29 @@ export default class SiteAreaService {
     // Regtrigger Smart Charging
     if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
       setTimeout(async () => {
-          const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
-          if (!siteAreaLock) {
-            return;        
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+        if (!siteAreaLock) {
+          return;
+        }
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
-          try {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-            if (smartCharging) {
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
-            }
-            // Release lock
-            await LockingManager.release(siteAreaLock);
-          } catch (error) {
-            // Release lock
-            await LockingManager.release(siteAreaLock);
-            Logging.logError({
-              tenantID: req.user.tenantID,
-              source: Constants.CENTRAL_SERVER,
-              module: MODULE_NAME, method: 'handleUpdateSiteArea',
-              action: action,
-              message: 'An error occurred while trying to call smart charging',
-              detailedMessages: { error: error.message, stack: error.stack }
-            });
-          }
+          // Release lock
+          await LockingManager.release(siteAreaLock);
+        } catch (error) {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'handleUpdateSiteArea',
+            action: action,
+            message: 'An error occurred while trying to call smart charging',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log
