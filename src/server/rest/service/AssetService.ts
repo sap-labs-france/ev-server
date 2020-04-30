@@ -262,7 +262,7 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'assetType', 'coordinates']
+      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates']
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);
