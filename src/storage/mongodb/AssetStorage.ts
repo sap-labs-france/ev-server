@@ -287,9 +287,6 @@ export default class AssetStorage {
     // Debug
     Logging.traceEnd('AssetStorage', 'getAssetsInError', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-    console.log('====================================');
-    console.log(assetsMDB);
-    console.log('====================================');
     // Ok
     return {
       count: assetsMDB.length,
