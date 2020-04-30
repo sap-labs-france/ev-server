@@ -597,14 +597,14 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await this.buildConsumptionFromTransactionAndMeterValue(
         headers.tenantID, chargingStation, transaction, transaction.timestamp, transaction.timestamp, {
-        id: '666',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.timestamp,
-        value: transaction.meterStart,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          id: '666',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.timestamp,
+          value: transaction.meterStart,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Price it
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.START);
@@ -705,7 +705,7 @@ export default class OCPPService {
     if (siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
       if (!siteAreaLock) {
-        return;        
+        return;
       }
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
@@ -714,10 +714,10 @@ export default class OCPPService {
         }
         // Release lock
         await LockingManager.release(siteAreaLock);
-      } catch (error) {    
+      } catch (error) {
         // Release lock
         await LockingManager.release(siteAreaLock);
-        throw error;            
+        throw error;
       }
     }
   }
@@ -843,15 +843,15 @@ export default class OCPPService {
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
       const consumption: Consumption = await this.buildConsumptionFromTransactionAndMeterValue(
-        headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-        id: '6969',
-        chargeBoxID: transaction.chargeBoxID,
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        timestamp: transaction.stop.timestamp,
-        value: transaction.stop.meterStop,
-        attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
-      }
+          headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
+          id: '6969',
+          chargeBoxID: transaction.chargeBoxID,
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
+          attribute: DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE
+        }
       );
       // Update the price
       await this.priceTransaction(headers.tenantID, transaction, consumption, TransactionAction.STOP);
@@ -1207,7 +1207,7 @@ export default class OCPPService {
         // Get limit of the site area
         if (chargingStation.siteArea.maximumPower) {
           consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-          consumption.limitSiteAreaAmps = Math.round(chargingStation.siteArea.maximumPower / 230);
+          consumption.limitSiteAreaAmps = Utils.convertWToAmp(1, chargingStation.siteArea.maximumPower);
         } else {
           const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
           consumption.limitSiteAreaWatts = 0;
@@ -1217,7 +1217,7 @@ export default class OCPPService {
                 consumption.limitSiteAreaWatts = consumption.limitSiteAreaWatts + connector.power;
               }
             }
-            consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / 230);
+            consumption.limitSiteAreaAmps = Utils.convertWToAmp(1, consumption.limitSiteAreaWatts);
           }
         }
       }

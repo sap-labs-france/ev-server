@@ -449,12 +449,23 @@ export default class Utils {
   public static convertAmpToW(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
     // Compute it
     if (numberOfConnectedPhase === 0) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     if (numberOfConnectedPhase === 3) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     return Math.floor(230 * maxIntensityInAmper);
+  }
+
+  public static convertWToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
+    // Compute it
+    if (numberOfConnectedPhase === 0) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    if (numberOfConnectedPhase === 3) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    return Math.floor(maxIntensityInWatt / 230);
   }
 
   public static isEmptyArray(array): boolean {
