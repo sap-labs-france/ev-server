@@ -145,13 +145,11 @@ export default class SiteAreaSecurity {
       return filteredSiteArea;
     }
     // Clean
-    filteredSiteArea.values = consumptions.map((consumption) => {
-      return {
-        date: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        limitWatts: consumption.limitWatts
-      };
-    });
+    filteredSiteArea.values = consumptions.map((consumption) => ({
+      date: consumption.endedAt,
+      instantPower: consumption.instantPower,
+      limitWatts: consumption.limitWatts
+    }));
     return filteredSiteArea;
   }
 }

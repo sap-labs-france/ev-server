@@ -843,7 +843,7 @@ export default class OCPPService {
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
       const consumption: Consumption = await this.buildConsumptionFromTransactionAndMeterValue(
-          headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
+        headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
           id: '6969',
           chargeBoxID: transaction.chargeBoxID,
           connectorId: transaction.connectorId,
@@ -1213,7 +1213,7 @@ export default class OCPPService {
           consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
           // Compute it for Charging Stations
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT );
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
             for (const connector of chargingStation.connectors) {
               consumption.limitSiteAreaWatts += connector.power;
