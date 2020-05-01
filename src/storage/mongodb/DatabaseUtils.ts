@@ -214,6 +214,11 @@ export default class DatabaseUtils {
     }`));
   }
 
+  public static pushRenameDatabaseIDToNumber(aggregation: any[]) {
+    // Rename ID
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+  }
+
   public static addLastChangedCreatedProps(dest: any, entity: any) {
     dest.createdBy = null;
     dest.lastChangedBy = null;
