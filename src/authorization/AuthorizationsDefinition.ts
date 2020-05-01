@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
-import { Action, Entity, AuthorizationDefinition } from '../types/Authorization';
+import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
 import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
 

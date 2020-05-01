@@ -698,7 +698,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  async triggerJobs(): Promise<any> {
+  async triggerJobs(): Promise<{ tokens: any, locations: any }> {
     return {
       tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses()
