@@ -1,0 +1,60 @@
+name: Unit Tests CI
+
+on:
+  pull_request:
+    branches:
+      - master-qa
+
+jobs:
+  unit-tests:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Build testing environment
+      run: cd docker && make
+    - name: npm install and npm test
+      run: |
+        npm ci
+        # cp test/config-local-ci.json test/config/local.json
+        # npm run test:createContext
+        # npm test
+      env:
+        CI: true
+
+  unit-tests-submodules:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        submodules: true
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Build testing environment
+      run: cd docker && make
+    - name: npm install and npm test
+      run: |
+        npm ci
+        # cp test/config-local-ci.json test/config/local.json
+        # npm run test:createContext
+        # npm test
+      env:
+        CI: true
