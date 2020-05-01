@@ -1,26 +1,27 @@
-import fs from 'fs';
-import moment from 'moment';
-import { ObjectID } from 'mongodb';
-import Mustache from 'mustache';
+import Site, { SiteUser } from '../../types/Site';
+import User, { UserRole, UserStatus } from '../../types/User';
+import { UserInError, UserInErrorType } from '../../types/InError';
+import global, { Image } from '../../types/GlobalType';
+
 import BackendError from '../../exception/BackendError';
 import { BillingUserData } from '../../types/Billing';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import Eula from '../../types/Eula';
-import global, { Image } from '../../types/GlobalType';
-import { UserInError, UserInErrorType } from '../../types/InError';
-import Site, { SiteUser } from '../../types/Site';
-import Tag from '../../types/Tag';
-import TenantComponents from '../../types/TenantComponents';
-import User, { UserRole, UserStatus } from '../../types/User';
-import UserNotifications from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Eula from '../../types/Eula';
+import Logging from '../../utils/Logging';
+import Mustache from 'mustache';
+import { ObjectID } from 'mongodb';
+import Tag from '../../types/Tag';
+import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
+import UserNotifications from '../../types/UserNotifications';
+import Utils from '../../utils/Utils';
+import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'UserStorage';
 
@@ -144,7 +145,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserByBillingID');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { billingCustomer: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { billingUserID: billingID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getUserByBillingID', uniqueTimerID, { customerID: billingID });
     return user.count > 0 ? user.result[0] : null;
@@ -438,43 +439,29 @@ export default class UserStorage {
     Logging.traceEnd(MODULE_NAME, 'saveUserAdminData', uniqueTimerID);
   }
 
-  public static async saveUserBillingData(tenantID: string, userID: string,
-    billingData: BillingUserData): Promise<void> {
+  public static async saveUserBillingData(tenantID: string, userID: string, billingData: BillingUserData): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveUserBillingData');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set data
-    const updatedUserMDB: any = {};
-    // Set only provided values
-    if (billingData && billingData.customerID) {
-      updatedUserMDB.billingData = {} as BillingUserData;
-      updatedUserMDB.billingData.customerID = billingData.customerID;
-      updatedUserMDB.billingData.method = billingData.method;
-      updatedUserMDB.billingData.cardID = billingData.cardID;
-      updatedUserMDB.billingData.hasSynchroError = billingData.hasSynchroError;
-      updatedUserMDB.billingData.invoicesLastSynchronizedOn = billingData.invoicesLastSynchronizedOn;
-      if (!updatedUserMDB.billingData.cardID) {
-        delete updatedUserMDB.billingData.cardID;
+    const updatedUserMDB: any = {
+      billingData: {
+        customerID: billingData.customerID,
+        method: billingData.method,
+        cardID: billingData.cardID,
+        subscriptionID: billingData.subscriptionID,
+        hasSynchroError: billingData.hasSynchroError,
+        invoicesLastSynchronizedOn: Utils.convertToDate(billingData.invoicesLastSynchronizedOn),
+        lastChangedOn: Utils.convertToDate(billingData.lastChangedOn),
       }
-      updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
-      if (!updatedUserMDB.billingData.subscriptionID) {
-        delete updatedUserMDB.billingData.subscriptionID;
-      }
-      const lastChangedOn = Utils.convertToDate(billingData.lastChangedOn);
-      if (lastChangedOn) {
-        await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-          { '_id': Utils.convertToObjectID(userID) },
-          { $set: { lastChangedOn } });
-      }
-      updatedUserMDB.billingData.lastChangedOn = lastChangedOn;
-      // Modify and return the modified document
-      await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
-        { '_id': Utils.convertToObjectID(userID) },
-        { $set: updatedUserMDB });
-      // Debug
-      Logging.traceEnd(MODULE_NAME, 'saveUserBillingData', uniqueTimerID);
-    }
+    };
+    // Modify and return the modified document
+    await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: updatedUserMDB });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'saveUserBillingData', uniqueTimerID);
   }
 
   public static async saveUserImage(tenantID: string, userID: string, userImageToSave: string): Promise<void> {
@@ -505,7 +492,7 @@ export default class UserStorage {
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
-      statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
+      statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
@@ -564,11 +551,11 @@ export default class UserStorage {
       filters.role = { $in: params.roles };
     }
     // Billing Customer
-    if (params.billingCustomer) {
+    if (params.billingUserID) {
       filters.$and.push(
         { 'billingData': { '$exists': true } },
         { 'billingData.customerID': { '$exists': true } },
-        { 'billingData.customerID': params.billingCustomer }
+        { 'billingData.customerID': params.billingUserID }
       );
     }
     // Status (Previously getUsersInError)

@@ -1,14 +1,14 @@
-import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import { BillingInvoice, BillingInvoiceStatus } from '../../types/Billing';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
 import UserStorage from './UserStorage';
+import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'BillingStorage';
 
@@ -25,9 +25,21 @@ export default class BillingStorage {
     return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
   }
 
+  public static async getInvoiceByBillingInvoiceID(tenantID: string, billingInvoiceID: string): Promise<BillingInvoice> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoice');
+    // Query single Site
+    const invoicesMDB = await BillingStorage.getInvoices(tenantID,
+      { billingInvoiceID: billingInvoiceID },
+      Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'getInvoice', uniqueTimerID, { billingInvoiceID });
+    return invoicesMDB.count > 0 ? invoicesMDB.result[0] : null;
+  }
+
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceID?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
+      invoiceID?: string; billingInvoiceID?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
       startDateTime?: Date; endDateTime?: Date;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
@@ -41,7 +53,11 @@ export default class BillingStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
     const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
-    if (params.search) {
+    // Filter by ID
+    if (params.invoiceID) {
+      filters._id = Utils.convertToObjectID(params.invoiceID);
+      // Filter by other properties
+    } else if (params.search) {
       filters.$or = [
         { 'number': { $regex: Utils.escapeSpecialCharsInRegex(params.search), $options: 'i' } }
       ];
@@ -49,7 +65,6 @@ export default class BillingStorage {
     // Create Aggregation
     const aggregation = [];
     // Set filters
-
     if (filters) {
       aggregation.push({
         $match: filters
@@ -62,10 +77,10 @@ export default class BillingStorage {
         }
       });
     }
-    if (params.invoiceID) {
+    if (params.billingInvoiceID) {
       aggregation.push({
         $match: {
-          'invoiceID': { $eq: params.invoiceID }
+          'invoiceID': { $eq: params.billingInvoiceID }
         }
       });
     }
@@ -177,5 +192,17 @@ export default class BillingStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveInvoice', uniqueTimerID, { invoiceMDB });
     return invoiceMDB._id.toHexString();
+  }
+
+  public static async deleteInvoice(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteInvoice');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete the Company
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }
 }

@@ -1,11 +1,11 @@
 import CarFactory from '../../integration/car/CarFactory';
-import NotificationHandler from '../../notification/NotificationHandler';
-import { ServerAction } from '../../types/Server';
-import { TaskConfig } from '../../types/TaskConfig';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import NotificationHandler from '../../notification/NotificationHandler';
 import SchedulerTask from '../SchedulerTask';
+import { ServerAction } from '../../types/Server';
+import { TaskConfig } from '../../types/TaskConfig';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SynchronizeCarsTask';
 

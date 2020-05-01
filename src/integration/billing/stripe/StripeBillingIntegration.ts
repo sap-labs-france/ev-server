@@ -1,19 +1,19 @@
-/* eslint-disable @typescript-eslint/camelcase */
-import moment from 'moment';
-import Stripe, { IResourceObject } from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser } from '../../../types/Billing';
-import { ServerAction } from '../../../types/Server';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import Stripe, { IResourceObject } from 'stripe';
+
+import BackendError from '../../../exception/BackendError';
+import BillingIntegration from '../BillingIntegration';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
-import BillingIntegration from '../BillingIntegration';
+import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
@@ -215,8 +215,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
     let createdSince: string;
+    // Check Stripe
+    await this.checkConnection();
     if (billingUser) {
-      // Start sync from last user sync
+      // Start sync from last invoices sync
       createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
     } else {
       // Start sync from last global sync
@@ -230,8 +232,6 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       type: 'invoice.*',
     };
     try {
-      // Check Stripe
-      await this.checkConnection();
       // Loop until all invoices are read
       do {
         events = await this.stripe.events.list(request);
