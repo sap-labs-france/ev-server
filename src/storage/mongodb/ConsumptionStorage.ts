@@ -149,9 +149,9 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getAllConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getAllTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -173,13 +173,13 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getAllConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'getAllTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
   }
 
-  static async getOptimizedConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -251,7 +251,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOptimizedConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
   }
 }

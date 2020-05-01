@@ -363,9 +363,9 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getAllConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getAllTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     } else {
-      consumptions = await ConsumptionStorage.getOptimizedConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
     // Return the result
     res.json(TransactionSecurity.filterTransactionConsumptionsResponse(transaction, consumptions, req.user));
