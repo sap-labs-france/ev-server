@@ -1,5 +1,13 @@
 name: Lint CI
-on: [pull_request]
+on:
+  push:
+    branches:
+      - master
+      - master-qa
+  pull_request:
+    branches:
+      - master
+      - master-qa
 jobs:
   lint:
     env:
