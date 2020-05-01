@@ -37,7 +37,7 @@ export default class MigrationHandler {
     // Create a Lock by migration name and version
     const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration');
     if (!(await LockingManager.acquire(migrationLock))) {
-      return;        
+      return;
     }
     try {
       const startMigrationTime = moment();

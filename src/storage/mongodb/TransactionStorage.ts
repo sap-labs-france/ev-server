@@ -739,7 +739,7 @@ export default class TransactionStorage {
       };
     }
     // Create Aggregation
-    let aggregation = [];
+    const aggregation = [];
     aggregation.push({
       $match: match
     });

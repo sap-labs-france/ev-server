@@ -186,7 +186,7 @@ export default class DatabaseUtils {
     }`));
   }
 
-  public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: String, subFieldName: string) {
+  public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: string, subFieldName: string) {
     // Remove if null
     const addNullFields: any = {};
     addNullFields[`${fieldName}`] = {

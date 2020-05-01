@@ -24,7 +24,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
       for (const siteArea of siteAreas.result) {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
         if (!siteAreaLock) {
-          return;        
+          return;
         }
         try {
           // Get implementation

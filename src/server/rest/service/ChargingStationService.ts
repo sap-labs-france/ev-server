@@ -343,7 +343,7 @@ export default class ChargingStationService {
       detailedMessages: { result }
     });
     // Ok
-    res.json({status: result.status});
+    res.json({ status: result.status });
     next();
   }
 
@@ -408,7 +408,7 @@ export default class ChargingStationService {
     }
     const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
     if (!siteAreaLock) {
-      return;        
+      return;
     }
     try {
       // Call
@@ -813,13 +813,13 @@ export default class ChargingStationService {
     let errorType;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : 
+      errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') :
         [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN,
-         ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
+          ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
     } else {
       errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') :
         [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN,
-         ChargingStationInErrorType.CONNECTOR_ERROR]);
+          ChargingStationInErrorType.CONNECTOR_ERROR]);
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,

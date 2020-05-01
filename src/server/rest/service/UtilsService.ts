@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import { Action, Entity } from '../../../types/Authorization';
-import { HTTPError, HTTPAuthError } from '../../../types/HTTPError';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
