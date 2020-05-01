@@ -1,8 +1,9 @@
+import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
+
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
-import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
-import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
+import TenantComponents from '../types/TenantComponents';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -61,7 +62,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         action: [Action.CHECK_CONNECTION, Action.SYNCHRONIZE_USER, Action.SYNCHRONIZE_USERS]
       },
       { resource: Entity.TAXES, action: [Action.LIST], attributes: ['*'] },
-      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE_INVOICES], attributes: ['*'] },
       { resource: Entity.ASSET, action: [Action.CREATE, Action.READ, Action.UPDATE, Action.DELETE], attributes: ['*'] },
       { resource: Entity.ASSETS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.SETTINGS, action: Action.LIST, attributes: ['*'] },
@@ -94,7 +95,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
-      { resource: Entity.INVOICES, action: [Action.LIST], attributes: ['*'] },
+      { resource: Entity.INVOICES, action: [Action.LIST, Action.SYNCHRONIZE_INVOICES], attributes: ['*'] },
       { resource: Entity.INVOICE, action: [Action.DOWNLOAD], attributes: ['*'] },
       { resource: Entity.SITES, action: Action.LIST, attributes: ['*'] },
       {
