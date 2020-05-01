@@ -1,8 +1,9 @@
+import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
+
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
-import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
-import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
+import TenantComponents from '../types/TenantComponents';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
