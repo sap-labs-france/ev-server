@@ -2,6 +2,8 @@ name: Lint CI
 on: [pull_request]
 jobs:
   lint:
+    env:
+      CI: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -13,10 +15,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: npm install
-      run: |
-        npm ci
-      env:
-        CI: true
-    - name: run lint
-      run: |
-        npm run lint
+      run: npm ci
+    - name: npm run lint
+      run: npm run lint
