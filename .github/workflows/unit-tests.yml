@@ -10,6 +10,8 @@ on:
 
 jobs:
   unit-tests:
+    env:
+      CI: true
 
     runs-on: ubuntu-latest
 
@@ -24,17 +26,17 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - name: Build testing environment
-      run: cd docker && make
+      run: cd docker && make SUBMODULES_INIT=false
     - name: npm install and npm test
       run: |
         npm ci
         # cp test/config-local-ci.json test/config/local.json
         # npm run test:createContext
         # npm test
-      env:
-        CI: true
 
   unit-tests-submodules:
+    env:
+      CI: true
 
     runs-on: ubuntu-latest
 
@@ -59,5 +61,4 @@ jobs:
         # cp test/config-local-ci.json test/config/local.json
         # npm run test:createContext
         # npm test
-      env:
-        CI: true
+
