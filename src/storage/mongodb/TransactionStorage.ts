@@ -514,7 +514,7 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
@@ -656,7 +656,7 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Project
@@ -807,7 +807,7 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
@@ -906,7 +906,7 @@ export default class TransactionStorage {
       oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
@@ -946,7 +946,7 @@ export default class TransactionStorage {
       }
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
