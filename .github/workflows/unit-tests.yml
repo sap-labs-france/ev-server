@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - master-qa
+  push:
+    branches:
+      - unit-tests-ci
 
 jobs:
   unit-tests:
