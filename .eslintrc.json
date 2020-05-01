@@ -150,7 +150,12 @@
     "no-duplicate-imports": "error",
     "no-var": "error",
     "prefer-const": "error",
-    "sort-imports": "warn",
+    "sort-imports": ["warn", {
+      "ignoreCase": false,
+      "ignoreDeclarationSort": false,
+      "ignoreMemberSort": false,
+      "memberSyntaxSortOrder": ["none", "all"]      
+    }],
     "object-curly-spacing": [
       "error",
       "always"

@@ -291,18 +291,24 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.currentTotalConsumption / 1000;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.last_updated = transaction.lastUpdate;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiSession.currency = transaction.priceUnit;
     transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
 
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiSession.kwh,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.ocpiSession.last_updated,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.ocpiSession.total_cost,
       currency: transaction.ocpiSession.currency,
       status: transaction.ocpiSession.status,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: transaction.ocpiSession.charging_periods
     };
     // Log
@@ -360,10 +366,14 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.stop.totalConsumption / 1000;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.total_cost = transaction.stop.roundedPrice;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.last_updated = transaction.stop.timestamp;
     transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
     // Log
     Logging.logDebug({
@@ -421,18 +431,29 @@ export default class CpoOCPIClient extends OCPIClient {
     const cdrsUrl = `${this.getEndpointUrl('cdrs', ServerAction.OCPI_PUSH_CDRS)}`;
     transaction.ocpiCdr = {
       id: transaction.ocpiSession.id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       start_date_time: transaction.timestamp,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       stop_date_time: transaction.stop.timestamp,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_parking_time: transaction.stop.totalInactivitySecs,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_time: transaction.stop.totalDurationSecs,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_energy: transaction.stop.totalConsumption / 1000,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: transaction.ocpiSession.auth_id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: transaction.ocpiSession.authorization_id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_method: transaction.ocpiSession.auth_method,
       location: transaction.ocpiSession.location,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
+      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.stop.timestamp
     };
     // Log
@@ -617,6 +638,7 @@ export default class CpoOCPIClient extends OCPIClient {
             }
             if (sendResult.failure > 0) {
               // Send notification to admins
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 this.tenant.id,
                 {
@@ -698,7 +720,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  async triggerJobs(): Promise<{ tokens: any, locations: any }> {
+  async triggerJobs(): Promise<{ tokens: any; locations: any }> {
     return {
       tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses()
