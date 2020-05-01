@@ -72,9 +72,9 @@ export default class ConsumptionStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
-  static async getSiteAreaConsumption(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
+  static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
@@ -139,7 +139,7 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaID: params.siteAreaID });
+    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, { siteAreaID: params.siteAreaID });
     return consumptionsMDB;
   }
 

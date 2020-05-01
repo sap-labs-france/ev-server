@@ -1,4 +1,5 @@
 import { ConnectorCurrentLimitSource, SiteAreaLimitSource } from './ChargingStation';
+
 export default interface Consumption {
   id: string;
   startedAt: Date;

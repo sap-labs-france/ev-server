@@ -367,16 +367,8 @@ export default class TransactionService {
     } else {
       consumptions = await ConsumptionStorage.getOptimizedConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
-    // Dates provided?
-    const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
-    const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-    // Filter?
-    if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-      consumptions = consumptions.filter((consumption) =>
-        moment(consumption.endedAt).isBetween(startDateTime, endDateTime, null, '[]'));
-    }
     // Return the result
-    res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
+    res.json(TransactionSecurity.filterTransactionConsumptionsResponse(transaction, consumptions, req.user));
     next();
   }
 
