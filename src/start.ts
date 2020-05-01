@@ -6,7 +6,6 @@ import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer'
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import ODataServer from './server/odata/ODataServer';
 import CentralRestServer from './server/rest/CentralRestServer';
-import LockingStorage from './storage/mongodb/LockingStorage';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import CentralSystemConfiguration from './types/configuration/CentralSystemConfiguration';

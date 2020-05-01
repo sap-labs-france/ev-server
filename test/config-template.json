@@ -27,8 +27,7 @@
   },
   "admin": {
     "username": "admin@sap.com",
-    "password": "",
-    "tenant": "slf"
+    "password": ""
   },
   "mailServer": {
     "host": "127.0.0.1",

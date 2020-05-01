@@ -1,9 +1,9 @@
-import global from '../../types/GlobalType';
-import Lock from '../../types/Locking';
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
+import Lock from '../../types/Locking';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'LockingStorage';
 

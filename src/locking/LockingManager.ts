@@ -1,12 +1,12 @@
-import cfenv from 'cfenv';
-import os from 'os';
-import BackendError from '../exception/BackendError';
-import LockingStorage from '../storage/mongodb/LockingStorage';
 import Lock, { LockEntity, LockType } from '../types/Locking';
-import { ServerAction } from '../types/Server';
+import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Cypher from '../utils/Cypher';
+import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from '../utils/Logging';
+import { ServerAction } from '../types/Server';
+import cfenv from 'cfenv';
+import os from 'os';
 
 const MODULE_NAME = 'LockingManager';
 
@@ -20,7 +20,7 @@ export default class LockingManager {
     if (!tenantID) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'init',
+        module: MODULE_NAME, method: 'createLock',
         message: 'Tenant must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });
@@ -28,7 +28,7 @@ export default class LockingManager {
     if (!entity) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'init',
+        module: MODULE_NAME, method: 'createLock',
         message: 'Entity must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });
@@ -36,7 +36,7 @@ export default class LockingManager {
     if (!key) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'init',
+        module: MODULE_NAME, method: 'createLock',
         message: 'Key must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });

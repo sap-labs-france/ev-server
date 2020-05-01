@@ -19,7 +19,7 @@ export default class SiteAreaSecurity {
     // Filter request
     return {
       ID: sanitize(request.ID),
-      WithChargeBoxes: !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes),
+      WithChargingStations: !request.WithChargeBoxes ? false : sanitize(request.WithChargingStations),
       WithSite: !request.WithSite ? false : sanitize(request.WithSite)
     } as HttpSiteAreaRequest;
   }
@@ -71,9 +71,8 @@ export default class SiteAreaSecurity {
     };
   }
 
-  static filterSiteAreaResponse(siteArea, loggedUser: UserToken): SiteArea {
-    let filteredSiteArea;
-
+  static filterSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
+    let filteredSiteArea: SiteArea;
     if (!siteArea) {
       return null;
     }
@@ -85,7 +84,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea = siteArea;
       } else {
         // Set only necessary info
-        filteredSiteArea = {};
+        filteredSiteArea = {} as SiteArea;
         filteredSiteArea.id = siteArea.id;
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
@@ -101,12 +100,12 @@ export default class SiteAreaSecurity {
         filteredSiteArea.accessControl = siteArea.accessControl;
       }
       if (siteArea.site) {
-        // Site
         filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
       }
-      if (siteArea.chargeBoxes) {
-        filteredSiteArea.chargeBoxes = ChargingStationSecurity
-          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser, true);
+      if (siteArea.chargingStations) {
+        filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
+          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, true)
+        );
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

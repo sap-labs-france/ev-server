@@ -1,6 +1,6 @@
 import Lock, { LockEntity } from '../types/Locking';
-import SiteArea from '../types/SiteArea';
 import LockingManager from './LockingManager';
+import SiteArea from '../types/SiteArea';
 
 const MODULE_NAME = 'LockingHelper';
 

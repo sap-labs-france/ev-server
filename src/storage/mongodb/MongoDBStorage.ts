@@ -252,9 +252,7 @@ export default class MongoDBStorage {
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
-      { fields: { keyHash: 1 }, options: { unique: true } },
-      { fields: { hostname: 1 } },
-      { fields: { keyHash: 1, hostname: 1 } }
+      { fields: { tenantID: 1 } },
     ]);
 
     for (const collection of collections) {

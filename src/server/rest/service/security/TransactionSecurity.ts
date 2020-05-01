@@ -143,7 +143,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
         filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp)
+          moment.duration(moment(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : new Date())
             .diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;

@@ -130,7 +130,7 @@ export default class OCPIMapping {
     const evses = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id,
       {
-        withChargeBoxes: true,
+        withChargingStations: true,
         siteIDs: [site.id],
         issuer: true
       },

@@ -147,7 +147,7 @@ const config = convict({
     username: {
       doc: 'The admin username',
       format: String,
-      default: 'admin@ev.com',
+      default: 'slf.admin@ev.com',
       env: 'ADMIN_USERNAME'
     },
     password: {
@@ -202,8 +202,7 @@ const config = convict({
       default: 'mongodb'
     },
     uri: {
-      doc: 'URL',
-      // pragma format: String,
+      doc: 'connection string URI',
       default: null
     },
     host: {

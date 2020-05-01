@@ -10,6 +10,7 @@ export interface HttpAssetsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   WithSiteArea?: boolean;
   WithNoSiteArea?: boolean;
+  ErrorType?: string;
 }
 
 export interface HttpAssignAssetsToSiteAreaRequest {
