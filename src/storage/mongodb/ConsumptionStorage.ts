@@ -1,6 +1,5 @@
 import Consumption from '../../types/Consumption';
 import global from '../../types/GlobalType';
-import { SiteAreaConsumptionValues } from '../../types/SiteArea';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';

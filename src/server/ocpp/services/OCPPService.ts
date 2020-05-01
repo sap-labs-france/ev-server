@@ -1478,7 +1478,6 @@ export default class OCPPService {
         await ocpiClient.updateSession(transaction);
         break;
       case TransactionAction.STOP:
-        transaction.values = await ConsumptionStorage.getOptimizedTransactionConsumptions(tenantID, { transactionId: transaction.id });
         await ocpiClient.stopSession(transaction);
         await ocpiClient.postCdr(transaction);
         break;
