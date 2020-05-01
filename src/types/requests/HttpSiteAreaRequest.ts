@@ -3,7 +3,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   WithSite?: boolean;
-  WithChargeBoxes?: boolean;
+  WithChargingStations?: boolean;
 }
 
 export interface HttpSiteAreasRequest extends HttpDatabaseRequest {
