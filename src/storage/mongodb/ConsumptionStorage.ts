@@ -120,9 +120,15 @@ export default class ConsumptionStorage {
     // Rebuild the date
     aggregation.push({
       $addFields: {
-        date: {
+        startedAt: {
           $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
+      }
+    });
+    // Same date
+    aggregation.push({
+      $addFields: {
+        endedAt: '$startedAt'
       }
     });
     // Convert Object ID to string
@@ -131,7 +137,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     aggregation.push({
       $sort: {
-        date: 1
+        startedAt: 1
       }
     });
     // Read DB
@@ -166,7 +172,6 @@ export default class ConsumptionStorage {
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getAllConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
