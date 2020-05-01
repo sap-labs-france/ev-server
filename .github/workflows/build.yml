@@ -6,7 +6,6 @@ on:
       - master-qa
   pull_request:
     branches:
-      - master
       - master-qa
 jobs:
   build:
