@@ -1,33 +1,34 @@
-import axios from 'axios';
-import _ from 'lodash';
-import moment from 'moment';
-import BackendError from '../../exception/BackendError';
-import NotificationHandler from '../../notification/NotificationHandler';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
-import { ServerAction } from '../../types/Server';
-import { OcpiSetting } from '../../types/Setting';
-import Site from '../../types/Site';
-import Tenant from '../../types/Tenant';
-import Transaction from '../../types/Transaction';
+import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import NotificationHandler from '../../notification/NotificationHandler';
 import OCPIClient from './OCPIClient';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import { OcpiSetting } from '../../types/Setting';
+import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Transaction from '../../types/Transaction';
+import Utils from '../../utils/Utils';
+import _ from 'lodash';
+import axios from 'axios';
+import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -150,10 +151,10 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Build payload
     const payload: OCPILocationReference =
-      {
-        'location_id': siteID,
-        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
-      };
+    {
+      'location_id': siteID,
+      'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -230,19 +231,19 @@ export default class CpoOCPIClient extends OCPIClient {
       site, chargingStation, transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession =
-      {
-        'id': authorizationId,
-        'start_datetime': transaction.timestamp,
-        'kwh': 0,
-        'total_cost': transaction.currentCumulatedPrice,
-        'auth_method': OCPIAuthMethod.AUTH_REQUEST,
-        'auth_id': ocpiToken.auth_id,
-        'location': ocpiLocation,
-        'currency': transaction.priceUnit,
-        'status': OCPISessionStatus.PENDING,
-        'authorization_id': authorizationId,
-        'last_updated': transaction.timestamp
-      };
+    {
+      'id': authorizationId,
+      'start_datetime': transaction.timestamp,
+      'kwh': 0,
+      'total_cost': transaction.currentCumulatedPrice,
+      'auth_method': OCPIAuthMethod.AUTH_REQUEST,
+      'auth_id': ocpiToken.auth_id,
+      'location': ocpiLocation,
+      'currency': transaction.priceUnit,
+      'status': OCPISessionStatus.PENDING,
+      'authorization_id': authorizationId,
+      'last_updated': transaction.timestamp
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
