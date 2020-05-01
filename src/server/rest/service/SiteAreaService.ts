@@ -220,16 +220,13 @@ export default class SiteAreaService {
       });
     }
     // Get the ConsumptionValues
-    const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID, {
+    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
     });
-    // Get the Site Area Limit
-    const siteAreaLimit = siteArea.maximumPower;
     // Return
-    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(
-      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.SiteAreaID));
+    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(siteArea, consumptions, req.user));
     next();
   }
 

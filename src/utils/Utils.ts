@@ -433,7 +433,7 @@ export default class Utils {
     if (chargingStation &&
         chargingStation.connectors && chargingStation.connectors.length > 0 &&
         chargingStation.connectors[connectorID - 1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID - 1].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
+      return this.convertAmpToWatt(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
@@ -446,15 +446,26 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static convertAmpToW(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
+  public static convertAmpToWatt(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
     // Compute it
     if (numberOfConnectedPhase === 0) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     if (numberOfConnectedPhase === 3) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     return Math.floor(230 * maxIntensityInAmper);
+  }
+
+  public static convertWattToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
+    // Compute it
+    if (numberOfConnectedPhase === 0) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    if (numberOfConnectedPhase === 3) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    return Math.floor(maxIntensityInWatt / 230);
   }
 
   public static isEmptyArray(array): boolean {

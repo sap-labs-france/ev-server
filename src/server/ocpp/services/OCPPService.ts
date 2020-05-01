@@ -19,7 +19,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits, SiteAreaLimitSource } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -705,7 +705,7 @@ export default class OCPPService {
     if (siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
       if (!siteAreaLock) {
-        return;        
+        return;
       }
       try {
         const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
@@ -714,10 +714,10 @@ export default class OCPPService {
         }
         // Release lock
         await LockingManager.release(siteAreaLock);
-      } catch (error) {    
+      } catch (error) {
         // Release lock
         await LockingManager.release(siteAreaLock);
-        throw error;            
+        throw error;
       }
     }
   }
@@ -843,7 +843,7 @@ export default class OCPPService {
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
       const consumption: Consumption = await this.buildConsumptionFromTransactionAndMeterValue(
-        headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
+          headers.tenantID, chargingStation, transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
           id: '6969',
           chargeBoxID: transaction.chargeBoxID,
           connectorId: transaction.connectorId,
@@ -1201,6 +1201,28 @@ export default class OCPPService {
         consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
+      // Check Org
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get limit of the site area
+        consumption.limitSiteAreaWatts = 0;
+        // Maximum power of the Site Area provided?
+        if (chargingStation.siteArea.maximumPower) {
+          consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
+        } else {
+          // Compute it for Charging Stations
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT );
+          for (const chargingStation of chargingStations.result) {
+            for (const connector of chargingStation.connectors) {
+              consumption.limitSiteAreaWatts += connector.power;
+            }
+          }
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, consumption.limitSiteAreaWatts);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
+        }
+      }
       // Return
       return consumption;
     }
@@ -1456,7 +1478,6 @@ export default class OCPPService {
         await ocpiClient.updateSession(transaction);
         break;
       case TransactionAction.STOP:
-        transaction.values = await ConsumptionStorage.getOptimizedConsumptions(tenantID, { transactionId: transaction.id });
         await ocpiClient.stopSession(transaction);
         await ocpiClient.postCdr(transaction);
         break;

@@ -83,8 +83,17 @@ export default interface Transaction {
   currentTotalConsumption: number;
   currentSignedData?: string;
   uniqueId?: string;
-  values?: Consumption[];
+  values?: TransactionConsumption[];
   billingData?: BillingTransactionData;
   ocpiSession?: OCPISession;
   ocpiCdr?: OCPICdr;
+}
+
+export interface TransactionConsumption {
+  date: Date;
+  instantPower: number;
+  limitWatts: number;
+  cumulatedConsumption: number;
+  stateOfCharge: number;
+  cumulatedAmount: number;
 }
