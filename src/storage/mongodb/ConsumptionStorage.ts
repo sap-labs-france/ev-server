@@ -46,7 +46,8 @@ export default class ConsumptionStorage {
       limitSource: consumptionToSave.limitSource,
       userID: Utils.convertToObjectID(consumptionToSave.userID),
       limitSiteAreaWatts: consumptionToSave.limitSiteAreaWatts ? Utils.convertToInt(consumptionToSave.limitSiteAreaWatts) : null,
-      limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null
+      limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null,
+      limitSiteAreaSource: consumptionToSave.limitSiteAreaSource ? consumptionToSave.limitSiteAreaSource : null,
     };
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(

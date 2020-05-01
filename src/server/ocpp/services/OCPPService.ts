@@ -19,7 +19,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits, SiteAreaLimitSource } from '../../../types/ChargingStation';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Consumption from '../../../types/Consumption';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
@@ -1205,20 +1205,22 @@ export default class OCPPService {
       const tenant: Tenant = await TenantStorage.getTenant(tenantID);
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
         // Get limit of the site area
+        consumption.limitSiteAreaWatts = 0;
+        // Maximum power of the Site Area provided?
         if (chargingStation.siteArea.maximumPower) {
           consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-          consumption.limitSiteAreaAmps = Utils.convertWToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
-          const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withChargeBoxes: true });
-          consumption.limitSiteAreaWatts = 0;
-          if (siteArea && siteArea.chargingStations) {
-            for (const charger of siteArea.chargingStations) {
-              for (const connector of charger.connectors) {
-                consumption.limitSiteAreaWatts = consumption.limitSiteAreaWatts + connector.power;
-              }
+          // Compute it for Charging Stations
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT );
+          for (const chargingStation of chargingStations.result) {
+            for (const connector of chargingStation.connectors) {
+              consumption.limitSiteAreaWatts += connector.power;
             }
-            consumption.limitSiteAreaAmps = Utils.convertWToAmp(1, consumption.limitSiteAreaWatts);
           }
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, consumption.limitSiteAreaWatts);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
         }
       }
       // Return

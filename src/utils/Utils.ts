@@ -457,7 +457,7 @@ export default class Utils {
     return Math.floor(230 * maxIntensityInAmper);
   }
 
-  public static convertWToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
+  public static convertWattToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
     // Compute it
     if (numberOfConnectedPhase === 0) {
       return Math.floor(maxIntensityInWatt / 230 / 3);
