@@ -31,6 +31,7 @@ jobs:
       run: npm ci
     # - name: npm run test:createContext
     #   run: |
+    #     cp docker/config.json src/assets
     #     if [ ! -d test/config ]; then mkdir -p test/config; fi
     #     cp test/config-local-ci.json test/config/local.json
     #     npm run test:createContext
@@ -62,6 +63,7 @@ jobs:
       run: npm ci
     - name: npm run test:createContext
       run: |
+        cp docker/config.json src/assets
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp test/config-local-ci.json test/config/local.json
         npm run test:createContext
