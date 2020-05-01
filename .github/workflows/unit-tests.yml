@@ -30,11 +30,11 @@ jobs:
     - name: npm install
       run: npm ci
     # - name: npm run test:createContext
-    #     run: |
-    #       cp test/config-local-ci.json test/config/local.json
-    #       npm run test:createContext
+    #   run: |
+    #     cp test/config-local-ci.json test/config/local.json
+    #     npm run test:createContext
     # - name: npm test
-    #     run: npm test
+    #   run: npm test
 
   unit-tests-submodules:
     env:
@@ -64,5 +64,5 @@ jobs:
         cp test/config-local-ci.json test/config/local.json
         npm run test:createContext
     - name: npm test
-        run: npm test
+      run: npm test
 
