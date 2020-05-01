@@ -1,16 +1,11 @@
 name: Build CI
-
 on: [pull_request, push]
-
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [12.x]
-
     steps:
     - uses: actions/checkout@v2
       with:
