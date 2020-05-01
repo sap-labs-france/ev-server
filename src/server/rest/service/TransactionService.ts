@@ -363,20 +363,12 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getAllConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getAllTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     } else {
-      consumptions = await ConsumptionStorage.getOptimizedConsumptions(req.user.tenantID, { transactionId: transaction.id });
-    }
-    // Dates provided?
-    const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
-    const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-    // Filter?
-    if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-      consumptions = consumptions.filter((consumption) =>
-        moment(consumption.endedAt).isBetween(startDateTime, endDateTime, null, '[]'));
+      consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
     // Return the result
-    res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
+    res.json(TransactionSecurity.filterTransactionConsumptionsResponse(transaction, consumptions, req.user));
     next();
   }
 
@@ -871,7 +863,6 @@ export default class TransactionService {
       }
       filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     }
-
     // Date
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;

@@ -13,6 +13,7 @@ import global from './../../types/GlobalType';
 import ConsumptionStorage from './ConsumptionStorage';
 import DatabaseUtils from './DatabaseUtils';
 import moment = require('moment');
+import { ObjectID } from 'mongodb';
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -513,11 +514,16 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    // Set to null
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -527,8 +533,6 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Convert Object IDs to String
-    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
@@ -652,7 +656,7 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     // Project
@@ -736,13 +740,12 @@ export default class TransactionStorage {
     }
     // Create Aggregation
     let aggregation = [];
-    const toSubRequests = [];
     aggregation.push({
       $match: match
     });
     // Charging Station?
     if (params.withChargeBoxes ||
-      (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
+       (params.errorType && params.errorType.includes(TransactionInErrorType.OVER_CONSUMPTION))) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID,
@@ -761,15 +764,6 @@ export default class TransactionStorage {
       aggregation: aggregation,
       asField: 'user',
       localField: 'userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    });
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: toSubRequests,
-      asField: 'stop.user',
-      localField: 'stop.userID',
       foreignField: '_id',
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
@@ -803,16 +797,26 @@ export default class TransactionStorage {
       // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
     }
-    aggregation = aggregation.concat(toSubRequests);
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'stop.user',
+      localField: 'stop.userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
-    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
-    // DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    // Set to null
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
@@ -842,16 +846,10 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    const transactionCountMDB = transactionsMDB.length;
-    // Convert remaining Object IDs to String
-    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getTransactionsInError', uniqueTimerID, {
-      params,
-      dbParams
-    });
+    Logging.traceEnd(MODULE_NAME, 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     return {
-      count: transactionCountMDB,
+      count: transactionsMDB.length,
       result: transactionsMDB
     };
   }
@@ -908,11 +906,16 @@ export default class TransactionStorage {
       oneToOneCardinality: true, oneToOneCardinalityNotNull: false
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    // Set to null
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -924,8 +927,6 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      // Convert remaining Object IDs to String
-      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -945,11 +946,16 @@ export default class TransactionStorage {
       }
     });
     // Rename ID
-    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
+    DatabaseUtils.pushRenameDatabaseIDToNumber(aggregation);
     // Convert Object ID to string
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'stop.userID');
+    DatabaseUtils.pushConvertObjectIDToString(aggregation, 'remotestop.userID');
+    // Set to null
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'stop', 'timestamp');
+    DatabaseUtils.clearFieldValueIfSubFieldIsNull(aggregation, 'remotestop', 'timestamp');
     // Sort
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
@@ -975,8 +981,6 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      // Convert remaining Object IDs to String
-      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -1179,22 +1183,6 @@ export default class TransactionStorage {
         ];
       default:
         return [];
-    }
-  }
-
-  private static _convertRemainingTransactionObjectIDs(transactionsMDB: Transaction[]) {
-    for (const transactionMDB of transactionsMDB) {
-      // Check Stop created by the join
-      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
-        delete transactionMDB.stop;
-      }
-      // Check conversion of MongoDB IDs in sub-document
-      if (transactionMDB.stop && transactionMDB.stop.userID) {
-        transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
-      }
-      if (transactionMDB.remotestop && transactionMDB.remotestop.userID) {
-        transactionMDB.remotestop.userID = transactionMDB.remotestop.userID.toString();
-      }
     }
   }
 }

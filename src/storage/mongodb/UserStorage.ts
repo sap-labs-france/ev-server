@@ -884,7 +884,7 @@ export default class UserStorage {
     const tenant = await TenantStorage.getTenant(tenantID);
     for (const type of params.errorTypes) {
       if ((type === UserInErrorType.NOT_ASSIGNED && !Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) ||
-        ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
+         ((type === UserInErrorType.NO_BILLING_DATA || type === UserInErrorType.FAILED_BILLING_SYNCHRO) && !Utils.isTenantComponentActive(tenant, TenantComponents.BILLING))) {
         continue;
       }
       array.push(`$${type}`);
@@ -901,18 +901,6 @@ export default class UserStorage {
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
-        result: []
-      };
-    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Mongodb sort, skip and limit block
@@ -942,22 +930,11 @@ export default class UserStorage {
         allowDiskUse: false
       })
       .toArray();
-    // Clean user object
-    for (const userMDB of usersMDB) {
-      delete (userMDB as any).siteusers;
-      delete (userMDB as any).sites;
-    }
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, {
-      params,
-      limit,
-      skip,
-      sort: dbParams.sort
-    });
+    Logging.traceEnd(MODULE_NAME, 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
+      count: usersMDB.length,
       result: usersMDB
     };
   }

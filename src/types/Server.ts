@@ -250,6 +250,7 @@ export enum ServerAction {
   ASSETS = 'Assets',
   ASSET = 'Asset',
   ASSET_IMAGE = 'AssetImage',
+  ASSET_IN_ERROR = 'AssetsInError',
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
 

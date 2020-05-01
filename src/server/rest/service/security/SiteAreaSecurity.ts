@@ -1,13 +1,14 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import ChargingStationSecurity from './ChargingStationSecurity';
-import { HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import SiteArea, { SiteAreaConsumption, SiteAreaConsumptionValues } from '../../../../types/SiteArea';
-import SiteSecurity from './SiteSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
+import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import SiteArea, { SiteAreaConsumption } from '../../../../types/SiteArea';
+import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import ChargingStationSecurity from './ChargingStationSecurity';
+import SiteSecurity from './SiteSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteAreaSecurity {
 
@@ -19,7 +20,7 @@ export default class SiteAreaSecurity {
     // Filter request
     return {
       ID: sanitize(request.ID),
-      WithChargeBoxes: !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes),
+      WithChargingStations: !request.WithChargeBoxes ? false : sanitize(request.WithChargingStations),
       WithSite: !request.WithSite ? false : sanitize(request.WithSite)
     } as HttpSiteAreaRequest;
   }
@@ -71,9 +72,8 @@ export default class SiteAreaSecurity {
     };
   }
 
-  static filterSiteAreaResponse(siteArea, loggedUser: UserToken): SiteArea {
-    let filteredSiteArea;
-
+  static filterSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
+    let filteredSiteArea: SiteArea;
     if (!siteArea) {
       return null;
     }
@@ -85,7 +85,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea = siteArea;
       } else {
         // Set only necessary info
-        filteredSiteArea = {};
+        filteredSiteArea = {} as SiteArea;
         filteredSiteArea.id = siteArea.id;
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
@@ -101,12 +101,12 @@ export default class SiteAreaSecurity {
         filteredSiteArea.accessControl = siteArea.accessControl;
       }
       if (siteArea.site) {
-        // Site
         filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
       }
-      if (siteArea.chargeBoxes) {
-        filteredSiteArea.chargeBoxes = ChargingStationSecurity
-          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser, true);
+      if (siteArea.chargingStations) {
+        filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) =>
+          ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, true)
+        );
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
@@ -134,35 +134,24 @@ export default class SiteAreaSecurity {
     siteAreas.result = filteredSiteAreas;
   }
 
-  static filterSiteAreaConsumptionResponse(siteAreaConsumptionValues: SiteAreaConsumptionValues[],
-    siteAreaLimit: number, siteAreaId: string): SiteAreaConsumption {
-    // Create Site Area Consumption
-    const siteAreaConsumption: SiteAreaConsumption = {
-      siteAreaId: siteAreaId,
-      values: []
-    };
-    for (const siteAreaConsumptionValue of siteAreaConsumptionValues) {
-      siteAreaConsumption.values.push({ date: siteAreaConsumptionValue.date, instantPower: siteAreaConsumptionValue.instantPower, limitWatts: siteAreaLimit });
+  static filterSiteAreaConsumptionResponse(siteArea: SiteArea, consumptions: Consumption[], loggedUser: UserToken): SiteArea {
+    siteArea.values = [];
+    if (!consumptions) {
+      consumptions = [];
     }
-    // Add Values where no Consumption is available
-    for (let i = 1; i < siteAreaConsumption.values.length; i++) {
-      if (siteAreaConsumption.values[i - 1].date.getTime() + 60000 !== siteAreaConsumption.values[i].date.getTime() && siteAreaConsumption.values[i]) {
-        const addedValue = JSON.parse(JSON.stringify(siteAreaConsumption.values[i]));
-        const newDate = new Date(siteAreaConsumption.values[i - 1].date.getTime() + 60000);
-        addedValue.date = newDate;
-        addedValue.instantPower = 0;
-        siteAreaConsumption.values.splice(i, 0, addedValue);
-        i++;
-      }
-      if (siteAreaConsumption.values[i].date.getTime() - 60000 !== siteAreaConsumption.values[i - 1].date.getTime() && siteAreaConsumption.values[i]) {
-        const addedValue = JSON.parse(JSON.stringify(siteAreaConsumption.values[i]));
-        const newDate = new Date(siteAreaConsumption.values[i].date.getTime() - 60000);
-        addedValue.date = newDate;
-        addedValue.instantPower = 0;
-        siteAreaConsumption.values.splice(i, 0, addedValue);
-        i++;
-      }
+    const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
+    if (consumptions.length === 0) {
+      filteredSiteArea.values = [];
+      return filteredSiteArea;
     }
-    return siteAreaConsumption;
+    // Clean
+    filteredSiteArea.values = consumptions.map((consumption) => {
+      return {
+        date: consumption.endedAt,
+        instantPower: consumption.instantPower,
+        limitWatts: consumption.limitWatts
+      };
+    });
+    return filteredSiteArea;
   }
 }

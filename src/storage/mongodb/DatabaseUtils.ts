@@ -184,13 +184,19 @@ export default class DatabaseUtils {
         }
       }
     }`));
+  }
+
+  public static clearFieldValueIfSubFieldIsNull(aggregation: any[], fieldName: String, subFieldName: string) {
     // Remove if null
-    // TODO: Available only in MongoDB 4.2
-    // aggregation.push(JSON.parse(`{
-    //   "$unset": {
-    //     "${renamedFieldName}": ${null}
-    //   }
-    // }`));
+    const addNullFields: any = {};
+    addNullFields[`${fieldName}`] = {
+      $cond: {
+        if: { $gt: [`$${fieldName}.${subFieldName}`, null] },
+        then: `$${fieldName}`,
+        else: null
+      }
+    };
+    aggregation.push({ $addFields: addNullFields });
   }
 
   public static pushRenameField(aggregation: any[], fieldName: string, renamedFieldName: string) {
@@ -206,6 +212,11 @@ export default class DatabaseUtils {
         "${fieldName}": 0
       }
     }`));
+  }
+
+  public static pushRenameDatabaseIDToNumber(aggregation: any[]) {
+    // Rename ID
+    DatabaseUtils.pushRenameField(aggregation, '_id', 'id');
   }
 
   public static addLastChangedCreatedProps(dest: any, entity: any) {
