@@ -21,21 +21,16 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install and run build:prod
-      run: |
-        npm ci
-        npm run build:prod
-      env:
-        CI: true
+    - name: npm install
+      run: npm ci
+    - name: npm run build:prod
+      run: npm run build:prod
 
   build-submodules:
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [12.x]
-
     steps:
     - uses: actions/checkout@v2
       with:
