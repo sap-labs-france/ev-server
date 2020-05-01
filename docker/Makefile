@@ -1,5 +1,6 @@
 PROJECT_NAME?=evse
 NAME:=server
+SUBMODULES_INIT?=true
 DOCKER_ECR_ACCOUNT_ID?=166296450311
 DOCKER_ECR_REGION?=eu-west-3
 DOCKER_ECR_REGISTRY_NAME?=ev_server
@@ -18,16 +19,21 @@ local-env: mongo-express
 submodule-update:
 	git submodule update --init --recursive
 
-$(NAME): submodule-update
+submodules-init=
+ifeq '$(SUBMODULES_INIT)' 'true'
+	submodules-init += submodule-update
+endif
+
+$(NAME): $(submodules-init)
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d
 
-$(NAME)-force: submodule-update
+$(NAME)-force: $(submodules-init)
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME).yml up -d --build --force-recreate
 
-$(NAME)-standalone: submodule-update
+$(NAME)-standalone: $(submodules-init)
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME)-standalone.yml up -d
 
-$(NAME)-standalone-force: submodule-update
+$(NAME)-standalone-force: $(submodules-init)
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-$(NAME)-standalone.yml up -d --build --force-recreate
 
 all: local-env $(NAME)
