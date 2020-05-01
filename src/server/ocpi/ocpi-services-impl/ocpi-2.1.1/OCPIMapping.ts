@@ -20,6 +20,7 @@ import Transaction from '../../../../types/Transaction';
 import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
 import Consumption from '../../../../types/Consumption';
 import moment from 'moment';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -492,20 +493,19 @@ export default class OCPIMapping {
     }
   }
 
-  static buildChargingPeriods(transaction: Transaction): OCPIChargingPeriod[] {
+  static async buildChargingPeriods(tenantID: string, transaction: Transaction): Promise<OCPIChargingPeriod[]> {
     if (!transaction || !transaction.timestamp) {
       return [];
     }
-
     const chargingPeriods: OCPIChargingPeriod[] = [];
-
-    if (transaction.values) {
-      transaction.values.forEach((consumption) => {
+    const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(tenantID, { transactionId: transaction.id });
+    if (consumptions) {
+      for (const consumption of consumptions) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
         if (chargingPeriod && chargingPeriod.dimensions && chargingPeriod.dimensions.length > 0) {
           chargingPeriods.push(chargingPeriod);
         }
-      });
+      }
     } else {
       const consumption: number = transaction.stop ? transaction.stop.totalConsumption : transaction.currentTotalConsumption;
       chargingPeriods.push({

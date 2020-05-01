@@ -1,33 +1,34 @@
-import axios from 'axios';
-import _ from 'lodash';
-import moment from 'moment';
-import BackendError from '../../exception/BackendError';
-import NotificationHandler from '../../notification/NotificationHandler';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
 import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
 import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
-import { ServerAction } from '../../types/Server';
-import { OcpiSetting } from '../../types/Setting';
-import Site from '../../types/Site';
-import Tenant from '../../types/Tenant';
-import Transaction from '../../types/Transaction';
+import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import NotificationHandler from '../../notification/NotificationHandler';
 import OCPIClient from './OCPIClient';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import { OcpiSetting } from '../../types/Setting';
+import { ServerAction } from '../../types/Server';
+import Site from '../../types/Site';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Transaction from '../../types/Transaction';
+import Utils from '../../utils/Utils';
+import _ from 'lodash';
+import axios from 'axios';
+import moment from 'moment';
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -150,10 +151,10 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Build payload
     const payload: OCPILocationReference =
-      {
-        'location_id': siteID,
-        'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
-      };
+    {
+      'location_id': siteID,
+      'evse_uids': [OCPIUtils.buildEvseUID(chargingStation)]
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -230,19 +231,19 @@ export default class CpoOCPIClient extends OCPIClient {
       site, chargingStation, transaction.connectorId, this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS), this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS));
     // Build payload
     const ocpiSession: OCPISession =
-      {
-        'id': authorizationId,
-        'start_datetime': transaction.timestamp,
-        'kwh': 0,
-        'total_cost': transaction.currentCumulatedPrice,
-        'auth_method': OCPIAuthMethod.AUTH_REQUEST,
-        'auth_id': ocpiToken.auth_id,
-        'location': ocpiLocation,
-        'currency': transaction.priceUnit,
-        'status': OCPISessionStatus.PENDING,
-        'authorization_id': authorizationId,
-        'last_updated': transaction.timestamp
-      };
+    {
+      'id': authorizationId,
+      'start_datetime': transaction.timestamp,
+      'kwh': 0,
+      'total_cost': transaction.currentCumulatedPrice,
+      'auth_method': OCPIAuthMethod.AUTH_REQUEST,
+      'auth_id': ocpiToken.auth_id,
+      'location': ocpiLocation,
+      'currency': transaction.priceUnit,
+      'status': OCPISessionStatus.PENDING,
+      'authorization_id': authorizationId,
+      'last_updated': transaction.timestamp
+    };
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -291,18 +292,24 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.currentTotalConsumption / 1000;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.last_updated = transaction.lastUpdate;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiSession.currency = transaction.priceUnit;
     transaction.ocpiSession.status = OCPISessionStatus.ACTIVE;
-    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    transaction.ocpiSession.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
 
     const patchBody: Partial<OCPISession> = {
       kwh: transaction.ocpiSession.kwh,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.ocpiSession.last_updated,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.ocpiSession.total_cost,
       currency: transaction.ocpiSession.currency,
       status: transaction.ocpiSession.status,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: transaction.ocpiSession.charging_periods
     };
     // Log
@@ -360,11 +367,15 @@ export default class CpoOCPIClient extends OCPIClient {
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiSession.id}`;
     transaction.ocpiSession.kwh = transaction.stop.totalConsumption / 1000;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.total_cost = transaction.stop.roundedPrice;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.end_datetime = transaction.stop.timestamp;
+    // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiSession.last_updated = transaction.stop.timestamp;
     transaction.ocpiSession.status = OCPISessionStatus.COMPLETED;
-    transaction.ocpiSession.charging_periods = OCPIMapping.buildChargingPeriods(transaction);
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    transaction.ocpiSession.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
@@ -421,18 +432,29 @@ export default class CpoOCPIClient extends OCPIClient {
     const cdrsUrl = `${this.getEndpointUrl('cdrs', ServerAction.OCPI_PUSH_CDRS)}`;
     transaction.ocpiCdr = {
       id: transaction.ocpiSession.id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       start_date_time: transaction.timestamp,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       stop_date_time: transaction.stop.timestamp,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_parking_time: transaction.stop.totalInactivitySecs,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_time: transaction.stop.totalDurationSecs,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_energy: transaction.stop.totalConsumption / 1000,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: transaction.ocpiSession.auth_id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: transaction.ocpiSession.authorization_id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_method: transaction.ocpiSession.auth_method,
       location: transaction.ocpiSession.location,
-      charging_periods: OCPIMapping.buildChargingPeriods(transaction),
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
+      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: transaction.stop.timestamp
     };
     // Log
@@ -617,6 +639,7 @@ export default class CpoOCPIClient extends OCPIClient {
             }
             if (sendResult.failure > 0) {
               // Send notification to admins
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 this.tenant.id,
                 {
@@ -698,7 +721,7 @@ export default class CpoOCPIClient extends OCPIClient {
     return [];
   }
 
-  async triggerJobs(): Promise<any> {
+  async triggerJobs(): Promise<{ tokens: any; locations: any }> {
     return {
       tokens: await this.pullTokens(false),
       locations: await this.sendEVSEStatuses()

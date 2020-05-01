@@ -1,4 +1,5 @@
-import { ConnectorCurrentLimitSource } from './ChargingStation';
+import { ConnectorCurrentLimitSource, SiteAreaLimitSource } from './ChargingStation';
+
 export default interface Consumption {
   id: string;
   startedAt: Date;
@@ -24,4 +25,7 @@ export default interface Consumption {
   limitAmps?: number;
   limitWatts?: number;
   limitSource?: ConnectorCurrentLimitSource;
+  limitSiteAreaAmps?: number;
+  limitSiteAreaWatts?: number;
+  limitSiteAreaSource?: SiteAreaLimitSource;
 }

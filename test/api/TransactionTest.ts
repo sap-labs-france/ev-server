@@ -184,10 +184,6 @@ describe('Transaction tests', function() {
           await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
         });
 
-        it('Can read consumption of a started transaction with multiple meter values and different date parameters', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithDifferentDateParameters();
-        });
-
         it('Can read consumption of a stopped transaction without meter values', async () => {
           await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
         });
@@ -685,10 +681,6 @@ describe('Transaction tests', function() {
 
         it('Can read consumption of a started transaction with multiple meter values', async () => {
           await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
-        });
-
-        it('Can read consumption of a started transaction with multiple meter values and different date parameters', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithDifferentDateParameters();
         });
 
         it('Can read consumption of a stopped transaction without meter values', async () => {
