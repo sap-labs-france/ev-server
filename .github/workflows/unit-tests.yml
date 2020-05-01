@@ -27,12 +27,14 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Build testing environment
       run: cd docker && make SUBMODULES_INIT=false
-    - name: npm install and npm test
-      run: |
-        npm ci
-        # cp test/config-local-ci.json test/config/local.json
-        # npm run test:createContext
-        # npm test
+    - name: npm install
+      run: npm ci
+    # - name: npm run test:createContext
+    #     run: |
+    #       cp test/config-local-ci.json test/config/local.json
+    #       npm run test:createContext
+    # - name: npm test
+    #     run: npm test
 
   unit-tests-submodules:
     env:
@@ -55,10 +57,12 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Build testing environment
       run: cd docker && make
-    - name: npm install and npm test
-      run: |
-        npm ci
-        # cp test/config-local-ci.json test/config/local.json
-        # npm run test:createContext
-        # npm test
+    - name: npm install
+      run: npm ci
+    # - name: npm run test:createContext
+    #   run: |
+    #     cp test/config-local-ci.json test/config/local.json
+    #     npm run test:createContext
+    # - name: npm test
+    #     run: npm test
 
