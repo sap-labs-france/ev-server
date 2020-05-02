@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+
 import { Action } from '../../types/Authorization';
 import AssetService from './service/AssetService';
 import BillingService from './service/BillingService';
@@ -77,6 +78,8 @@ class RequestMapper {
           [ServerAction.BILLING_SYNCHRONIZE_USERS]: BillingService.handleSynchronizeUsers.bind(this),
           [ServerAction.BILLING_SYNCHRONIZE_USER]: BillingService.handleSynchronizeUser.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER]: BillingService.handleForceSynchronizeUser.bind(this),
+          [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
+          [ServerAction.BILLING_SYNCHRONIZE_USER_INVOICES]: BillingService.handleSynchronizeUserInvoices.bind(this),
           [ServerAction.OCPI_ENPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_TRIGGER_JOBS]: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
@@ -105,7 +108,7 @@ class RequestMapper {
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
+          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           [ServerAction.CHARGING_STATION]: ChargingStationService.handleGetChargingStation.bind(this),
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
@@ -239,7 +242,7 @@ class RequestMapper {
     }
   }
 
-  public registerJsonActionsPaths(dict: {[key in ServerAction]?: Function;}) {
+  public registerJsonActionsPaths(dict: { [key in ServerAction]?: Function; }) {
     for (const key in dict) {
       this.registerOneActionManyPaths(dict[key], key as ServerAction);
     }

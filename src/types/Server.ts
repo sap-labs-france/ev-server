@@ -328,6 +328,8 @@ export enum ServerAction {
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_USER_INVOICES = 'BillingUserInvoices',
+  BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
+  BILLING_SYNCHRONIZE_USER_INVOICES = 'BillingSynchronizeUserInvoices',
 
   MONGO_DB = 'MongoDB',
 

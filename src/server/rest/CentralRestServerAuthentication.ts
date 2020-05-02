@@ -1,4 +1,5 @@
 import { Handler, NextFunction, Request, Response } from 'express';
+
 import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';

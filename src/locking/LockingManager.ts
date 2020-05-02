@@ -1,4 +1,5 @@
 import Lock, { LockEntity, LockType } from '../types/Locking';
+
 import BackendError from '../exception/BackendError';
 import Configuration from '../utils/Configuration';
 import Cypher from '../utils/Cypher';
@@ -16,43 +17,6 @@ const MODULE_NAME = 'LockingManager';
  *  - E = mutually exclusive
  */
 export default class LockingManager {
-  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
-    if (!tenantID) {
-      throw new BackendError({
-        action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
-        message: 'Tenant must be provided',
-        detailedMessages: { tenantID, entity, key, type }
-      });
-    }
-    if (!entity) {
-      throw new BackendError({
-        action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
-        message: 'Entity must be provided',
-        detailedMessages: { tenantID, entity, key, type }
-      });
-    }
-    if (!key) {
-      throw new BackendError({
-        action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
-        message: 'Key must be provided',
-        detailedMessages: { tenantID, entity, key, type }
-      });
-    }
-    // Return the built lock
-    return {
-      id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
-      tenantID,
-      entity: entity,
-      key: key.toLowerCase(),
-      type: type,
-      timestamp: new Date(),
-      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
-    };
-  }
-
   public static createExclusiveLock(tenantID: string, entity: LockEntity, key: string): Lock {
     return this.createLock(tenantID, entity, key, LockType.EXCLUSIVE);
   }
@@ -112,5 +76,42 @@ export default class LockingManager {
       detailedMessages: { lock }
     });
     return true;
+  }
+
+  private static createLock(tenantID: string, entity: LockEntity, key: string, type: LockType = LockType.EXCLUSIVE): Lock {
+    if (!tenantID) {
+      throw new BackendError({
+        action: ServerAction.LOCKING,
+        module: MODULE_NAME, method: 'createLock',
+        message: 'Tenant must be provided',
+        detailedMessages: { tenantID, entity, key, type }
+      });
+    }
+    if (!entity) {
+      throw new BackendError({
+        action: ServerAction.LOCKING,
+        module: MODULE_NAME, method: 'createLock',
+        message: 'Entity must be provided',
+        detailedMessages: { tenantID, entity, key, type }
+      });
+    }
+    if (!key) {
+      throw new BackendError({
+        action: ServerAction.LOCKING,
+        module: MODULE_NAME, method: 'createLock',
+        message: 'Key must be provided',
+        detailedMessages: { tenantID, entity, key, type }
+      });
+    }
+    // Return the built lock
+    return {
+      id: Cypher.hash(`${tenantID}~${entity}~${key.toLowerCase()}~${type}`),
+      tenantID,
+      entity: entity,
+      key: key.toLowerCase(),
+      type: type,
+      timestamp: new Date(),
+      hostname: Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()
+    };
   }
 }

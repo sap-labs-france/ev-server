@@ -1,19 +1,19 @@
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-import { NotifySessionNotStarted } from '../../types/Notification';
 import RefundReport, { RefundStatus } from '../../types/Refund';
-import { ServerAction } from '../../types/Server';
 import Transaction, { InactivityStatus } from '../../types/Transaction';
-import User from '../../types/User';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+
 import Constants from '../../utils/Constants';
+import ConsumptionStorage from './ConsumptionStorage';
+import { DataResult } from '../../types/DataResult';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import { ServerAction } from '../../types/Server';
+import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
-import ConsumptionStorage from './ConsumptionStorage';
-import DatabaseUtils from './DatabaseUtils';
 import moment from 'moment';
-import { ObjectID } from 'mongodb';
 
 const MODULE_NAME = 'TransactionStorage';
 

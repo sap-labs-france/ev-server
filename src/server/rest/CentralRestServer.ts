@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from 'express';
+
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import ChangeNotification from '../../types/ChangeNotification';
@@ -66,13 +67,13 @@ export default class CentralRestServer {
     this.express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService);
+    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
 
     // Secured API
-    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
 
     // Util API
-    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil);
+    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
     this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);

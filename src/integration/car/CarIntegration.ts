@@ -1,10 +1,11 @@
-import CarStorage from '../../storage/mongodb/CarStorage';
-import { CarCatalog } from '../../types/Car';
 import { ActionsResponse } from '../../types/GlobalType';
-import { ServerAction } from '../../types/Server';
+import { CarCatalog } from '../../types/Car';
+import CarStorage from '../../storage/mongodb/CarStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarDatabase';
 
@@ -82,23 +83,13 @@ export default abstract class CarIntegration {
       }
     }
     // Log
-    if (actionsDone.inSuccess || actionsDone.inError) {
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-        module: MODULE_NAME, method: 'synchronizeCarCatalogs',
-        message: `${actionsDone.inSuccess} car(s) were successfully synchronized, ${actionsDone.inError} got errors`
-      });
-    } else {
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
-        module: MODULE_NAME, method: 'synchronizeCarCatalogs',
-        message: 'All the cars are up to date'
-      });
-    }
+    Utils.logActionsResponse(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+      MODULE_NAME, 'synchronizeCarCatalogs', actionsDone,
+      '{{inSuccess}} car(s) were successfully synchronized',
+      '{{inError}} car(s) failed to be synchronized',
+      '{{inSuccess}} car(s) were successfully synchronized and {{inError}} failed to be synchronized',
+      'All the cars are up to date'
+    );
     return actionsDone;
   }
 
