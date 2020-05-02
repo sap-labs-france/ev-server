@@ -71,9 +71,13 @@ jobs:
         mongo docker/initdb/003_createSlfAdmin.js
     - name: npm install
       run: npm ci
-    - name: npm run test:createContext
+    - name: npm start
       run: |
         cp src/assets/configs-ci/config.json src/assets
+        npm run start:email &
+        npm start &
+    - name: npm run test:createContext
+      run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
         npm run test:createContext
