@@ -14,7 +14,6 @@ jobs:
     env:
       CI: true
     runs-on: ubuntu-latest
-    needs: setup-mongodb
     strategy:
       matrix:
         node-version: [12.x]
