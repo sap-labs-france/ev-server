@@ -1,9 +1,9 @@
 import { Handler, NextFunction, Request, Response } from 'express';
-import { Action } from '../../types/Authorization';
-import { ServerAction } from '../../types/Server';
+
+import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import AuthService from './service/AuthService';
+import { ServerAction } from '../../types/Server';
 import UtilsService from './service/UtilsService';
 
 export default {

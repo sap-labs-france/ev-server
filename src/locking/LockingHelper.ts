@@ -1,8 +1,7 @@
 import Lock, { LockEntity } from '../types/Locking';
-import SiteArea from '../types/SiteArea';
-import LockingManager from './LockingManager';
 
-const MODULE_NAME = 'LockingHelper';
+import LockingManager from './LockingManager';
+import SiteArea from '../types/SiteArea';
 
 export default class LockingHelper {
   public static async createAndAquireExclusiveLockForSiteArea(tenantID: string, siteArea: SiteArea): Promise<Lock|null> {

@@ -1,10 +1,3 @@
-import cluster from 'cluster';
-import moment from 'moment';
-import LockingManager from '../locking/LockingManager';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import { ServerAction } from '../types/Server';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
@@ -17,14 +10,21 @@ import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTa
 import CleanupAllTransactionsTask from './tasks/CleanupAllTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
+import Constants from '../utils/Constants';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
+import { LockEntity } from '../types/Locking';
+import LockingManager from '../locking/LockingManager';
+import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
+import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
-import { LockEntity } from '../types/Locking';
+import cluster from 'cluster';
+import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
 
