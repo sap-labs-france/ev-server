@@ -27,6 +27,8 @@ jobs:
       run: npm run build:prod
 
   build-submodules:
+    env:
+      CI: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
