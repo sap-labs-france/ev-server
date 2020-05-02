@@ -58,7 +58,7 @@ describe('Locking Tests', function() {
 
   describe('Exclusive Locks', () => {
     it('Should create an exclusive lock', () => {
-      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockKey)
+      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockKey);
       expect(testData.exclusiveLock).not.null;
       expect(testData.exclusiveLock.id).not.null;
       expect(testData.exclusiveLock.hostname).not.null;
