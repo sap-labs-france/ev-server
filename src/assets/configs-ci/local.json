@@ -4,20 +4,20 @@
   "ocpp": {
     "soap": {
       "scheme": "http",
-      "host": "127.0.0.1",
+      "host": "localhost",
       "port": 8000,
       "logs": "none"
     },
     "json": {
       "scheme": "ws",
-      "host": "127.0.0.1",
+      "host": "localhost",
       "port": 8010,
       "logs": "none"
     }
   },
   "server": {
     "scheme": "http",
-    "host": "127.0.0.1",
+    "host": "localhost",
     "port": 8090,
     "logs": "none"
   },
@@ -30,8 +30,8 @@
     "password": "Slf.admin00"
   },
   "mailServer": {
-    "host": "127.0.0.1",
-    "port": 1080
+    "host": "localhost",
+    "port": 8888
   },
   "wsClient": {
     "autoReconnectMaxRetries": 10,

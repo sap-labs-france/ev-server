@@ -6,48 +6,47 @@ on:
       - master-qa
   push:
     branches:
+      - master-qa
       - unit-tests-ci
 
 jobs:
-  unit-tests:
-    env:
-      CI: true
+  # unit-tests:
+  #   env:
+  #     CI: true
 
-    runs-on: ubuntu-latest
+  #   runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
+  #   strategy:
+  #     matrix:
+  #       node-version: [12.x]
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: Build testing environment
-      run: cd docker && make SUBMODULES_INIT=false
-    - name: npm install
-      run: npm ci
-    # - name: npm run test:createContext
-    #   run: |
-    #     cp docker/config.json src/assets
-    #     if [ ! -d test/config ]; then mkdir -p test/config; fi
-    #     cp test/config-local-ci.json test/config/local.json
-    #     npm run test:createContext
-    # - name: npm test
-    #   run: npm test
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: Use Node.js ${{ matrix.node-version }}
+  #     uses: actions/setup-node@v1
+  #     with:
+  #       node-version: ${{ matrix.node-version }}
+  #   - name: Build testing environment
+  #     run: cd docker && make SUBMODULES_INIT=false
+  #   - name: npm install
+  #     run: npm ci
+  #   - name: npm run test:createContext
+  #     run: |
+  #       cp docker/config.json src/assets
+  #       if [ ! -d test/config ]; then mkdir -p test/config; fi
+  #       cp test/config-local-ci.json test/config/local.json
+  #       npm run test:createContext
+  #   - name: npm test
+  #     run: npm test
 
   unit-tests-submodules:
     env:
       CI: true
-
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [12.x]
-
+        mongodb-version: [4.2]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -57,15 +56,26 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Build testing environment
-      run: cd docker && make
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.3.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+        mongodb-replica-set: rs0
+    - name: Initialize DB
+      run: |
+        mongo docker/initdb/000_createMongoUsers.js
+        unzip -d docker/initdb docker/initdb/export-empty-evse-db.zip
+        mongorestore -d evse --gzip docker/initdb/evse
+        rm -rf docker/initdb/evse
+        mongo docker/initdb/002_createSuperAdmin.js
+        mongo docker/initdb/003_createSlfAdmin.js
     - name: npm install
       run: npm ci
     - name: npm run test:createContext
       run: |
-        cp docker/config.json src/assets
+        cp src/assets/configs-ci/config.json src/assets
         if [ ! -d test/config ]; then mkdir -p test/config; fi
-        cp test/config-local-ci.json test/config/local.json
+        cp src/assets/configs-ci/local.json test/config
         npm run test:createContext
     - name: npm test
       run: npm test

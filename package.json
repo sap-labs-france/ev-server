@@ -183,7 +183,6 @@
     "test:ocpp": "cross-env TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "test:authentication": "cross-env TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:createContext": "cross-env TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts",
-    "test:createBigContext": "cross-env TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts",
     "test:encryptionSetting": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts",
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts",
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts",
