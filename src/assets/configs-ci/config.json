@@ -108,7 +108,7 @@
     ],
     "smtp": {
       "host": "localhost",
-      "port": 70,
+      "port": 1025,
       "secure": false,
       "requireTLS": false,
       "user": "evse-mail-user",
