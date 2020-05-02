@@ -72,10 +72,11 @@ jobs:
     - name: npm install
       run: npm ci
     - name: npm run build:prod
-      run: npm run build:prod
-    - name: npm run start:prod
       run: |
         cp src/assets/configs-ci/config.json src/assets
+        npm run build:prod
+    - name: npm run start:prod
+      run: |
         npm run start:email &
         npm run start:prod &
     - name: npm run test:createContext
