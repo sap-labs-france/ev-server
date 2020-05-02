@@ -16,5 +16,10 @@ export enum LockType {
 export enum LockEntity {
   DATABASE = 'database',
   DATABASE_INDEX = 'database-index',
+  CHARGING_STATION = 'charging-station',
   SITE_AREA = 'site-area',
+  USER = 'user',
+  LOGGING = 'logging',
+  TRANSACTION = 'transaction',
+  CAR = 'car',
 }
