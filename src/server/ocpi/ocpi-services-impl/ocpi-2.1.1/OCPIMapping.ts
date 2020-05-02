@@ -498,7 +498,7 @@ export default class OCPIMapping {
       return [];
     }
     const chargingPeriods: OCPIChargingPeriod[] = [];
-    const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(tenantID, { transactionId: transaction.id })
+    const consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(tenantID, { transactionId: transaction.id });
     if (consumptions) {
       for (const consumption of consumptions) {
         const chargingPeriod = this.buildChargingPeriod(consumption);
@@ -534,7 +534,7 @@ export default class OCPIMapping {
     const chargingPeriod: OCPIChargingPeriod = {
       start_date_time: consumption.startedAt,
       dimensions: []
-    }
+    };
     if (consumption.consumption > 0) {
       chargingPeriod.dimensions.push({
         type: CdrDimensionType.ENERGY,

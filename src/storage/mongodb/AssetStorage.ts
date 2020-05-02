@@ -206,7 +206,7 @@ export default class AssetStorage {
   }
 
   public static async getAssetsInError(tenantID: string,
-    params: { search?: string; siteAreaIDs?: string[]; errorType?: string[]; } = {},
+    params: { search?: string; siteAreaIDs?: string[]; errorType?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('AssetStorage', 'getAssetsInError');

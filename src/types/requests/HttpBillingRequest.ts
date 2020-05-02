@@ -1,5 +1,5 @@
-import HttpDatabaseRequest from "./HttpDatabaseRequest";
-import { BillingInvoiceStatus } from "../Billing";
+import HttpDatabaseRequest from './HttpDatabaseRequest';
+import { BillingInvoiceStatus } from '../Billing';
 
 export interface HttpBillingRequest {
 }

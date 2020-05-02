@@ -271,7 +271,7 @@ export default class MongoDBStorage {
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       // Index creation Lock
-      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, `create-database`);
+      const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'create-database');
       if (await LockingManager.acquire(createDatabaseLock)) {
         try {
           // Create Database
