@@ -60,7 +60,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-    if (!transaction || !transaction.ocpiCdr) {
+    if (!transaction || !transaction.ocpi || !transaction.ocpi.cdr) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCdrRequest',
@@ -69,7 +69,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    return OCPIUtils.success(transaction.ocpiCdr);
+    return OCPIUtils.success(transaction.ocpi.cdr);
   }
 
   /**

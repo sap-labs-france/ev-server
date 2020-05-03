@@ -371,6 +371,93 @@ export default class OCPIEndpointService {
     next();
   }
 
+  static async handleCheckCdrsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handleCheckCdrsOcpiEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckCdrsRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleCheckCdrsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+    // Send EVSE statuses
+    const sendResult = await ocpiClient.checkCdrs();
+    // Return result
+    res.json(sendResult);
+    next();
+  }
+
+  static async handleCheckSessionsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handleCheckSessionsOcpiEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckSessionsRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleCheckSessionsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+    // Send EVSE statuses
+    const sendResult = await ocpiClient.checkSessions();
+    // Return result
+    res.json(sendResult);
+    next();
+  }
+
+  static async handleCheckLocationsEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Check auth
+    if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.TRIGGER_JOB,
+        entity: Entity.OCPI_ENDPOINT,
+        module: MODULE_NAME,
+        method: 'handleCheckLocationsEndpoint'
+      });
+    }
+    // Filter
+    const filteredRequest = OCPIEndpointSecurity.filterOcpiCheckLocationsRequest(req.body);
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, MODULE_NAME, 'handleCheckSessionsOcpiEndpoint', req.user);
+    // Get ocpiEndpoint
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(action, ocpiEndpoint, `OCPIEndpoint with ID '${filteredRequest.id}' does not exist`,
+      MODULE_NAME, 'handleCheckLocationsEndpoint', req.user);
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    // Build OCPI Client
+    const ocpiClient = await OCPIClientFactory.getCpoOcpiClient(tenant, ocpiEndpoint);
+    // Send EVSE statuses
+    const sendResult = await ocpiClient.checkLocations();
+    // Return result
+    res.json(sendResult);
+    next();
+  }
+
   static async handleSendEVSEStatusesOcpiEndpoint(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canTriggerJobOcpiEndpoint(req.user)) {

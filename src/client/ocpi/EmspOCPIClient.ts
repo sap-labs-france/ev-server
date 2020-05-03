@@ -577,7 +577,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
-    if (!transaction || !transaction.ocpiSession || transaction.issuer) {
+    if (!transaction || !transaction.ocpi || !transaction.ocpi.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
@@ -587,7 +587,7 @@ export default class EmspOCPIClient extends OCPIClient {
     }
     const payload: OCPIStopSession = {
       response_url: commandUrl + '/' + uuid(),
-      session_id: transaction.ocpiSession.id
+      session_id: transaction.ocpi.session.id
     };
     // Log
     Logging.logDebug({

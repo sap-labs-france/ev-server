@@ -25,6 +25,7 @@ import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTem
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
 import cluster from 'cluster';
 import moment from 'moment';
+import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -69,6 +70,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
       currentMigrationTasks.push(new InitialCarImportTask());
       currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
+      currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
       // Check
@@ -122,7 +124,7 @@ export default class MigrationHandler {
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
     if (!(await LockingManager.acquire(migrateTaskLock))) {
-      return;
+      // return;
     }
     try {
       // Log Start Task

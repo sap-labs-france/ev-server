@@ -55,6 +55,24 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
+  static filterOcpiCheckCdrsRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiCheckSessionsRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiCheckLocationsRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
   static filterOcpiEndpointSendTokensRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);

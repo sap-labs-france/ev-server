@@ -157,8 +157,14 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
-      filteredTransaction.ocpiSession = transaction.ocpiSession;
-      filteredTransaction.ocpiCdr = transaction.ocpiCdr;
+      if (transaction.ocpi) {
+        filteredTransaction.ocpi = {
+          session: transaction.ocpi.session,
+          sessionCheckedOn: transaction.ocpi.sessionCheckedOn,
+          cdr: transaction.ocpi.cdr,
+          cdrCheckedOn: transaction.ocpi.cdrCheckedOn
+        };
+      }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;

@@ -85,8 +85,12 @@ export default interface Transaction {
   uniqueId?: string;
   values?: TransactionConsumption[];
   billingData?: BillingTransactionData;
-  ocpiSession?: OCPISession;
-  ocpiCdr?: OCPICdr;
+  ocpi?: {
+    session?: OCPISession;
+    cdr?: OCPICdr;
+    sessionCheckedOn?: Date;
+    cdrCheckedOn?: Date;
+  };
 }
 
 export interface TransactionConsumption {

@@ -21,6 +21,9 @@ import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCP
 import Consumption from '../../../../types/Consumption';
 import moment from 'moment';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPISession } from '../../../../types/ocpi/OCPISession';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -193,6 +196,50 @@ export default class OCPIMapping {
     return {
       count: tags.count,
       result: tokens
+    };
+  }
+
+  /**
+   * Get All OCPI Session from given tenant
+   * @param {Tenant} tenant
+   */
+  static async getAllSessions(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPISession>> {
+    // Result
+    const sessions: OCPISession[] = [];
+    // Get all transactions
+    const transactions = await TransactionStorage.getTransactions(tenant.id, { issuer: true, ocpiSessionDateFrom: dateFrom, ocpiSessionDateTo: dateTo }, {
+      limit,
+      skip
+    });
+    for (const transaction of transactions.result) {
+      sessions.push(transaction.ocpi.session);
+    }
+    return {
+      count: transactions.count,
+      result: sessions
+    };
+  }
+
+  /**
+   * Get All OCPI Cdrs from given tenant
+   * @param {Tenant} tenant
+   */
+  static async getAllCdrs(tenant: Tenant, limit: number, skip: number, dateFrom?: Date, dateTo?: Date): Promise<DataResult<OCPICdr>> {
+    // Result
+    const cdrs: OCPICdr[] = [];
+    // Get all transactions
+    const transactions = await TransactionStorage.getTransactions(tenant.id, { issuer: true, ocpiCdrDateFrom: dateFrom, ocpiCdrDateTo: dateTo }, {
+      limit,
+      skip
+    });
+    for (const transaction of transactions.result) {
+      if (transaction.ocpi && transaction.ocpi.cdr) {
+        cdrs.push(transaction.ocpi.cdr);
+      }
+    }
+    return {
+      count: transactions.count,
+      result: cdrs
     };
   }
 
