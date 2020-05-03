@@ -131,7 +131,6 @@
     "rxjs": "^6.5.2",
     "terser-webpack-plugin": "^2.3.5",
     "ts-loader": "^7.0.1",
-    "ts-mocha": "^7.0.0",
     "ts-node": "^8.9.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "webpack": "^4.42.1",
