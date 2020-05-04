@@ -323,11 +323,8 @@ export default class TransactionStorage {
       }
     }
     if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
-      if (!filterMatch.ocpi) {
-        filterMatch.ocpi = {};
-      }
-      filterMatch.ocpi.session = { $exists: true };
-      filterMatch.ocpi.sessionCheckedOn = { $exists: params.ocpiCdrChecked };
+      filterMatch['ocpi.session'] = { $exists: true };
+      filterMatch['ocpi.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
 
     // OCPI Cdr Date provided?
@@ -348,11 +345,8 @@ export default class TransactionStorage {
       }
     }
     if (params.ocpiCdrChecked === true || params.ocpiCdrChecked === false) {
-      if (!filterMatch.ocpi) {
-        filterMatch.ocpi = {};
-      }
-      filterMatch.ocpi.cdr = { $exists: true };
-      filterMatch.ocpi.cdrCheckedOn = { $exists: params.ocpiCdrChecked };
+      filterMatch['ocpi.cdr'] = { $exists: true };
+      filterMatch['ocpi.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
     }
 
     // Check stop transaction

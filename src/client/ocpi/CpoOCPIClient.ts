@@ -591,6 +591,14 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_CHECK_CDRS);
 
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_CDRS,
+      message: `Check cdr at ${cdrsUrl}/${transaction.ocpi.cdr.id}`,
+      module: MODULE_NAME, method: 'checkCdr'
+    });
+
     const response = await axios.get(`${cdrsUrl}/${transaction.ocpi.cdr.id}`,
       {
         headers: {
@@ -598,17 +606,6 @@ export default class CpoOCPIClient extends OCPIClient {
         },
         timeout: 10000
       });
-    if (response.status === 404) {
-      await axios.post(cdrsUrl, transaction.ocpi.cdr,
-        {
-          headers: {
-            Authorization: `Token ${this.ocpiEndpoint.token}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000
-        });
-      return false;
-    }
     if (response.status === 200 && response.data) {
       Logging.logDebug({
         tenantID: this.tenant.id,
@@ -617,6 +614,17 @@ export default class CpoOCPIClient extends OCPIClient {
         module: MODULE_NAME, method: 'checkCdr',
         detailedMessages: { response : response.data }
       });
+      if (response.data.status_code === 3001) {
+        const postResponse = await axios.post(cdrsUrl, transaction.ocpi.cdr,
+          {
+            headers: {
+              Authorization: `Token ${this.ocpiEndpoint.token}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 10000
+          });
+        return false;
+      }
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
         transaction.ocpi.cdrCheckedOn = new Date();
@@ -626,7 +634,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: 'Invalid response from Check cdr',
+      message: `Invalid response from Check cdr at ${cdrsUrl}/${transaction.ocpi.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
       detailedMessages: { data: response.data }
     });
@@ -642,7 +650,15 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpi.session.id}`;
 
-    const response = await axios.get(`${sessionsUrl}/${transaction.ocpi.session.id}`,
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_SESSIONS,
+      message: `Check session at ${sessionsUrl}`,
+      module: MODULE_NAME, method: 'checkSession'
+    });
+
+    const response = await axios.get(sessionsUrl,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -666,7 +682,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: 'Invalid response from Check session',
+      message: `Invalid response from Check session at ${sessionsUrl}`,
       module: MODULE_NAME, method: 'checkSession',
       detailedMessages: { data: response.data }
     });
