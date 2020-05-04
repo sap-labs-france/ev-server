@@ -10,7 +10,7 @@ import Utils from '../../utils/Utils';
 export default class SynchronizeBillingUsersTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     // Get the lock
-    const billingLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-users');
+    const billingLock = LockingManager.createExclusiveLock(tenant.id, LockEntity.USER, 'synchronize-billing');
     if (await LockingManager.acquire(billingLock)) {
       try {
         const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
