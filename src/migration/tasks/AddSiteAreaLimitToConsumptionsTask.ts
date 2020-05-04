@@ -24,12 +24,11 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
     // Get Charging Stations
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
-      let result: any;
       if (siteArea.maximumPower) {
         for (const chargingStation of siteArea.chargingStations) {
           for (const connector of chargingStation.connectors) {
             // Update
-            result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+            const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
               {
                 chargeBoxID: chargingStation.id,
                 connectorId: connector.connectorId,
@@ -56,7 +55,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         for (const chargingStation of siteArea.chargingStations) {
           for (const connector of chargingStation.connectors) {
             // Update
-            result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+            const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
               {
                 chargeBoxID: chargingStation.id,
                 connectorId: connector.connectorId,
