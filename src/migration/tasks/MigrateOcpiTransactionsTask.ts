@@ -25,16 +25,12 @@ export default class MigrateOcpiTransactionsTask extends MigrationTask {
       }
     ).toArray();
     for (const transactionMDB of transactionsMDB) {
-      transactionMDB.ocpi = {
-        cdr: transactionMDB.ocpiCdr,
-        session: transactionMDB.ocpiSession
-      };
       // Update
       await global.database.getCollection(tenant.id, 'transactions').findOneAndUpdate(
         { '_id': transactionMDB['_id'] },
         {
           $set: {
-            ocpi: {
+            ocpiData: {
               session: transactionMDB.ocpiSession,
               cdr: transactionMDB.ocpiCdr
             }

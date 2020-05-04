@@ -212,7 +212,7 @@ export default class OCPIMapping {
       skip
     });
     for (const transaction of transactions.result) {
-      sessions.push(transaction.ocpi.session);
+      sessions.push(transaction.ocpiData.session);
     }
     return {
       count: transactions.count,
@@ -233,8 +233,8 @@ export default class OCPIMapping {
       skip
     });
     for (const transaction of transactions.result) {
-      if (transaction.ocpi && transaction.ocpi.cdr) {
-        cdrs.push(transaction.ocpi.cdr);
+      if (transaction.ocpiData && transaction.ocpiData.cdr) {
+        cdrs.push(transaction.ocpiData.cdr);
       }
     }
     return {

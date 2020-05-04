@@ -159,12 +159,12 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
-      if (transaction.ocpi) {
-        filteredTransaction.ocpi = {
-          session: transaction.ocpi.session,
-          sessionCheckedOn: transaction.ocpi.sessionCheckedOn,
-          cdr: transaction.ocpi.cdr,
-          cdrCheckedOn: transaction.ocpi.cdrCheckedOn
+      if (transaction.ocpiData) {
+        filteredTransaction.ocpiData = {
+          session: transaction.ocpiData.session,
+          sessionCheckedOn: transaction.ocpiData.sessionCheckedOn,
+          cdr: transaction.ocpiData.cdr,
+          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn
         };
       }
       // Demo user?

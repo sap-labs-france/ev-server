@@ -149,8 +149,8 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
-    if (transactionToSave.ocpi) {
-      transactionMDB.ocpi = transactionToSave.ocpi;
+    if (transactionToSave.ocpiData) {
+      transactionMDB.ocpiData = transactionToSave.ocpiData;
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
@@ -267,7 +267,7 @@ export default class TransactionStorage {
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
     } else if (params.ocpiSessionId) {
-      filterMatch['ocpi.session.id'] = params.ocpiSessionId;
+      filterMatch['ocpiData.session.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
@@ -309,32 +309,32 @@ export default class TransactionStorage {
     if (params.ocpiSessionDateFrom || params.ocpiSessionDateTo) {
       // Start date
       if (params.ocpiSessionDateFrom) {
-        filterMatch['ocpi.session.last_updated'] = { $gte: Utils.convertToDate(params.ocpiSessionDateFrom) };
+        filterMatch['ocpiData.session.last_updated'] = { $gte: Utils.convertToDate(params.ocpiSessionDateFrom) };
       }
       // End date
       if (params.ocpiSessionDateTo) {
-        filterMatch['ocpi.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
+        filterMatch['ocpiData.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
       }
     }
     if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
-      filterMatch['ocpi.session'] = { $exists: true };
-      filterMatch['ocpi.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
+      filterMatch['ocpiData.session'] = { $exists: true };
+      filterMatch['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
 
     // OCPI Cdr Date provided?
     if (params.ocpiCdrDateFrom || params.ocpiCdrDateTo) {
       // Start date
       if (params.ocpiCdrDateFrom) {
-        filterMatch['ocpi.cdr.last_updated'] = { $gte: Utils.convertToDate(params.ocpiCdrDateFrom) };
+        filterMatch['ocpiData.cdr.last_updated'] = { $gte: Utils.convertToDate(params.ocpiCdrDateFrom) };
       }
       // End date
       if (params.ocpiCdrDateTo) {
-        filterMatch['ocpi.cdr.last_updated'] = { $lte: Utils.convertToDate(params.ocpiCdrDateTo) };
+        filterMatch['ocpiData.cdr.last_updated'] = { $lte: Utils.convertToDate(params.ocpiCdrDateTo) };
       }
     }
     if (params.ocpiCdrChecked === true || params.ocpiCdrChecked === false) {
-      filterMatch['ocpi.cdr'] = { $exists: true };
-      filterMatch['ocpi.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
+      filterMatch['ocpiData.cdr'] = { $exists: true };
+      filterMatch['ocpiData.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
     }
 
     // Check stop transaction

@@ -274,7 +274,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { payload: response.data }
       });
     }
-    transaction.ocpi = {
+    transaction.ocpiData = {
       session: ocpiSession
     };
     Logging.logDebug({
@@ -287,7 +287,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   async updateSession(transaction: Transaction) {
-    if (!transaction.ocpi || !transaction.ocpi.session) {
+    if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_PUSH_SESSIONS,
@@ -296,27 +296,27 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     }
     // Get tokens endpoint url
-    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpi.session.id}`;
-    transaction.ocpi.session.kwh = transaction.currentTotalConsumption / 1000;
+    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
+    transaction.ocpiData.session.kwh = transaction.currentTotalConsumption / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.last_updated = transaction.lastUpdate;
+    transaction.ocpiData.session.last_updated = transaction.lastUpdate;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.total_cost = transaction.currentCumulatedPrice;
-    transaction.ocpi.session.currency = transaction.priceUnit;
-    transaction.ocpi.session.status = OCPISessionStatus.ACTIVE;
+    transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
+    transaction.ocpiData.session.currency = transaction.priceUnit;
+    transaction.ocpiData.session.status = OCPISessionStatus.ACTIVE;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
 
     const patchBody: Partial<OCPISession> = {
-      kwh: transaction.ocpi.session.kwh,
+      kwh: transaction.ocpiData.session.kwh,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      last_updated: transaction.ocpi.session.last_updated,
+      last_updated: transaction.ocpiData.session.last_updated,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      total_cost: transaction.ocpi.session.total_cost,
-      currency: transaction.ocpi.session.currency,
-      status: transaction.ocpi.session.status,
+      total_cost: transaction.ocpiData.session.total_cost,
+      currency: transaction.ocpiData.session.currency,
+      status: transaction.ocpiData.session.status,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      charging_periods: transaction.ocpi.session.charging_periods
+      charging_periods: transaction.ocpiData.session.charging_periods
     };
     // Log
     Logging.logDebug({
@@ -354,7 +354,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   async stopSession(transaction: Transaction) {
-    if (!transaction.ocpi || !transaction.ocpi.session) {
+    if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_PUSH_SESSIONS,
@@ -371,28 +371,28 @@ export default class CpoOCPIClient extends OCPIClient {
       });
     }
     // Get tokens endpoint url
-    const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpi.session.id}`;
-    transaction.ocpi.session.kwh = transaction.stop.totalConsumption / 1000;
+    const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
+    transaction.ocpiData.session.kwh = transaction.stop.totalConsumption / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.total_cost = transaction.stop.roundedPrice;
+    transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.end_datetime = transaction.stop.timestamp;
+    transaction.ocpiData.session.end_datetime = transaction.stop.timestamp;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.last_updated = transaction.stop.timestamp;
-    transaction.ocpi.session.status = OCPISessionStatus.COMPLETED;
+    transaction.ocpiData.session.last_updated = transaction.stop.timestamp;
+    transaction.ocpiData.session.status = OCPISessionStatus.COMPLETED;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpi.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
+    transaction.ocpiData.session.charging_periods = await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction);
     // Log
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_PUSH_SESSIONS,
       message: `Stop session at ${tokensUrl}`,
       module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { payload: transaction.ocpi.session }
+      detailedMessages: { payload: transaction.ocpiData.session }
     });
     // Call IOP
     // eslint-disable-next-line no-case-declarations
-    const response = await axios.put(tokensUrl, transaction.ocpi.session,
+    const response = await axios.put(tokensUrl, transaction.ocpiData.session,
       {
         headers: {
           'Authorization': `Token ${this.ocpiEndpoint.token}`,
@@ -418,7 +418,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   async postCdr(transaction: Transaction) {
-    if (!transaction.ocpi || !transaction.ocpi.session) {
+    if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         source: transaction.chargeBoxID,
         action: ServerAction.OCPI_PUSH_CDRS,
@@ -436,8 +436,8 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const cdrsUrl = this.getEndpointUrl('cdrs', ServerAction.OCPI_PUSH_CDRS);
-    transaction.ocpi.cdr = {
-      id: transaction.ocpi.session.id,
+    transaction.ocpiData.cdr = {
+      id: transaction.ocpiData.session.id,
       // eslint-disable-next-line @typescript-eslint/camelcase
       start_date_time: transaction.timestamp,
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -452,12 +452,12 @@ export default class CpoOCPIClient extends OCPIClient {
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      auth_id: transaction.ocpi.session.auth_id,
+      auth_id: transaction.ocpiData.session.auth_id,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      authorization_id: transaction.ocpi.session.authorization_id,
+      authorization_id: transaction.ocpiData.session.authorization_id,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      auth_method: transaction.ocpi.session.auth_method,
-      location: transaction.ocpi.session.location,
+      auth_method: transaction.ocpiData.session.auth_method,
+      location: transaction.ocpiData.session.location,
       // eslint-disable-next-line @typescript-eslint/camelcase
       charging_periods: await OCPIMapping.buildChargingPeriods(this.tenant.id, transaction),
       // eslint-disable-next-line @typescript-eslint/camelcase
@@ -469,11 +469,11 @@ export default class CpoOCPIClient extends OCPIClient {
       action: ServerAction.OCPI_PUSH_CDRS,
       message: `Post cdr at ${cdrsUrl}`,
       module: MODULE_NAME, method: 'stopSession',
-      detailedMessages: { payload: transaction.ocpi.cdr }
+      detailedMessages: { payload: transaction.ocpiData.cdr }
     });
     // Call IOP
     // eslint-disable-next-line no-case-declarations
-    const response = await axios.post(cdrsUrl, transaction.ocpi.cdr,
+    const response = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -582,7 +582,7 @@ export default class CpoOCPIClient extends OCPIClient {
   }
 
   async checkCdr(transaction: Transaction): Promise<boolean> {
-    if (!transaction.ocpi || !transaction.ocpi.cdr) {
+    if (!transaction.ocpiData || !transaction.ocpiData.cdr) {
       throw new BackendError({
         action: ServerAction.OCPI_CHECK_CDRS,
         message: `Unable to check cdr for transaction ${transaction.id}, ocpi data are missing`,
@@ -595,11 +595,11 @@ export default class CpoOCPIClient extends OCPIClient {
     Logging.logDebug({
       tenantID: this.tenant.id,
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `Check cdr at ${cdrsUrl}/${transaction.ocpi.cdr.id}`,
+      message: `Check cdr at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr'
     });
 
-    const response = await axios.get(`${cdrsUrl}/${transaction.ocpi.cdr.id}`,
+    const response = await axios.get(`${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       {
         headers: {
           Authorization: `Token ${this.ocpiEndpoint.token}`
@@ -615,7 +615,7 @@ export default class CpoOCPIClient extends OCPIClient {
         detailedMessages: { response : response.data }
       });
       if (response.data.status_code === 3001) {
-        const postResponse = await axios.post(cdrsUrl, transaction.ocpi.cdr,
+        const postResponse = await axios.post(cdrsUrl, transaction.ocpiData.cdr,
           {
             headers: {
               Authorization: `Token ${this.ocpiEndpoint.token}`,
@@ -627,28 +627,28 @@ export default class CpoOCPIClient extends OCPIClient {
       }
       const cdr = response.data.data as OCPICdr;
       if (cdr) {
-        transaction.ocpi.cdrCheckedOn = new Date();
+        transaction.ocpiData.cdrCheckedOn = new Date();
         await TransactionStorage.saveTransaction(this.tenant.id, transaction);
         return true;
       }
     }
     throw new BackendError({
       action: ServerAction.OCPI_CHECK_CDRS,
-      message: `Invalid response from Check cdr at ${cdrsUrl}/${transaction.ocpi.cdr.id}`,
+      message: `Invalid response from Check cdr at ${cdrsUrl}/${transaction.ocpiData.cdr.id}`,
       module: MODULE_NAME, method: 'checkCdr',
       detailedMessages: { data: response.data }
     });
   }
 
   async checkSession(transaction: Transaction): Promise<boolean> {
-    if (!transaction.ocpi || !transaction.ocpi.session) {
+    if (!transaction.ocpiData || !transaction.ocpiData.session) {
       throw new BackendError({
         action: ServerAction.OCPI_CHECK_SESSIONS,
         message: `Unable to check session for transaction ${transaction.id}, ocpi data are missing`,
         module: MODULE_NAME, method: 'checkSession',
       });
     }
-    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpi.session.id}`;
+    const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_CHECK_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_CHECK_SESSIONS)}/${transaction.ocpiData.session.id}`;
 
     // Log
     Logging.logDebug({
@@ -675,7 +675,7 @@ export default class CpoOCPIClient extends OCPIClient {
       });
       const session = response.data.data as OCPISession;
       if (session) {
-        transaction.ocpi.sessionCheckedOn = new Date();
+        transaction.ocpiData.sessionCheckedOn = new Date();
         await TransactionStorage.saveTransaction(this.tenant.id, transaction);
         return true;
       }
