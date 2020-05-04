@@ -515,19 +515,26 @@ export default class EmspOCPIClient extends OCPIClient {
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: user.id,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       visual_number: user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: new Date()
     };
     const authorizationId = uuid();
     const payload: OCPIStartSession = {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: commandUrl + '/' + uuid(),
       token: token,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       evse_uid: chargingStation.imsi,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       location_id: chargingStation.iccid,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: authorizationId
     };
     // Log
@@ -578,7 +585,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
-    if (!transaction || !transaction.ocpiSession || transaction.issuer) {
+    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
@@ -587,8 +594,10 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     }
     const payload: OCPIStopSession = {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: commandUrl + '/' + uuid(),
-      session_id: transaction.ocpiSession.id
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      session_id: transaction.ocpiData.session.id
     };
     // Log
     Logging.logDebug({

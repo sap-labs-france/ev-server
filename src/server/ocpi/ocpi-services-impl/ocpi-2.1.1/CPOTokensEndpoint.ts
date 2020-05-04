@@ -18,7 +18,7 @@ import OCPITokensService from './OCPITokensService';
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';
 /**
- * EMSP Tokens Endpoint
+ * CPO Tokens Endpoint
  */
 export default class CPOTokensEndpoint extends AbstractEndpoint {
   // Create OCPI Service

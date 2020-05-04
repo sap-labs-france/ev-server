@@ -17,6 +17,7 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import { ServerAction } from '../types/Server';
@@ -69,6 +70,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
       currentMigrationTasks.push(new InitialCarImportTask());
       currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
+      currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
       // Check
