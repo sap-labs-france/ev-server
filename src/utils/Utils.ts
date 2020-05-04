@@ -1040,7 +1040,6 @@ export default class Utils {
   }
 
   public static isValidDate(date: any) {
-    // @ts-ignore
     return moment(date).isValid();
   }
 
