@@ -38,7 +38,6 @@ The application:
 ```
 choco install -y nodejs-lts python2 mongodb postman robot3t microsoft-build-tools
 ```
-to install all needed dependencies
 
 * On Mac OSX with **Homebrew** (https://brew.sh/), do:
 
