@@ -25,26 +25,21 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       if (siteArea.maximumPower) {
-        for (const chargingStation of siteArea.chargingStations) {
-          for (const connector of chargingStation.connectors) {
-            // Update
-            const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-              {
-                chargeBoxID: chargingStation.id,
-                connectorId: connector.connectorId,
-                limitSiteAreaSource: { $exists: false },
-              },
-              {
-                $set: {
-                  limitSiteAreaAmps: Utils.convertWattToAmp(1, siteArea.maximumPower),
-                  limitSiteAreaWatts: siteArea.maximumPower,
-                  limitSiteAreaSource: SiteAreaLimitSource.SITE_AREA
-                }
-              }
-            );
-            modifiedCount += result.modifiedCount;
+        // Update
+        const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+          {
+            siteAreaID: siteArea.id,
+            limitSiteAreaSource: { $exists: false },
+          },
+          {
+            $set: {
+              limitSiteAreaAmps: Utils.convertWattToAmp(1, siteArea.maximumPower),
+              limitSiteAreaWatts: siteArea.maximumPower,
+              limitSiteAreaSource: SiteAreaLimitSource.SITE_AREA
+            }
           }
-        }
+        );
+        modifiedCount += result.modifiedCount;
       } else {
         let limitSiteAreaWatts = 0;
         for (const chargingStation of siteArea.chargingStations) {
@@ -52,26 +47,22 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
             limitSiteAreaWatts += connector.power;
           }
         }
-        for (const chargingStation of siteArea.chargingStations) {
-          for (const connector of chargingStation.connectors) {
-            // Update
-            const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-              {
-                chargeBoxID: chargingStation.id,
-                connectorId: connector.connectorId,
-                limitSiteAreaSource: { $exists: false },
-              },
-              {
-                $set: {
-                  LimitSiteAreaAmps: Utils.convertWattToAmp(1, limitSiteAreaWatts),
-                  limitSiteAreaWatts: limitSiteAreaWatts,
-                  limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
-                }
-              }
-            );
-            modifiedCount += result.modifiedCount;
+
+        // Update
+        const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+          {
+            siteAreaID: siteArea.id,
+            limitSiteAreaSource: { $exists: false },
+          },
+          {
+            $set: {
+              LimitSiteAreaAmps: Utils.convertWattToAmp(1, limitSiteAreaWatts),
+              limitSiteAreaWatts: limitSiteAreaWatts,
+              limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
+            }
           }
-        }
+        );
+        modifiedCount += result.modifiedCount;
       }
     }
     // Log in the default tenant
