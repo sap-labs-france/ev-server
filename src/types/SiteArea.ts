@@ -9,6 +9,7 @@ export default interface SiteArea extends CreatedUpdatedProps {
   name: string;
   issuer: boolean;
   maximumPower: number;
+  numberOfConnectedPhases: number;
   address: Address;
   image: string;
   siteID: string;

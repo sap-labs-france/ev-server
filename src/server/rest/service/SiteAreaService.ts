@@ -207,8 +207,8 @@ export default class SiteAreaService {
     }
     // Check dates order
     if (filteredRequest.StartDate &&
-        filteredRequest.EndDate &&
-        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      filteredRequest.EndDate &&
+      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -311,11 +311,28 @@ export default class SiteAreaService {
     siteArea.image = filteredRequest.image;
     const siteAreaMaxPowerHasChanged = siteArea.maximumPower !== filteredRequest.maximumPower;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    if (filteredRequest.smartCharging && filteredRequest.numberOfConnectedPhases === 1) {
+      for (const charger of siteArea.chargingStations) {
+        for (const connector of charger.connectors) {
+          if (connector.numberOfConnectedPhase === 3) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+              message: `'Error occurred while updating SiteArea.'${charger.id} is three phased`,
+              module: MODULE_NAME, method: 'handleUpdateSiteArea',
+              user: req.user, actionOnUser: req.user
+            });
+          }
+        }
+      }
+    }
+    siteArea.numberOfConnectedPhases = filteredRequest.numberOfConnectedPhases;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
         req.user.tenantID, siteArea,
-        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
+        { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -327,29 +344,29 @@ export default class SiteAreaService {
     // Regtrigger Smart Charging
     if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
       setTimeout(async () => {
-          const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
-          if (!siteAreaLock) {
-            return;        
+        const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
+        if (!siteAreaLock) {
+          return;
+        }
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
-          try {
-            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-            if (smartCharging) {
-              await smartCharging.computeAndApplyChargingProfiles(siteArea);
-            }
-            // Release lock
-            await LockingManager.release(siteAreaLock);
-          } catch (error) {
-            // Release lock
-            await LockingManager.release(siteAreaLock);
-            Logging.logError({
-              tenantID: req.user.tenantID,
-              source: Constants.CENTRAL_SERVER,
-              module: MODULE_NAME, method: 'handleUpdateSiteArea',
-              action: action,
-              message: 'An error occurred while trying to call smart charging',
-              detailedMessages: { error: error.message, stack: error.stack }
-            });
-          }
+          // Release lock
+          await LockingManager.release(siteAreaLock);
+        } catch (error) {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            source: Constants.CENTRAL_SERVER,
+            module: MODULE_NAME, method: 'handleUpdateSiteArea',
+            action: action,
+            message: 'An error occurred while trying to call smart charging',
+            detailedMessages: { error: error.message, stack: error.stack }
+          });
+        }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }
     // Log
