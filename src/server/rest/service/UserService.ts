@@ -10,7 +10,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
-import ConvergentChargingPricingIntegration from '../../../integration/pricing/export-convergent-charging';
+// pragma import ConvergentChargingPricingIntegration from '../../../integration/pricing/export-convergent-charging';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
@@ -1106,12 +1106,13 @@ export default class UserService {
       });
     }
     // Create services
-    const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition
+    // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+    // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {
-      await ratingService.loadChargedItemsToInvoicing();
-      invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
+      // pragma await ratingService.loadChargedItemsToInvoicing();
+      // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1135,12 +1136,13 @@ export default class UserService {
         action: action
       });
     }
+    let invoice;
     try {
-      const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+      // pragma const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
+      // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
       if (!invoice) {
         // Retry to get invoice
-        invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+        // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
       }
       if (!invoice) {
         throw new AppError({

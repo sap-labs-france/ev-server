@@ -22,6 +22,12 @@ export default class DummyPricingIntegration extends PricingIntegration<PricingS
     });
   }
 
+  // pragma public static getERPServiceClient(serverUrl: string, user: string, password: string): any {
+  // }
+
+  // public static getRatingServiceClient(serverUrl: string, user: string, password: string): any {
+  // }
+
   async startSession(consumptionData: Consumption): Promise<any> {
   }
 
@@ -29,11 +35,5 @@ export default class DummyPricingIntegration extends PricingIntegration<PricingS
   }
 
   async stopSession(consumptionData: Consumption): Promise<any> {
-  }
-
-  public static getERPServiceClient(serverUrl: string, user: string, password: string): any {
-  }
-
-  public static getRatingServiceClient(serverUrl: string, user: string, password: string): any {
   }
 }
