@@ -1,10 +1,10 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate } from '../../../types/Billing';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
 import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits, SiteAreaLimitSource } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -42,6 +42,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import momentDurationFormatSetup from 'moment-duration-format';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const moment = require('moment-timezone');
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
@@ -1351,7 +1352,7 @@ export default class OCPPService {
   }
 
   private async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction) {
-    let billingDataStop: BillingDataTransactionStop;
+    let billingDataStop: BillingDataTransactionStop;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
       return;
