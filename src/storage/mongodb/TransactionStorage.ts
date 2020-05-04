@@ -307,19 +307,13 @@ export default class TransactionStorage {
 
     // OCPI Session Date provided?
     if (params.ocpiSessionDateFrom || params.ocpiSessionDateTo) {
-      if (!filterMatch.ocpi) {
-        filterMatch.ocpi = {};
-      }
-      filterMatch.ocpi.session = { $exists: true };
-      filterMatch.ocpi.session.last_updated = {};
-
       // Start date
       if (params.ocpiSessionDateFrom) {
-        filterMatch.ocpi.session.last_updated.$gte = Utils.convertToDate(params.ocpiSessionDateFrom);
+        filterMatch['ocpi.session.last_updated'] = { $gte: Utils.convertToDate(params.ocpiSessionDateFrom) };
       }
       // End date
       if (params.ocpiSessionDateTo) {
-        filterMatch.ocpi.session.last_updated.$lte = Utils.convertToDate(params.ocpiSessionDateTo);
+        filterMatch['ocpi.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
       }
     }
     if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
@@ -329,19 +323,13 @@ export default class TransactionStorage {
 
     // OCPI Cdr Date provided?
     if (params.ocpiCdrDateFrom || params.ocpiCdrDateTo) {
-      if (!filterMatch.ocpi) {
-        filterMatch.ocpi = {};
-      }
-      filterMatch.ocpi.cdr = { $exists: true };
-      filterMatch.ocpi.cdr.last_updated = {};
-
       // Start date
       if (params.ocpiCdrDateFrom) {
-        filterMatch.ocpi.cdr.last_updated.$gte = Utils.convertToDate(params.ocpiCdrDateFrom);
+        filterMatch['ocpi.cdr.last_updated'] = { $gte: Utils.convertToDate(params.ocpiCdrDateFrom) };
       }
       // End date
       if (params.ocpiCdrDateTo) {
-        filterMatch.ocpi.cdr.last_updated.$lte = Utils.convertToDate(params.ocpiCdrDateTo);
+        filterMatch['ocpi.cdr.last_updated'] = { $lte: Utils.convertToDate(params.ocpiCdrDateTo) };
       }
     }
     if (params.ocpiCdrChecked === true || params.ocpiCdrChecked === false) {
