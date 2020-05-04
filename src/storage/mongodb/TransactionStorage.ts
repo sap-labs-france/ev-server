@@ -152,10 +152,14 @@ export default class TransactionStorage {
     if (transactionToSave.ocpiData) {
       transactionMDB.ocpiData = {
         session: transactionToSave.ocpiData.session,
-        cdr: transactionToSave.ocpiData.cdr,
-        sessionCheckedOn: transactionToSave.ocpiData.sessionCheckedOn,
-        cdrCheckedOn: transactionToSave.ocpiData.cdrCheckedOn
+        cdr: transactionToSave.ocpiData.cdr
       };
+      if (transactionToSave.ocpiData.sessionCheckedOn) {
+        transactionMDB.ocpiData.sessionCheckedOn = transactionToSave.ocpiData.sessionCheckedOn;
+      }
+      if (transactionToSave.ocpiData.cdrCheckedOn) {
+        transactionMDB.ocpiData.cdrCheckedOn = transactionToSave.ocpiData.cdrCheckedOn;
+      }
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
