@@ -1,17 +1,18 @@
-import moment from 'moment';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
-import Utils from '../../../../utils/Utils';
+import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -111,7 +112,7 @@ export default class TransactionSecurity {
   }
 
   static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken): Transaction {
-    let filteredTransaction;
+    let filteredTransaction: Transaction;
     if (!transaction) {
       return null;
     }
@@ -157,8 +158,14 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
-      filteredTransaction.ocpiSession = transaction.ocpiSession;
-      filteredTransaction.ocpiCdr = transaction.ocpiCdr;
+      if (transaction.ocpiData) {
+        filteredTransaction.ocpiData = {
+          session: transaction.ocpiData.session,
+          sessionCheckedOn: transaction.ocpiData.sessionCheckedOn,
+          cdr: transaction.ocpiData.cdr,
+          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn
+        };
+      }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;

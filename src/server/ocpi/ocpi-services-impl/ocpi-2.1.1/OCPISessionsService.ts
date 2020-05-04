@@ -125,7 +125,10 @@ export default class OCPISessionsService {
     if (session.kwh > 0) {
       await OCPISessionsService.computeConsumption(tenantId, transaction, session);
     }
-    transaction.ocpiSession = session;
+    if (!transaction.ocpiData) {
+      transaction.ocpiData = {};
+    }
+    transaction.ocpiData.session = session;
     transaction.lastUpdate = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
@@ -216,7 +219,11 @@ export default class OCPISessionsService {
       userID: transaction.userID
     };
 
-    transaction.ocpiCdr = cdr;
+    if (!transaction.ocpiData) {
+      transaction.ocpiData = {};
+    }
+
+    transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenantId, transaction);
   }
 
