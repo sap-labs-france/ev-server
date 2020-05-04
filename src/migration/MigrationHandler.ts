@@ -124,7 +124,7 @@ export default class MigrationHandler {
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
     if (!(await LockingManager.acquire(migrateTaskLock))) {
-      // return;
+      return;
     }
     try {
       // Log Start Task
