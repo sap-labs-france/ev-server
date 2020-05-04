@@ -11,11 +11,11 @@ export default abstract class RefundIntegration<T extends RefundSetting> {
     this.setting = setting;
   }
 
-  public abstract async refund(tenantID: string, userId: string, transactions: Transaction[]): Promise<any>;
+  public abstract async refund(tenantID: string, userId: string, transactions: Transaction[]): Promise<Transaction[]>;
 
   public abstract canBeDeleted(transaction: Transaction): boolean;
 
   public abstract async updateRefundStatus(id: string, transaction: Transaction): Promise<string>;
 
-  public abstract async createConnection(userId: string, data: any): Promise<Connection>;
+  public abstract async createConnection(userID: string, data: any): Promise<Connection>;
 }
