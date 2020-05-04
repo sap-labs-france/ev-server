@@ -31,7 +31,7 @@ export default class LockingManager {
           throw new BackendError({
             action: ServerAction.LOCKING,
             module: MODULE_NAME, method: 'acquire',
-            message: `Cannot acquire a Lock entity '${lock.entity}' ('${lock.key}') with an unknown type '${lock.type}'`,
+            message: `Cannot acquire a lock entity '${lock.entity}' ('${lock.key}') with an unknown type '${lock.type}'`,
             detailedMessages: { lock }
           });
       }
@@ -39,7 +39,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Acquired successfully the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+        message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
       return true;
@@ -48,7 +48,7 @@ export default class LockingManager {
         tenantID: lock.tenantID,
         module: MODULE_NAME, method: 'acquire',
         action: ServerAction.LOCKING,
-        message: `Cannot acquire the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+        message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
       return false;
@@ -72,7 +72,7 @@ export default class LockingManager {
       tenantID: lock.tenantID,
       module: MODULE_NAME, method: 'release',
       action: ServerAction.LOCKING,
-      message: `Released successfully the Lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
+      message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
     return true;
