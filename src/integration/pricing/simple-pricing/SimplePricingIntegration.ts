@@ -6,23 +6,23 @@ import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
 
 export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {
-  constructor(tenantID: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
-    super(tenantID, settings, transaction);
+  constructor(tenantID: string, readonly settings: SimplePricingSetting) {
+    super(tenantID, settings);
   }
 
-  async startSession(consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(consumptionData);
+  public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData);
   }
 
-  async updateSession(consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(consumptionData);
+  public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData);
   }
 
-  async stopSession(consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(consumptionData);
+  public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(transaction, consumptionData);
   }
 
-  async computePrice(consumptionData: Consumption): Promise<PricedConsumption> {
+  private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {
