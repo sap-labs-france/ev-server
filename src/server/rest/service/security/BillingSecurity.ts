@@ -87,8 +87,8 @@ export default class BillingSecurity {
 
   static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
-    if (request.UserIDs) {
-      filteredRequest.UserIDs = sanitize(request.UserIDs);
+    if (request.UserID) {
+      filteredRequest.UserID = sanitize(request.UserID);
     }
     if (request.Status) {
       filteredRequest.Status = sanitize(request.Status);

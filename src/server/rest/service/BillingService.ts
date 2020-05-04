@@ -242,12 +242,12 @@ export default class BillingService {
     UtilsService.assertObjectExists(action, billingUser, `Billing user with email '${req.user.email}' doesn't exist anymore.`,
       MODULE_NAME, 'handleGetUserInvoices', req.user);
     if (Authorizations.isBasic(req.user)) {
-      filteredRequest.UserIDs = req.user.id;
+      filteredRequest.UserID = req.user.id;
     }
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
-        userID: filteredRequest.UserIDs ? filteredRequest.UserIDs.split('|') : null,
+        userID: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,

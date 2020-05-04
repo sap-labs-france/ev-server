@@ -6,7 +6,7 @@ export interface HttpBillingRequest {
 
 
 export interface HttpBillingInvoiceRequest extends HttpDatabaseRequest {
-  UserIDs?: string;
+  UserID?: string;
   Status?: BillingInvoiceStatus;
   StartDateTime?: Date;
   EndDateTime?: Date;
