@@ -1,8 +1,9 @@
+import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
+
 import AccessControl from 'role-acl';
 import BackendError from '../exception/BackendError';
-import { Action, AuthorizationDefinition, Entity } from '../types/Authorization';
-import TenantComponents from '../types/TenantComponents';
 import Constants from '../utils/Constants';
+import TenantComponents from '../types/TenantComponents';
 
 const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
   superAdmin: {
@@ -20,7 +21,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.SYNCHRONIZE_CAR_CATALOGS, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
     ]
   },
   admin: {
@@ -80,7 +80,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
-      { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
     ]
   },
   basic: {
@@ -95,6 +94,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
+      { resource: Entity.USER_CARS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }

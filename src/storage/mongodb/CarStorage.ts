@@ -1,13 +1,14 @@
-import { ObjectID } from 'mongodb';
 import { Car, CarCatalog, CarMaker, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable, UserCar } from '../../types/Car';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
 import global, { Image } from '../../types/GlobalType';
+
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'CarStorage';
 
@@ -503,19 +504,19 @@ export default class CarStorage {
     return userCarMDB._id.toHexString();
   }
 
-  public static async getCar(tenantID: string, carID: string, projectFields?: string[]): Promise<Car> {
+  public static async getCar(tenantID: string, params: { carID?: string; licensePlate?: string; vin?: string }, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
     // Query single Site
     const carsMDB = await CarStorage.getCars(tenantID,
-      { carID: Utils.convertToInt(carID) },
+      params,
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { carID });
+    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { params });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; carID?: number; carIDs?: number[] } = {},
+    params: { search?: string; carID?: string; carIDs?: number[]; licensePlate?: string; vin?: string } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCars');
@@ -524,10 +525,21 @@ export default class CarStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
+    const filters: ({ _id?: number; licensePlate?: string; vin?: string; $or?: any[]; $and?: any[] } | undefined) = {};
     if (params.carID) {
       filters._id = Utils.convertToInt(params.carID);
-    } else if (params.search) {
+    }
+    if (params.licensePlate && params.vin) {
+      filters.$and = [
+        { 'licensePlate': params.licensePlate },
+        { 'vin': params.vin }
+      ];
+    } else if (params.licensePlate) {
+      filters.licensePlate = params.licensePlate;
+    } else if (params.vin) {
+      filters.vin = params.vin;
+    }
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'vin': { $regex: searchRegex, $options: 'i' } },
@@ -616,9 +628,20 @@ export default class CarStorage {
     };
   }
 
+  public static async getUserCar(tenantID: string, params: { userCarID?: string; carID?: string; userID?: string }, projectFields?: string[]): Promise<UserCar> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCar');
+    // Query single Site
+    const userCarsMDB = await CarStorage.getUserCars(tenantID,
+      params,
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    Logging.traceEnd(MODULE_NAME, 'getUserCar', uniqueTimerID, { params });
+    return userCarsMDB.count > 0 ? userCarsMDB.result[0] : null;
+  }
+
   public static async getUserCars(tenantID: string,
-    params: { search?: string; UserCarID?: number; UserCarIDs?: number[]; UserID?: string; UserIDs?: string[] } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
+    params: { search?: string; userCarID?: string; userCarIDs?: string[]; userID?: string; userIDs?: string[]; carID?: string } = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<any>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCars');
     // Check Limit
@@ -626,27 +649,34 @@ export default class CarStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; userID?: ObjectID; $or?: any[] } | undefined) = {};
-    if (params.UserCarID) {
-      filters._id = Utils.convertToObjectID(params.UserCarID);
-    } else if (params.UserID) {
-      filters.userID = Utils.convertToObjectID(params.UserID);
+    const filters: ({ _id?: ObjectID; userID?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
+    if (params.userCarID) {
+      filters._id = Utils.convertToObjectID(params.userCarID);
+    } else if (params.userID && params.carID) {
+      filters.$and = [
+        { 'userID': Utils.convertToObjectID(params.userID) },
+        { 'carID': Utils.convertToObjectID(params.carID) }
+      ];
+    } else if (params.userID) {
+      filters.userID = Utils.convertToObjectID(params.userID);
+    } else if (params.carID) {
+      filters.userID = Utils.convertToObjectID(params.carID);
     }
     // Create Aggregation
     const aggregation = [];
     // Limit on Car for Basic Users
-    if (params.UserCarIDs && params.UserCarIDs.length > 0) {
+    if (params.userCarIDs && params.userCarIDs.length > 0) {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.UserCarIDs.map((UserCarID) => UserCarID) }
+          _id: { $in: params.userCarIDs.map((UserCarID) => UserCarID) }
         }
       });
-    } else if (params.UserIDs && params.UserIDs.length > 0) {
+    } else if (params.userIDs && params.userIDs.length > 0) {
       // Build filter
       aggregation.push({
         $match: {
-          userID: { $in: params.UserIDs.map((UserID) => Utils.convertToObjectID(UserID)) }
+          userID: { $in: params.userIDs.map((UserID) => Utils.convertToObjectID(UserID)) }
         }
       });
     }
@@ -672,7 +702,7 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<Car>>(tenantID, 'usercars')
+    const carsCountMDB = await global.database.getCollection<DataResult<any>>(tenantID, 'usercars')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested

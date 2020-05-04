@@ -1,7 +1,8 @@
-import Authorizations from '../../../../authorization/Authorizations';
 import { Car, CarCatalog, CarMaker, UserCar } from '../../../../types/Car';
-import { DataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize = require('mongo-sanitize');
@@ -146,12 +147,8 @@ export default class CarSecurity {
     carCatalogs.result = filteredCarCatalogs;
   }
 
-  public static filterCarCreateRequest(request: any): Partial<Car> {
+  public static filterCarCreateRequest(request: any): any {
     return CarSecurity._filterCarRequest(request);
-  }
-
-  public static filterUserCarCreateRequest(request: any): Partial<UserCar> {
-    return CarSecurity._filterUserCarRequest(request);
   }
 
   public static filterUserCarsRequest(request: any): any {
@@ -164,19 +161,12 @@ export default class CarSecurity {
     return filteredRequest;
   }
 
-  private static _filterCarRequest(request: any): Partial<Car> {
+  private static _filterCarRequest(request: any): any {
     return {
       vin: sanitize(request.vin),
       licensePlate: sanitize(request.licensePlate),
       carCatalogID: sanitize(request.carCatalogID),
-      userIDs: sanitize(request.userIDs),
-    };
-  }
-
-  private static _filterUserCarRequest(request: any): Partial<UserCar> {
-    return {
-      carID: sanitize(request.CarID),
-      userID: sanitize(request.UserID)
+      forced: sanitize(request.forced)
     };
   }
 }

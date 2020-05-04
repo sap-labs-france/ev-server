@@ -1,15 +1,16 @@
+import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
+import { ServerAction } from '../../types/Server';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
+import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
-import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
-import BackendError from '../../exception/BackendError';
-import LockingManager from '../../locking/LockingManager';
-import StorageCfg from '../../types/configuration/StorageConfiguration';
-import { LockEntity } from '../../types/Locking';
-import { ServerAction } from '../../types/Server';
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
 
@@ -141,6 +142,10 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(collections, tenantID, 'siteusers', [
       { fields: { siteID: 1, userID: 1 }, options: { unique: true } },
       { fields: { userID: 1 } }
+    ]);
+    // Cars
+    await this.handleIndexesInCollection(collections, tenantID, 'cars', [
+      { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } }
     ]);
     // Transactions
     await this.handleIndexesInCollection(collections, tenantID, 'transactions', [

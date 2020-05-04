@@ -1,30 +1,31 @@
+import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import User, { UserRole, UserStatus } from '../types/User';
+
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
+import ChargingStation from '../types/ChargingStation';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { PricingSettingsType } from '../types/Setting';
+import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import { Action, AuthorizationContext, Entity } from '../types/Authorization';
-import ChargingStation from '../types/ChargingStation';
-import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import { HTTPAuthError, HTTPError } from '../types/HTTPError';
-import { ServerAction } from '../types/Server';
-import { PricingSettingsType } from '../types/Setting';
 import Tag from '../types/Tag';
 import TenantComponents from '../types/TenantComponents';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
 import UserNotifications from '../types/UserNotifications';
+import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
 
 const MODULE_NAME = 'Authorizations';
 
@@ -462,6 +463,10 @@ export default class Authorizations {
 
   public static canReadCarCatalog(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOG, Action.READ);
+  }
+
+  public static canListUserCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USER_CARS, Action.LIST);
   }
 
   public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {

@@ -5,7 +5,7 @@ export enum ServerAction {
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
   RESET = 'Reset',
-  
+
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
   CHARGING_STATION_CLEAR_CACHE = 'ChargingStationClearCache',
@@ -55,11 +55,13 @@ export enum ServerAction {
   LOGGING_EXPORT = 'LoggingsExport',
 
   CHARGING_STATIONS = 'ChargingStations',
-  
+
   CAR_CATALOGS = 'CarCatalogs',
   CAR_CATALOG = 'CarCatalog',
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
   CAR_MAKERS = 'CarMakers',
+  CAR_CREATE = 'CarCreate',
+  USER_CARS = 'UserCars',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
@@ -92,7 +94,7 @@ export enum ServerAction {
   INTEGRATION_CONNECTIONS = 'IntegrationConnections',
   INTEGRATION_CONNECTION = 'IntegrationConnection',
   INTEGRATION_CONNECTION_DELETE = 'IntegrationConnectionDelete',
-  
+
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
   OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
@@ -178,7 +180,7 @@ export enum ServerAction {
   BOOT_NOTIFICATION = 'BootNotification',
 
   METER_VALUES = 'MeterValues',
-  
+
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
@@ -222,7 +224,7 @@ export enum ServerAction {
   UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
-  
+
   CHARGING_STATION_CONSUMPTION_STATISTICS = 'ChargingStationConsumptionStatistics',
   CHARGING_STATION_USAGE_STATISTICS = 'ChargingStationUsageStatistics',
   CHARGING_STATION_INACTIVITY_STATISTICS = 'ChargingStationInactivityStatistics',
