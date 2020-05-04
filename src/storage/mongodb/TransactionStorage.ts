@@ -278,7 +278,7 @@ export default class TransactionStorage {
       ];
     }
     // Issuer
-    if (params.issuer === true || params.issuer === false) {
+    if (params.issuer) {
       filterMatch.issuer = params.issuer;
     }
     // Charge Box
