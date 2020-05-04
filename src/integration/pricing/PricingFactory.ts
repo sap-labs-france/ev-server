@@ -1,5 +1,7 @@
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
+
 import ConvergentChargingPricingIntegration from './export-convergent-charging';
+import DummyPricingIntegration from './DummyPricingIntegration';
 import PricingIntegration from './PricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';
@@ -21,8 +23,12 @@ export default class PricingFactory {
       if (pricingSetting) {
         // SAP Convergent Charging
         if (pricingSetting.type === PricingSettingsType.CONVERGENT_CHARGING) {
+          const ConvergentChargingPricingIntegrationImpl = new ConvergentChargingPricingIntegration(tenantID, pricingSetting.convergentCharging, transaction);
+          if (ConvergentChargingPricingIntegrationImpl instanceof DummyPricingIntegration) {
+            return null;
+          }
           // Return the CC implementation
-          return new ConvergentChargingPricingIntegration(tenantID, pricingSetting.convergentCharging, transaction);
+          return ConvergentChargingPricingIntegrationImpl;
         // Simple Pricing
         } else if (pricingSetting.type === PricingSettingsType.SIMPLE) {
           // Return the Simple Pricing implementation
