@@ -252,6 +252,7 @@ export enum ServerAction {
   ASSETS = 'Assets',
   ASSET = 'Asset',
   ASSET_IMAGE = 'AssetImage',
+  ASSET_IN_ERROR = 'AssetsInError',
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
 
@@ -329,6 +330,8 @@ export enum ServerAction {
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_USER_INVOICES = 'BillingUserInvoices',
+  BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
+  BILLING_SYNCHRONIZE_USER_INVOICES = 'BillingSynchronizeUserInvoices',
 
   MONGO_DB = 'MongoDB',
 

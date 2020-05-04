@@ -27,7 +27,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteArea(tenantID: string, id: string,
-    params: { withSite?: boolean; withChargeBoxes?: boolean } = {}): Promise<SiteArea> {
+    params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteArea');
     // Check Tenant
@@ -38,7 +38,7 @@ export default class SiteAreaStorage {
       {
         siteAreaID: id,
         withSite: params.withSite,
-        withChargeBoxes: params.withChargeBoxes,
+        withChargingStations: params.withChargingStations,
         withAvailableChargers: true
       },
       Constants.DB_PARAMS_SINGLE_RECORD
@@ -46,7 +46,7 @@ export default class SiteAreaStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getSiteArea', uniqueTimerID, {
       id,
-      withChargeBoxes: params.withChargeBoxes,
+      withChargingStations: params.withChargingStations,
       withSite: params.withSite
     });
     return siteAreaResult.result[0];
@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {
       siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean; issuer?: boolean;
-      withChargeBoxes?: boolean; smartCharging?: boolean; withAvailableChargers?: boolean;
+      withChargingStations?: boolean; smartCharging?: boolean; withAvailableChargers?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
@@ -160,7 +160,7 @@ export default class SiteAreaStorage {
     // Remove the limit
     aggregation.pop();
     // Charging Stations
-    if (params.withChargeBoxes || params.withAvailableChargers) {
+    if (params.withChargingStations || params.withAvailableChargers) {
       DatabaseUtils.pushChargingStationLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'siteAreaID',
         asField: 'chargingStations'
@@ -216,7 +216,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
         // Chargers
-        if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {
+        if (!params.withChargingStations && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add

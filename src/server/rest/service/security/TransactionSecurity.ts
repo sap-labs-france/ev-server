@@ -3,7 +3,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Transaction from '../../../../types/Transaction';
+import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
@@ -110,7 +110,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken): Transaction {
     let filteredTransaction;
     if (!transaction) {
       return null;
@@ -143,7 +143,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
         filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp)
+          moment.duration(moment(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : new Date())
             .diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
@@ -283,8 +283,6 @@ export default class TransactionSecurity {
     if (Utils.objectHasProperty(request, 'LoadAllConsumptions')) {
       filteredRequest.LoadAllConsumptions = Utils.convertToBoolean(sanitize(request.LoadAllConsumptions));
     }
-    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
-    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
@@ -300,7 +298,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken): Transaction {
+  static filterTransactionConsumptionsResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken): Transaction {
     transaction.values = [];
     if (!consumptions) {
       consumptions = [];
@@ -319,8 +317,8 @@ export default class TransactionSecurity {
       return filteredTransaction;
     }
     // Clean
-    filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
-      const newConsumption = {
+    filteredTransaction.values = consumptions.map((consumption) => {
+      const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantPower: consumption.instantPower,
         cumulatedConsumption: consumption.cumulatedConsumption,

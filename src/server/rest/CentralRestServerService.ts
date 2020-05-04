@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
+
 import { Action } from '../../types/Authorization';
-import { Command } from '../../types/ChargingStation';
-import { ServerAction } from '../../types/Server';
-import Logging from '../../utils/Logging';
 import AssetService from './service/AssetService';
 import BillingService from './service/BillingService';
 import CarService from './service/CarService';
 import ChargingStationService from './service/ChargingStationService';
+import { Command } from '../../types/ChargingStation';
 import CompanyService from './service/CompanyService';
 import ConnectionService from './service/ConnectionService';
+import Logging from '../../utils/Logging';
 import LoggingService from './service/LoggingService';
 import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
 import RegistrationTokenService from './service/RegistrationTokenService';
+import { ServerAction } from '../../types/Server';
 import SessionHashService from './service/SessionHashService';
 import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
@@ -77,6 +78,8 @@ class RequestMapper {
           [ServerAction.BILLING_SYNCHRONIZE_USERS]: BillingService.handleSynchronizeUsers.bind(this),
           [ServerAction.BILLING_SYNCHRONIZE_USER]: BillingService.handleSynchronizeUser.bind(this),
           [ServerAction.BILLING_FORCE_SYNCHRONIZE_USER]: BillingService.handleForceSynchronizeUser.bind(this),
+          [ServerAction.BILLING_SYNCHRONIZE_INVOICES]: BillingService.handleSynchronizeInvoices.bind(this),
+          [ServerAction.BILLING_SYNCHRONIZE_USER_INVOICES]: BillingService.handleSynchronizeUserInvoices.bind(this),
           [ServerAction.OCPI_ENPOINT_CREATE]: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_PING]: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_TRIGGER_JOBS]: OCPIEndpointService.handleTriggerJobsEndpoint.bind(this),
@@ -107,7 +110,7 @@ class RequestMapper {
           [ServerAction.USER_CARS]: CarService.handleGetUserCars.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
-          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]:ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
+          [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
           [ServerAction.CHARGING_STATION]: ChargingStationService.handleGetChargingStation.bind(this),
           [ServerAction.CHECK_SMART_CHARGING_CONNECTION]: ChargingStationService.handleCheckSmartChargingConnection.bind(this),
           [ServerAction.CHARGING_PROFILES]: ChargingStationService.handleGetChargingProfiles.bind(this),
@@ -121,6 +124,7 @@ class RequestMapper {
           [ServerAction.ASSETS]: AssetService.handleGetAssets.bind(this),
           [ServerAction.ASSET]: AssetService.handleGetAsset.bind(this),
           [ServerAction.ASSET_IMAGE]: AssetService.handleGetAssetImage.bind(this),
+          [ServerAction.ASSET_IN_ERROR]: AssetService.handleGetAssetsInError.bind(this),
           [ServerAction.SITES]: SiteService.handleGetSites.bind(this),
           [ServerAction.SITE]: SiteService.handleGetSite.bind(this),
           [ServerAction.SITE_IMAGE]: SiteService.handleGetSiteImage.bind(this),
@@ -240,7 +244,7 @@ class RequestMapper {
     }
   }
 
-  public registerJsonActionsPaths(dict: {[key in ServerAction]?: Function;}) {
+  public registerJsonActionsPaths(dict: { [key in ServerAction]?: Function; }) {
     for (const key in dict) {
       this.registerOneActionManyPaths(dict[key], key as ServerAction);
     }

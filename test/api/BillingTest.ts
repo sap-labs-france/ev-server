@@ -69,7 +69,7 @@ class TestData {
     } as StripeBillingSetting;
   }
 
-  private static async saveBillingSettings(testData, stripeSettings) {
+  public static async saveBillingSettings(testData, stripeSettings: StripeBillingSetting) {
     const tenantBillingSettings = await testData.userService.settingApi.readAll({ 'Identifier': 'billing' });
     expect(tenantBillingSettings.data.count).to.be.eq(1);
     const componentSetting: SettingDB = tenantBillingSettings.data.result[0];
@@ -272,6 +272,12 @@ describe('Billing Service', function() {
         }
       });
 
+      it('Should synchronize invoices', async () => {
+        const response = await testData.userService.billingApi.synchronizeInvoices({});
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+        expect(response.data.inError).to.be.eq(0);
+      });
+
       after(async () => {
         await TestData.setBillingSystemValidCredentials(testData);
         for (const user of testData.createdUsers) {
@@ -437,6 +443,14 @@ describe('Billing Service', function() {
         expect(invoicesAfter.length).to.be.eq(invoicesBefore.length + 1);
         expect(invoicesAfter[invoicesAfter.length - 1].status).to.be.eq(BillingInvoiceStatus.OPEN);
       });
+
+      it('should synchronize 1 invoice after a transaction', async () => {
+        await testData.userService.billingApi.synchronizeInvoices({});
+        await generateTransaction(testData.userContext, testData.chargingStationContext);
+        const response = await testData.userService.billingApi.synchronizeInvoices({});
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+        expect(response.data.inSuccess).to.be.eq(1);
+      });
     });
 
     describe('Where basic user', () => {
@@ -477,6 +491,18 @@ describe('Billing Service', function() {
         response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesAfter = response.data.result;
         expect(invoicesAfter.length).to.be.eq(invoicesBefore.length + 1);
+      });
+
+      it('should only synchronize invoices owned by user', async () => {
+        await testData.userService.billingApi.synchronizeUserInvoices();
+        const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
+        const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
+        await generateTransaction(adminUser, testData.chargingStationContext); // Generate a transaction as Admin
+        await generateTransaction(basicUser, testData.chargingStationContext); // Generate a transaction as Basic
+        // Basic user should synchronize 1 invoice
+        const response = await testData.userService.billingApi.synchronizeUserInvoices();
+        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
+        expect(response.data.inSuccess).to.be.eq(1);
       });
     });
   });

@@ -122,6 +122,11 @@ export interface ConnectorCurrentLimit {
   limitSource: ConnectorCurrentLimitSource;
 }
 
+export enum SiteAreaLimitSource {
+  CHARGING_STATIONS = 'CS',
+  SITE_AREA = 'SA',
+}
+
 export enum ConnectorCurrentLimitSource {
   CHARGING_PROFILE = 'CP',
   STATIC_LIMITATION = 'SL',

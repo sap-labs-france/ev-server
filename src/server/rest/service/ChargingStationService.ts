@@ -343,7 +343,7 @@ export default class ChargingStationService {
       detailedMessages: { result }
     });
     // Ok
-    res.json({status: result.status});
+    res.json({ status: result.status });
     next();
   }
 
@@ -408,7 +408,7 @@ export default class ChargingStationService {
     }
     const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
     if (!siteAreaLock) {
-      return;        
+      return;
     }
     try {
       // Call
@@ -810,12 +810,16 @@ export default class ChargingStationService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.CHARGING_STATIONS, MODULE_NAME, 'handleGetChargingStations');
     }
-    let _errorType = [];
+    let errorType;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
+      errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') :
+        [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN,
+          ChargingStationInErrorType.CONNECTOR_ERROR, ChargingStationInErrorType.MISSING_SITE_AREA]);
     } else {
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN, ChargingStationInErrorType.CONNECTOR_ERROR]);
+      errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') :
+        [ChargingStationInErrorType.MISSING_SETTINGS, ChargingStationInErrorType.CONNECTION_BROKEN,
+          ChargingStationInErrorType.CONNECTOR_ERROR]);
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
@@ -823,7 +827,7 @@ export default class ChargingStationService {
         search: filteredRequest.Search,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        errorType: _errorType
+        errorType
       },
       {
         limit: filteredRequest.Limit,

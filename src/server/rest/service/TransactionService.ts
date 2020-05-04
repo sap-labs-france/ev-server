@@ -1,36 +1,37 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import moment from 'moment';
-import Authorizations from '../../../authorization/Authorizations';
+
+import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import RefundFactory from '../../../integration/refund/RefundFactory';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import OCPPService from '../../../server/ocpp/services/OCPPService';
+import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import Consumption from '../../../types/Consumption';
-import { ActionsResponse } from '../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { TransactionInErrorType } from '../../../types/InError';
-import { ServerAction } from '../../../types/Server';
-import { RefundStatus } from '../../../types/Refund';
-import TenantComponents from '../../../types/TenantComponents';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
-import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import RefundFactory from '../../../integration/refund/RefundFactory';
+import { RefundStatus } from '../../../types/Refund';
+import { ServerAction } from '../../../types/Server';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Transaction from '../../../types/Transaction';
+import { TransactionInErrorType } from '../../../types/InError';
 import TransactionSecurity from './security/TransactionSecurity';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'TransactionService';
 
@@ -145,7 +146,6 @@ export default class TransactionService {
     res.json(response);
     next();
   }
-
 
   public static async handleGetUnassignedTransactionsCount(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
@@ -363,20 +363,12 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getAllConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getAllTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     } else {
-      consumptions = await ConsumptionStorage.getOptimizedConsumptions(req.user.tenantID, { transactionId: transaction.id });
-    }
-    // Dates provided?
-    const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
-    const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-    // Filter?
-    if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-      consumptions = consumptions.filter((consumption) =>
-        moment(consumption.endedAt).isBetween(startDateTime, endDateTime, null, '[]'));
+      consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
     // Return the result
-    res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
+    res.json(TransactionSecurity.filterTransactionConsumptionsResponse(transaction, consumptions, req.user));
     next();
   }
 
@@ -871,7 +863,6 @@ export default class TransactionService {
       }
       filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     }
-
     // Date
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -951,26 +942,23 @@ export default class TransactionService {
         result.inError++;
         specificError.refunded++;
         specificError.refundedIDs.push(transactionId);
-      } else {
-        // Ongoing transaction?
-        if (!transaction.stop) {
-          if (!transaction.chargeBox) {
-            transactionsIDsToDelete.push(transactionId);
-          } else {
-            // Check connector
-            const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
-            if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
-              // Clear connector
-              OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
-              await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
-            }
-            // To Delete
-            transactionsIDsToDelete.push(transactionId);
-          }
+      } else if (!transaction.stop) {
+        if (!transaction.chargeBox) {
+          transactionsIDsToDelete.push(transactionId);
         } else {
+          // Check connector
+          const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+          if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
+            // Clear connector
+            OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
+            await ChargingStationStorage.saveChargingStation(loggedUser.tenantID, transaction.chargeBox);
+          }
           // To Delete
           transactionsIDsToDelete.push(transactionId);
         }
+      } else {
+        // To Delete
+        transactionsIDsToDelete.push(transactionId);
       }
     }
     // Delete All Transactions
