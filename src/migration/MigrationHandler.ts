@@ -17,6 +17,7 @@ import LockingManager from '../locking/LockingManager';
 import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import { ServerAction } from '../types/Server';
@@ -25,7 +26,6 @@ import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTem
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
 import cluster from 'cluster';
 import moment from 'moment';
-import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -124,7 +124,7 @@ export default class MigrationHandler {
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
     if (!(await LockingManager.acquire(migrateTaskLock))) {
-      // return;
+      return;
     }
     try {
       // Log Start Task

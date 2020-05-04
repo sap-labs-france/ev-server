@@ -1,17 +1,19 @@
 import moment = require('moment');
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
+
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
-import Utils from '../../../../utils/Utils';
+import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -111,7 +113,7 @@ export default class TransactionSecurity {
   }
 
   static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken): Transaction {
-    let filteredTransaction;
+    let filteredTransaction: Transaction;
     if (!transaction) {
       return null;
     }
