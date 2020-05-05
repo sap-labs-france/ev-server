@@ -67,6 +67,7 @@
     "source-map-support": "^0.5.19",
     "stripe": "^7.15.0",
     "strong-soap": "^1.22.1",
+    "tslib": "^1.11.1",
     "typescript": "^3.8.3",
     "tz-lookup": "^6.1.23",
     "urlencode": "^1.1.0",

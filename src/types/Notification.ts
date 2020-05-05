@@ -1,5 +1,5 @@
-import User from './User';
 import ChargingStation from './ChargingStation';
+import User from './User';
 
 export interface NotifySessionNotStarted {
   chargingStation: ChargingStation;
