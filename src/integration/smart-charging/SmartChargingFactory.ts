@@ -33,7 +33,6 @@ export default class SmartChargingFactory {
         }
         // Return the Smart Charging implementation
         return smartChargingIntegrationImpl;
-
       }
     }
     // Smart Charging is not active
