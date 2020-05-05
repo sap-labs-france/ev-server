@@ -1,12 +1,13 @@
-import { ObjectID } from 'mongodb';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
 import global, { Image } from '../../types/GlobalType';
-import SiteArea from '../../types/SiteArea';
+
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import SiteArea from '../../types/SiteArea';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SiteAreaStorage';
 

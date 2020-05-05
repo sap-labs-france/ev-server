@@ -1,5 +1,5 @@
-import { OCPIEvse } from './OCPIEvse';
 import { OCPIBusinessDetails } from './OCPIBusinessDetails';
+import { OCPIEvse } from './OCPIEvse';
 
 export interface OCPILocation {
   id: string;

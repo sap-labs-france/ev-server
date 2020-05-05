@@ -5,7 +5,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize = require('mongo-sanitize');
+import sanitize from 'mongo-sanitize';
 
 export default class CarSecurity {
 

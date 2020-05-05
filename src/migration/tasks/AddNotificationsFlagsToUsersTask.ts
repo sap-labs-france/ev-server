@@ -1,9 +1,9 @@
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import global from '../../types/GlobalType';
-import { UserRole } from '../../types/User';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { UserRole } from '../../types/User';
 import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
   async migrate() {
