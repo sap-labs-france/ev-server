@@ -32,7 +32,7 @@ jobs:
         # unzip -d docker/initdb docker/initdb/export-empty-evse-db.zip
         # mongorestore -d evse --gzip docker/initdb/evse
         # rm -rf docker/initdb/evse
-        # mongo docker/initdb/002_createSuperAdmin.js
+        mongo docker/initdb/002_createSuperAdmin.js
         # mongo docker/initdb/003_createSlfAdmin.js
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
@@ -52,6 +52,7 @@ jobs:
       run: |
         if [ ! -d test/config ]; then mkdir -p test/config; fi
         cp src/assets/configs-ci/local.json test/config
+        # sleep 10
         npm run test:createContext
     - name: npm test
       run: npm test
