@@ -29,11 +29,11 @@ jobs:
     - name: Initialize DB
       run: |
         mongo docker/initdb/000_createMongoUsers.js
-        unzip -d docker/initdb docker/initdb/export-empty-evse-db.zip
-        mongorestore -d evse --gzip docker/initdb/evse
-        rm -rf docker/initdb/evse
-        mongo docker/initdb/002_createSuperAdmin.js
-        mongo docker/initdb/003_createSlfAdmin.js
+        # unzip -d docker/initdb docker/initdb/export-empty-evse-db.zip
+        # mongorestore -d evse --gzip docker/initdb/evse
+        # rm -rf docker/initdb/evse
+        # mongo docker/initdb/002_createSuperAdmin.js
+        # mongo docker/initdb/003_createSlfAdmin.js
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
