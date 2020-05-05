@@ -11,8 +11,6 @@ on:
 
 jobs:
   unit-tests-submodules:
-    env:
-      CI: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
