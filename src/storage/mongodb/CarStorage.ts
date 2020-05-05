@@ -462,7 +462,7 @@ export default class CarStorage {
     await Utils.checkTenant(tenantID);
     // Set
     const carMDB: any = {
-      _id: !carToSave.id ? new ObjectID() : Utils.convertToObjectID(carToSave.id),
+      _id: carToSave.id ? Utils.convertToObjectID(carToSave.id) : new ObjectID(),
       vin: carToSave.vin,
       licensePlate: carToSave.licensePlate,
       carCatalogID: Utils.convertToInt(carToSave.carCatalogID)
@@ -487,7 +487,7 @@ export default class CarStorage {
     await Utils.checkTenant(tenantID);
     // Set
     const userCarMDB: any = {
-      _id: !userCarToSave.id ? new ObjectID() : Utils.convertToObjectID(userCarToSave.id),
+      _id: userCarToSave.id ? Utils.convertToObjectID(userCarToSave.id) : new ObjectID(),
       userID: Utils.convertToObjectID(userCarToSave.userID),
       carID: Utils.convertToObjectID(userCarToSave.carID),
     };
