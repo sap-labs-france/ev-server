@@ -213,11 +213,13 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedCustomerIDs;
   }
 
-  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
+  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser, since?: number): Promise<string[]> {
     let createdSince: string;
     // Check Stripe
     await this.checkConnection();
-    if (billingUser) {
+    if (since) {
+      createdSince = since.toString();
+    } else if (billingUser) {
       // Start sync from last invoices sync
       createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
     } else {
