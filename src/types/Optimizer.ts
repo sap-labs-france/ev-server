@@ -71,9 +71,6 @@ export interface OptimizerFuse extends OptimizerFuseTreeNode {
   fusePhase1: number;
   fusePhase2: number;
   fusePhase3: number;
-  phase1Connected:	boolean;
-  phase2Connected:	boolean;
-  phase3Connected:	boolean;
   children: OptimizerFuseTreeNodeUnion[];
 }
 
@@ -81,9 +78,9 @@ export interface OptimizerFuseTreeNode {
   '@type': 'Fuse' | 'ChargingStation';
   children?: OptimizerFuseTreeNodeUnion[];
   id?: number;
-  phase1Connected:	boolean;
-  phase2Connected:	boolean;
-  phase3Connected:	boolean;
+  phase1Connected?: boolean;
+  phase2Connected?: boolean;
+  phase3Connected?: boolean;
 }
 
 export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
@@ -92,9 +89,6 @@ export interface OptimizerChargingStation extends OptimizerFuseTreeNode {
   fusePhase1?: number;
   fusePhase2?: number;
   fusePhase3?: number;
-  phase1Connected:	boolean;
-  phase2Connected:	boolean;
-  phase3Connected:	boolean;
   phaseToGrid?: { [P in OptimizerPhase]?: OptimizerPhase };
   phaseToChargingStation?: { [P in OptimizerPhase]?: OptimizerPhase };
   isBEVAllowed?: boolean;
