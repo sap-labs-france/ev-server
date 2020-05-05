@@ -1,18 +1,21 @@
 import * as http from 'http';
-import uuid from 'uuid/v4';
-import { OPEN } from 'ws';
+
+import WebSocket, { OPEN } from 'ws';
+
 import BackendError from '../../../exception/BackendError';
-import OCPPError from '../../../exception/OcppError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import { ServerAction } from '../../../types/Server';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
+import Logging from '../../../utils/Logging';
+import OCPPError from '../../../exception/OcppError';
+import { ServerAction } from '../../../types/Server';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Utils from '../../../utils/Utils';
+import uuid from 'uuid/v4';
 
 const MODULE_NAME = 'WSConnection';
+
 export default class WSConnection {
   public code: string;
   public message: string;

@@ -33,13 +33,12 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import moment from 'moment';
+import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
 import validator from 'validator';
-
-import passwordGenerator = require('password-generator');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -721,7 +720,7 @@ export default class Utils {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
-      bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.genSalt(10, (error, salt) => {
         // Hash
         bcrypt.hash(password, salt, (err, hash) => {
           // Error?
@@ -1041,7 +1040,6 @@ export default class Utils {
   }
 
   public static isValidDate(date: any) {
-    // @ts-ignore
     return moment(date).isValid();
   }
 
@@ -1396,32 +1394,6 @@ export default class Utils {
   public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  public static async importModule(modulePath: string) {
-    if (Utils.isModuleAvailable(modulePath)) {
-      return await import(modulePath);
-    }
-    return {};
-  }
-
-  public static isModuleAvailable(modulePath: string): boolean {
-    if (!path.isAbsolute(modulePath)) {
-      Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.IMPORT_MODULE,
-        module: MODULE_NAME, method: 'isModuleAvailable',
-        message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
-      });
-      console.log('The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies');
-    }
-    try {
-      require.resolve(modulePath);
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   private static _isUserEmailValid(email: string): boolean {

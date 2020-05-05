@@ -62,13 +62,12 @@ export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
             detailedMessages: { result }
           });
         }
-        // Release the lock
-        await LockingManager.release(logsCleanUpLock);
       } catch (error) {
-        // Release the lock
-        await LockingManager.release(logsCleanUpLock);
         // Log error
         Logging.logActionExceptionMessage(tenant.id, ServerAction.LOGS_CLEANUP, error);
+      } finally {
+        // Release the lock
+        await LockingManager.release(logsCleanUpLock);
       }
     }
   }

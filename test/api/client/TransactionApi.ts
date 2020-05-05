@@ -1,4 +1,3 @@
-// pragma import moment from 'moment';
 import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
 

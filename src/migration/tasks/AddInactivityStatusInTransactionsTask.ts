@@ -1,13 +1,13 @@
+import Constants from '../../utils/Constants';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import MigrationTask from '../MigrationTask';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddInactivityStatusInTransactionsTask';
 

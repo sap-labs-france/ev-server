@@ -1,15 +1,17 @@
-import moment from 'moment';
-import TenantStorage from '../storage/mongodb/TenantStorage';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import { TaskConfig } from '../types/TaskConfig';
 import Tenant from '../types/Tenant';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import moment from 'moment';
 
 const MODULE_NAME = 'SchedulerTask';
 
 export default abstract class SchedulerTask {
+  private name: string;
   async run(name: string, config: TaskConfig): Promise<void> {
+    this.name = name;
     const startMigrationTime = moment();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
