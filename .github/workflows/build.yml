@@ -1,28 +1,48 @@
 name: Build CI
-
-on: [pull_request, push]
-
+on:
+  push:
+    branches:
+      - master
+      - master-qa
+  pull_request:
+    branches:
+      - master-qa
 jobs:
   build:
-
+    env:
+      CI: true
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [12.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install
+      run: npm ci
+    - name: npm run build:prod
+      run: npm run build:prod
 
+  build-submodules:
+    env:
+      CI: true
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
     steps:
     - uses: actions/checkout@v2
       with:
-        ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        ssh-key: ${{ secrets.ACTION_ACCESS_SUB_MODULES_PRIVATE_REPOS }}
         submodules: true
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install and run build:prod
-      run: |
-        npm ci
-        npm run build:prod
-      env:
-        CI: true
+    - name: npm install
+      run: npm ci
+    - name: npm build:prod
+      run: npm run build:prod

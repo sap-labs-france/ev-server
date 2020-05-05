@@ -1,25 +1,26 @@
-import cluster from 'cluster';
 import express, { NextFunction, Request, Response } from 'express';
-import sanitize from 'express-sanitizer';
+
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
+import ChangeNotification from '../../types/ChangeNotification';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import { Entity } from '../../types/Authorization';
+import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import SessionHashService from '../rest/service/SessionHashService';
+import SingleChangeNotification from '../../types/SingleChangeNotification';
+import UserToken from '../../types/UserToken';
+import cluster from 'cluster';
+import expressTools from '../ExpressTools';
 import morgan from 'morgan';
+import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
 import socketioJwt from 'socketio-jwt';
 import util from 'util';
-import { Entity } from '../../types/Authorization';
-import ChangeNotification from '../../types/ChangeNotification';
-import { ServerAction } from '../../types/Server';
-import SingleChangeNotification from '../../types/SingleChangeNotification';
-import UserToken from '../../types/UserToken';
-import Configuration from '../../utils/Configuration';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import expressTools from '../ExpressTools';
-import SessionHashService from '../rest/service/SessionHashService';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
-
 
 const MODULE_NAME = 'CentralRestServer';
+
 export default class CentralRestServer {
 
   private static centralSystemRestConfig;
@@ -66,13 +67,13 @@ export default class CentralRestServer {
     this.express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService);
+    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
 
     // Secured API
-    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
 
     // Util API
-    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil);
+    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
     this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);

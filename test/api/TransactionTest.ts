@@ -1,12 +1,12 @@
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TransactionCommonTests from './TransactionCommonTests';
 import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './context/ChargingStationContext';
-import ContextDefinition from './context/ContextDefinition';
-import ContextProvider from './context/ContextProvider';
-import TransactionCommonTests from './TransactionCommonTests';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -182,10 +182,6 @@ describe('Transaction tests', function() {
 
         it('Can read consumption of a started transaction with multiple meter values', async () => {
           await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
-        });
-
-        it('Can read consumption of a started transaction with multiple meter values and different date parameters', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithDifferentDateParameters();
         });
 
         it('Can read consumption of a stopped transaction without meter values', async () => {
@@ -685,10 +681,6 @@ describe('Transaction tests', function() {
 
         it('Can read consumption of a started transaction with multiple meter values', async () => {
           await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
-        });
-
-        it('Can read consumption of a started transaction with multiple meter values and different date parameters', async () => {
-          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithDifferentDateParameters();
         });
 
         it('Can read consumption of a stopped transaction without meter values', async () => {

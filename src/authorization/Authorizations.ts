@@ -1,30 +1,31 @@
+import { Action, AuthorizationContext, Entity } from '../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../types/HTTPError';
+import User, { UserRole, UserStatus } from '../types/User';
+
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
+import ChargingStation from '../types/ChargingStation';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import { PricingSettingsType } from '../types/Setting';
+import { ServerAction } from '../types/Server';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import { Action, AuthorizationContext, Entity } from '../types/Authorization';
-import ChargingStation from '../types/ChargingStation';
-import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
-import { HTTPAuthError, HTTPError } from '../types/HTTPError';
-import { ServerAction } from '../types/Server';
-import { PricingSettingsType } from '../types/Setting';
 import Tag from '../types/Tag';
 import TenantComponents from '../types/TenantComponents';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
 import UserNotifications from '../types/UserNotifications';
+import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
 
 const MODULE_NAME = 'Authorizations';
 
@@ -472,7 +473,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
   }
 
-  public static canReadAsset(loggedUser: UserToken, assetId: string): boolean {
+  public static canReadAsset(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ);
   }
 
@@ -554,6 +555,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 
+  public static canSynchronizeInvoicesBilling(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.SYNCHRONIZE_INVOICES);
+  }
+
   public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === UserRole.SUPER_ADMIN;
   }
@@ -631,7 +636,7 @@ export default class Authorizations {
     // Get the user
     if (tagID) {
       user = await Authorizations.checkAndGetUserTagIDOnChargingStation(
-        tenantID, chargingStation, tagID, action);
+        tenantID, chargingStation, tagID);
     }
     // Found?
     if (user) {
@@ -695,7 +700,7 @@ export default class Authorizations {
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
-  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: Action): Promise<User> {
+  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
     let user = await UserStorage.getUserByTagId(tenantID, tagID);
     // Found?
     if (!user) {
@@ -738,7 +743,7 @@ export default class Authorizations {
           evseDashboardURL: Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           evseDashboardUserURL: await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
-      ).catch(() => {});
+      ).catch(() => { });
       // Not authorized
       throw new AppError({
         source: chargingStation.id,

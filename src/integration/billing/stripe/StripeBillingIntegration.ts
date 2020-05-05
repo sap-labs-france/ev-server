@@ -1,19 +1,19 @@
-/* eslint-disable @typescript-eslint/camelcase */
-import moment from 'moment';
-import Stripe, { IResourceObject } from 'stripe';
-import BackendError from '../../../exception/BackendError';
-import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingInvoiceStatus, BillingTax, BillingUser } from '../../../types/Billing';
-import { ServerAction } from '../../../types/Server';
-import { StripeBillingSetting } from '../../../types/Setting';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
+import Stripe, { IResourceObject } from 'stripe';
+
+import BackendError from '../../../exception/BackendError';
+import BillingIntegration from '../BillingIntegration';
+import BillingStorage from '../../../storage/mongodb/BillingStorage';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import { StripeBillingSetting } from '../../../types/Setting';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
-import BillingIntegration from '../BillingIntegration';
+import moment from 'moment';
 
 import ICustomerListOptions = Stripe.customers.ICustomerListOptions;
 import ItaxRateSearchOptions = Stripe.taxRates.ItaxRateSearchOptions;
@@ -99,6 +99,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (request.has_more) {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         requestParams.starting_after = users[users.length - 1].billingData.customerID;
       }
     } while (request.has_more);
@@ -152,14 +153,32 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (request.has_more) {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         requestParams.starting_after = taxes[taxes.length - 1].id;
       }
     } while (request.has_more);
     return taxes;
   }
 
+  public async getInvoice(id: string): Promise<BillingInvoice> {
+    // Check Stripe
+    await this.checkConnection();
+    // Get Invoice
+    const stripeInvoice = await this.stripe.invoices.retrieve(id);
+    return {
+      invoiceID: stripeInvoice.id,
+      customerID: stripeInvoice.customer.toString(),
+      number: stripeInvoice.number,
+      amount: stripeInvoice.amount_due,
+      status: stripeInvoice.status as BillingInvoiceStatus,
+      currency: stripeInvoice.currency,
+      createdOn: new Date(stripeInvoice.created * 1000),
+      nbrOfItems: stripeInvoice.lines.total_count
+    } as BillingInvoice;
+  }
+
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
-    const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
+    const createdSince = this.settings.usersLastSynchronizedOn ? `${moment(this.settings.usersLastSynchronizedOn).unix()}` : '0';
     let events: Stripe.IList<Stripe.events.IEvent>;
     const collectedCustomerIDs: string[] = [];
     const request = {
@@ -196,6 +215,60 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedCustomerIDs;
   }
 
+  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
+    let createdSince: string;
+    // Check Stripe
+    await this.checkConnection();
+    if (billingUser) {
+      // Start sync from last invoices sync
+      createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
+    } else {
+      // Start sync from last global sync
+      createdSince = this.settings.invoicesLastSynchronizedOn ? `${moment(this.settings.invoicesLastSynchronizedOn).unix()}` : '0';
+    }
+    let events: Stripe.IList<Stripe.events.IEvent>;
+    const collectedInvoiceIDs: string[] = [];
+    const request = {
+      created: { gt: createdSince },
+      limit: StripeBillingIntegration.STRIPE_MAX_LIST,
+      type: 'invoice.*',
+    };
+    try {
+      // Loop until all invoices are read
+      do {
+        events = await this.stripe.events.list(request);
+        for (const evt of events.data) {
+          if (evt.data.object.object === 'invoice' && (evt.data.object as IInvoice).id) {
+            const invoice = (evt.data.object as IInvoice);
+            if (!collectedInvoiceIDs.includes(invoice.id)) {
+              if (billingUser) {
+                // Collect specific user's invoices
+                if (billingUser.billingData.customerID === invoice.customer) {
+                  collectedInvoiceIDs.push(invoice.id);
+                }
+              } else {
+                // Collect every invoices
+                collectedInvoiceIDs.push(invoice.id);
+              }
+            }
+          }
+        }
+        if (request['has_more']) {
+          request['starting_after'] = collectedInvoiceIDs[collectedInvoiceIDs.length - 1];
+        }
+      } while (request['has_more']);
+    } catch (error) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        action: ServerAction.BILLING_SYNCHRONIZE_INVOICES,
+        module: MODULE_NAME, method: 'getUpdatedInvoiceIDsInBilling',
+        message: `Impossible to retrieve changed invoices from Stripe Billing: ${error.message}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+    }
+    return collectedInvoiceIDs;
+  }
+
   public async createInvoice(user: BillingUser, invoiceItem: BillingInvoiceItem, idempotencyKey?: string|number): Promise<{ invoice: BillingInvoice; invoiceItem: BillingInvoiceItem }> {
     if (!user) {
       throw new BackendError({
@@ -220,10 +293,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Some Invoice Items already exists
       stripeInvoice = await this.stripe.invoices.create({
         customer: user.billingData.customerID,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         collection_method: 'send_invoice',
+        // eslint-disable-next-line @typescript-eslint/camelcase
         days_until_due: daysUntilDue,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         auto_advance: false
       }, {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
       // Add new invoice item
@@ -239,17 +316,20 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
         stripeInvoice = await this.stripe.invoices.create({
           customer: user.billingData.customerID,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           collection_method: 'send_invoice',
+          // eslint-disable-next-line @typescript-eslint/camelcase
           days_until_due: daysUntilDue,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           auto_advance: false
         });
-      } catch (error) {
+      } catch (err) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CREATE_INVOICE,
           module: MODULE_NAME, method: 'createInvoice',
           message: 'Failed to create invoice',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: err.message, stack: err.stack }
         });
       }
     }
@@ -295,6 +375,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         description: invoiceItem.description,
         invoice: invoiceID
       }, {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
     } catch (error) {
@@ -782,7 +863,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async getSubscription(subscriptionID: string): Promise<Stripe.subscriptions.ISubscription> {
     await this.checkConnection();
-    // Get subscriptiom
+    // Get subscription
     return await this.stripe.subscriptions.retrieve(subscriptionID);
   }
 
@@ -832,6 +913,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           email: user.email,
           description: description,
           name: fullName,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           preferred_locales: [locale]
         });
       } catch (error) {
@@ -859,6 +941,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         (!customer.preferred_locales ||
           customer.preferred_locales.length === 0 ||
           customer.preferred_locales[0] !== locale)) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       dataToUpdate.preferred_locales = [locale];
     }
     // Update
@@ -925,6 +1008,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
               subscription.id,
               {
                 billing: 'send_invoice',
+                // eslint-disable-next-line @typescript-eslint/camelcase
                 days_until_due: daysUntilDue,
               });
           } else {
@@ -980,8 +1064,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
                 plan: billingPlan,
               }
             ],
+            // eslint-disable-next-line @typescript-eslint/camelcase
             billing_cycle_anchor: billingCycleAnchor,
             billing: 'send_invoice',
+            // eslint-disable-next-line @typescript-eslint/camelcase
             days_until_due: daysUntilDue,
           });
         } else {
@@ -992,6 +1078,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
                 plan: billingPlan,
               }
             ],
+            // eslint-disable-next-line @typescript-eslint/camelcase
             billing_cycle_anchor: billingCycleAnchor,
             billing: 'charge_automatically',
           });

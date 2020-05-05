@@ -1,46 +1,49 @@
-import momentDurationFormatSetup from 'moment-duration-format';
-import Authorizations from '../../../authorization/Authorizations';
-import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
-import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import BackendError from '../../../exception/BackendError';
-import BillingFactory from '../../../integration/billing/BillingFactory';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import LockingHelper from '../../../locking/LockingHelper';
-import LockingManager from '../../../locking/LockingManager';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits } from '../../../types/ChargingStation';
-import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
-import Consumption from '../../../types/Consumption';
-import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
-import RegistrationToken from '../../../types/RegistrationToken';
-import { ServerAction } from '../../../types/Server';
-import Tenant from '../../../types/Tenant';
-import TenantComponents from '../../../types/TenantComponents';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits, SiteAreaLimitSource } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
-import User from '../../../types/User';
+
+import Authorizations from '../../../authorization/Authorizations';
+import BackendError from '../../../exception/BackendError';
+import { BillingDataTransactionStop } from '../../../types/Billing';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import CpoOCPIClient from '../../../client/ocpi/CpoOCPIClient';
 import I18nManager from '../../../utils/I18nManager';
+import LockingHelper from '../../../locking/LockingHelper';
+import LockingManager from '../../../locking/LockingManager';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import UtilsService from '../../rest/service/UtilsService';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
+import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
+import PricingFactory from '../../../integration/pricing/PricingFactory';
+import RegistrationToken from '../../../types/RegistrationToken';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import { ServerAction } from '../../../types/Server';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Tenant from '../../../types/Tenant';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
+import UtilsService from '../../rest/service/UtilsService';
+import momentDurationFormatSetup from 'moment-duration-format';
 
-const moment = require('moment');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const moment = require('moment-timezone');
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 
@@ -203,6 +206,7 @@ export default class OCPPService {
         message: 'Boot notification saved'
       });
       // Handle the get of configuration later on
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         // Get config and save it
         await OCPPUtils.requestAndSaveChargingStationOcppParameters(
@@ -646,6 +650,7 @@ export default class OCPPService {
       // Must be handled at the end to get the Transaction ID
       if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
         // Call async because the Charging Station should get the Transaction ID first
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           try {
             // Trigger Smart Charging
@@ -696,29 +701,6 @@ export default class OCPPService {
         'transactionId': 0,
         'status': OCPPAuthorizationStatus.INVALID
       };
-    }
-  }
-
-  private async triggerSmartCharging(tenant: Tenant, chargingStation: ChargingStation) {
-    // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
-    if (siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
-      if (!siteAreaLock) {
-        return;        
-      }
-      try {
-        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-        if (smartCharging) {
-          await smartCharging.computeAndApplyChargingProfiles(siteArea);
-        }
-        // Release lock
-        await LockingManager.release(siteAreaLock);
-      } catch (error) {    
-        // Release lock
-        await LockingManager.release(siteAreaLock);
-        throw error;            
-      }
     }
   }
 
@@ -870,6 +852,7 @@ export default class OCPPService {
       // Recompute the Smart Charging Plan
       if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
         // Call async because the Transaction ID on the connector should be cleared
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           try {
             // Trigger Smart Charging
@@ -1201,6 +1184,28 @@ export default class OCPPService {
         consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
+      // Check Org
+      const tenant: Tenant = await TenantStorage.getTenant(tenantID);
+      if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
+        // Get limit of the site area
+        consumption.limitSiteAreaWatts = 0;
+        // Maximum power of the Site Area provided?
+        if (chargingStation.siteArea.maximumPower) {
+          consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
+        } else {
+          // Compute it for Charging Stations
+          const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT);
+          for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
+            for (const connector of chargingStationOfSiteArea.connectors) {
+              consumption.limitSiteAreaWatts += connector.power;
+            }
+          }
+          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, consumption.limitSiteAreaWatts);
+          consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
+        }
+      }
       // Return
       return consumption;
     }
@@ -1268,14 +1273,14 @@ export default class OCPPService {
   private async priceTransaction(tenantID: string, transaction: Transaction, consumption: Consumption, action: TransactionAction) {
     let pricedConsumption;
     // Get the pricing impl
-    const pricingImpl = await PricingFactory.getPricingImpl(tenantID, transaction);
+    const pricingImpl = await PricingFactory.getPricingImpl(tenantID);
     switch (action) {
       // Start Transaction
       case TransactionAction.START:
         // Active?
         if (pricingImpl) {
           // Set
-          pricedConsumption = await pricingImpl.startSession(consumption);
+          pricedConsumption = await pricingImpl.startSession(transaction, consumption);
           if (pricedConsumption) {
             // Set the initial pricing
             transaction.price = pricedConsumption.amount;
@@ -1298,7 +1303,7 @@ export default class OCPPService {
         // Active?
         if (pricingImpl) {
           // Set
-          pricedConsumption = await pricingImpl.updateSession(consumption);
+          pricedConsumption = await pricingImpl.updateSession(transaction, consumption);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -1319,7 +1324,7 @@ export default class OCPPService {
         // Active?
         if (pricingImpl) {
           // Set
-          pricedConsumption = await pricingImpl.stopSession(consumption);
+          pricedConsumption = await pricingImpl.stopSession(transaction, consumption);
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -1347,6 +1352,7 @@ export default class OCPPService {
   }
 
   private async billTransaction(tenantID: string, transaction: Transaction, action: TransactionAction) {
+    let billingDataStop: BillingDataTransactionStop;
     const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     if (!billingImpl) {
       return;
@@ -1356,29 +1362,23 @@ export default class OCPPService {
       // Start Transaction
       case TransactionAction.START:
         // Delegate
-        const billingDataStart = await billingImpl.startTransaction(transaction);
+        await billingImpl.startTransaction(transaction);
         // Update
         transaction.billingData = {
           lastUpdate: new Date()
         };
-        // Cancel?
-        if (billingDataStart.cancelTransaction) {
-        }
         break;
       // Meter Values
       case TransactionAction.UPDATE:
         // Delegate
-        const billingDataUpdate = await billingImpl.updateTransaction(transaction);
+        await billingImpl.updateTransaction(transaction);
         // Update
         transaction.billingData.lastUpdate = new Date();
-        // Cancel?
-        if (billingDataUpdate.cancelTransaction) {
-        }
         break;
       // Stop Transaction
       case TransactionAction.STOP:
         // Delegate
-        const billingDataStop = await billingImpl.stopTransaction(transaction);
+        billingDataStop = await billingImpl.stopTransaction(transaction);
         // Update
         transaction.billingData.status = billingDataStop.status;
         transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
@@ -1456,7 +1456,6 @@ export default class OCPPService {
         await ocpiClient.updateSession(transaction);
         break;
       case TransactionAction.STOP:
-        transaction.values = await ConsumptionStorage.getOptimizedConsumptions(tenantID, { transactionId: transaction.id });
         await ocpiClient.stopSession(transaction);
         await ocpiClient.postCdr(transaction);
         break;
@@ -1920,6 +1919,29 @@ export default class OCPPService {
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           }
         ).catch(() => {});
+      }
+    }
+  }
+
+  private async triggerSmartCharging(tenant: Tenant, chargingStation: ChargingStation) {
+    // Get Site Area
+    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+    if (siteArea.smartCharging) {
+      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
+      if (!siteAreaLock) {
+        return;
+      }
+      try {
+        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+        if (smartCharging) {
+          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        }
+        // Release lock
+        await LockingManager.release(siteAreaLock);
+      } catch (error) {
+        // Release lock
+        await LockingManager.release(siteAreaLock);
+        throw error;
       }
     }
   }

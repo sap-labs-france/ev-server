@@ -1,27 +1,24 @@
-import bcrypt from 'bcryptjs';
-import { Request } from 'express';
-import fs from 'fs';
-import _ from 'lodash';
-import moment from 'moment';
-import { ObjectID } from 'mongodb';
-import path from 'path';
-import tzlookup from 'tz-lookup';
-import url from 'url';
-import uuidV4 from 'uuid/v4';
-import validator from 'validator';
-import Authorizations from '../authorization/Authorizations';
-import AppError from '../exception/AppError';
-import BackendError from '../exception/BackendError';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import Asset from '../types/Asset';
-import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
-import Company from '../types/Company';
-import ConnectorStats from '../types/ConnectorStats';
-import { HTTPError } from '../types/HTTPError';
-import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import User, { UserRole, UserStatus } from '../types/User';
+
+import { ActionsResponse } from '../types/GlobalType';
+import AppError from '../exception/AppError';
+import Asset from '../types/Asset';
+import Authorizations from '../authorization/Authorizations';
+import BackendError from '../exception/BackendError';
+import { ChargingProfile } from '../types/ChargingProfile';
+import Company from '../types/Company';
+import Configuration from './Configuration';
+import ConnectorStats from '../types/ConnectorStats';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import { HTTPError } from '../types/HTTPError';
+import { InactivityStatus } from '../types/Transaction';
+import Logging from './Logging';
+import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
+import { ObjectID } from 'mongodb';
+import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
@@ -29,14 +26,19 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import { InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
-import Configuration from './Configuration';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import Logging from './Logging';
-import passwordGenerator = require('password-generator');
+import _ from 'lodash';
+import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import moment from 'moment';
+import passwordGenerator from 'password-generator';
+import path from 'path';
+import tzlookup from 'tz-lookup';
+import url from 'url';
+import uuidV4 from 'uuid/v4';
+import validator from 'validator';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -63,6 +65,47 @@ export default class Utils {
       intervalMins = 15;
     }
     return intervalMins;
+  }
+
+  public static logActionsResponse(
+    tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
+    messageSuccess: string, messageError: string, messageSuccessAndError: string,
+    messageNoSuccessNoError: string) {
+    // Replace
+    messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
+    messageSuccessAndError = messageSuccessAndError.replace('{{inError}}', actionsResponse.inError.toString());
+    // Success and Error
+    if (actionsResponse.inSuccess > 0 && actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccessAndError
+      });
+    } else if (actionsResponse.inSuccess > 0) {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageSuccess
+      });
+    } else if (actionsResponse.inError > 0) {
+      Logging.logError({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageError
+      });
+    } else {
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: Constants.CENTRAL_SERVER,
+        action, module, method,
+        message: messageNoSuccessNoError
+      });
+    }
   }
 
   public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatus {
@@ -433,7 +476,7 @@ export default class Utils {
     if (chargingStation &&
         chargingStation.connectors && chargingStation.connectors.length > 0 &&
         chargingStation.connectors[connectorID - 1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID - 1].numberOfConnectedPhase) {
-      return this.convertAmpToW(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
+      return this.convertAmpToWatt(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
     }
     return 0;
   }
@@ -446,15 +489,26 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static convertAmpToW(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
+  public static convertAmpToWatt(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
     // Compute it
     if (numberOfConnectedPhase === 0) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     if (numberOfConnectedPhase === 3) {
-      return Math.floor(400 * maxIntensityInAmper * Math.sqrt(3));
+      return Math.floor(230 * maxIntensityInAmper * 3);
     }
     return Math.floor(230 * maxIntensityInAmper);
+  }
+
+  public static convertWattToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
+    // Compute it
+    if (numberOfConnectedPhase === 0) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    if (numberOfConnectedPhase === 3) {
+      return Math.floor(maxIntensityInWatt / 230 / 3);
+    }
+    return Math.floor(maxIntensityInWatt / 230);
   }
 
   public static isEmptyArray(array): boolean {
@@ -666,7 +720,7 @@ export default class Utils {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
-      bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.genSalt(10, (error, salt) => {
         // Hash
         bcrypt.hash(password, salt, (err, hash) => {
           // Error?
@@ -986,7 +1040,6 @@ export default class Utils {
   }
 
   public static isValidDate(date: any) {
-    // @ts-ignore
     return moment(date).isValid();
   }
 
@@ -1341,32 +1394,6 @@ export default class Utils {
   public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  public static async importModule(modulePath: string) {
-    if (Utils.isModuleAvailable(modulePath)) {
-      return await import(modulePath);
-    }
-    return {};
-  }
-
-  public static isModuleAvailable(modulePath: string): boolean {
-    if (!path.isAbsolute(modulePath)) {
-      Logging.logWarning({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.IMPORT_MODULE,
-        module: MODULE_NAME, method: 'isModuleAvailable',
-        message: 'The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies'
-      });
-      console.log('The module path' + modulePath + ' is not an absolute path, expect unattended inconsistencies');
-    }
-    try {
-      require.resolve(modulePath);
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   private static _isUserEmailValid(email: string): boolean {

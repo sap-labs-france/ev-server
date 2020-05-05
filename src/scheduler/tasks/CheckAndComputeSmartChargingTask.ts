@@ -1,14 +1,14 @@
-import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
+import Constants from '../../utils/Constants';
 import LockingHelper from '../../locking/LockingHelper';
 import LockingManager from '../../locking/LockingManager';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import Logging from '../../utils/Logging';
+import SchedulerTask from '../SchedulerTask';
 import { ServerAction } from '../../types/Server';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SmartChargingFactory from '../../integration/smart-charging/SmartChargingFactory';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import SchedulerTask from '../SchedulerTask';
 
 const MODULE_NAME = 'CheckAndComputeSmartChargingTask';
 
@@ -24,7 +24,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
       for (const siteArea of siteAreas.result) {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
         if (!siteAreaLock) {
-          return;        
+          return;
         }
         try {
           // Get implementation
@@ -50,7 +50,7 @@ export default class CheckAndComputeSmartChargingTask extends SchedulerTask {
             tenantID: tenant.id,
             module: MODULE_NAME, method: 'run',
             action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-            message: `Error while running the task '${name}': ${error.message}`,
+            message: `Error while running the task '${CheckAndComputeSmartChargingTask.name}': ${error.message}`,
             detailedMessages: { error: error.message, stack: error.stack }
           });
         }

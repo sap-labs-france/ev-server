@@ -1,13 +1,14 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPError, HTTPAuthError } from '../../../types/HTTPError';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'UtilsService';

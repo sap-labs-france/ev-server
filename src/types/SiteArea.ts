@@ -1,8 +1,9 @@
-import Address from './Address';
 import ChargingStation from '../types/ChargingStation';
-import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from '../types/Site';
+import Address from './Address';
 import ConnectorStats from './ConnectorStats';
+import Consumption from './Consumption';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface SiteArea extends CreatedUpdatedProps {
   id: string;
@@ -22,14 +23,10 @@ export default interface SiteArea extends CreatedUpdatedProps {
   availableConnectors?: number;
   totalConnectors?: number;
   connectorStats: ConnectorStats;
+  values: SiteAreaConsumption[];
 }
 
 export interface SiteAreaConsumption {
-  siteAreaId: string;
-  values: SiteAreaConsumptionValues[];
-}
-
-export interface SiteAreaConsumptionValues {
   date: Date;
   instantPower: number;
   limitWatts: number;

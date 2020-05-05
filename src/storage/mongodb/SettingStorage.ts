@@ -1,14 +1,15 @@
-import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
 import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
-import TenantComponents from '../../types/TenantComponents';
+
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { ObjectID } from 'mongodb';
+import TenantComponents from '../../types/TenantComponents';
+import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -260,7 +261,8 @@ export default class SettingStorage {
           advanceBillingAllowed: config.stripe.advanceBillingAllowed ? config.stripe.advanceBillingAllowed : false,
           immediateBillingAllowed: config.stripe.immediateBillingAllowed ? config.stripe.immediateBillingAllowed : false,
           periodicBillingAllowed: config.stripe.periodicBillingAllowed ? config.stripe.periodicBillingAllowed : false,
-          lastSynchronizedOn: config.stripe.lastSynchronizedOn ? config.stripe.lastSynchronizedOn : new Date(0),
+          usersLastSynchronizedOn: config.stripe.usersLastSynchronizedOn ? config.stripe.usersLastSynchronizedOn : new Date(0),
+          invoicesLastSynchronizedOn: config.stripe.invoicesLastSynchronizedOn ? config.stripe.invoicesLastSynchronizedOn : new Date(0),
           taxID: config.stripe.taxID ? (config.stripe.taxID !== 'none' ? config.stripe.taxID : null) : null,
         };
       }

@@ -1,10 +1,3 @@
-import cluster from 'cluster';
-import moment from 'moment';
-import LockingManager from '../locking/LockingManager';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import { ServerAction } from '../types/Server';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
@@ -17,14 +10,22 @@ import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTa
 import CleanupAllTransactionsTask from './tasks/CleanupAllTransactionsTask';
 import CleanupMeterValuesTask from './tasks/CleanupMeterValuesTask';
 import CleanupOrphanBadgeTask from './tasks/CleanupOrphanBadgeTask';
+import Constants from '../utils/Constants';
 import InitialCarImportTask from './tasks/InitialCarImportTask';
+import { LockEntity } from '../types/Locking';
+import LockingManager from '../locking/LockingManager';
+import Logging from '../utils/Logging';
 import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 import MigrateOcpiSettingTask from './tasks/MigrateOcpiSettingTask';
+import MigrateOcpiTransactionsTask from './tasks/MigrateOcpiTransactionsTask';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
+import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
-import { LockEntity } from '../types/Locking';
+import cluster from 'cluster';
+import moment from 'moment';
 
 const MODULE_NAME = 'MigrationHandler';
 
@@ -34,10 +35,10 @@ export default class MigrationHandler {
     if (!cluster.isMaster) {
       return;
     }
-    // Create a Lock by migration name and version
+    // Create a Lock for migration
     const migrationLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, 'migration');
     if (!(await LockingManager.acquire(migrationLock))) {
-      return;        
+      return;
     }
     try {
       const startMigrationTime = moment();
@@ -69,6 +70,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddActivePropertyToTagsTask());
       currentMigrationTasks.push(new InitialCarImportTask());
       currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
+      currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
       // Check
@@ -102,8 +104,6 @@ export default class MigrationHandler {
         module: MODULE_NAME, method: 'migrate',
         message: `The migration has been run in ${totalMigrationTimeSecs} secs`
       });
-      // Release lock
-      await LockingManager.release(migrationLock);
     } catch (error) {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
@@ -112,13 +112,14 @@ export default class MigrationHandler {
         message: error.toString(),
         detailedMessages: { error: error.message, stack: error.stack }
       });
+    } finally {
       // Release lock
       await LockingManager.release(migrationLock);
     }
   }
 
   static async _executeTask(currentMigrationTask): Promise<void> {
-    // Create a Lock by migration name and version (for async tasks)
+    // Create a Lock by migration name (for async tasks)
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
     if (!(await LockingManager.acquire(migrateTaskLock))) {
@@ -159,12 +160,11 @@ export default class MigrationHandler {
       // Log in the console also
       // eslint-disable-next-line no-console
       console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-      // Release the migration lock
-      await LockingManager.release(migrateTaskLock);
     } catch (error) {
+      throw error;
+    } finally {
       // Release the migration lock
       await LockingManager.release(migrateTaskLock);
-      throw error;
     }
   }
 }

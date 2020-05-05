@@ -1,18 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import AssetStorage from '../../../storage/mongodb/AssetStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Asset from '../../../types/Asset';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { ServerAction } from '../../../types/Server';
-import TenantComponents from '../../../types/TenantComponents';
+import { NextFunction, Request, Response } from 'express';
+
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Asset from '../../../types/Asset';
+import { AssetInErrorType } from '../../../types/InError';
+import AssetSecurity from './security/AssetSecurity';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
+import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
-import AssetSecurity from './security/AssetSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'AssetService';
@@ -91,6 +93,45 @@ export default class AssetService {
     next();
   }
 
+  public static async handleGetAssetsInError(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.LIST, Entity.ASSETS, MODULE_NAME, 'handleGetAssetsInError');
+    // Check auth
+    if (!Authorizations.canListAssets(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.LIST,
+        entity: Entity.ASSETS,
+        module: MODULE_NAME,
+        method: 'handleGetAssetsInError'
+      });
+    }
+    // Filter
+    const filteredRequest = AssetSecurity.filterAssetsRequest(req.query);
+    // Build error type
+    const errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : [AssetInErrorType.MISSING_SITE_AREA]);
+    // Get the assets
+    const assets = await AssetStorage.getAssetsInError(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        siteAreaIDs: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
+        errorType
+      },
+      { limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+    );
+    // Filter
+    AssetSecurity.filterAssetsResponse(assets, req.user);
+    // Return
+    res.json(assets);
+    next();
+  }
+
   public static async handleDeleteAsset(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
@@ -142,7 +183,7 @@ export default class AssetService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -175,7 +216,7 @@ export default class AssetService {
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleGetAssetImage', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user, assetID)) {
+    if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -222,7 +263,7 @@ export default class AssetService {
         withNoSiteArea: filteredRequest.WithNoSiteArea
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'assetType', 'coordinates']
+      [ 'id', 'name', 'siteAreaID', 'siteArea.id', 'siteArea.name', 'siteArea.siteID', 'assetType', 'coordinates']
     );
     // Filter
     AssetSecurity.filterAssetsResponse(assets, req.user);

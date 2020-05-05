@@ -5,7 +5,7 @@ export enum ServerAction {
   PING = 'Ping',
   CHECK_CONNECTION = 'CheckConnection',
   RESET = 'Reset',
-  
+
   CHARGING_STATION_RESET = 'ChargingStationReset',
   CHARGING_STATION_REQUEST_OCPP_PARAMETERS = 'ChargingStationRequestOcppParameters',
   CHARGING_STATION_CLEAR_CACHE = 'ChargingStationClearCache',
@@ -55,7 +55,7 @@ export enum ServerAction {
   LOGGING_EXPORT = 'LoggingsExport',
 
   CHARGING_STATIONS = 'ChargingStations',
-  
+
   CAR_CATALOGS = 'CarCatalogs',
   CAR_CATALOG = 'CarCatalog',
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
@@ -92,10 +92,13 @@ export enum ServerAction {
   INTEGRATION_CONNECTIONS = 'IntegrationConnections',
   INTEGRATION_CONNECTION = 'IntegrationConnection',
   INTEGRATION_CONNECTION_DELETE = 'IntegrationConnectionDelete',
-  
+
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
   OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
+  OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
+  OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
+  OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
   OCPI_ENPOINT_PULL_CDRS = 'OcpiEndpointPullCdrs',
   OCPI_ENPOINT_PULL_LOCATIONS = 'OcpiEndpointPullLocations',
   OCPI_ENPOINT_PULL_SESSIONS = 'OcpiEndpointPullSessions',
@@ -109,6 +112,9 @@ export enum ServerAction {
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
   OCPI_PATCH_LOCATIONS = 'OcpiPatchLocations',
   OCPI_PATCH_STATUS = 'OcpiPatchStatus',
+  OCPI_CHECK_CDRS = 'OcpiCheckCdrs',
+  OCPI_CHECK_SESSIONS = 'OcpiCheckSessions',
+  OCPI_CHECK_LOCATIONS = 'OcpiCheckLocations',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
@@ -178,7 +184,7 @@ export enum ServerAction {
   BOOT_NOTIFICATION = 'BootNotification',
 
   METER_VALUES = 'MeterValues',
-  
+
   NOTIFICATION = 'Notification',
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
@@ -222,7 +228,7 @@ export enum ServerAction {
   UNASSIGNED_TRANSACTIONS_COUNT = 'UnassignedTransactionsCount',
   TRANSACTION = 'Transaction',
   TRANSACTION_CONSUMPTION = 'TransactionConsumption',
-  
+
   CHARGING_STATION_CONSUMPTION_STATISTICS = 'ChargingStationConsumptionStatistics',
   CHARGING_STATION_USAGE_STATISTICS = 'ChargingStationUsageStatistics',
   CHARGING_STATION_INACTIVITY_STATISTICS = 'ChargingStationInactivityStatistics',
@@ -250,6 +256,7 @@ export enum ServerAction {
   ASSETS = 'Assets',
   ASSET = 'Asset',
   ASSET_IMAGE = 'AssetImage',
+  ASSET_IN_ERROR = 'AssetsInError',
   ASSET_UPDATE = 'AssetUpdate',
   ASSET_DELETE = 'AssetDelete',
 
@@ -327,11 +334,13 @@ export enum ServerAction {
   CHECK_BILLING_CONNECTION = 'CheckBillingConnection',
   BILLING_TAXES = 'BillingTaxes',
   BILLING_USER_INVOICES = 'BillingUserInvoices',
+  BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
+  BILLING_SYNCHRONIZE_USER_INVOICES = 'BillingSynchronizeUserInvoices',
 
   MONGO_DB = 'MongoDB',
 
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SMART_CHARGING = 'SmartCharging',
 
-  IMPORT_MODULE = 'ImportModule',
+  INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
 }

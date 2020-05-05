@@ -1,12 +1,12 @@
-import BackendError from '../../exception/BackendError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import { ChargingProfile } from '../../types/ChargingProfile';
 import { ActionsResponse } from '../../types/GlobalType';
-import { ServerAction } from '../../types/Server';
-import { SmartChargingSetting } from '../../types/Setting';
-import SiteArea from '../../types/SiteArea';
-import Constants from '../../utils/Constants';
+import BackendError from '../../exception/BackendError';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
+import SiteArea from '../../types/SiteArea';
+import { SmartChargingSetting } from '../../types/Setting';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SmartCharging';
 
@@ -59,39 +59,14 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
         });
       }
     }
-    if (actionsResponse.inSuccess && actionsResponse.inError) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-        module: MODULE_NAME, method: 'processTenant',
-        message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed and ${actionsResponse.inError} have failed`
-      });
-    } else if (actionsResponse.inSuccess) {
-      Logging.logInfo({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-        module: MODULE_NAME, method: 'processTenant',
-        message: `${actionsResponse.inSuccess} charging plan(s) were successfully pushed`
-      });
-    } else if (actionsResponse.inError) {
-      Logging.logError({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-        module: MODULE_NAME, method: 'processTenant',
-        message: `${actionsResponse.inError} charging plan(s) have failed to be pushed`
-      });
-    } else {
-      Logging.logWarning({
-        tenantID: this.tenantID,
-        source: Constants.CENTRAL_SERVER,
-        action: ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
-        module: MODULE_NAME, method: 'processTenant',
-        message: 'No charging stations have been updated with charging plans'
-      });
-    }
+    // Log
+    Utils.logActionsResponse(this.tenantID, ServerAction.CHECK_AND_APPLY_SMART_CHARGING,
+      MODULE_NAME, 'computeAndApplyChargingProfiles', actionsResponse,
+      '{{inSuccess}} charging plan(s) were successfully pushed',
+      '{{inError}} charging plan(s) failed to be pushed',
+      '{{inSuccess}} charging plan(s) were successfully pushed and {{inError}} failed to be pushed',
+      'No charging plans have been pushed'
+    );
     Logging.logDebug({
       tenantID: this.tenantID,
       action: ServerAction.CHARGING_PROFILE_UPDATE,

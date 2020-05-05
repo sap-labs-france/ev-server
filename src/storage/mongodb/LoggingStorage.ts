@@ -1,14 +1,15 @@
-import cfenv from 'cfenv';
-import cluster from 'cluster';
-import os from 'os';
-import DbParams from '../../types/database/DbParams';
 import { Log, LogLevel, LogType } from '../../types/Log';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import cfenv from 'cfenv';
+import cluster from 'cluster';
 import global from './../../types/GlobalType';
-import DatabaseUtils from './DatabaseUtils';
+import os from 'os';
 
 const MODULE_NAME = 'LoggingStorage';
 

@@ -1,10 +1,12 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import Asset from '../../../../types/Asset';
-import { DataResult } from '../../../../types/DataResult';
 import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpBuildingRequest';
+
+import Asset from '../../../../types/Asset';
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class AssetSecurity {
 
@@ -31,7 +33,8 @@ export default class AssetSecurity {
       Search: sanitize(request.Search),
       SiteAreaID: sanitize(request.SiteAreaID),
       WithSiteArea: !request.WithSiteArea ? false : UtilsSecurity.filterBoolean(request.WithSiteArea),
-      WithNoSiteArea: !request.WithNoSiteArea ? false : UtilsSecurity.filterBoolean(request.WithNoSiteArea)
+      WithNoSiteArea: !request.WithNoSiteArea ? false : UtilsSecurity.filterBoolean(request.WithNoSiteArea),
+      ErrorType: sanitize(request.ErrorType)
     } as HttpAssetsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -66,26 +69,28 @@ export default class AssetSecurity {
   }
 
   public static filterAssetResponse(asset: Asset, loggedUser: UserToken): Asset {
-    let filteredAsset;
-
+    let filteredAsset: Asset;
     if (!asset) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadAsset(loggedUser, asset.id)) {
+    if (Authorizations.canReadAsset(loggedUser)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredAsset = asset;
       } else {
         // Set only necessary info
-        filteredAsset = {};
+        filteredAsset = {} as Asset;
         filteredAsset.id = asset.id;
         filteredAsset.name = asset.name;
         filteredAsset.siteAreaID = asset.siteAreaID;
         filteredAsset.assetType = asset.assetType;
         filteredAsset.coordinates = asset.coordinates;
         filteredAsset.image = asset.image;
+        if (asset.siteArea) {
+          filteredAsset.siteArea = SiteAreaSecurity.filterSiteAreaResponse(asset.siteArea, loggedUser);
+        }
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
@@ -96,7 +101,6 @@ export default class AssetSecurity {
 
   public static filterAssetsResponse(assets: DataResult<Asset>, loggedUser: UserToken) {
     const filteredAssets = [];
-
     if (!assets.result) {
       return null;
     }

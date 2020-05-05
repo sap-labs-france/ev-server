@@ -2,22 +2,23 @@
 //        works as intended. Store the encrypted FAKE_WORD in variable FAKE_WORD_ENCRYPTED in order to try to detect
 //        a change in this key.
 
+import Lock, { LockEntity, LockType } from '../../src/types/Locking';
 import chai, { expect } from 'chai';
-import chaiDatetime from 'chai-datetime';
-import chaiSubset from 'chai-subset';
+
+import Constants from '../../src/utils/Constants';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
 import LockingHelper from '../../src/locking/LockingHelper';
 import LockingManager from '../../src/locking/LockingManager';
 import MongoDBStorage from '../../src/storage/mongodb/MongoDBStorage';
-import global from '../../src/types/GlobalType';
-import Lock, { LockEntity, LockType } from '../../src/types/Locking';
-import Constants from '../../src/utils/Constants';
-import config from '../config';
-import responseHelper from '../helpers/responseHelper';
-import ContextDefinition from './context/ContextDefinition';
-import ContextProvider from './context/ContextProvider';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
+import chaiDatetime from 'chai-datetime';
+import chaiSubset from 'chai-subset';
+import config from '../config';
+import global from '../../src/types/GlobalType';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -58,7 +59,7 @@ describe('Locking Tests', function() {
 
   describe('Exclusive Locks', () => {
     it('Should create an exclusive lock', () => {
-      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockKey)
+      testData.exclusiveLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, lockKey);
       expect(testData.exclusiveLock).not.null;
       expect(testData.exclusiveLock.id).not.null;
       expect(testData.exclusiveLock.hostname).not.null;

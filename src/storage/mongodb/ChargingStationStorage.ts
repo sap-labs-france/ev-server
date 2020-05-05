@@ -1,22 +1,23 @@
-import fs from 'fs';
-import moment from 'moment';
-import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
+
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
+import { DataResult } from '../../types/DataResult';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
+import fs from 'fs';
+import global from '../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -394,18 +395,6 @@ export default class ChargingStationStorage {
       // Add a unique identifier as we may have the same Charging Station several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
-    // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...aggregation, { $count: 'count' }])
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
-        result: []
-      };
-    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -431,16 +420,15 @@ export default class ChargingStationStorage {
     // Change ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
     // Read DB
-    const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
+    const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingStations', uniqueTimerID);
     // Ok
     return {
-      count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
-      result: chargingStationsFacetMDB
+      count: chargingStationsMDB.length,
+      result: chargingStationsMDB
     };
   }
 

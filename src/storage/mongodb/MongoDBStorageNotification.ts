@@ -1,10 +1,11 @@
-import CentralRestServer from '../../server/rest/CentralRestServer';
 import { Action, Entity } from '../../types/Authorization';
-import StorageConfiguration from '../../types/configuration/StorageConfiguration';
-import { ServerAction } from '../../types/Server';
+
+import CentralRestServer from '../../server/rest/CentralRestServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MongoDBStorage from './MongoDBStorage';
+import { ServerAction } from '../../types/Server';
+import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 
 const _pipeline = [];
 const _options = {

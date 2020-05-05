@@ -77,7 +77,7 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetSiteArea', req.user);
     // Get it
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes });
+      { withSite: filteredRequest.WithSite, withChargingStations: filteredRequest.WithChargingStations });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleGetSiteArea', req.user);
     // Check auth
@@ -156,7 +156,7 @@ export default class SiteAreaService {
         issuer: filteredRequest.Issuer,
         search: filteredRequest.Search,
         withSite: filteredRequest.WithSite,
-        withChargeBoxes: filteredRequest.WithChargeBoxes,
+        withChargingStations: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
@@ -220,16 +220,13 @@ export default class SiteAreaService {
       });
     }
     // Get the ConsumptionValues
-    const siteAreaConsumptionValues = await ConsumptionStorage.getSiteAreaConsumption(req.user.tenantID, {
+    const consumptions = await ConsumptionStorage.getSiteAreaConsumptions(req.user.tenantID, {
       siteAreaID: filteredRequest.SiteAreaID,
       startDate: filteredRequest.StartDate,
       endDate: filteredRequest.EndDate
     });
-    // Get the Site Area Limit
-    const siteAreaLimit = siteArea.maximumPower;
     // Return
-    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(
-      siteAreaConsumptionValues, siteAreaLimit, filteredRequest.SiteAreaID));
+    res.json(SiteAreaSecurity.filterSiteAreaConsumptionResponse(siteArea, consumptions, req.user));
     next();
   }
 
@@ -284,7 +281,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
     // Get
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargeBoxes: true });
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, { withChargingStations: true });
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateSiteArea', req.user);
     // Check auth

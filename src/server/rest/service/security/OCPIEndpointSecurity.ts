@@ -1,10 +1,10 @@
-import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
-import UserToken from '../../../../types/UserToken';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { HttpOCPIEndpointsRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
 import { DataResult } from '../../../../types/DataResult';
+import { HttpOCPIEndpointsRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -50,6 +50,24 @@ export default class OCPIEndpointSecurity {
   }
 
   static filterOcpiEndpointSendEVSEStatusesRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiCheckCdrsRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiCheckSessionsRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiCheckLocationsRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;

@@ -1,10 +1,9 @@
 import Consumption from '../../types/Consumption';
-import global from '../../types/GlobalType';
-import { SiteAreaConsumptionValues } from '../../types/SiteArea';
 import Cypher from '../../utils/Cypher';
+import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'ConsumptionStorage';
 
@@ -44,7 +43,10 @@ export default class ConsumptionStorage {
       limitAmps: Utils.convertToInt(consumptionToSave.limitAmps),
       limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       limitSource: consumptionToSave.limitSource,
-      userID: Utils.convertToObjectID(consumptionToSave.userID)
+      userID: Utils.convertToObjectID(consumptionToSave.userID),
+      limitSiteAreaWatts: consumptionToSave.limitSiteAreaWatts ? Utils.convertToInt(consumptionToSave.limitSiteAreaWatts) : null,
+      limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null,
+      limitSiteAreaSource: consumptionToSave.limitSiteAreaSource ? consumptionToSave.limitSiteAreaSource : null,
     };
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
@@ -69,9 +71,9 @@ export default class ConsumptionStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteConsumptions', uniqueTimerID, { transactionIDs });
   }
 
-  static async getSiteAreaConsumption(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<SiteAreaConsumptionValues[]> {
+  static async getSiteAreaConsumptions(tenantID: string, params: { siteAreaID: string; startDate: Date; endDate: Date }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumption');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create filters
@@ -111,14 +113,21 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
+        limitWatts: { $last: '$limitSiteAreaWatts' },
       }
     });
     // Rebuild the date
     aggregation.push({
       $addFields: {
-        date: {
+        startedAt: {
           $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
+      }
+    });
+    // Same date
+    aggregation.push({
+      $addFields: {
+        endedAt: '$startedAt'
       }
     });
     // Convert Object ID to string
@@ -127,7 +136,7 @@ export default class ConsumptionStorage {
     DatabaseUtils.pushConvertObjectIDToString(aggregation, 'userID');
     aggregation.push({
       $sort: {
-        date: 1
+        startedAt: 1
       }
     });
     // Read DB
@@ -135,13 +144,13 @@ export default class ConsumptionStorage {
       .aggregate(...aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumption', uniqueTimerID, { siteAreaID: params.siteAreaID });
+    Logging.traceEnd(MODULE_NAME, 'getSiteAreaConsumptions', uniqueTimerID, { siteAreaID: params.siteAreaID });
     return consumptionsMDB;
   }
 
-  static async getAllConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getAllTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -162,15 +171,14 @@ export default class ConsumptionStorage {
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getAllConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'getAllTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
   }
 
-  static async getOptimizedConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getOptimizedTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getOptimizedTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -242,7 +250,7 @@ export default class ConsumptionStorage {
     // Sort
     consumptions.sort((cons1, cons2) => cons1.endedAt.getTime() - cons2.endedAt.getTime());
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getOptimizedConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd(MODULE_NAME, 'getOptimizedTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptions;
   }
 }

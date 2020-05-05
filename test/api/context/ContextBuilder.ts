@@ -28,7 +28,7 @@ import ContextDefinition, { TenantDefinition } from './ContextDefinition';
 import SiteContext from './SiteContext';
 import StatisticsContext from './StatisticsContext';
 import TenantContext from './TenantContext';
-import BillingContext from "./BillingContext";
+import BillingContext from './BillingContext';
 
 export default class ContextBuilder {
 
