@@ -24,6 +24,7 @@ import cluster from 'cluster';
 import global from './types/GlobalType';
 
 const MODULE_NAME = 'Bootstrap';
+
 export default class Bootstrap {
   private static numWorkers: number;
   private static isClusterEnabled: boolean;
