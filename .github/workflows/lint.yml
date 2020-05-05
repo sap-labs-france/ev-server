@@ -9,8 +9,6 @@ on:
       - master-qa
 jobs:
   lint:
-    env:
-      CI: true
     runs-on: ubuntu-latest
     strategy:
       matrix:
