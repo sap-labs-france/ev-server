@@ -208,16 +208,20 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   public async forceSynchronizeUser(user: User, tenantID) {
     try {
-      // Exists in Billing?
-      const billingUser = await this.userExists(user);
+      const billingUser = await this.getUserByEmail(user.email);
       if (billingUser) {
-        await this.deleteUser(user);
+        if (user.billingData) {
+          // Only override user's customerID
+          user.billingData.customerID = billingUser.billingData.customerID;
+          user.billingData.hasSynchroError = false;
+        } else {
+          user.billingData = billingUser.billingData;
+        }
+      } else {
+        user.billingData = (await this.createUser(user)).billingData;
       }
-      // Recreate the Billing user
-      delete user.billingData;
-      const newUser = await this.createUser(user);
       try {
-        await UserStorage.saveUserBillingData(tenantID, user.id, newUser.billingData);
+        await UserStorage.saveUserBillingData(tenantID, user.id, user.billingData);
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,

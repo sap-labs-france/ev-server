@@ -603,8 +603,6 @@ export default class UserStorage {
           { 'billingData': { '$exists': false } },
           { 'billingData.lastChangedOn': { '$exists': false } },
           { 'billingData.lastChangedOn': null },
-          { 'lastChangedOn': { '$exists': false } },
-          { 'lastChangedOn': null },
           { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
         ]
       });

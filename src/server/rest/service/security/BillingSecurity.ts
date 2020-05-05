@@ -3,7 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
-import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
+import {HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest} from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
@@ -105,5 +105,13 @@ export default class BillingSecurity {
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
+  }
+
+  static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
+    const filteredUser = {} as HttpForceSynchronizeUserInvoicesRequest;
+    if (request.id) {
+      filteredUser.id = sanitize(request.id);
+    }
+    return filteredUser;
   }
 }

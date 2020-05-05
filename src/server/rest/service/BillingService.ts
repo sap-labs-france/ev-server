@@ -356,9 +356,10 @@ export default class BillingService {
         user: req.user
       });
     }
+    const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    UtilsService.assertObjectExists(action, user, `User '${req.user.id}' doesn't exist anymore.`,
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Sync user invoices
     const synchronizeAction = await billingImpl.forceSynchronizeUserInvoices(req.user.tenantID, user);

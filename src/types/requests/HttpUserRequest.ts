@@ -10,6 +10,10 @@ export interface HttpSynchronizeUserRequest {
   email?: string;
 }
 
+export interface HttpForceSynchronizeUserInvoicesRequest {
+  id?: string;
+}
+
 export interface HttpUserMobileTokenRequest {
   id: string;
   mobileToken: string;
