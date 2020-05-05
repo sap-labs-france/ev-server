@@ -1,11 +1,11 @@
-import { Configuration } from '../../../../types/configuration/Configuration';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import CPOLocationsEndpoint from './CPOLocationsEndpoint';
-import CPOTokensEndpoint from './CPOTokensEndpoint';
-import CredentialsEndpoint from './CredentialsEndpoint';
-import CPOCommandsEndpoint from './CPOCommandsEndpoint';
-import CPOSessionsEndpoint from './CPOSessionsEndpoint';
 import CPOCdrsEndpoint from './CPOCdrsEndpoint';
+import CPOCommandsEndpoint from './CPOCommandsEndpoint';
+import CPOLocationsEndpoint from './CPOLocationsEndpoint';
+import CPOSessionsEndpoint from './CPOSessionsEndpoint';
+import CPOTokensEndpoint from './CPOTokensEndpoint';
+import { Configuration } from '../../../../types/configuration/Configuration';
+import CredentialsEndpoint from './CredentialsEndpoint';
 
 /**
  * OCPI Service 2.1.1  - Implementation

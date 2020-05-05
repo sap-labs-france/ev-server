@@ -1,22 +1,22 @@
-import axios from 'axios';
 import { NextFunction, Request, Response } from 'express';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import BackendError from '../../../../exception/BackendError';
-import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
-import { Action } from '../../../../types/Authorization';
+import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { ServerAction } from '../../../../types/Server';
+import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
+import OCPIMapping from './OCPIMapping';
 import { OCPIRegistrationStatus } from '../../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import Tenant from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
+import { ServerAction } from '../../../../types/Server';
+import Tenant from '../../../../types/Tenant';
+import axios from 'axios';
 
 const EP_IDENTIFIER = 'credentials';
 const MODULE_NAME = 'CredentialsEndpoint';

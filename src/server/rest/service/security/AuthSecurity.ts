@@ -1,8 +1,9 @@
-import { Request } from 'express';
-import sanitize from 'mongo-sanitize';
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+
+import { Request } from 'express';
 import { UserStatus } from '../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class AuthSecurity {
 

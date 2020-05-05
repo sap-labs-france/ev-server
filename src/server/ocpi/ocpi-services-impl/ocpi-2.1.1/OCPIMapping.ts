@@ -1,29 +1,30 @@
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
 import ChargingStation, { Connector, ConnectorType } from '../../../../types/ChargingStation';
-import { DataResult } from '../../../../types/DataResult';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
-import Tenant from '../../../../types/Tenant';
 import Configuration from '../../../../utils/Configuration';
 import Constants from '../../../../utils/Constants';
-import OCPIUtils from '../../OCPIUtils';
-import Transaction from '../../../../types/Transaction';
-import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
 import Consumption from '../../../../types/Consumption';
-import moment from 'moment';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { DataResult } from '../../../../types/DataResult';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
+import OCPIUtils from '../../OCPIUtils';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import Tenant from '../../../../types/Tenant';
+import Transaction from '../../../../types/Transaction';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import moment from 'moment';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class

@@ -1,11 +1,12 @@
 import { default as Axios, default as axios } from 'axios';
-import BackendError from '../../../exception/BackendError';
 import { CarCatalog, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../../types/Car';
-import { ServerAction } from '../../../types/Server';
+
+import BackendError from '../../../exception/BackendError';
+import CarIntegration from '../CarIntegration';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import CarIntegration from '../CarIntegration';
+import { ServerAction } from '../../../types/Server';
 
 const MODULE_NAME = 'EVDabaseCar';
 

@@ -1,6 +1,6 @@
-import _ from 'lodash';
 import AbstractODataEntities from './AbstractODataEntities';
 import Company from '../../../types/Company';
+import _ from 'lodash';
 
 export default class ODataCompanies extends AbstractODataEntities {
   public buildParams: any;

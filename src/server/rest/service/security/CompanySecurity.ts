@@ -1,12 +1,12 @@
-import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
 import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCompaniesRequest } from '../../../../types/requests/HttpCompanyRequest';
-import UserToken from '../../../../types/UserToken';
 import SiteSecurity from './SiteSecurity';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class CompanySecurity {
 

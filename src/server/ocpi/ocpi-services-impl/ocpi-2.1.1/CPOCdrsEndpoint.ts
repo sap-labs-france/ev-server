@@ -1,12 +1,13 @@
+import { NextFunction, Request, Response } from 'express';
+
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import Utils from '../../../../utils/Utils';
 import OCPIMapping from './OCPIMapping';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import OCPIUtils from '../../OCPIUtils';
+import Tenant from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'CPOSessionsEndpoint';
