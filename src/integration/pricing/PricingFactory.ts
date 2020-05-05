@@ -29,8 +29,8 @@ export default class PricingFactory {
             if (pricingIntegrationImpl instanceof DummyPricingIntegration) {
               pricingIntegrationImpl = null;
             }
-            // Simple Pricing
             break;
+          // Simple Pricing
           case PricingSettingsType.SIMPLE:
             // Simple Pricing implementation
             pricingIntegrationImpl = new SimplePricingIntegration(tenantID, pricingSetting.simple);
