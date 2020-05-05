@@ -30,7 +30,7 @@ import moment from 'moment';
 const MODULE_NAME = 'MigrationHandler';
 
 export default class MigrationHandler {
-  static async migrate() {
+  public static async migrate() {
     // Check we're on the master nodejs process
     if (!cluster.isMaster) {
       return;
@@ -89,11 +89,11 @@ export default class MigrationHandler {
         if (currentMigrationTask.isAsynchronous()) {
           // Execute Async
           setTimeout(() => {
-            MigrationHandler._executeTask(currentMigrationTask).catch(() => {});
+            MigrationHandler.executeTask(currentMigrationTask).catch(() => {});
           }, 1000);
         } else {
           // Execute Sync
-          await MigrationHandler._executeTask(currentMigrationTask);
+          await MigrationHandler.executeTask(currentMigrationTask);
         }
       }
       // Log Total Processing Time
@@ -118,7 +118,7 @@ export default class MigrationHandler {
     }
   }
 
-  static async _executeTask(currentMigrationTask): Promise<void> {
+  private static async executeTask(currentMigrationTask): Promise<void> {
     // Create a Lock by migration name (for async tasks)
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
     // Acquire the migration lock
@@ -161,7 +161,13 @@ export default class MigrationHandler {
       // eslint-disable-next-line no-console
       console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     } catch (error) {
-      throw error;
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MIGRATION,
+        module: MODULE_NAME, method: 'executeTask',
+        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()}`,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
     } finally {
       // Release the migration lock
       await LockingManager.release(migrateTaskLock);
