@@ -253,9 +253,7 @@ export default class MongoDBStorage {
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
-      { fields: { tenantID: 1 } },
     ]);
-
     for (const collection of collections) {
       if (collection.name === 'migrations') {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
