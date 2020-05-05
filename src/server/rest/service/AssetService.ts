@@ -1,19 +1,20 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
-import AssetStorage from '../../../storage/mongodb/AssetStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Asset from '../../../types/Asset';
 import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { NextFunction, Request, Response } from 'express';
+
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Asset from '../../../types/Asset';
 import { AssetInErrorType } from '../../../types/InError';
-import { ServerAction } from '../../../types/Server';
-import TenantComponents from '../../../types/TenantComponents';
+import AssetSecurity from './security/AssetSecurity';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
+import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
-import AssetSecurity from './security/AssetSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'AssetService';
@@ -182,7 +183,7 @@ export default class AssetService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetAsset', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -215,7 +216,7 @@ export default class AssetService {
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(action, assetID, MODULE_NAME, 'handleGetAssetImage', req.user);
     // Check auth
-    if (!Authorizations.canReadAsset(req.user, assetID)) {
+    if (!Authorizations.canReadAsset(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,

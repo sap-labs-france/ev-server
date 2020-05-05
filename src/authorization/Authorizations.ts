@@ -473,7 +473,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSETS, Action.LIST);
   }
 
-  public static canReadAsset(loggedUser: UserToken, assetId: string): boolean {
+  public static canReadAsset(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.ASSET, Action.READ);
   }
 
