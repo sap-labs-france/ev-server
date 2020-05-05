@@ -1,12 +1,12 @@
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import MigrationTask from '../MigrationTask';
 
 const MODULE_NAME = 'AddLastChangePropertiesToBadgeTask';
 

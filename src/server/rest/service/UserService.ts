@@ -10,12 +10,13 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
-// pragma import ConvergentChargingPricingIntegration from '../../../integration/pricing/export-convergent-charging';
+import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
+import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import { ServerAction } from '../../../types/Server';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -1106,13 +1107,12 @@ export default class UserService {
       });
     }
     // Create services
-    // FIXME: The calls to external pricing services need to be integrated inside the pricing integration interface definition
-    // const ratingService = ConvergentChargingPricingIntegration.getRatingServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
-    // const erpService = ConvergentChargingPricingIntegration.getERPServiceClient(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+    const ratingService = new RatingService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
+    const erpService = new ERPService(pricingSetting.convergentCharging.url, pricingSetting.convergentCharging.user, pricingSetting.convergentCharging.password);
     let invoiceNumber;
     try {
-      // pragma await ratingService.loadChargedItemsToInvoicing();
-      // invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
+      await ratingService.loadChargedItemsToInvoicing();
+      invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
     } catch (error) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -1136,13 +1136,12 @@ export default class UserService {
         action: action
       });
     }
-    let invoice;
     try {
-      // pragma const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
-      // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+      const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
+      let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
       if (!invoice) {
         // Retry to get invoice
-        // invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+        invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
       }
       if (!invoice) {
         throw new AppError({

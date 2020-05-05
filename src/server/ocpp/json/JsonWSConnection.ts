@@ -1,19 +1,17 @@
-import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
-
-import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
+import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
+import BackendError from '../../../exception/BackendError';
+import OCPPError from '../../../exception/OcppError';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import { ServerAction } from '../../../types/Server';
+import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import JsonCentralSystemServer from './JsonCentralSystemServer';
-import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
-import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
-import OCPPError from '../../../exception/OcppError';
-import { OCPPHeader } from '../../../types/ocpp/OCPPHeader';
-import { ServerAction } from '../../../types/Server';
+import JsonCentralSystemServer from './JsonCentralSystemServer';
+import JsonChargingStationService from './services/JsonChargingStationService';
 import WSConnection from './WSConnection';
-import WebSocket from 'ws';
 
 const MODULE_NAME = 'JsonWSConnection';
 

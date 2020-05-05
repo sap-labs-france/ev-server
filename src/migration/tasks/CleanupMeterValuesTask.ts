@@ -1,11 +1,11 @@
-import Constants from '../../utils/Constants';
+import moment from 'moment';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
-import moment from 'moment';
+import { ServerAction } from '../../types/Server';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
 
 const MODULE_NAME = 'CleanupMeterValuesTask';
 

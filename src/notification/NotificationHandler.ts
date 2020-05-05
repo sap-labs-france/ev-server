@@ -11,7 +11,7 @@ import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
-import moment from 'moment';
+import moment = require('moment');
 
 const MODULE_NAME = 'NotificationHandler';
 

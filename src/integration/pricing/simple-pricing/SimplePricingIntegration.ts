@@ -1,28 +1,28 @@
-import Consumption from '../../../types/Consumption';
-import { PricedConsumption } from '../../../types/Pricing';
 import PricingIntegration from '../PricingIntegration';
-import { SimplePricingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
+import Consumption from '../../../types/Consumption';
+import { SimplePricingSetting } from '../../../types/Setting';
+import { PricedConsumption } from '../../../types/Pricing';
 import Utils from '../../../utils/Utils';
 
 export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {
-  constructor(tenantID: string, readonly settings: SimplePricingSetting) {
-    super(tenantID, settings);
+  constructor(tenantID: string, readonly settings: SimplePricingSetting, transaction: Transaction) {
+    super(tenantID, settings, transaction);
   }
 
-  public async startSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  async startSession(consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(consumptionData);
   }
 
-  public async updateSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  async updateSession(consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(consumptionData);
   }
 
-  public async stopSession(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
-    return this.computePrice(transaction, consumptionData);
+  async stopSession(consumptionData: Consumption): Promise<PricedConsumption> {
+    return this.computePrice(consumptionData);
   }
 
-  private async computePrice(transaction: Transaction, consumptionData: Consumption): Promise<PricedConsumption> {
+  async computePrice(consumptionData: Consumption): Promise<PricedConsumption> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {

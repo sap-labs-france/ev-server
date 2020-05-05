@@ -4,7 +4,7 @@ import { DataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
+import sanitize = require('mongo-sanitize');
 
 export default class CarSecurity {
 

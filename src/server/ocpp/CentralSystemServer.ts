@@ -1,7 +1,7 @@
 import CentralSystemConfiguration from '../../types/configuration/CentralSystemConfiguration';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
-import OCPPService from './services/OCPPService';
 import { OCPPVersion } from '../../types/ocpp/OCPPServer';
+import OCPPService from './services/OCPPService';
 
 export default class CentralSystemServer {
   protected centralSystemConfig: CentralSystemConfiguration;

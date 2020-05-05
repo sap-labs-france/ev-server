@@ -1,14 +1,13 @@
+import uuid from 'uuid/v4';
 import ChargingStation, { Command } from '../../../types/ChargingStation';
+import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
-
-import ChargingStationClient from '../ChargingStationClient';
+import { ServerAction } from '../../../types/Server';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
-import uuid from 'uuid/v4';
+import ChargingStationClient from '../ChargingStationClient';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 

@@ -1,6 +1,6 @@
 import { HTTPError } from '../types/HTTPError';
-import { OCPIStatusCode } from '../types/ocpi/OCPIStatusCode';
 import { ServerAction } from '../types/Server';
+import { OCPIStatusCode } from '../types/ocpi/OCPIStatusCode';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 

@@ -1,9 +1,9 @@
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import { Migration } from '../../types/Migration';
-import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
+import { Migration } from '../../types/Migration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MigrationStorage';
 

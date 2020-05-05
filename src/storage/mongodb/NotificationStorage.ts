@@ -1,12 +1,12 @@
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { Notification } from '../../types/UserNotifications';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
-import { Notification } from '../../types/UserNotifications';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'NotificationStorage';
 

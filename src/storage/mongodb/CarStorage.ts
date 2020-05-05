@@ -1,13 +1,12 @@
 import { CarCatalog, CarMaker, ChargeAlternativeTable, ChargeOptionTable, ChargeStandardTable } from '../../types/Car';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 import global, { Image } from '../../types/GlobalType';
-
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'CarStorage';
 

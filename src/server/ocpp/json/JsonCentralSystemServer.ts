@@ -1,17 +1,15 @@
 import * as http from 'http';
-
+import uuid from 'uuid/v4';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import CentralSystemServer from '../CentralSystemServer';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
-import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
-import WebSocket from 'ws';
-import global from '../../../types/GlobalType';
-import uuid from 'uuid/v4';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private _serverName: string;

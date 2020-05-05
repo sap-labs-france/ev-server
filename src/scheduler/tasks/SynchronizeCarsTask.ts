@@ -9,6 +9,8 @@ import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Utils from '../../utils/Utils';
 
+const MODULE_NAME = 'SynchronizeCarsTask';
+
 export default class SynchronizeCarsTask extends SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
     // Get the lock
@@ -25,12 +27,18 @@ export default class SynchronizeCarsTask extends SchedulerTask {
             });
           }
         }
-      } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(Constants.DEFAULT_TENANT, ServerAction.SYNCHRONIZE_CAR_CATALOGS, error);
-      } finally {
         // Release the lock
         await LockingManager.release(carLock);
+      } catch (error) {
+        // Release the lock
+        await LockingManager.release(carLock);
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME, method: 'run',
+          action: ServerAction.SYNCHRONIZE_CAR_CATALOGS,
+          message: `Error while running the task '${name}': ${error.message}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
       }
     }
   }

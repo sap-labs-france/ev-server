@@ -20,7 +20,6 @@ import socketioJwt from 'socketio-jwt';
 import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
-
 export default class CentralRestServer {
 
   private static centralSystemRestConfig;

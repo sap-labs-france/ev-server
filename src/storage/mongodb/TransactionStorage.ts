@@ -9,11 +9,12 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
+import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
-import moment from 'moment';
+import moment = require('moment');
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -148,17 +149,11 @@ export default class TransactionStorage {
         delete transactionMDB.billingData.invoiceItem;
       }
     }
-    if (transactionToSave.ocpiData) {
-      transactionMDB.ocpiData = {
-        session: transactionToSave.ocpiData.session,
-        cdr: transactionToSave.ocpiData.cdr
-      };
-      if (transactionToSave.ocpiData.sessionCheckedOn) {
-        transactionMDB.ocpiData.sessionCheckedOn = transactionToSave.ocpiData.sessionCheckedOn;
-      }
-      if (transactionToSave.ocpiData.cdrCheckedOn) {
-        transactionMDB.ocpiData.cdrCheckedOn = transactionToSave.ocpiData.cdrCheckedOn;
-      }
+    if (transactionToSave.ocpiSession) {
+      transactionMDB.ocpiSession = transactionToSave.ocpiSession;
+    }
+    if (transactionToSave.ocpiCdr) {
+      transactionMDB.ocpiCdr = transactionToSave.ocpiCdr;
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
@@ -232,11 +227,9 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: {
-      transactionId?: number; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
+      transactionId?: number; issuer?: boolean; ocpiSessionId?: string; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
-      ocpiSessionId?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
-      ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -275,7 +268,7 @@ export default class TransactionStorage {
     if (params.transactionId) {
       filterMatch._id = params.transactionId;
     } else if (params.ocpiSessionId) {
-      filterMatch['ocpiData.session.id'] = params.ocpiSessionId;
+      filterMatch['ocpiSession.id'] = params.ocpiSessionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
@@ -303,48 +296,15 @@ export default class TransactionStorage {
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
       filterMatch.timestamp = {};
-      // Start date
-      if (params.startDateTime) {
-        filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
-      }
-      // End date
-      if (params.endDateTime) {
-        filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
-      }
     }
-
-    // OCPI Session Date provided?
-    if (params.ocpiSessionDateFrom || params.ocpiSessionDateTo) {
-      // Start date
-      if (params.ocpiSessionDateFrom) {
-        filterMatch['ocpiData.session.last_updated'] = { $gte: Utils.convertToDate(params.ocpiSessionDateFrom) };
-      }
-      // End date
-      if (params.ocpiSessionDateTo) {
-        filterMatch['ocpiData.session.last_updated'] = { $lte: Utils.convertToDate(params.ocpiSessionDateTo) };
-      }
+    // Start date
+    if (params.startDateTime) {
+      filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
-    if (params.ocpiSessionChecked === true || params.ocpiSessionChecked === false) {
-      filterMatch['ocpiData.session'] = { $exists: true };
-      filterMatch['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
+    // End date
+    if (params.endDateTime) {
+      filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-
-    // OCPI Cdr Date provided?
-    if (params.ocpiCdrDateFrom || params.ocpiCdrDateTo) {
-      // Start date
-      if (params.ocpiCdrDateFrom) {
-        filterMatch['ocpiData.cdr.last_updated'] = { $gte: Utils.convertToDate(params.ocpiCdrDateFrom) };
-      }
-      // End date
-      if (params.ocpiCdrDateTo) {
-        filterMatch['ocpiData.cdr.last_updated'] = { $lte: Utils.convertToDate(params.ocpiCdrDateTo) };
-      }
-    }
-    if (params.ocpiCdrChecked === true || params.ocpiCdrChecked === false) {
-      filterMatch['ocpiData.cdr'] = { $exists: true };
-      filterMatch['ocpiData.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
-    }
-
     // Check stop transaction
     if (params.stop) {
       filterMatch.stop = params.stop;

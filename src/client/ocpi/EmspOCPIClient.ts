@@ -1,38 +1,37 @@
-import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
-
+import axios from 'axios';
+import _ from 'lodash';
+import moment from 'moment';
+import uuid from 'uuid';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../types/ChargingStation';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import OCPIClient from './OCPIClient';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import ChargingStation from '../../types/ChargingStation';
+import Company from '../../types/Company';
 import { OCPICommandResponse } from '../../types/ocpi/OCPICommandResponse';
 import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import OCPISessionsService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPISessionsService';
 import { OCPIStartSession } from '../../types/ocpi/OCPIStartSession';
 import { OCPIStopSession } from '../../types/ocpi/OCPIStopSession';
-import OCPIUtils from '../../server/ocpi/OCPIUtils';
-import { OcpiSetting } from '../../types/Setting';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../types/ocpi/OCPIToken';
 import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
 import Tenant from '../../types/Tenant';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import _ from 'lodash';
-import axios from 'axios';
-import moment from 'moment';
-import uuid from 'uuid';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import OCPIClient from './OCPIClient';
 
 const MODULE_NAME = 'EmspOCPIClient';
 
@@ -515,26 +514,19 @@ export default class EmspOCPIClient extends OCPIClient {
     const token: OCPIToken = {
       uid: tag.id,
       type: OCPITokenType.RFID,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       auth_id: user.id,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       visual_number: user.id,
       issuer: this.tenant.name,
       valid: true,
       whitelist: OCPITokenWhitelist.ALLOWED_OFFLINE,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       last_updated: new Date()
     };
     const authorizationId = uuid();
     const payload: OCPIStartSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: commandUrl + '/' + uuid(),
       token: token,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       evse_uid: chargingStation.imsi,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       location_id: chargingStation.iccid,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: authorizationId
     };
     // Log
@@ -585,7 +577,7 @@ export default class EmspOCPIClient extends OCPIClient {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.STOP_SESSION;
     const transaction = await TransactionStorage.getTransaction(this.tenant.id, transactionId);
-    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.session || transaction.issuer) {
+    if (!transaction || !transaction.ocpiSession || transaction.issuer) {
       throw new BackendError({
         action: ServerAction.OCPI_START_SESSION,
         message: `OCPI Remote Stop session is not available for the transaction ${transactionId}`,
@@ -594,10 +586,8 @@ export default class EmspOCPIClient extends OCPIClient {
       });
     }
     const payload: OCPIStopSession = {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       response_url: commandUrl + '/' + uuid(),
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      session_id: transaction.ocpiData.session.id
+      session_id: transaction.ocpiSession.id
     };
     // Log
     Logging.logDebug({

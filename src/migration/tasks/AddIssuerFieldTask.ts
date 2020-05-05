@@ -1,9 +1,9 @@
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddIssuerFieldTask';
 

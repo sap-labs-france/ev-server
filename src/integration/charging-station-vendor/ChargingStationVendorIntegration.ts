@@ -1,13 +1,12 @@
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../exception/BackendError';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-
-import BackendError from '../../exception/BackendError';
-import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ChargingStationVendor';
@@ -429,12 +428,12 @@ export default abstract class ChargingStationVendorIntegration {
           const results = [] as OCPPGetCompositeScheduleCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Get the Composite Schedule
-            const ret = await chargingStationClient.getCompositeSchedule({
+            const result = await chargingStationClient.getCompositeSchedule({
               connectorId: connector.connectorId,
               duration: durationSecs,
               chargingRateUnit: chargingStation.powerLimitUnit
             });
-            results.push(ret);
+            results.push(result);
           }
           Logging.logDebug({
             tenantID: tenantID,

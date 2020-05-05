@@ -1,13 +1,12 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
-
+import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
-import Logging from '../../../utils/Logging';
-import SchemaValidator from '../../rest/validation/SchemaValidator';
-import { ServerAction } from '../../../types/Server';
-import Utils from '../../../utils/Utils';
-import fs from 'fs';
 import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import SchemaValidator from '../../rest/validation/SchemaValidator';
 
 const MODULE_NAME = 'OCPPValidation';
 

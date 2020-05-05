@@ -82,7 +82,7 @@ export default class LockingManager {
     if (!tenantID) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
+        module: MODULE_NAME, method: 'init',
         message: 'Tenant must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });
@@ -90,7 +90,7 @@ export default class LockingManager {
     if (!entity) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
+        module: MODULE_NAME, method: 'init',
         message: 'Entity must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });
@@ -98,7 +98,7 @@ export default class LockingManager {
     if (!key) {
       throw new BackendError({
         action: ServerAction.LOCKING,
-        module: MODULE_NAME, method: 'createLock',
+        module: MODULE_NAME, method: 'init',
         message: 'Key must be provided',
         detailedMessages: { tenantID, entity, key, type }
       });

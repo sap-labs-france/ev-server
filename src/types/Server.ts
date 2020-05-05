@@ -96,9 +96,6 @@ export enum ServerAction {
   OCPI_ENPOINT_CREATE = 'OcpiEndpointCreate',
   OCPI_ENPOINT_PING = 'OcpiEndpointPing',
   OCPI_ENPOINT_TRIGGER_JOBS = 'OcpiEndpointTriggerJobs',
-  OCPI_ENPOINT_CHECK_CDRS = 'OcpiEndpointCheckCdrs',
-  OCPI_ENPOINT_CHECK_LOCATIONS = 'OcpiEndpointCheckLocations',
-  OCPI_ENPOINT_CHECK_SESSIONS = 'OcpiEndpointCheckSessions',
   OCPI_ENPOINT_PULL_CDRS = 'OcpiEndpointPullCdrs',
   OCPI_ENPOINT_PULL_LOCATIONS = 'OcpiEndpointPullLocations',
   OCPI_ENPOINT_PULL_SESSIONS = 'OcpiEndpointPullSessions',
@@ -112,9 +109,6 @@ export enum ServerAction {
   OCPI_AUTHORIZE_TOKEN = 'OcpiAuthorizeToken',
   OCPI_PATCH_LOCATIONS = 'OcpiPatchLocations',
   OCPI_PATCH_STATUS = 'OcpiPatchStatus',
-  OCPI_CHECK_CDRS = 'OcpiCheckCdrs',
-  OCPI_CHECK_SESSIONS = 'OcpiCheckSessions',
-  OCPI_CHECK_LOCATIONS = 'OcpiCheckLocations',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',
@@ -342,5 +336,5 @@ export enum ServerAction {
   CHECK_AND_APPLY_SMART_CHARGING = 'CheckAndApplySmartCharging',
   SMART_CHARGING = 'SmartCharging',
 
-  INSTANTIATE_DUMMY_MODULE = 'InstantiateDummyModule',
+  IMPORT_MODULE = 'ImportModule',
 }

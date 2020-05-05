@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://contract.ws.highdeal.com/" xmlns:tns="http://contract.ws.highdeal.com/" xmlns:ns1="http://rating.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://rating.ws.highdeal.com/" schemaLocation="rating_1_2.xsd"/>
+  <xs:complexType name="ChargingContract">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="subscriberAccountId" type="xs:string"/>
+      <xs:element name="rootChargingContractId" type="xs:string" minOccurs="0"/>
+      <xs:element name="additionalInfo" type="ns1:AdditionalInfo" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="chargingContractItem" type="tns:ChargingContractItem" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItem">
+    <xs:sequence>
+      <xs:element name="chargePlanClassId" type="xs:string" minOccurs="0"/>
+      <xs:element name="refillPlanClassId" type="xs:string" minOccurs="0"/>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="externalId" type="xs:string" minOccurs="0"/>
+      <xs:element name="period" type="tns:ChargingContractItemPeriod" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemPeriod">
+    <xs:sequence>
+      <xs:element name="start" type="xs:anySimpleType"/>
+      <xs:element name="end" type="xs:anySimpleType" minOccurs="0"/>
+      <xs:element name="parameter" type="tns:ChargingContractItemParameter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="sharedCounter" type="tns:ChargingContractItemSharedCounter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="pooledCounter" type="tns:ChargingContractItemPooledCounter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="userTechnicalIdentifier" type="tns:ChargingContractItemUserTechnicalIdentifier" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="accountAssignment" type="tns:ChargingContractItemAccountAssignment" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemParameter">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="string" type="xs:string" minOccurs="0"/>
+      <xs:element name="date" type="xs:anySimpleType" minOccurs="0"/>
+      <xs:element name="number" type="xs:decimal" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemSharedCounter">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="namespace" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemPooledCounter">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="namespace" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemUserTechnicalIdentifier">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="userServiceId" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemAccountAssignment">
+    <xs:complexContent>
+      <xs:extension base="tns:ChargingContractItemRevisionAccountAssignment">
+        <xs:sequence>
+          <xs:element name="type" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemRevisionAccountAssignment">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="accountId" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractRevision">
+    <xs:sequence>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="subscriberAccountId" type="xs:string" minOccurs="0"/>
+      <xs:element name="rootChargingContractId" type="xs:string" minOccurs="0"/>
+      <xs:element name="additionalInfo" type="ns1:AdditionalInfo" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="chargingContractItemRevision" type="tns:ChargingContractItemRevision" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChargingContractItemRevision">
+    <xs:sequence>
+      <xs:element name="chargePlanClassId" type="xs:string" minOccurs="0"/>
+      <xs:element name="refillPlanClassId" type="xs:string" minOccurs="0"/>
+      <xs:element name="id" type="xs:string"/>
+      <xs:element name="externalId" type="xs:string" minOccurs="0"/>
+      <xs:element name="end" type="xs:anySimpleType" minOccurs="0"/>
+      <xs:element name="sharedCounter" type="tns:ChargingContractItemSharedCounter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="pooledCounter" type="tns:ChargingContractItemPooledCounter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="parameter" type="tns:ChargingContractItemParameter" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="userTechnicalIdentifier" type="tns:ChargingContractItemUserTechnicalIdentifier" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="accountAssignment" type="tns:ChargingContractItemRevisionAccountAssignment" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

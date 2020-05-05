@@ -1,12 +1,12 @@
+import { soap } from 'strong-soap';
+import { Action } from '../../../types/Authorization';
 import ChargingStation, { Command } from '../../../types/ChargingStation';
+import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult, OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPClearCacheCommandResult, OCPPClearChargingProfileCommandParam, OCPPClearChargingProfileCommandResult, OCPPGetCompositeScheduleCommandParam, OCPPGetCompositeScheduleCommandResult, OCPPGetConfigurationCommandParam, OCPPGetConfigurationCommandResult, OCPPGetDiagnosticsCommandParam, OCPPGetDiagnosticsCommandResult, OCPPRemoteStartTransactionCommandParam, OCPPRemoteStartTransactionCommandResult, OCPPRemoteStopTransactionCommandParam, OCPPRemoteStopTransactionCommandResult, OCPPResetCommandParam, OCPPResetCommandResult, OCPPSetChargingProfileCommandParam, OCPPSetChargingProfileCommandResult, OCPPUnlockConnectorCommandParam, OCPPUnlockConnectorCommandResult, OCPPUpdateFirmwareCommandParam } from '../../../types/ocpp/OCPPClient';
-
-import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
-import global from '../../../types/GlobalType';
-import { soap } from 'strong-soap';
+import ChargingStationClient from '../ChargingStationClient';
 
 // Default Module name
 const MODULE_NAME = 'SoapChargingStationClient';

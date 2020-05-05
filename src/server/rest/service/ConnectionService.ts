@@ -1,18 +1,17 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-
+import HttpStatusCodes from 'http-status-codes';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import ConnectionSecurity from './security/ConnectionSecurity';
-import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
-import ConnectionValidator from '../validation/ConnectionValidator';
-import Constants from '../../../utils/Constants';
-import HttpStatusCodes from 'http-status-codes';
-import Logging from '../../../utils/Logging';
 import RefundFactory from '../../../integration/refund/RefundFactory';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ServerAction } from '../../../types/Server';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import ConnectionValidator from '../validation/ConnectionValidator';
+import ConnectionSecurity from './security/ConnectionSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'ConnectionService';

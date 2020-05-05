@@ -1,8 +1,8 @@
+import crypto from 'crypto';
+import _ from 'lodash';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
-import _ from 'lodash';
-import crypto from 'crypto';
 
 const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;

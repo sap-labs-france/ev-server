@@ -1,10 +1,9 @@
+import global from '../../../../types/GlobalType';
+import { ServerAction } from '../../../../types/Server';
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
-
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
-import { ServerAction } from '../../../../types/Server';
 import Utils from '../../../../utils/Utils';
-import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'SoapCentralSystemService12';
 export default { /* Services */

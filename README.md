@@ -32,19 +32,17 @@ The application:
     ```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
 
-**NOTE**:
-* On Windows with **chocolatey** (https://chocolatey.org/), do as an administrator:
-
+**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),
+do as an administrator:
 ```
-choco install -y nodejs-lts python2 mongodb postman robot3t microsoft-build-tools
+choco install -y nodejs-lts python2 mongodb postman robot3t
 ```
-
-* On Mac OSX with **Homebrew** (https://brew.sh/), do:
-
+to install all needed dependencies
+You can also alternatively do:
 ```
-brew tap mongodb/brew
-brew install node mongodb-community@4.2 && brew cask install postman robo-3t
+choco install -y microsoft-build-tools
 ```
+to install the required build tools
 
 * Follow the rest of the setup below
 

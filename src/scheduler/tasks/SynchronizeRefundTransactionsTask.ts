@@ -94,10 +94,9 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
             message: 'No Refunded Transaction found to synchronize'
           });
         }
+        // Release the lock
+        await LockingManager.release(refundLock);
       } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenant.id, ServerAction.SYNCHRONIZE_REFUND, error);
-      } finally {
         // Release the lock
         await LockingManager.release(refundLock);
       }

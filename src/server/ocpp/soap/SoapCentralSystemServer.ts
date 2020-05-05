@@ -1,19 +1,19 @@
+import express from 'express';
+import sanitize from 'express-sanitizer';
+import fs from 'fs';
+import morgan from 'morgan';
+import { soap } from 'strong-soap';
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import global from '../../../types/GlobalType';
+import { ServerAction } from '../../../types/Server';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
+import expressTools from '../../ExpressTools';
+import CentralSystemServer from '../CentralSystemServer';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
-import express from 'express';
-import expressTools from '../../ExpressTools';
-import fs from 'fs';
-import global from '../../../types/GlobalType';
-import morgan from 'morgan';
-import sanitize from 'express-sanitizer';
-import { soap } from 'strong-soap';
 
 const MODULE_NAME = 'SoapCentralSystemServer';
 export default class SoapCentralSystemServer extends CentralSystemServer {

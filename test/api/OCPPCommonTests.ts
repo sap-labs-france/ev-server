@@ -1,17 +1,16 @@
-import chai, { expect } from 'chai';
-
-import CentralServerService from './client/CentralServerService';
-import ChargingStationContext from './context/ChargingStationContext';
-import Factory from '../factories/Factory';
-import { InactivityStatus } from '../../src/types/Transaction';
-import { PricingSettingsType } from '../../src/types/Setting';
-import TenantContext from './context/TenantContext';
-import User from '../../src/types/User';
-import chaiSubset from 'chai-subset';
 import { fail } from 'assert';
+import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import { PricingSettingsType } from '../../src/types/Setting';
+import { InactivityStatus } from '../../src/types/Transaction';
+import User from '../../src/types/User';
+import Factory from '../factories/Factory';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import ChargingStationContext from './context/ChargingStationContext';
+import TenantContext from './context/TenantContext';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -444,6 +443,7 @@ export default class OCPPCommonTests {
     // Check the Transaction
     response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     expect(response.data).to.deep['containSubset']({
+      'isLoading': false,
       'stop': {
         'meterStop': this.transactionEndMeterValue,
         'totalConsumption': this.transactionTotalConsumption,
@@ -1031,6 +1031,7 @@ export default class OCPPCommonTests {
       currentTotalConsumption: 0,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
+      isLoading: false,
       price: 0,
       roundedPrice: 0,
     });

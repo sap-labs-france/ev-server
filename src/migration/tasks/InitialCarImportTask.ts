@@ -1,8 +1,8 @@
 import CarFactory from '../../integration/car/CarFactory';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
 
 const MODULE_NAME = 'InitialCarImportTask';
 

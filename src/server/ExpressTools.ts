@@ -1,20 +1,20 @@
-import * as HttpStatus from 'http-status-codes';
-import express, { NextFunction, Request, Response } from 'express';
-import CFLog from 'cf-nodejs-logging-support';
-import Configuration from '../utils/Configuration';
-import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import { ServerAction } from '../types/Server';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
+import CFLog from 'cf-nodejs-logging-support';
 import cluster from 'cluster';
 import cors from 'cors';
+import express, { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import http from 'http';
+import * as HttpStatus from 'http-status-codes';
 import https from 'https';
 import locale from 'locale';
+import { ServerAction } from '../types/Server';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 
 bodyParserXml(bodyParser);
 

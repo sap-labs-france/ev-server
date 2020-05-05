@@ -1,11 +1,11 @@
 import Connection from '../../types/Connection';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
-import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
+import { ObjectID } from 'mongodb';
+import { DataResult } from '../../types/DataResult';
 
 const MODULE_NAME = 'ConnectionStorage';
 

@@ -1,7 +1,6 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const WebpackShellPluginNext = require('webpack-shell-plugin-next');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
@@ -19,7 +18,7 @@ const config = {
   },
   externals: [nodeExternals()],
   output: {
-    filename: 'start.js',
+    filename: './start.js',
     path: commonPaths.outputPath
   },
   resolve: {
@@ -27,21 +26,10 @@ const config = {
   },
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: [/node_modules/, /\.git/]
-      }
+      { test: /\.tsx?$/, use: 'ts-loader' }
     ]
   },
   plugins: [
-    new WebpackShellPluginNext({
-      onBuildStart: {
-        scripts: ['node src/componentsExport.js'],
-        blocking: true,
-        parallel: false,
-      },
-    }),
     new webpack.WatchIgnorePlugin([
       /\.js$/,
       /\.d\.ts$/

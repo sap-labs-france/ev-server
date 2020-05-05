@@ -1,14 +1,13 @@
-import WebSocket, { AddressInfo } from 'ws';
-
-import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import { ServerAction } from '../../../types/Server';
-import Utils from '../../../utils/Utils';
 import cluster from 'cluster';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import WebSocket, { AddressInfo } from 'ws';
+import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
+import { ServerAction } from '../../../types/Server';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSServer';
 

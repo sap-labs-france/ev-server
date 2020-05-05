@@ -1,8 +1,9 @@
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import MigrationTask from '../MigrationTask';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {

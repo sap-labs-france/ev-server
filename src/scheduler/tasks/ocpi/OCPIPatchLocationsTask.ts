@@ -1,16 +1,16 @@
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import OCPIClientFactory from '../../../client/ocpi/OCPIClientFactory';
-import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
+import { ServerAction } from '../../../types/Server';
+import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIRegistrationStatus } from '../../../types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../types/ocpi/OCPIRole';
-import SchedulerTask from '../../SchedulerTask';
-import { ServerAction } from '../../../types/Server';
 import { TaskConfig } from '../../../types/TaskConfig';
 import Tenant from '../../../types/Tenant';
 import TenantComponents from '../../../types/TenantComponents';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import SchedulerTask from '../../SchedulerTask';
 
 const MODULE_NAME = 'OCPIPatchLocationsTask';
 

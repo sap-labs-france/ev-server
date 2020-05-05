@@ -1,5 +1,5 @@
-import { OCPIChargingPeriod } from './OCPIChargingPeriod';
 import { OCPILocation } from './OCPILocation';
+import { OCPIChargingPeriod } from './OCPIChargingPeriod';
 
 export interface OCPISession {
   id: string;

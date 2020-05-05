@@ -147,13 +147,13 @@ const config = convict({
     username: {
       doc: 'The admin username',
       format: String,
-      default: 'slf.admin@ev.com',
+      default: 'admin@ev.com',
       env: 'ADMIN_USERNAME'
     },
     password: {
       doc: 'The admin password',
       format: String,
-      default: 'Slf.admin00',
+      default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'ADMIN_PASSWORD'
     }
   },
@@ -167,7 +167,7 @@ const config = convict({
     password: {
       doc: 'The super admin password',
       format: String,
-      default: 'Super.admin00',
+      default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'SUPERADMIN_PASSWORD'
     }
   },
@@ -202,7 +202,8 @@ const config = convict({
       default: 'mongodb'
     },
     uri: {
-      doc: 'connection string URI',
+      doc: 'URL',
+      // pragma format: String,
       default: null
     },
     host: {

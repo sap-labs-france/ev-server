@@ -1,16 +1,15 @@
-import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
-
-import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
-import { LockEntity } from '../../types/Locking';
-import LockingManager from '../../locking/LockingManager';
-import { ServerAction } from '../../types/Server';
-import StorageCfg from '../../types/configuration/StorageConfiguration';
-import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
+import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
+import BackendError from '../../exception/BackendError';
+import LockingManager from '../../locking/LockingManager';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
+import { LockEntity } from '../../types/Locking';
+import { ServerAction } from '../../types/Server';
+import Constants from '../../utils/Constants';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
 
@@ -253,7 +252,11 @@ export default class MongoDBStorage {
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
+      { fields: { keyHash: 1 }, options: { unique: true } },
+      { fields: { hostname: 1 } },
+      { fields: { keyHash: 1, hostname: 1 } }
     ]);
+
     for (const collection of collections) {
       if (collection.name === 'migrations') {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
@@ -273,7 +276,9 @@ export default class MongoDBStorage {
         try {
           // Create Database
           await this.checkAndCreateTenantDatabase(tenantId);
-        } finally {
+          // Release the index creation Lock
+          await LockingManager.release(createDatabaseLock);
+        } catch (error) {
           // Release the index creation Lock
           await LockingManager.release(createDatabaseLock);
         }
