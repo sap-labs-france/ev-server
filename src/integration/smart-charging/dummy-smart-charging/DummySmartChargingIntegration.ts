@@ -1,8 +1,8 @@
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
-import SiteArea from '../../types/SiteArea';
-import SmartChargingIntegration from './SmartChargingIntegration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
+import SmartChargingIntegration from '../SmartChargingIntegration';
 
 const MODULE_NAME = 'DummySmartCharging';
 

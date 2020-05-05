@@ -1,10 +1,10 @@
-import Constants from '../../utils/Constants';
-import Consumption from '../../types/Consumption';
-import Logging from '../../utils/Logging';
-import PricingIntegration from './PricingIntegration';
-import { PricingSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import Transaction from '../../types/Transaction';
+import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
+import Logging from '../../../utils/Logging';
+import PricingIntegration from '../PricingIntegration';
+import { PricingSetting } from '../../../types/Setting';
+import { ServerAction } from '../../../types/Server';
+import Transaction from '../../../types/Transaction';
 
 const MODULE_NAME = 'DummyPricing';
 
@@ -21,12 +21,6 @@ export default class DummyPricingIntegration extends PricingIntegration<PricingS
       detailedMessages: { stack: error.stack }
     });
   }
-
-  // pragma public static getERPServiceClient(serverUrl: string, user: string, password: string): any {
-  // }
-
-  // public static getRatingServiceClient(serverUrl: string, user: string, password: string): any {
-  // }
 
   async startSession(transaction: Transaction, consumptionData: Consumption): Promise<any> {
   }

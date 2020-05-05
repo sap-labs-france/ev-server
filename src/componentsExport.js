@@ -7,7 +7,7 @@ class Components {
     if (fs.existsSync(__dirname + '/integration/refund/concur/index.ts')) {
       exportModuleString = 'export { default } from \'../concur\';\n';
     } else {
-      exportModuleString = 'export { default } from \'../DummyRefundIntegration\';\n';
+      exportModuleString = 'export { default } from \'../dummy-refund\';\n';
     }
     fs.writeFileSync(indexModuleFile, exportModuleString);
   }
@@ -18,7 +18,7 @@ class Components {
     if (fs.existsSync(__dirname + '/integration/smart-charging/sap-smart-charging/index.ts')) {
       exportModuleString = 'export { default } from \'../sap-smart-charging\';\n';
     } else {
-      exportModuleString = 'export { default } from \'../DummySmartChargingIntegration\';\n';
+      exportModuleString = 'export { default } from \'../dummy-smart-charging\';\n';
     }
     fs.writeFileSync(indexModuleFile, exportModuleString);
   }
@@ -29,7 +29,7 @@ class Components {
     if (fs.existsSync(__dirname + '/integration/pricing/convergent-charging/index.ts')) {
       exportModuleString = 'export { default } from \'../convergent-charging\';\n';
     } else {
-      exportModuleString = 'export { default } from \'../DummyPricingIntegration\';\n';
+      exportModuleString = 'export { default } from \'../dummy-pricing\';\n';
     }
     fs.writeFileSync(indexModuleFile, exportModuleString);
   }

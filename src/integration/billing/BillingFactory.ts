@@ -1,13 +1,14 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { BillingSetting, BillingSettingsType } from '../../types/Setting';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
+
+import BillingIntegration from './BillingIntegration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import BillingIntegration from './BillingIntegration';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import StripeBillingIntegration from './stripe/StripeBillingIntegration';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'BillingFactory';
 
@@ -25,12 +26,16 @@ export default class BillingFactory {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       if (settings) {
+        let billingIntegrationImpl;
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            return new StripeBillingIntegration(tenantID, settings.stripe);
+            billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings.stripe);
+            break;
           default:
+            billingIntegrationImpl = null;
             break;
         }
+        return billingIntegrationImpl;
       }
       Logging.logDebug({
         tenantID: tenant.id,

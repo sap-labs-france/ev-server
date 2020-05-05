@@ -1,9 +1,9 @@
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import RefundIntegration from './RefundIntegration';
-import { RefundSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import Transaction from '../../types/Transaction';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import RefundIntegration from '../RefundIntegration';
+import { RefundSetting } from '../../../types/Setting';
+import { ServerAction } from '../../../types/Server';
+import Transaction from '../../../types/Transaction';
 
 const MODULE_NAME = 'DummyRefund';
 
