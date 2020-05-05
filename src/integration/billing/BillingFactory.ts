@@ -26,12 +26,16 @@ export default class BillingFactory {
       // Get the billing's settings
       const settings = await SettingStorage.getBillingSettings(tenantID);
       if (settings) {
+        let billingIntegrationImpl;
         switch (settings.type) {
           case BillingSettingsType.STRIPE:
-            return new StripeBillingIntegration(tenantID, settings.stripe);
+            billingIntegrationImpl = new StripeBillingIntegration(tenantID, settings.stripe);
+            break;
           default:
+            billingIntegrationImpl = null;
             break;
         }
+        return billingIntegrationImpl;
       }
       Logging.logDebug({
         tenantID: tenant.id,
