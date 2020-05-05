@@ -9,12 +9,11 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { NotifySessionNotStarted } from '../../types/Notification';
-import { ObjectID } from 'mongodb';
 import { ServerAction } from '../../types/Server';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from './../../types/GlobalType';
-import moment = require('moment');
+import moment from 'moment';
 
 const MODULE_NAME = 'TransactionStorage';
 

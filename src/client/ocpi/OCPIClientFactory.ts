@@ -1,18 +1,18 @@
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import ChargingStation from '../../types/ChargingStation';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import CpoOCPIClient from './CpoOCPIClient';
 import EmspOCPIClient from './EmspOCPIClient';
+import Logging from '../../utils/Logging';
 import OCPIChargingStationClient from './OCPIChargingStationClient';
 import OCPIClient from './OCPIClient';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import { OCPIRegistrationStatus } from '../../types/ocpi/OCPIRegistrationStatus';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'OCPIClientFactory';
 

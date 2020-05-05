@@ -429,12 +429,12 @@ export default abstract class ChargingStationVendorIntegration {
           const results = [] as OCPPGetCompositeScheduleCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Get the Composite Schedule
-            const result = await chargingStationClient.getCompositeSchedule({
+            const ret = await chargingStationClient.getCompositeSchedule({
               connectorId: connector.connectorId,
               duration: durationSecs,
               chargingRateUnit: chargingStation.powerLimitUnit
             });
-            results.push(result);
+            results.push(ret);
           }
           Logging.logDebug({
             tenantID: tenantID,

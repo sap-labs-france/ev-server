@@ -1,5 +1,3 @@
-import moment = require('moment');
-
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
 
@@ -13,6 +11,7 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import moment from 'moment';
 import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
