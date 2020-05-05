@@ -37,13 +37,12 @@ export default class CheckOfflineChargingStationsTask extends SchedulerTask {
             }
           );
         }
-        // Release the lock
-        await LockingManager.release(offlineChargingStationLock);
       } catch (error) {
-        // Release the lock
-        await LockingManager.release(offlineChargingStationLock);
         // Log error
         Logging.logActionExceptionMessage(tenant.id, ServerAction.OFFLINE_CHARGING_STATION, error);
+      } finally {
+        // Release the lock
+        await LockingManager.release(offlineChargingStationLock);
       }
     }
   }

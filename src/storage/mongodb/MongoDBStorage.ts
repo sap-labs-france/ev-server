@@ -273,9 +273,7 @@ export default class MongoDBStorage {
         try {
           // Create Database
           await this.checkAndCreateTenantDatabase(tenantId);
-          // Release the index creation Lock
-          await LockingManager.release(createDatabaseLock);
-        } catch (error) {
+        } finally {
           // Release the index creation Lock
           await LockingManager.release(createDatabaseLock);
         }
