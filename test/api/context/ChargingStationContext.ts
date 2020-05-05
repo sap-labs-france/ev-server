@@ -1,6 +1,6 @@
-import ContextDefinition from './ContextDefinition';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
+import ContextDefinition from './ContextDefinition';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';

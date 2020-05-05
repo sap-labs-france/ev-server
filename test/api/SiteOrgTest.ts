@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
+
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
+import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 

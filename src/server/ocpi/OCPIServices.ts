@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import { Configuration } from '../../types/configuration/Configuration';
-import OCPIUtils from '../ocpi/OCPIUtils';
+
 import AbstractOCPIService from './AbstractOCPIService';
-import OCPIService20 from './ocpi-services-impl/ocpi-2.0/OCPIService';
 import CPOService from './ocpi-services-impl/ocpi-2.1.1/CPOService';
+import { Configuration } from '../../types/configuration/Configuration';
 import EMSPService from './ocpi-services-impl/ocpi-2.1.1/EMSPService';
+import OCPIService20 from './ocpi-services-impl/ocpi-2.0/OCPIService';
+import OCPIUtils from '../ocpi/OCPIUtils';
 
 export default class OCPIServices {
 

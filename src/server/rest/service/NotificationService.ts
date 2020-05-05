@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
-import { ServerAction } from '../../../types/Server';
+
 import Logging from '../../../utils/Logging';
 import NotificationSecurity from './security/NotificationSecurity';
+import NotificationStorage from '../../../storage/mongodb/NotificationStorage';
+import { ServerAction } from '../../../types/Server';
 
 const MODULE_NAME = 'NotificationService';
 

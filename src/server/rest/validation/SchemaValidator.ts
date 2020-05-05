@@ -1,9 +1,9 @@
 import Ajv from 'ajv';
+import AppError from '../../../exception/AppError';
+import Constants from '../../../utils/Constants';
+import { HTTPError } from '../../../types/HTTPError';
 import ajvSanitizer from 'ajv-sanitizer';
 import sanitize from 'mongo-sanitize';
-import AppError from '../../../exception/AppError';
-import { HTTPError } from '../../../types/HTTPError';
-import Constants from '../../../utils/Constants';
 
 const extraSanitizers = {
   mongo: (value) => sanitize(value),

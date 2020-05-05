@@ -1,13 +1,14 @@
 import chai, { expect } from 'chai';
-import chaiDatetime from 'chai-datetime';
-import chaiSubset from 'chai-subset';
-import responseHelper from '../helpers/responseHelper';
+
 import CentralServerService from '../api/client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import StatisticsApi from './client/StatisticsApi';
 import StatisticsContext from './context/StatisticsContext';
 import Utils from './Utils';
+import chaiDatetime from 'chai-datetime';
+import chaiSubset from 'chai-subset';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

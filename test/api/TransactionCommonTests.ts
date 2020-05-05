@@ -1,14 +1,15 @@
 import chai, { expect } from 'chai';
+
+import CentralServerService from './client/CentralServerService';
+import ChargingStationContext from './context/ChargingStationContext';
+import { InactivityStatus } from '../../src/types/Transaction';
+import TenantContext from './context/TenantContext';
+import User from '../../src/types/User';
+import Utils from './Utils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
-import User from '../../src/types/User';
-import { InactivityStatus } from '../../src/types/Transaction';
 import responseHelper from '../helpers/responseHelper';
-import CentralServerService from './client/CentralServerService';
-import ChargingStationContext from './context/ChargingStationContext';
-import TenantContext from './context/TenantContext';
-import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

@@ -2,12 +2,13 @@
 // Note : These unit tests use the default tenant.
 //
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
+
+import CentralServerService from './client/CentralServerService';
 import { ChargingStationInErrorType } from '../../src/types/InError';
+import TestData from './client/utils/TestData';
+import chaiSubset from 'chai-subset';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
-import CentralServerService from './client/CentralServerService';
-import TestData from './client/utils/TestData';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

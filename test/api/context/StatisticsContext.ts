@@ -1,14 +1,16 @@
-import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
 import * as faker from 'faker';
-import moment from 'moment';
-import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
-import { RefundStatus } from '../../../src/types/Refund';
-import responseHelper from '../../helpers/responseHelper';
-import User from '../../types/User';
+
+import chai, { expect } from 'chai';
+
 import CentralServerService from '../client/CentralServerService';
 import ContextDefinition from './ContextDefinition';
+import { RefundStatus } from '../../../src/types/Refund';
 import TenantContext from './TenantContext';
+import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
+import User from '../../types/User';
+import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import responseHelper from '../../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

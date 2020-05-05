@@ -1,11 +1,12 @@
-import auth from 'basic-auth';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import global from '../../../types/GlobalType';
-import { ServerAction } from '../../../types/Server';
+
+import CentralServiceApi from '../client/CentralServiceApi';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import CentralServiceApi from '../client/CentralServiceApi';
+import { ServerAction } from '../../../types/Server';
+import auth from 'basic-auth';
+import fs from 'fs';
+import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'ODataSchema';
 

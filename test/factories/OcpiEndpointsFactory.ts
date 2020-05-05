@@ -1,6 +1,6 @@
-import faker from 'faker';
 import { Factory } from 'rosie';
 import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
+import faker from 'faker';
 
 export default Factory.define('ocpiEndpoint')
   .attr('name', () => faker.name.lastName())

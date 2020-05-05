@@ -1,39 +1,39 @@
-/* eslint-disable @typescript-eslint/member-ordering */
+import { Action, Entity } from '../../../types/Authorization';
+import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
+import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
-import { DataResult } from '../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
-import { ServerAction } from '../../../types/Server';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -1060,6 +1060,40 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Check if Component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
+      Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.SETTING,
+        action: Action.UPDATE,
+        module: MODULE_NAME,
+        method: 'handleCheckSmartChargingConnection'
+      });
+    }
+    // Get implementation
+    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    if (!smartCharging) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Smart Charging service is not configured',
+        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    // Check
+    await smartCharging.checkConnection();
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   private static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
     if (Utils.isComponentActiveFromToken(user, TenantComponents.ORGANIZATION)) {
@@ -1192,40 +1226,6 @@ export default class ChargingStationService {
         chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     }
     return chargingStations;
-  }
-
-  static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    // Check if Component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
-      Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
-    // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        entity: Entity.SETTING,
-        action: Action.UPDATE,
-        module: MODULE_NAME,
-        method: 'handleCheckSmartChargingConnection'
-      });
-    }
-    // Get implementation
-    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-    if (!smartCharging) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Smart Charging service is not configured',
-        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check
-    await smartCharging.checkConnection();
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
   }
 
   private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {

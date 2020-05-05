@@ -1,6 +1,6 @@
-import sanitize from 'mongo-sanitize';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
 import Utils from '../../../../utils/Utils';
+import sanitize from 'mongo-sanitize';
 
 export default class StatisticSecurity {
   static filterStatisticsRequest(request: any): HttpStatisticsRequest {
