@@ -46,13 +46,12 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
             }
           }
         }
-        // Release the lock
-        await LockingManager.release(sessionNotStartedLock);
       } catch (error) {
-        // Release the lock
-        await LockingManager.release(sessionNotStartedLock);
         // Log error
         Logging.logActionExceptionMessage(tenant.id, ServerAction.PREPARING_SESSION_NOT_STARTED, error);
+      } finally {
+        // Release the lock
+        await LockingManager.release(sessionNotStartedLock);
       }
     }
   }

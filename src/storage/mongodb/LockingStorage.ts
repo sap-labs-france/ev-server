@@ -1,9 +1,9 @@
-import global from '../../types/GlobalType';
-import Lock from '../../types/Locking';
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
+import Lock from '../../types/Locking';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'LockingStorage';
 
@@ -27,7 +27,7 @@ export default class LockingStorage {
 
   public static async insertLock(lockToSave: Lock): Promise<void> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveLock');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'insertLock');
     // Transfer
     const lockMDB = {
       _id: lockToSave.id,
@@ -42,7 +42,7 @@ export default class LockingStorage {
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(lockMDB);
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'saveLock', uniqueTimerID, { lock: lockToSave });
+    Logging.traceEnd(MODULE_NAME, 'insertLock', uniqueTimerID, { lock: lockToSave });
   }
 
   public static async deleteLock(lockToDelete: Lock): Promise<boolean> {

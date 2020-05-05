@@ -1,12 +1,12 @@
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import TransactionCommonTests from './TransactionCommonTests';
 import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './context/ChargingStationContext';
-import ContextDefinition from './context/ContextDefinition';
-import ContextProvider from './context/ContextProvider';
-import TransactionCommonTests from './TransactionCommonTests';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

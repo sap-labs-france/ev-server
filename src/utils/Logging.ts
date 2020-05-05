@@ -1,22 +1,23 @@
-import CFLog from 'cf-nodejs-logging-support';
-import cfenv from 'cfenv';
-import cluster from 'cluster';
+import { Log, LogLevel, LogType } from '../types/Log';
 import { NextFunction, Request, Response } from 'express';
-import os from 'os';
 import { PerformanceObserver, performance } from 'perf_hooks';
-import uuid from 'uuid/v4';
+
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import CFLog from 'cf-nodejs-logging-support';
+import Configuration from '../utils/Configuration';
+import Constants from './Constants';
 import { HTTPError } from '../types/HTTPError';
-import { Log, LogLevel, LogType } from '../types/Log';
+import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import { ServerAction } from '../types/Server';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
-import Configuration from '../utils/Configuration';
-import Constants from './Constants';
 import Utils from './Utils';
+import cfenv from 'cfenv';
+import cluster from 'cluster';
+import os from 'os';
+import uuid from 'uuid/v4';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
