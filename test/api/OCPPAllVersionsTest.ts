@@ -1,14 +1,14 @@
+import ChargingStationContext from './context/ChargingStationContext';
+import ContextDefinition from './context/ContextDefinition';
+import ContextProvider from './context/ContextProvider';
+import OCPPCommonTests from './OCPPCommonTests';
+import SiteAreaContext from './context/SiteAreaContext';
+import SiteContext from './context/SiteContext';
+import TenantContext from './context/TenantContext';
 import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import ChargingStationContext from './context/ChargingStationContext';
-import ContextDefinition from './context/ContextDefinition';
-import ContextProvider from './context/ContextProvider';
-import TenantContext from './context/TenantContext';
-import OCPPCommonTests from './OCPPCommonTests';
-import SiteAreaContext from './context/SiteAreaContext';
-import SiteContext from './context/SiteContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

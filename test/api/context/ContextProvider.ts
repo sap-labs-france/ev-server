@@ -1,14 +1,15 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import faker from 'faker';
-import TenantComponents from '../../../src/types/TenantComponents';
-import Constants from '../../../src/utils/Constants';
-import config from '../../config';
-import Factory from '../../factories/Factory';
+
 import CentralServerService from '../client/CentralServerService';
+import Constants from '../../../src/utils/Constants';
 import ContextDefinition from './ContextDefinition';
+import Factory from '../../factories/Factory';
 import SiteContext from './SiteContext';
+import TenantComponents from '../../../src/types/TenantComponents';
 import TenantContext from './TenantContext';
+import chaiSubset from 'chai-subset';
+import config from '../../config';
+import faker from 'faker';
 
 chai.use(chaiSubset);
 

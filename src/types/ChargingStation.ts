@@ -1,5 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import { InactivityStatus, InactivityStatusLevel } from './Transaction';
+
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { KeyValue } from './GlobalType';
 import SiteArea from './SiteArea';

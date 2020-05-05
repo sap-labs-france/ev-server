@@ -1,13 +1,13 @@
 import BackendError from '../../../src/exception/BackendError';
 import BillingFactory from '../../../src/integration/billing/BillingFactory';
+import Constants from '../../../src/utils/Constants';
+import ContextDefinition from './ContextDefinition';
+import Cypher from '../../../src/utils/Cypher';
 import SettingStorage from '../../../src/storage/mongodb/SettingStorage';
 import { StripeBillingSetting } from '../../../src/types/Setting';
-import User from '../../../src/types/User';
-import Constants from '../../../src/utils/Constants';
-import Cypher from '../../../src/utils/Cypher';
-import config from '../../config';
-import ContextDefinition from './ContextDefinition';
 import TenantContext from './TenantContext';
+import User from '../../../src/types/User';
+import config from '../../config';
 
 export default class BillingContext {
 

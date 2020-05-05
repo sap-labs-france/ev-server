@@ -1,12 +1,13 @@
-import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
 import { ChargePointStatus, OCPPFirmwareStatus } from '../../src/types/ocpp/OCPPServer';
+import chai, { expect } from 'chai';
+
 import ChargingStationContext from './context/ChargingStationContext';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
 import SiteAreaContext from './context/SiteAreaContext';
 import SiteContext from './context/SiteContext';
 import TenantContext from './context/TenantContext';
+import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 

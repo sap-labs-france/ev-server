@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import { expect } from 'chai';
 
 export default class ChargingStationApi extends CrudApi {
 

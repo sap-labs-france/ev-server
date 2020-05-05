@@ -1,4 +1,5 @@
 import chai, { expect } from 'chai';
+
 import ContextBuilder from './ContextBuilder';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets

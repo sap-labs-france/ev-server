@@ -1,13 +1,13 @@
 name: Unit Tests CI
 
 on:
+  push:
+    branches:
+      - master
+      - master-qa
   pull_request:
     branches:
       - master-qa
-  push:
-    branches:
-      - master-qa
-      - unit-tests-ci
 
 jobs:
   unit-tests:

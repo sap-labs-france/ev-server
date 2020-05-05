@@ -1,16 +1,16 @@
-import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
 import { PricingSettingsType, SettingDB } from '../../../src/types/Setting';
-import TenantComponents from '../../../src/types/TenantComponents';
-import User from '../../../src/types/User';
-import config from '../../config';
-import ContextDefinition from '../context/ContextDefinition';
+import chai, { expect } from 'chai';
+
 import AssetApi from './AssetApi';
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 import AuthenticationApi from './AuthenticationApi';
+import BaseApi from './utils/BaseApi';
 import BillingApi from './BillingApi';
 import CarApi from './CarApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
+import Constants from './utils/Constants';
+import ContextDefinition from '../context/ContextDefinition';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
@@ -20,11 +20,12 @@ import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
+import TenantComponents from '../../../src/types/TenantComponents';
 import TransactionApi from './TransactionApi';
+import User from '../../../src/types/User';
 import UserApi from './UserApi';
-import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
-import BaseApi from './utils/BaseApi';
-import Constants from './utils/Constants';
+import chaiSubset from 'chai-subset';
+import config from '../../config';
 
 // Set
 chai.use(chaiSubset);

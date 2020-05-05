@@ -1,5 +1,5 @@
-import User from './User';
 import { OCPIToken } from './ocpi/OCPIToken';
+import User from './User';
 
 export default interface Tag {
   id: string;
