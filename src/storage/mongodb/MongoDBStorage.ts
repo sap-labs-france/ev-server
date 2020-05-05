@@ -1,25 +1,30 @@
+import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
+
+import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
+import Logging from '../../utils/Logging';
+import { ServerAction } from '../../types/Server';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
+import Utils from '../../utils/Utils';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
-import { ChangeStream, Collection, Db, GridFSBucket, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
-import BackendError from '../../exception/BackendError';
-import LockingManager from '../../locking/LockingManager';
-import StorageCfg from '../../types/configuration/StorageConfiguration';
-import { LockEntity } from '../../types/Locking';
-import { ServerAction } from '../../types/Server';
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'MongoDBStorage';
 
 export default class MongoDBStorage {
   private db: Db;
   private readonly dbConfig: StorageCfg;
+  private readonly migrationConfig;
 
   // Create database access
   public constructor(dbConfig: StorageCfg) {
     this.dbConfig = dbConfig;
+    this.migrationConfig = Configuration.getMigrationConfig();
   }
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
@@ -70,7 +75,7 @@ export default class MongoDBStorage {
         const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
         if (!foundIndex) {
           // Create Index
-          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
         }
       }
       // Check each index that should be dropped
@@ -101,6 +106,16 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
+    // Check if this is the server that performs the migration
+    if (!this.migrationConfig || !this.migrationConfig.active) {
+      return;
+    }
+    Logging.logDebug({
+      tenantID: tenantID,
+      action: ServerAction.MONGO_DB,
+      message: 'Check of MongoDB database...',
+      module: MODULE_NAME, method: 'checkAndCreateTenantDatabase'
+    });
     const name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
     const collections = await this.db.listCollections({ name: name }).toArray();
@@ -163,6 +178,12 @@ export default class MongoDBStorage {
       { fields: { chargeBoxID: 1, connectorId: 1 } },
       { fields: { userID: 1 } }
     ]);
+    Logging.logDebug({
+      tenantID: tenantID,
+      action: ServerAction.MONGO_DB,
+      message: 'Check of MongoDB database done',
+      module: MODULE_NAME, method: 'checkAndCreateTenantDatabase'
+    });
   }
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {
@@ -252,11 +273,7 @@ export default class MongoDBStorage {
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
-      { fields: { keyHash: 1 }, options: { unique: true } },
-      { fields: { hostname: 1 } },
-      { fields: { keyHash: 1, hostname: 1 } }
     ]);
-
     for (const collection of collections) {
       if (collection.name === 'migrations') {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
@@ -276,9 +293,7 @@ export default class MongoDBStorage {
         try {
           // Create Database
           await this.checkAndCreateTenantDatabase(tenantId);
-          // Release the index creation Lock
-          await LockingManager.release(createDatabaseLock);
-        } catch (error) {
+        } finally {
           // Release the index creation Lock
           await LockingManager.release(createDatabaseLock);
         }

@@ -1,8 +1,10 @@
 import BillingFactory from '../../integration/billing/BillingFactory';
 import { LockEntity } from '../../types/Locking';
 import LockingManager from '../../locking/LockingManager';
+import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import SchedulerTask from '../SchedulerTask';
+import { ServerAction } from '../../types/Server';
 import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
@@ -27,9 +29,10 @@ export default class SynchronizeBillingUsersTask extends SchedulerTask {
             );
           }
         }
-        // Release the lock
-        await LockingManager.release(billingLock);
       } catch (error) {
+        // Log error
+        Logging.logActionExceptionMessage(tenant.id, ServerAction.BILLING_SYNCHRONIZE_USERS, error);
+      } finally {
         // Release the lock
         await LockingManager.release(billingLock);
       }

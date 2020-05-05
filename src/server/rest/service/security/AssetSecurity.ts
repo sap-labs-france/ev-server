@@ -1,11 +1,12 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import Asset from '../../../../types/Asset';
-import { DataResult } from '../../../../types/DataResult';
 import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpBuildingRequest';
+
+import Asset from '../../../../types/Asset';
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import SiteAreaSecurity from './SiteAreaSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class AssetSecurity {
 
@@ -73,7 +74,7 @@ export default class AssetSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadAsset(loggedUser, asset.id)) {
+    if (Authorizations.canReadAsset(loggedUser)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params

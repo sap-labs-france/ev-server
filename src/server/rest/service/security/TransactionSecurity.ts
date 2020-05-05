@@ -1,17 +1,18 @@
-import moment = require('moment');
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
-import Utils from '../../../../utils/Utils';
+import { DataResult } from '../../../../types/DataResult';
 import RefundReport from '../../../../types/Refund';
 import { TransactionInError } from '../../../../types/InError';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -111,7 +112,7 @@ export default class TransactionSecurity {
   }
 
   static filterTransactionResponse(transaction: Transaction|TransactionInError, loggedUser: UserToken): Transaction {
-    let filteredTransaction;
+    let filteredTransaction: Transaction;
     if (!transaction) {
       return null;
     }
@@ -153,12 +154,17 @@ export default class TransactionSecurity {
         const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
         filteredTransaction.status = foundConnector ? foundConnector.status : null;
       }
-      filteredTransaction.isLoading = !transaction.stop && transaction.currentTotalInactivitySecs > 60;
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
-      filteredTransaction.ocpiSession = transaction.ocpiSession;
-      filteredTransaction.ocpiCdr = transaction.ocpiCdr;
+      if (transaction.ocpiData) {
+        filteredTransaction.ocpiData = {
+          session: transaction.ocpiData.session,
+          sessionCheckedOn: transaction.ocpiData.sessionCheckedOn,
+          cdr: transaction.ocpiData.cdr,
+          cdrCheckedOn: transaction.ocpiData.cdrCheckedOn
+        };
+      }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
@@ -171,33 +177,24 @@ export default class TransactionSecurity {
       filteredTransaction.userID = transaction.userID;
       // Transaction Stop
       if (transaction.stop) {
-        filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.stop.meterStop;
-        filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-        filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
-        filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        filteredTransaction.stop.inactivityStatus = transaction.stop.inactivityStatus;
-        filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
-        filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
-        filteredTransaction.stop.signedData = transaction.stop.signedData;
-        filteredTransaction.stop.userID = transaction.stop.userID;
+        filteredTransaction.stop = {
+          tagID: Authorizations.isDemo(loggedUser) ? Constants.ANONYMIZED_VALUE : transaction.stop.tagID,
+          meterStop: transaction.stop.meterStop,
+          timestamp: transaction.stop.timestamp,
+          totalConsumption: transaction.stop.totalConsumption,
+          totalInactivitySecs: transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs,
+          inactivityStatus: transaction.stop.inactivityStatus,
+          totalDurationSecs: transaction.stop.totalDurationSecs,
+          stateOfCharge: transaction.stop.stateOfCharge,
+          signedData: transaction.stop.signedData,
+          userID: transaction.stop.userID,
+          user: transaction.stop.user ? TransactionSecurity._filterUserInTransactionResponse(transaction.stop.user, loggedUser) : null
+        };
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
           filteredTransaction.stop.roundedPrice = transaction.stop.roundedPrice;
           filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
           filteredTransaction.stop.pricingSource = transaction.stop.pricingSource;
-        }
-        // Demo user?
-        if (Authorizations.isDemo(loggedUser)) {
-          filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
-        } else {
-          filteredTransaction.stop.tagID = transaction.stop.tagID;
-        }
-        // Stop User
-        if (transaction.stop.user) {
-          // Filter user
-          filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.stop.user, loggedUser);
         }
       }
     }

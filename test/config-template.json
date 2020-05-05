@@ -27,8 +27,7 @@
   },
   "admin": {
     "username": "admin@sap.com",
-    "password": "",
-    "tenant": "slf"
+    "password": ""
   },
   "mailServer": {
     "host": "127.0.0.1",
@@ -37,5 +36,28 @@
   "wsClient": {
     "autoReconnectMaxRetries": 10,
     "autoReconnectTimeout": 0
+  },
+  "storage": {
+    "implementation": "mongodb",
+    "uri": null,
+    "host": "localhost",
+    "port": 32500,
+    "user": "evse-user",
+    "password": "",
+    "database": "evse",
+    "poolSize": 200,
+    "replicaSet": "rs0",
+    "monitorDBChange": true,
+    "debug": false
+  },
+  "billing": {
+    "currency": "EUR",
+    "url": "",
+    "publicKey": "",
+    "secretKey": "",
+    "noCardAllowed": true,
+    "advanceBillingAllowed": true,
+    "immediateBillingAllowed": true,
+    "periodicBillingAllowed": true
   }
 }

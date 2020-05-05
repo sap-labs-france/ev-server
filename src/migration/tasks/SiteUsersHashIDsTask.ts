@@ -1,8 +1,8 @@
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
 
 export default class SiteUsersHashIDsTask extends MigrationTask {
   async migrate() {
