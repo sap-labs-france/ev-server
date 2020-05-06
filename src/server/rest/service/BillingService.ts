@@ -337,7 +337,7 @@ export default class BillingService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.SYNCHRONIZE_INVOICES,
+        entity: Entity.USER, action: Action.FORCE_SYNCHRONIZE_INVOICES,
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
       });
     }

@@ -100,7 +100,7 @@ export enum Action {
   SYNCHRONIZE_USERS = 'SynchronizeUsers',
   SYNCHRONIZE_USER = 'SynchronizeUser',
   SYNCHRONIZE_INVOICES = 'SynchronizeInvoices',
-  FORCE_SYNCHRONIZE_INVOICES = 'SynchronizeInvoices',
+  FORCE_SYNCHRONIZE_INVOICES = 'ForceSynchronizeInvoices',
   CHECK_CONNECTION = 'CheckConnection',
   PING = 'Ping',
   GENERATE_LOCAL_TOKEN = 'GenerateLocalToken',
