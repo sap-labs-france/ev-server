@@ -309,10 +309,10 @@ export default class SiteAreaService {
     siteArea.image = filteredRequest.image;
     const siteAreaMaxPowerHasChanged = siteArea.maximumPower !== filteredRequest.maximumPower;
     siteArea.maximumPower = filteredRequest.maximumPower;
-    if (filteredRequest.smartCharging && filteredRequest.numberOfConnectedPhases === 1) {
+    if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
       for (const charger of siteArea.chargingStations) {
         for (const connector of charger.connectors) {
-          if (connector.numberOfConnectedPhase === 3) {
+          if (connector.numberOfConnectedPhase !== 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,
@@ -325,7 +325,7 @@ export default class SiteAreaService {
         }
       }
     }
-    siteArea.numberOfConnectedPhases = filteredRequest.numberOfConnectedPhases;
+    siteArea.numberOfPhases = filteredRequest.numberOfPhases;
     let actionsResponse: ActionsResponse;
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(

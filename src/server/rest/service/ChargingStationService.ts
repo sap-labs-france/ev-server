@@ -93,7 +93,7 @@ export default class ChargingStationService {
         });
       }
       for (const connector of chargingStation.connectors) {
-        if (connector.numberOfConnectedPhase > 1 && siteArea.numberOfConnectedPhases === 1 && action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
+        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             action: action,
@@ -177,7 +177,7 @@ export default class ChargingStationService {
       chargingStation.siteAreaID = chargingStation.siteArea.id;
       if (filteredRequest.connectors) {
         for (const connector of filteredRequest.connectors) {
-          if (connector.numberOfConnectedPhase > 1 && chargingStation.siteArea.numberOfConnectedPhases === 1) {
+          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea.numberOfPhases === 1) {
             throw new AppError({
               source: Constants.CENTRAL_SERVER,
               action: action,

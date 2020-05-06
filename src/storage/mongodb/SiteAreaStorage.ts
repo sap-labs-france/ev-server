@@ -72,7 +72,7 @@ export default class SiteAreaStorage {
     }
 
     siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
-    siteAreaMDB.numberOfConnectedPhases = siteAreaToSave.numberOfConnectedPhases;
+    siteAreaMDB.numberOfPhases = siteAreaToSave.numberOfPhases;
 
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
