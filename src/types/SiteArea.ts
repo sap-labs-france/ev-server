@@ -1,7 +1,6 @@
 import Address from './Address';
 import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from './ConnectorStats';
-import Consumption from './Consumption';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from '../types/Site';
 

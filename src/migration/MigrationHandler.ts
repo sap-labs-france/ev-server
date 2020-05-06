@@ -168,6 +168,7 @@ export default class MigrationHandler {
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()}`,
         detailedMessages: { error: error.message, stack: error.stack }
       });
+      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     } finally {
       // Release the migration lock
       await LockingManager.release(migrateTaskLock);

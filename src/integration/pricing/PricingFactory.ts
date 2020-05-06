@@ -26,9 +26,6 @@ export default class PricingFactory {
           case PricingSettingsType.CONVERGENT_CHARGING:
             // SAP Convergent Charging implementation
             pricingIntegrationImpl = new ConvergentChargingPricingIntegration(tenantID, pricingSetting.convergentCharging);
-            if (pricingIntegrationImpl instanceof DummyPricingIntegration) {
-              pricingIntegrationImpl = null;
-            }
             break;
           // Simple Pricing
           case PricingSettingsType.SIMPLE:
@@ -38,6 +35,10 @@ export default class PricingFactory {
           default:
             pricingIntegrationImpl = null;
             break;
+        }
+        // Check if missing implementation
+        if (pricingIntegrationImpl instanceof DummyPricingIntegration) {
+          pricingIntegrationImpl = null;
         }
         // Return the Pricing Integration implementation
         return pricingIntegrationImpl;
