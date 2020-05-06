@@ -85,12 +85,12 @@ export default class MigrationHandler {
           }
           // Check
           if (currentMigrationTask.isAsynchronous()) {
-          // Execute Async
+            // Execute Async
             setTimeout(() => {
               MigrationHandler.executeTask(currentMigrationTask).catch(() => {});
             }, 1000);
           } else {
-          // Execute Sync
+            // Execute Sync
             await MigrationHandler.executeTask(currentMigrationTask);
           }
         }
@@ -118,59 +118,58 @@ export default class MigrationHandler {
   }
 
   private static async executeTask(currentMigrationTask): Promise<void> {
-    // Create a Lock by migration name (for async tasks)
+    // Create a Lock by migration task name (for async tasks)
     const migrateTaskLock = LockingManager.createExclusiveLock(Constants.DEFAULT_TENANT, LockEntity.DATABASE, `migrate~task~${currentMigrationTask.getName()}`);
-    // Acquire the migration lock
-    if (!(await LockingManager.acquire(migrateTaskLock))) {
-      return;
-    }
-    try {
-      // Log Start Task
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
-      });
-      // Log in the console also
-      // eslint-disable-next-line no-console
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
-      // Start time and date
-      const startTaskTime = moment();
-      const startDate = new Date();
-      // Execute Migration
-      await currentMigrationTask.migrate();
-      // End time
-      const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
-      // End
-      // Save to the DB
-      await MigrationStorage.saveMigration({
-        name: currentMigrationTask.getName(),
-        version: currentMigrationTask.getVersion(),
-        timestamp: startDate,
-        durationSecs: totalTaskTimeSecs
-      });
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'migrate',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
-      });
-      // Log in the console also
-      // eslint-disable-next-line no-console
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-    } catch (error) {
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        action: ServerAction.MIGRATION,
-        module: MODULE_NAME, method: 'executeTask',
-        message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()}`,
-        detailedMessages: { error: error.message, stack: error.stack }
-      });
-      console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-    } finally {
-      // Release the migration lock
-      await LockingManager.release(migrateTaskLock);
+    // Acquire the migration task lock
+    if (await LockingManager.acquire(migrateTaskLock)) {
+      try {
+        // Log Start Task
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.MIGRATION,
+          module: MODULE_NAME, method: 'migrate',
+          message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+        });
+        // Log in the console also
+        // eslint-disable-next-line no-console
+        console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+        // Start time and date
+        const startTaskTime = moment();
+        const startDate = new Date();
+        // Execute Migration
+        await currentMigrationTask.migrate();
+        // End time
+        const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
+        // End
+        // Save to the DB
+        await MigrationStorage.saveMigration({
+          name: currentMigrationTask.getName(),
+          version: currentMigrationTask.getVersion(),
+          timestamp: startDate,
+          durationSecs: totalTaskTimeSecs
+        });
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.MIGRATION,
+          module: MODULE_NAME, method: 'migrate',
+          message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
+        });
+        // Log in the console also
+        // eslint-disable-next-line no-console
+        console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      } catch (error) {
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.MIGRATION,
+          module: MODULE_NAME, method: 'executeTask',
+          message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()}`,
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+        console.log(`${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has failed with error: ${error.toString()} ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      } finally {
+        // Release the migration task lock
+        await LockingManager.release(migrateTaskLock);
+      }
     }
   }
 }
