@@ -98,7 +98,7 @@ export default class ChargingStationService {
             source: Constants.CENTRAL_SERVER,
             action: action,
             errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-            message: `'Error occurred while updating SiteArea.'${chargingStation.id} is three phased`,
+            message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
             module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
             user: req.user, actionOnUser: req.user
           });
@@ -182,7 +182,7 @@ export default class ChargingStationService {
               source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `'Error occurred while updating chargingStation.'${chargingStation.id} is three phased`,
+              message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
               module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
               user: req.user, actionOnUser: req.user
             });
