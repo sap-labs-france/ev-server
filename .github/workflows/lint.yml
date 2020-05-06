@@ -1,9 +1,9 @@
 name: Lint CI
 on:
-  push:
-    branches:
-      - master
-      - master-qa
+  # push:
+  #   branches:
+  #     - master
+  #     - master-qa
   pull_request:
     branches:
       - master-qa
