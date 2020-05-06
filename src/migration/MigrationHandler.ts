@@ -75,9 +75,9 @@ export default class MigrationHandler {
         for (const currentMigrationTask of currentMigrationTasks) {
           // Check if not already done
           const migrationTaskDone = migrationTasksDone.find((migrationTask) =>
-          // Same name and version
+            // Same name and version
             ((currentMigrationTask.getName() === migrationTask.name) &&
-            (currentMigrationTask.getVersion() === migrationTask.version))
+              (currentMigrationTask.getVersion() === migrationTask.version))
           );
           // Already processed?
           if (migrationTaskDone) {
@@ -87,7 +87,7 @@ export default class MigrationHandler {
           if (currentMigrationTask.isAsynchronous()) {
             // Execute Async
             setTimeout(() => {
-              MigrationHandler.executeTask(currentMigrationTask).catch(() => {});
+              MigrationHandler.executeTask(currentMigrationTask).catch(() => { });
             }, 1000);
           } else {
             // Execute Sync

@@ -208,8 +208,8 @@ export default class SiteAreaService {
     }
     // Check dates order
     if (filteredRequest.StartDate &&
-        filteredRequest.EndDate &&
-        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      filteredRequest.EndDate &&
+      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -313,7 +313,7 @@ export default class SiteAreaService {
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
         req.user.tenantID, siteArea,
-        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
+        { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;

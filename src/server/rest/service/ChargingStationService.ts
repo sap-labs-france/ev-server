@@ -409,7 +409,7 @@ export default class ChargingStationService {
     const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
     if (siteAreaLock) {
       try {
-      // Call
+        // Call
         const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
         if (actionsResponse && actionsResponse.inError > 0) {
           throw new AppError({

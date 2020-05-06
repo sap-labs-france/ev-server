@@ -41,9 +41,9 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     if (await LockingManager.acquire(refundLock)) {
       try {
         // Get the 'Submitted' transactions
-        const transactions = await TransactionStorage.getTransactions(tenant.id, {
-          'refundStatus': [RefundStatus.SUBMITTED]
-        }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID' : 1, 'refundData.reportId' : 1 } });
+        const transactions = await TransactionStorage.getTransactions(tenant.id,
+          { 'refundStatus': [RefundStatus.SUBMITTED] },
+          { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1, 'refundData.reportId': 1 } });
         // Check
         if (transactions.count > 0) {
           // Process them
