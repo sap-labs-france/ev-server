@@ -1,6 +1,6 @@
+import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
-import SchemaValidator from './SchemaValidator';
 
 export default class ConnectionValidator extends SchemaValidator {
   private static instance: ConnectionValidator|null = null;

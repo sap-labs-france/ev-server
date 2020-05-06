@@ -18,3 +18,7 @@
 	path = src/assets/charging-station-templates
 	url = git@github.com:LucasBrazi06/ev-sap-charging-station-templates.git
 	branch = master
+[submodule "src/assets/configs-ci"]
+	path = src/assets/configs-ci
+	url = git@github.com:LucasBrazi06/ev-ci.git
+	branch = master

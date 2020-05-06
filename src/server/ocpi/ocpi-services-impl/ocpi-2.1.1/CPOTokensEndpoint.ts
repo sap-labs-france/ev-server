@@ -1,19 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
-import HttpStatusCodes from 'http-status-codes';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Constants from '../../../../utils/Constants';
+import HttpStatusCodes from 'http-status-codes';
+import Logging from '../../../../utils/Logging';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import Tenant from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
 import OCPITokensService from './OCPITokensService';
+import OCPIUtils from '../../OCPIUtils';
+import Tenant from '../../../../types/Tenant';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'CPOTokensEndpoint';

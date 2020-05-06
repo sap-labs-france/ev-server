@@ -1,27 +1,28 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
-import Authorizations from '../../../authorization/Authorizations';
+
+import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Authorizations from '../../../authorization/Authorizations';
+import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import { ActionsResponse } from '../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
-import TenantComponents from '../../../types/TenantComponents';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import TenantComponents from '../../../types/TenantComponents';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'SiteAreaService';
 
@@ -207,8 +208,8 @@ export default class SiteAreaService {
     }
     // Check dates order
     if (filteredRequest.StartDate &&
-        filteredRequest.EndDate &&
-        moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
+      filteredRequest.EndDate &&
+      moment(filteredRequest.StartDate).isAfter(moment(filteredRequest.EndDate))) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
@@ -312,7 +313,7 @@ export default class SiteAreaService {
     if (siteArea.smartCharging && !filteredRequest.smartCharging) {
       actionsResponse = await OCPPUtils.clearAndDeleteChargingProfilesForSiteArea(
         req.user.tenantID, siteArea,
-        { profilePurposeType : ChargingProfilePurposeType.TX_PROFILE });
+        { profilePurposeType: ChargingProfilePurposeType.TX_PROFILE });
     }
     siteArea.smartCharging = filteredRequest.smartCharging;
     siteArea.accessControl = filteredRequest.accessControl;
@@ -325,27 +326,25 @@ export default class SiteAreaService {
     if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
       setTimeout(async () => {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
-        if (!siteAreaLock) {
-          return;
-        }
-        try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-          if (smartCharging) {
-            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        if (siteAreaLock) {
+          try {
+            const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+            if (smartCharging) {
+              await smartCharging.computeAndApplyChargingProfiles(siteArea);
+            }
+          } catch (error) {
+            Logging.logError({
+              tenantID: req.user.tenantID,
+              source: Constants.CENTRAL_SERVER,
+              module: MODULE_NAME, method: 'handleUpdateSiteArea',
+              action: action,
+              message: 'An error occurred while trying to call smart charging',
+              detailedMessages: { error: error.message, stack: error.stack }
+            });
+          } finally {
+            // Release lock
+            await LockingManager.release(siteAreaLock);
           }
-          // Release lock
-          await LockingManager.release(siteAreaLock);
-        } catch (error) {
-          // Release lock
-          await LockingManager.release(siteAreaLock);
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            source: Constants.CENTRAL_SERVER,
-            module: MODULE_NAME, method: 'handleUpdateSiteArea',
-            action: action,
-            message: 'An error occurred while trying to call smart charging',
-            detailedMessages: { error: error.message, stack: error.stack }
-          });
         }
       }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
     }

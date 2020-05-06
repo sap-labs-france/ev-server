@@ -3,11 +3,12 @@
 //        a change in this key.
 
 import chai, { expect } from 'chai';
+
+import CypherJSON from './client/utils/CypherJSON';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
-import responseHelper from '../helpers/responseHelper';
 import cypher from '../../src/utils/Cypher';
-import CypherJSON from './client/utils/CypherJSON';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

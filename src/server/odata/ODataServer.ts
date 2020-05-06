@@ -1,13 +1,13 @@
-import express from 'express';
-import morgan from 'morgan';
-import { ServerAction } from '../../types/Server';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import expressTools from '../ExpressTools';
-import ODataServerFactory from '../odata/ODataServerFactory';
-import ODataSchema from './odata-schema/ODataSchema';
 import ODataRestAdapter from './ODataRestAdapter';
+import ODataSchema from './odata-schema/ODataSchema';
+import ODataServerFactory from '../odata/ODataServerFactory';
+import { ServerAction } from '../../types/Server';
+import express from 'express';
+import expressTools from '../ExpressTools';
+import morgan from 'morgan';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataServer {

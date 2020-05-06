@@ -1,8 +1,9 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import config from '../../config';
+
 import BaseApi from '../client/utils/BaseApi';
 import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
+import chaiSubset from 'chai-subset';
+import config from '../../config';
 
 // Set
 chai.use(chaiSubset);

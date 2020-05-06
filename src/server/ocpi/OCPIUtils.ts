@@ -1,9 +1,10 @@
-import { Request } from 'express';
-import AppError from '../../exception/AppError';
 import ChargingStation, { Connector } from '../../types/ChargingStation';
+
+import AppError from '../../exception/AppError';
 import { OCPIResponse } from '../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { Request } from 'express';
 import moment from 'moment';
 
 /**

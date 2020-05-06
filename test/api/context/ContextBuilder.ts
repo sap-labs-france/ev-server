@@ -1,34 +1,35 @@
-import { expect } from 'chai';
-import moment from 'moment';
-import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
+import ContextDefinition, { TenantDefinition } from './ContextDefinition';
+import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
+
 import AssetStorage from '../../../src/storage/mongodb/AssetStorage';
+import BillingContext from './BillingContext';
+import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
+import Constants from '../../../src/utils/Constants';
+import Factory from '../../factories/Factory';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
-import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
-import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
-import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import global from '../../../src/types/GlobalType';
 import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
+import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
 import { OCPIRegistrationStatus } from '../../../src/types/ocpi/OCPIRegistrationStatus';
 import { OCPIRole } from '../../../src/types/ocpi/OCPIRole';
-import { SettingDB, SettingDBContent } from '../../../src/types/Setting';
+import OCPIUtils from '../../../src/server/ocpi/OCPIUtils';
 import Site from '../../../src/types/Site';
+import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
+import SiteContext from './SiteContext';
+import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
+import StatisticsContext from './StatisticsContext';
 import TenantComponents from '../../../src/types/TenantComponents';
+import TenantContext from './TenantContext';
+import TenantFactory from '../../factories/TenantFactory';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import User from '../../../src/types/User';
-import Constants from '../../../src/utils/Constants';
+import UserFactory from '../../factories/UserFactory';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 import config from '../../config';
-import Factory from '../../factories/Factory';
-import TenantFactory from '../../factories/TenantFactory';
-import UserFactory from '../../factories/UserFactory';
-import CentralServerService from '../client/CentralServerService';
-import ContextDefinition, { TenantDefinition } from './ContextDefinition';
-import SiteContext from './SiteContext';
-import StatisticsContext from './StatisticsContext';
-import TenantContext from './TenantContext';
-import BillingContext from './BillingContext';
+import { expect } from 'chai';
+import global from '../../../src/types/GlobalType';
+import moment from 'moment';
 
 export default class ContextBuilder {
 

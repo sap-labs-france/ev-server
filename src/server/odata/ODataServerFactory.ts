@@ -1,5 +1,5 @@
-import ODataServer from 'simple-odata-server';
 import ODataRestAdapter from './ODataRestAdapter';
+import ODataServer from 'simple-odata-server';
 
 export default class ODataServerFactory {
   public oDataServer: any;

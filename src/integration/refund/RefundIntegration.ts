@@ -1,5 +1,6 @@
 import Connection from '../../types/Connection';
 import { RefundSetting } from '../../types/Setting';
+import { RefundStatus } from '../../types/Refund';
 import Transaction from '../../types/Transaction';
 
 export default abstract class RefundIntegration<T extends RefundSetting> {
@@ -15,7 +16,7 @@ export default abstract class RefundIntegration<T extends RefundSetting> {
 
   public abstract canBeDeleted(transaction: Transaction): boolean;
 
-  public abstract async updateRefundStatus(id: string, transaction: Transaction): Promise<string>;
+  public abstract async updateRefundStatus(id: string, transaction: Transaction): Promise<RefundStatus>;
 
-  public abstract async createConnection(userID: string, data: any): Promise<Connection>;
+  public abstract async createConnection(userID: string, data: unknown): Promise<Connection>;
 }

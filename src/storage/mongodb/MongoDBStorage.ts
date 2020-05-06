@@ -44,57 +44,6 @@ export default class MongoDBStorage {
     return this.db.watch(pipeline, options);
   }
 
-  public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
-    // Safety check
-    if (!this.db) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'handleIndexesInCollection',
-        message: 'Not supposed to call handleIndexesInCollection before database start',
-        action: ServerAction.MONGO_DB
-      });
-    }
-    // Check Logs
-    const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-    const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
-    // Check if it exists
-    if (!foundCollection) {
-      // Create
-      await this.db.createCollection(tenantCollectionName);
-    }
-    // Indexes?
-    if (indexes) {
-      // Get current indexes
-      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Check each index that should be created
-      for (const index of indexes) {
-        // Create
-        // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-        if (!foundIndex) {
-          // Create Index
-          this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-        }
-      }
-      // Check each index that should be dropped
-      for (const databaseIndex of databaseIndexes) {
-        // Bypass ID
-        if (databaseIndex.key._id) {
-          continue;
-        }
-        // Exists?
-        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-        if (!foundIndex) {
-          // Drop Index
-          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-        }
-      }
-    }
-    return false;
-  }
-
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
     if (!this.db) {
@@ -220,28 +169,74 @@ export default class MongoDBStorage {
     }
   }
 
-  public async migrateTenantDatabase(tenantID: string): Promise<void> {
-    // Safety check
-    if (!this.db) {
-      throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
-        module: MODULE_NAME,
-        method: 'migrateTenantDatabase',
-        message: 'Not supposed to call migrateTenantDatabase before database start',
-        action: ServerAction.MONGO_DB
-      });
-    }
-    // Migrate not prefixed collections
-    const collections = await this.db.listCollections().toArray();
+  // pragma public async migrateTenantDatabase(tenantID: string): Promise<void> {
+  //   // Safety check
+  //   if (!this.db) {
+  //     throw new BackendError({
+  //       source: Constants.CENTRAL_SERVER,
+  //       module: MODULE_NAME,
+  //       method: 'migrateTenantDatabase',
+  //       message: 'Not supposed to call migrateTenantDatabase before database start',
+  //       action: ServerAction.MONGO_DB
+  //     });
+  //   }
+  //   // Migrate not prefixed collections
+  //   const collections = await this.db.listCollections().toArray();
 
-    for (const collection of collections) {
-      if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
-        await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
-      }
-    }
+  //   for (const collection of collections) {
+  //     if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
+  //       await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
+  //     }
+  //   }
+  // }
+
+  public getGridFSBucket(name: string): GridFSBucket {
+    return new GridFSBucket(this.db, { bucketName: name });
   }
 
-  public async checkDatabase(): Promise<void> {
+  public async start(): Promise<void> {
+    // Log
+    console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+    // Build EVSE URL
+    let mongoUrl: string;
+    // URI provided?
+    if (this.dbConfig.uri) {
+      // Yes: use it
+      mongoUrl = this.dbConfig.uri;
+    } else {
+      // No: Build it
+      mongoUrl = mongoUriBuilder({
+        host: urlencode(this.dbConfig.host),
+        port: Utils.convertToInt(urlencode(this.dbConfig.port + '')),
+        username: urlencode(this.dbConfig.user),
+        password: urlencode(this.dbConfig.password),
+        database: urlencode(this.dbConfig.database),
+        options: {
+          replicaSet: this.dbConfig.replicaSet
+        }
+      });
+    }
+    // Connect to EVSE
+    const mongoDBClient = await MongoClient.connect(
+      mongoUrl,
+      {
+        useNewUrlParser: true,
+        poolSize: this.dbConfig.poolSize,
+        replicaSet: this.dbConfig.replicaSet,
+        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
+        useUnifiedTopology: true
+      }
+    );
+    // Get the EVSE DB
+    this.db = mongoDBClient.db(this.dbConfig.schema);
+    // Check Database only when migration is active
+    if (Configuration.getMigrationConfig().active) {
+      await this.checkDatabase();
+    }
+    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+  }
+
+  private async checkDatabase(): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({
@@ -295,61 +290,68 @@ export default class MongoDBStorage {
       .toArray();
     const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
-      // Index creation Lock
+      // Database creation Lock
       const createDatabaseLock = LockingManager.createExclusiveLock(tenantId, LockEntity.DATABASE, 'create-database');
       if (await LockingManager.acquire(createDatabaseLock)) {
         try {
-          // Create Database
+          // Create tenant collections
           await this.checkAndCreateTenantDatabase(tenantId);
         } finally {
-          // Release the index creation Lock
+          // Release the database creation Lock
           await LockingManager.release(createDatabaseLock);
         }
       }
     }
   }
 
-  public getGridFSBucket(name: string): GridFSBucket {
-    return new GridFSBucket(this.db, { bucketName: name });
-  }
-
-  async start(): Promise<void> {
-    // Log
-    console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
-    // Build EVSE URL
-    let mongoUrl: string;
-    // URI provided?
-    if (this.dbConfig.uri) {
-      // Yes: use it
-      mongoUrl = this.dbConfig.uri;
-    } else {
-      // No: Build it
-      mongoUrl = mongoUriBuilder({
-        host: urlencode(this.dbConfig.host),
-        port: Utils.convertToInt(urlencode(this.dbConfig.port + '')),
-        username: urlencode(this.dbConfig.user),
-        password: urlencode(this.dbConfig.password),
-        database: urlencode(this.dbConfig.database),
-        options: {
-          replicaSet: this.dbConfig.replicaSet
-        }
+  private async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
+    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
+    // Safety check
+    if (!this.db) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: MODULE_NAME,
+        method: 'handleIndexesInCollection',
+        message: 'Not supposed to call handleIndexesInCollection before database start',
+        action: ServerAction.MONGO_DB
       });
     }
-    // Connect to EVSE
-    const mongoDBClient = await MongoClient.connect(
-      mongoUrl,
-      {
-        useNewUrlParser: true,
-        poolSize: this.dbConfig.poolSize,
-        replicaSet: this.dbConfig.replicaSet,
-        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
-        useUnifiedTopology: true
+    // Check Logs
+    const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
+    const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
+    // Check if it exists
+    if (!foundCollection) {
+      // Create
+      await this.db.createCollection(tenantCollectionName);
+    }
+    // Indexes?
+    if (indexes) {
+      // Get current indexes
+      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+      // Check each index that should be created
+      for (const index of indexes) {
+        // Create
+        // Check if it exists
+        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+        if (!foundIndex) {
+          // Create Index
+          this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+        }
       }
-    );
-    // Get the EVSE DB
-    this.db = mongoDBClient.db(this.dbConfig.schema);
-    // Check Database
-    await this.checkDatabase();
-    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      // Check each index that should be dropped
+      for (const databaseIndex of databaseIndexes) {
+        // Bypass ID
+        if (databaseIndex.key._id) {
+          continue;
+        }
+        // Exists?
+        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+        if (!foundIndex) {
+          // Drop Index
+          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+        }
+      }
+    }
+    return false;
   }
 }

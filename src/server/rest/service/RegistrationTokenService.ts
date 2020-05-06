@@ -1,22 +1,23 @@
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
-import Authorizations from '../../../authorization/Authorizations';
+import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import DbParams from '../../../types/database/DbParams';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { ServerAction } from '../../../types/Server';
-import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
-import RegistrationToken from '../../../types/RegistrationToken';
-import TenantComponents from '../../../types/TenantComponents';
+import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
+import DbParams from '../../../types/database/DbParams';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import RegistrationToken from '../../../types/RegistrationToken';
 import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import { ServerAction } from '../../../types/Server';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantComponents from '../../../types/TenantComponents';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import moment from 'moment';
 
 const MODULE_NAME = 'RegistrationTokenService';
 

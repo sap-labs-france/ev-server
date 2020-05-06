@@ -1,4 +1,4 @@
-import { Car, CarCatalog, CarMaker, UserCar } from '../../../../types/Car';
+import { Car, CarCatalog, CarMaker } from '../../../../types/Car';
 import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';

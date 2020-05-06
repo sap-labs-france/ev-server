@@ -1,9 +1,9 @@
-import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
 import chai, { expect } from 'chai';
-import config from '../config';
-import TestData from './client/utils/TestData';
 
+import CentralServerService from './client/CentralServerService';
+import TestData from './client/utils/TestData';
+import chaiSubset from 'chai-subset';
+import config from '../config';
 
 chai.use(chaiSubset);
 const testData: TestData = new TestData();
