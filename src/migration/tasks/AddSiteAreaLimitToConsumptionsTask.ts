@@ -28,7 +28,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         // Update
         const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
           {
-            siteAreaID: siteArea.id,
+            siteAreaID: Utils.convertToObjectID(siteArea.id),
             limitSiteAreaSource: { $exists: false },
           },
           {
@@ -47,11 +47,10 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
             limitSiteAreaWatts += connector.power;
           }
         }
-
         // Update
         const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
           {
-            siteAreaID: siteArea.id,
+            siteAreaID: Utils.convertToObjectID(siteArea.id),
             limitSiteAreaSource: { $exists: false },
           },
           {
