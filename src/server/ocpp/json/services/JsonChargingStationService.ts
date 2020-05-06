@@ -1,10 +1,11 @@
 import ChargingStationConfiguration from '../../../../types/configuration/ChargingStationConfiguration';
-import global from '../../../../types/GlobalType';
-import { OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 import Logging from '../../../../utils/Logging';
 import OCPPService from '../../services/OCPPService';
+import { OCPPVersion } from '../../../../types/ocpp/OCPPServer';
+import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'JsonChargingStationService';
+
 export default class JsonChargingStationService {
   public chargingStationService: OCPPService;
   private chargingStationConfig: ChargingStationConfiguration;

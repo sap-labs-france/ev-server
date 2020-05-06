@@ -1,9 +1,9 @@
-import Tenant from '../../../../types/Tenant';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import OCPIMapping from './OCPIMapping';
-import { OCPIEvse } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
+import { OCPIEvse } from '../../../../types/ocpi/OCPIEvse';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import OCPIMapping from './OCPIMapping';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import Tenant from '../../../../types/Tenant';
 
 const MODULE_NAME = 'OCPILocationsService';
 

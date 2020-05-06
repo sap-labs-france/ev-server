@@ -1,22 +1,23 @@
 import { NextFunction, Request, Response } from 'express';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../../../types/ocpi/OCPIAuthorizationInfo';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPILocationReference } from '../../../../types/ocpi/OCPILocation';
+import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import Tenant from '../../../../types/Tenant';
 import { UserStatus } from '../../../../types/User';
-import Constants from '../../../../utils/Constants';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPIMapping from './OCPIMapping';
-import uuid = require('uuid');
+import uuid from 'uuid';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';

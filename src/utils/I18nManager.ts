@@ -1,10 +1,10 @@
-import fs from 'fs';
-import i18n from 'i18n-js';
-import Intl from 'intl';
-import moment from 'moment';
-import global from '../types/GlobalType';
 import Constants from './Constants';
+import Intl from 'intl';
 import Utils from './Utils';
+import fs from 'fs';
+import global from '../types/GlobalType';
+import i18n from 'i18n-js';
+import moment from 'moment';
 
 export default class I18nManager {
   private language: string;

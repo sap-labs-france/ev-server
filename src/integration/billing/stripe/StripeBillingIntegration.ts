@@ -99,6 +99,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (request.has_more) {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         requestParams.starting_after = users[users.length - 1].billingData.customerID;
       }
     } while (request.has_more);
@@ -152,6 +153,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
       }
       if (request.has_more) {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         requestParams.starting_after = taxes[taxes.length - 1].id;
       }
     } while (request.has_more);
@@ -297,10 +299,14 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Some Invoice Items already exists
       stripeInvoice = await this.stripe.invoices.create({
         customer: user.billingData.customerID,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         collection_method: 'send_invoice',
+        // eslint-disable-next-line @typescript-eslint/camelcase
         days_until_due: daysUntilDue,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         auto_advance: false
       }, {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
       // Add new invoice item
@@ -316,17 +322,20 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         });
         stripeInvoice = await this.stripe.invoices.create({
           customer: user.billingData.customerID,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           collection_method: 'send_invoice',
+          // eslint-disable-next-line @typescript-eslint/camelcase
           days_until_due: daysUntilDue,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           auto_advance: false
         });
-      } catch (error) {
+      } catch (err) {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           action: ServerAction.BILLING_CREATE_INVOICE,
           module: MODULE_NAME, method: 'createInvoice',
           message: 'Failed to create invoice',
-          detailedMessages: { error: error.message, stack: error.stack }
+          detailedMessages: { error: err.message, stack: err.stack }
         });
       }
     }
@@ -372,6 +381,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         description: invoiceItem.description,
         invoice: invoiceID
       }, {
+        // eslint-disable-next-line @typescript-eslint/camelcase
         idempotency_key: idempotencyKey ? idempotencyKey.toString() : null
       });
     } catch (error) {
@@ -859,7 +869,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async getSubscription(subscriptionID: string): Promise<Stripe.subscriptions.ISubscription> {
     await this.checkConnection();
-    // Get subscriptiom
+    // Get subscription
     return await this.stripe.subscriptions.retrieve(subscriptionID);
   }
 
@@ -909,6 +919,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
           email: user.email,
           description: description,
           name: fullName,
+          // eslint-disable-next-line @typescript-eslint/camelcase
           preferred_locales: [locale]
         });
       } catch (error) {
@@ -936,6 +947,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         (!customer.preferred_locales ||
           customer.preferred_locales.length === 0 ||
           customer.preferred_locales[0] !== locale)) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       dataToUpdate.preferred_locales = [locale];
     }
     // Update
@@ -1002,6 +1014,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
               subscription.id,
               {
                 billing: 'send_invoice',
+                // eslint-disable-next-line @typescript-eslint/camelcase
                 days_until_due: daysUntilDue,
               });
           } else {
@@ -1057,8 +1070,10 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
                 plan: billingPlan,
               }
             ],
+            // eslint-disable-next-line @typescript-eslint/camelcase
             billing_cycle_anchor: billingCycleAnchor,
             billing: 'send_invoice',
+            // eslint-disable-next-line @typescript-eslint/camelcase
             days_until_due: daysUntilDue,
           });
         } else {
@@ -1069,6 +1084,7 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
                 plan: billingPlan,
               }
             ],
+            // eslint-disable-next-line @typescript-eslint/camelcase
             billing_cycle_anchor: billingCycleAnchor,
             billing: 'charge_automatically',
           });

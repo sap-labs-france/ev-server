@@ -1,5 +1,6 @@
-import faker from 'faker';
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
+
+import faker from 'faker';
 
 export interface TenantDefinition {
   id: string;

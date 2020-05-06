@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import OCPISessionsService from './OCPISessionsService';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
-import Constants from '../../../../utils/Constants';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPISessionsService from './OCPISessionsService';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 
 const EP_IDENTIFIER = 'cdrs';
 const MODULE_NAME = 'EMSPCdrsEndpoint';
@@ -60,7 +61,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
       });
     }
     const transaction: Transaction = await TransactionStorage.getOCPITransaction(tenant.id, id);
-    if (!transaction || !transaction.ocpiCdr) {
+    if (!transaction || !transaction.ocpiData || !transaction.ocpiData.cdr) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'postCdrRequest',
@@ -69,7 +70,7 @@ export default class EMSPCdrsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    return OCPIUtils.success(transaction.ocpiCdr);
+    return OCPIUtils.success(transaction.ocpiData.cdr);
   }
 
   /**

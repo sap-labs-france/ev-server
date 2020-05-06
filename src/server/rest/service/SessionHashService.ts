@@ -1,16 +1,17 @@
 import { NextFunction, Request, Response } from 'express';
-import HttpStatus from 'http-status-codes';
+
 import AppError from '../../../exception/AppError';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import global from '../../../types/GlobalType';
-import { ServerAction } from '../../../types/Server';
-import Tenant from '../../../types/Tenant';
-import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
+import HttpStatus from 'http-status-codes';
 import Logging from '../../../utils/Logging';
+import { ServerAction } from '../../../types/Server';
+import Tenant from '../../../types/Tenant';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import global from '../../../types/GlobalType';
 
 const MODULE_NAME = 'SessionHashService';
 

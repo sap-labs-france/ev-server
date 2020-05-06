@@ -1,11 +1,12 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import jwt from 'jsonwebtoken';
-import config from '../config';
-import UserFactory from '../factories/UserFactory';
-import User from '../types/User';
+
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
+import User from '../types/User';
+import UserFactory from '../factories/UserFactory';
+import chaiSubset from 'chai-subset';
+import config from '../config';
+import jwt from 'jsonwebtoken';
 
 chai.use(chaiSubset);
 

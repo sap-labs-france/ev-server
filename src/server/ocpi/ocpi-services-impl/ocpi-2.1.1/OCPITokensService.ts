@@ -1,13 +1,14 @@
-import HttpStatusCodes from 'http-status-codes';
+import User, { UserRole, UserStatus } from '../../../../types/User';
+
 import AppError from '../../../../exception/AppError';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Constants from '../../../../utils/Constants';
+import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIMapping from './OCPIMapping';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
 import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
-import User, { UserRole, UserStatus } from '../../../../types/User';
-import Constants from '../../../../utils/Constants';
 import OCPIUtils from '../../OCPIUtils';
-import OCPIMapping from './OCPIMapping';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'OCPITokensService';
 

@@ -1,18 +1,19 @@
-import ejs from 'ejs';
-import email from 'emailjs';
-import fs from 'fs';
-import BackendError from '../../exception/BackendError';
-import global from '../../types/GlobalType';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import User from '../../types/User';
 import { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+
+import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import User from '../../types/User';
+import Utils from '../../utils/Utils';
+import ejs from 'ejs';
+import email from 'emailjs';
+import fs from 'fs';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'EMailNotificationTask';
 

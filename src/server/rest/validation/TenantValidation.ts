@@ -1,10 +1,10 @@
-import fs from 'fs';
 import AppError from '../../../exception/AppError';
-import global from '../../../types/GlobalType';
-import { HTTPError } from '../../../types/HTTPError';
-import Tenant from '../../../types/Tenant';
 import Constants from '../../../utils/Constants';
+import { HTTPError } from '../../../types/HTTPError';
 import SchemaValidator from './SchemaValidator';
+import Tenant from '../../../types/Tenant';
+import fs from 'fs';
+import global from '../../../types/GlobalType';
 
 export default class TenantValidator extends SchemaValidator {
   private static _instance: TenantValidator | undefined;

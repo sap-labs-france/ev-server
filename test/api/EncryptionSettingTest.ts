@@ -2,12 +2,13 @@
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import config from '../config';
-import responseHelper from '../helpers/responseHelper';
+
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
+import chaiSubset from 'chai-subset';
+import config from '../config';
+import responseHelper from '../helpers/responseHelper';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

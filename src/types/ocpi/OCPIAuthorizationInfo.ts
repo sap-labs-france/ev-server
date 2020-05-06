@@ -1,5 +1,5 @@
-import { OCPILocationReference } from './OCPILocation';
 import { OCPIDisplayText } from './OCPIDisplayText';
+import { OCPILocationReference } from './OCPILocation';
 
 export interface OCPIAuthorizationInfo {
   allowed: OCPIAllowed;

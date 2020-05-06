@@ -1,11 +1,12 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
-import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import { AnalyticsSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
+import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
+
+import Authorizations from '../../../../authorization/Authorizations';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class SettingSecurity {
 

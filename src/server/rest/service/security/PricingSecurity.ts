@@ -1,6 +1,6 @@
-import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UserToken from '../../../../types/UserToken';
+import sanitize from 'mongo-sanitize';
 
 export default class PricingSecurity {
   // Pricing

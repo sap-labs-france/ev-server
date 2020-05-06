@@ -1,5 +1,5 @@
-import User from '../User';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import User from '../User';
 
 export interface HttpUserRequest extends Partial<User> {
   passwords: {password?: string};

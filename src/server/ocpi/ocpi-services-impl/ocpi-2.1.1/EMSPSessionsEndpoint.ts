@@ -1,19 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
-import HttpStatusCodes from 'http-status-codes';
+
+import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
 import AppError from '../../../../exception/AppError';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import Constants from '../../../../utils/Constants';
 import { HTTPError } from '../../../../types/HTTPError';
+import HttpStatusCodes from 'http-status-codes';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPISession } from '../../../../types/ocpi/OCPISession';
+import OCPISessionsService from './OCPISessionsService';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
-import Constants from '../../../../utils/Constants';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
-import AbstractEndpoint from '../AbstractEndpoint';
-import OCPISessionsService from './OCPISessionsService';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'EMSPSessionsEndpoint';
@@ -74,7 +75,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2001_INVALID_PARAMETER_ERROR
       });
     }
-    return OCPIUtils.success(transaction.ocpiSession);
+    return OCPIUtils.success(transaction.ocpiData.session);
   }
 
   /**
@@ -152,23 +153,23 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
     let patched = false;
     const sessionPatched: Partial<OCPISession> = req.body as Partial<OCPISession>;
     if (sessionPatched.status) {
-      transaction.ocpiSession.status = sessionPatched.status;
+      transaction.ocpiData.session.status = sessionPatched.status;
       patched = true;
     }
     if (sessionPatched.end_datetime) {
-      transaction.ocpiSession.end_datetime = sessionPatched.end_datetime;
+      transaction.ocpiData.session.end_datetime = sessionPatched.end_datetime;
       patched = true;
     }
     if (sessionPatched.kwh) {
-      transaction.ocpiSession.kwh = sessionPatched.kwh;
+      transaction.ocpiData.session.kwh = sessionPatched.kwh;
       patched = true;
     }
     if (sessionPatched.currency) {
-      transaction.ocpiSession.currency = sessionPatched.currency;
+      transaction.ocpiData.session.currency = sessionPatched.currency;
       patched = true;
     }
     if (sessionPatched.total_cost) {
-      transaction.ocpiSession.total_cost = sessionPatched.total_cost;
+      transaction.ocpiData.session.total_cost = sessionPatched.total_cost;
       patched = true;
     }
     if (!patched) {
@@ -181,7 +182,7 @@ export default class EMSPSessionsEndpoint extends AbstractEndpoint {
         ocpiError: OCPIStatusCode.CODE_2002_NOT_ENOUGH_INFORMATION_ERROR
       });
     }
-    await OCPISessionsService.updateTransaction(tenant.id, transaction.ocpiSession);
+    await OCPISessionsService.updateTransaction(tenant.id, transaction.ocpiData.session);
     return OCPIUtils.success({});
   }
 }

@@ -1,10 +1,10 @@
-import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Connection from '../../../../types/Connection';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpConnectionsRequest } from '../../../../types/requests/HttpConnectionRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class ConnectionSecurity {
   public static filterConnectionDeleteRequest(request: any) {

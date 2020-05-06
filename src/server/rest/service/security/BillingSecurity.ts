@@ -1,11 +1,12 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
+
+import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
 import {HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest} from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {

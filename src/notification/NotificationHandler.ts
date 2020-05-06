@@ -1,17 +1,18 @@
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
-import ChargingStation from '../types/ChargingStation';
-import { ServerAction } from '../types/Server';
 import User, { UserRole } from '../types/User';
 import UserNotifications, { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSeverity, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+
+import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import Logging from '../utils/Logging';
-import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
+import Logging from '../utils/Logging';
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
-import moment = require('moment');
+import { ServerAction } from '../types/Server';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Utils from '../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'NotificationHandler';
 

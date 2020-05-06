@@ -1,21 +1,22 @@
-import HttpStatusCodes from 'http-status-codes';
-import moment from 'moment';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+
 import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../../../utils/Constants';
+import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
+import { HTTPError } from '../../../../types/HTTPError';
+import HttpStatusCodes from 'http-status-codes';
+import Logging from '../../../../utils/Logging';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
-import Consumption from '../../../../types/Consumption';
-import { HTTPError } from '../../../../types/HTTPError';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
-import OCPIUtils from '../../OCPIUtils';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import moment from 'moment';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -33,6 +34,7 @@ export default class OCPISessionsService {
       });
     }
     if (!session.total_cost) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       session.total_cost = 0;
     }
     if (!session.kwh) {
@@ -125,7 +127,10 @@ export default class OCPISessionsService {
     if (session.kwh > 0) {
       await OCPISessionsService.computeConsumption(tenantId, transaction, session);
     }
-    transaction.ocpiSession = session;
+    if (!transaction.ocpiData) {
+      transaction.ocpiData = {};
+    }
+    transaction.ocpiData.session = session;
     transaction.lastUpdate = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
@@ -182,15 +187,19 @@ export default class OCPISessionsService {
     }
 
     if (!cdr.total_cost) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_cost = 0;
     }
     if (!cdr.total_energy) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_energy = 0;
     }
     if (!cdr.total_time) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_time = 0;
     }
     if (!cdr.total_parking_time) {
+      // eslint-disable-next-line @typescript-eslint/camelcase
       cdr.total_parking_time = 0;
     }
 
@@ -216,7 +225,11 @@ export default class OCPISessionsService {
       userID: transaction.userID
     };
 
-    transaction.ocpiCdr = cdr;
+    if (!transaction.ocpiData) {
+      transaction.ocpiData = {};
+    }
+
+    transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenantId, transaction);
   }
 
