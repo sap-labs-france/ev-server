@@ -636,7 +636,7 @@ export default class Authorizations {
     // Get the user
     if (tagID) {
       user = await Authorizations.checkAndGetUserTagIDOnChargingStation(
-        tenantID, chargingStation, tagID, action);
+        tenantID, chargingStation, tagID);
     }
     // Found?
     if (user) {
@@ -700,7 +700,7 @@ export default class Authorizations {
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
-  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: Action): Promise<User> {
+  private static async checkAndGetUserTagIDOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
     let user = await UserStorage.getUserByTagId(tenantID, tagID);
     // Found?
     if (!user) {

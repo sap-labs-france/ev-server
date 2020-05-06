@@ -1,14 +1,16 @@
 import * as admin from 'firebase-admin';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import User, { UserStatus } from '../../types/User';
+
 import { BillingUserSynchronizationFailedNotification, CarCatalogSynchronizationFailedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OfflineChargingStationNotification, OptimalChargeReachedNotification, PreparingSessionNotStartedNotification, RequestPasswordNotification, SessionNotStartedNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountInactivityNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import User, { UserStatus } from '../../types/User';
+
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import NotificationTask from '../NotificationTask';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'RemotePushNotificationTask';
 

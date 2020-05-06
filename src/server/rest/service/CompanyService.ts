@@ -1,16 +1,17 @@
-import { NextFunction, Request, Response } from 'express';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import { Action, Entity } from '../../../types/Authorization';
+import { NextFunction, Request, Response } from 'express';
+
+import AppAuthError from '../../../exception/AppAuthError';
+import Authorizations from '../../../authorization/Authorizations';
 import Company from '../../../types/Company';
+import CompanySecurity from './security/CompanySecurity';
+import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import Constants from '../../../utils/Constants';
 import { HTTPAuthError } from '../../../types/HTTPError';
+import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'CompanyService';

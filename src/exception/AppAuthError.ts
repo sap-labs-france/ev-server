@@ -1,4 +1,5 @@
 import { Action, Entity } from '../types/Authorization';
+
 import { HTTPAuthError } from '../types/HTTPError';
 import User from '../types/User';
 import UserToken from '../types/UserToken';

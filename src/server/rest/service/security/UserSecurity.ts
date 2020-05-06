@@ -1,14 +1,15 @@
-import sanitize from 'mongo-sanitize';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import User, { UserRole } from '../../../../types/User';
+
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import { UserInError } from '../../../../types/InError';
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import Tag from '../../../../types/Tag';
-import User, { UserRole } from '../../../../types/User';
+import { UserInError } from '../../../../types/InError';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 

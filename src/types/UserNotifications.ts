@@ -1,6 +1,5 @@
-import User from './User';
 import NotificationTask from '../notification/NotificationTask';
-import ChargingStation from './ChargingStation';
+import User from './User';
 
 export default interface UserNotifications {
   sendSessionStarted: boolean;

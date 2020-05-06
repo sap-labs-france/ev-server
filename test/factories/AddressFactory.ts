@@ -1,5 +1,5 @@
-import faker from 'faker';
 import { Factory } from 'rosie';
+import faker from 'faker';
 
 export default Factory.define('address')
   .attr('address1', () => faker.address.streetAddress())

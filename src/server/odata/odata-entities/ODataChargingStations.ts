@@ -1,4 +1,3 @@
-
 import AbstractODataEntities from './AbstractODataEntities';
 
 export default class ODataChargingStations extends AbstractODataEntities {

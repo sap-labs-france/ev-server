@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
+
+import AbstractOCPIService from '../AbstractOCPIService';
 import OCPIEndpoint from '../../../types/ocpi/OCPIEndpoint';
 import { OCPIResponse } from '../../../types/ocpi/OCPIResponse';
 import Tenant from '../../../types/Tenant';
-import AbstractOCPIService from '../AbstractOCPIService';
 
 /**
  * Abstract Endpoint

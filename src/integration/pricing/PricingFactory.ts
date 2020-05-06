@@ -1,7 +1,7 @@
 import { PricingSetting, PricingSettingsType } from '../../types/Setting';
 
-import ConvergentChargingPricingIntegration from './export-convergent-charging';
-import DummyPricingIntegration from './DummyPricingIntegration';
+import ConvergentChargingPricingIntegration from './export/convergent-charging';
+import DummyPricingIntegration from './dummy/DummyPricingIntegration';
 import PricingIntegration from './PricingIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricingIntegration from './simple-pricing/SimplePricingIntegration';
@@ -20,19 +20,28 @@ export default class PricingFactory {
       const pricingSetting = await SettingStorage.getPricingSettings(tenantID);
       // Check
       if (pricingSetting) {
-        // SAP Convergent Charging
-        if (pricingSetting.type === PricingSettingsType.CONVERGENT_CHARGING) {
-          const ConvergentChargingPricingIntegrationImpl = new ConvergentChargingPricingIntegration(tenantID, pricingSetting.convergentCharging);
-          if (ConvergentChargingPricingIntegrationImpl instanceof DummyPricingIntegration) {
-            return null;
-          }
-          // Return the CC implementation
-          return ConvergentChargingPricingIntegrationImpl;
-        // Simple Pricing
-        } else if (pricingSetting.type === PricingSettingsType.SIMPLE) {
-          // Return the Simple Pricing implementation
-          return new SimplePricingIntegration(tenantID, pricingSetting.simple);
+        let pricingIntegrationImpl;
+        switch (pricingSetting.type) {
+          // SAP Convergent Charging
+          case PricingSettingsType.CONVERGENT_CHARGING:
+            // SAP Convergent Charging implementation
+            pricingIntegrationImpl = new ConvergentChargingPricingIntegration(tenantID, pricingSetting.convergentCharging);
+            break;
+          // Simple Pricing
+          case PricingSettingsType.SIMPLE:
+            // Simple Pricing implementation
+            pricingIntegrationImpl = new SimplePricingIntegration(tenantID, pricingSetting.simple);
+            break;
+          default:
+            pricingIntegrationImpl = null;
+            break;
         }
+        // Check if missing implementation
+        if (pricingIntegrationImpl instanceof DummyPricingIntegration) {
+          pricingIntegrationImpl = null;
+        }
+        // Return the Pricing Integration implementation
+        return pricingIntegrationImpl;
       }
     }
     // Pricing is not active

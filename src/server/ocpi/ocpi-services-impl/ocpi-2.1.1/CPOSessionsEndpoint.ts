@@ -1,17 +1,18 @@
+import { NextFunction, Request, Response } from 'express';
+
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import { NextFunction, Request, Response } from 'express';
-import Tenant from '../../../../types/Tenant';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import Utils from '../../../../utils/Utils';
-import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import HttpStatusCodes from 'http-status-codes';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import OCPIMapping from './OCPIMapping';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
 import { ServerAction } from '../../../../types/Server';
+import Tenant from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'sessions';
 const MODULE_NAME = 'CPOSessionsEndpoint';

@@ -1,8 +1,9 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
+
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
 import Utils from './Utils';
+import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 

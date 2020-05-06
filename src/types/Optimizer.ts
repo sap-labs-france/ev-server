@@ -78,6 +78,9 @@ export interface OptimizerFuseTreeNode {
   '@type': 'Fuse' | 'ChargingStation';
   children?: OptimizerFuseTreeNodeUnion[];
   id?: number;
+  phase1Connected?: boolean;
+  phase2Connected?: boolean;
+  phase3Connected?: boolean;
 }
 
 export interface OptimizerChargingStation extends OptimizerFuseTreeNode {

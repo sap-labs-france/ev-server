@@ -1,10 +1,11 @@
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../../authorization/Authorizations';
 import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest, HttpRegistrationTokensResponse } from '../../../../types/requests/HttpRegistrationToken';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { DataResult } from '../../../../types/DataResult';
+import sanitize from 'mongo-sanitize';
 
 export default class RegistrationTokenSecurity {
   static filterRegistrationTokenCreateRequest(request: any): HttpRegistrationTokenRequest {
