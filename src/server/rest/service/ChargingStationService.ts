@@ -407,30 +407,27 @@ export default class ChargingStationService {
       });
     }
     const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
-    if (!siteAreaLock) {
-      return;
-    }
-    try {
-      // Call
-      const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
-      if (actionsResponse && actionsResponse.inError > 0) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          action: action,
-          errorCode: HTTPError.GENERAL_ERROR,
-          module: MODULE_NAME, method: 'handleTriggerSmartCharging',
-          user: req.user,
-          message: 'Error occurred while triggering the smart charging',
-        });
+    if (siteAreaLock) {
+      try {
+        // Call
+        const actionsResponse = await smartCharging.computeAndApplyChargingProfiles(siteArea);
+        if (actionsResponse && actionsResponse.inError > 0) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.GENERAL_ERROR,
+            module: MODULE_NAME, method: 'handleTriggerSmartCharging',
+            user: req.user,
+            message: 'Error occurred while triggering the smart charging',
+          });
+        }
+      } finally {
+        // Release lock
+        await LockingManager.release(siteAreaLock);
       }
-      // Release lock
-      await LockingManager.release(siteAreaLock);
-    } catch (error) {
-      // Release lock
-      await LockingManager.release(siteAreaLock);
-      throw error;
     }
     // Ok
+    // FIXME: handle failure to take the lock in the response sent
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
