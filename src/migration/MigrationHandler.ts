@@ -73,7 +73,7 @@ export default class MigrationHandler {
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
         for (const currentMigrationTask of currentMigrationTasks) {
-        // Check if not already done
+          // Check if not already done
           const migrationTaskDone = migrationTasksDone.find((migrationTask) =>
           // Same name and version
             ((currentMigrationTask.getName() === migrationTask.name) &&
@@ -111,7 +111,7 @@ export default class MigrationHandler {
           detailedMessages: { error: error.message, stack: error.stack }
         });
       } finally {
-      // Release lock
+        // Release lock
         await LockingManager.release(migrationLock);
       }
     }
