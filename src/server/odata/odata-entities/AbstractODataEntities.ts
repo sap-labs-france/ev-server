@@ -1,6 +1,6 @@
+import Utils from '../../../utils/Utils';
 import _ from 'lodash';
 import moment from 'moment-timezone';
-import Utils from '../../../utils/Utils';
 
 export default class AbstractODataEntities {
   public buildParams(query) {

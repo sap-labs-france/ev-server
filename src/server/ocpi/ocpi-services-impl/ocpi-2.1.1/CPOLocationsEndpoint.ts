@@ -1,19 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
-import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
-import AppError from '../../../../exception/AppError';
-import { HTTPError } from '../../../../types/HTTPError';
-import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
-import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import { ServerAction } from '../../../../types/Server';
-import Tenant from '../../../../types/Tenant';
-import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import OCPIUtils from '../../OCPIUtils';
+
 import AbstractEndpoint from '../AbstractEndpoint';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import AppError from '../../../../exception/AppError';
+import Constants from '../../../../utils/Constants';
+import { HTTPError } from '../../../../types/HTTPError';
+import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
+import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
 import OCPILocationsService from './OCPILocationsService';
 import OCPIMapping from './OCPIMapping';
+import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import OCPIUtils from '../../OCPIUtils';
+import { ServerAction } from '../../../../types/Server';
+import Tenant from '../../../../types/Tenant';
+import Utils from '../../../../utils/Utils';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'CPOLocationsEndpoint';

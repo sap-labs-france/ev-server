@@ -1,11 +1,11 @@
-import sanitize from 'mongo-sanitize';
+import { HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import { HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import Utils from '../../../../utils/Utils';
+import sanitize from 'mongo-sanitize';
 
 export default class TenantSecurity {
   public static filterTenantRequestByID(request: any): string {

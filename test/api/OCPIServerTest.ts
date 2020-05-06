@@ -1,13 +1,14 @@
 import chai, { expect } from 'chai';
-import chaiSubset from 'chai-subset';
-import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
-import User from '../../src/types/User';
-import Factory from '../factories/Factory';
+
 import CentralServerService from './client/CentralServerService';
 import ContextDefinition from './context/ContextDefinition';
 import ContextProvider from './context/ContextProvider';
-import TenantContext from './context/TenantContext';
+import Factory from '../factories/Factory';
+import { OCPIRole } from '../../src/types/ocpi/OCPIRole';
 import OCPIService from './ocpi/OCPIService';
+import TenantContext from './context/TenantContext';
+import User from '../../src/types/User';
+import chaiSubset from 'chai-subset';
 
 chai.use(chaiSubset);
 

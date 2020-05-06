@@ -1,5 +1,5 @@
-import { Configuration } from '../../../../types/configuration/Configuration';
 import AbstractOCPIService from '../../AbstractOCPIService';
+import { Configuration } from '../../../../types/configuration/Configuration';
 import CredentialsEndpoint from './CredentialsEndpoint';
 import EMSPCdrsEndpoint from './EMSPCdrsEndpoint';
 import EMSPCommandsEndpoint from './EMSPCommandsEndpoint';

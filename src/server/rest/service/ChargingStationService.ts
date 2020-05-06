@@ -2,7 +2,6 @@ import { Action, Entity } from '../../../types/Authorization';
 import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
-/* eslint-disable @typescript-eslint/member-ordering */
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 
@@ -1087,6 +1086,40 @@ export default class ChargingStationService {
     next();
   }
 
+  public static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
+    // Check if Component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
+      Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
+    // Check auth
+    if (!Authorizations.canReadSetting(req.user)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        entity: Entity.SETTING,
+        action: Action.UPDATE,
+        module: MODULE_NAME,
+        method: 'handleCheckSmartChargingConnection'
+      });
+    }
+    // Get implementation
+    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
+    if (!smartCharging) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Smart Charging service is not configured',
+        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    // Check
+    await smartCharging.checkConnection();
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   private static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
     if (Utils.isComponentActiveFromToken(user, TenantComponents.ORGANIZATION)) {
@@ -1219,40 +1252,6 @@ export default class ChargingStationService {
         chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     }
     return chargingStations;
-  }
-
-  static async handleCheckSmartChargingConnection(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    // Check if Component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.SMART_CHARGING,
-      Action.CHECK_CONNECTION, Entity.CHARGING_STATION, MODULE_NAME, 'handleCheckSmartChargingConnection');
-    // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        entity: Entity.SETTING,
-        action: Action.UPDATE,
-        module: MODULE_NAME,
-        method: 'handleCheckSmartChargingConnection'
-      });
-    }
-    // Get implementation
-    const smartCharging = await SmartChargingFactory.getSmartChargingImpl(req.user.tenantID);
-    if (!smartCharging) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Smart Charging service is not configured',
-        module: MODULE_NAME, method: 'handleCheckSmartChargingConnection',
-        action: action,
-        user: req.user
-      });
-    }
-    // Check
-    await smartCharging.checkConnection();
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
   }
 
   private static convertOCPPParamsToCSV(configurations: OCPPParams[]): string {

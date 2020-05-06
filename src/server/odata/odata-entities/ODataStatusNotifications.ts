@@ -1,4 +1,3 @@
-
 import AbstractODataEntities from './AbstractODataEntities';
 import Utils from '../../../utils/Utils';
 

@@ -1,7 +1,8 @@
-import Authorizations from '../../../../authorization/Authorizations';
 import { CarCatalog, CarMaker } from '../../../../types/Car';
-import { DataResult } from '../../../../types/DataResult';
 import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';

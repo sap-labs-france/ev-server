@@ -1,20 +1,20 @@
-import auth from 'basic-auth';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { ServerAction } from '../../types/Server';
-import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import CentralServiceApi from './client/CentralServiceApi';
+import Logging from '../../utils/Logging';
 import ODataBootNotifications from './odata-entities/ODataBootNotifications';
 import ODataChargingStations from './odata-entities/ODataChargingStations';
 import ODataCompanies from './odata-entities/ODataCompanies';
+import ODataModel from './odata-model/ODataModel';
 import ODataSiteAreas from './odata-entities/ODataSiteAreas';
 import ODataSites from './odata-entities/ODataSites';
 import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
-import ODataModel from './odata-model/ODataModel';
+import { ServerAction } from '../../types/Server';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantComponents from '../../types/TenantComponents';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
+import auth from 'basic-auth';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {
