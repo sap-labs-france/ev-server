@@ -161,18 +161,22 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async getInvoice(id: string): Promise<BillingInvoice> {
     // Check Stripe
     await this.checkConnection();
-    // Get Invoice
-    const stripeInvoice = await this.stripe.invoices.retrieve(id);
-    return {
-      invoiceID: stripeInvoice.id,
-      customerID: stripeInvoice.customer.toString(),
-      number: stripeInvoice.number,
-      amount: stripeInvoice.amount_due,
-      status: stripeInvoice.status as BillingInvoiceStatus,
-      currency: stripeInvoice.currency,
-      createdOn: new Date(stripeInvoice.created * 1000),
-      nbrOfItems: stripeInvoice.lines.total_count
-    } as BillingInvoice;
+    try {
+      // Get Invoice
+      const stripeInvoice = await this.stripe.invoices.retrieve(id);
+      return {
+        invoiceID: stripeInvoice.id,
+        customerID: stripeInvoice.customer.toString(),
+        number: stripeInvoice.number,
+        amount: stripeInvoice.amount_due,
+        status: stripeInvoice.status as BillingInvoiceStatus,
+        currency: stripeInvoice.currency,
+        createdOn: new Date(stripeInvoice.created * 1000),
+        nbrOfItems: stripeInvoice.lines.total_count
+      } as BillingInvoice;
+    } catch (error) {
+      return null;
+    }
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {

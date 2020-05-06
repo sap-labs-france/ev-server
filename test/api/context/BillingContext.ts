@@ -61,8 +61,8 @@ export default class BillingContext {
     const adminUser: User = this.tenantContext.getUserContext(BillingContext.USERS[0]);
     const basicUser: User = this.tenantContext.getUserContext(BillingContext.USERS[1]);
 
-    await billingImpl.forceSynchronizeUser(adminUser, this.tenantContext.getTenant().id);
-    await billingImpl.forceSynchronizeUser(basicUser, this.tenantContext.getTenant().id);
+    await billingImpl.synchronizeUser(adminUser, this.tenantContext.getTenant().id);
+    await billingImpl.synchronizeUser(basicUser, this.tenantContext.getTenant().id);
 
     const adminBillingUser = await billingImpl.getUserByEmail(adminUser.email);
     const basicBillingUser = await billingImpl.getUserByEmail(basicUser.email);

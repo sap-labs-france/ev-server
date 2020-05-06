@@ -208,13 +208,14 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
 
   public async forceSynchronizeUser(user: User, tenantID) {
     try {
-      const billingUser = await this.getUserByEmail(user.email);
+      let billingUser = await this.getUserByEmail(user.email);
       if (billingUser) {
         if (user.billingData) {
           // Only override user's customerID
           user.billingData.customerID = billingUser.billingData.customerID;
           user.billingData.hasSynchroError = false;
         } else {
+          billingUser = await this.updateUser(user);
           user.billingData = billingUser.billingData;
         }
       } else {
@@ -225,7 +226,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         Logging.logInfo({
           tenantID: tenantID,
           source: Constants.CENTRAL_SERVER,
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
           actionOnUser: user,
           module: MODULE_NAME, method: 'forceSynchronizeUser',
           message: `Successfully forced the synchronization of the user '${user.email}'`,
@@ -234,7 +235,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
         throw new BackendError({
           source: Constants.CENTRAL_SERVER,
           module: MODULE_NAME, method: 'forceSynchronizeUser',
-          action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+          action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
           actionOnUser: user,
           message: 'Unable to save user Billing Data in e-Mobility',
           detailedMessages: { error: error.message, stack: error.stack }
@@ -244,7 +245,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'forceSynchronizeUser',
-        action: ServerAction.BILLING_SYNCHRONIZE_USERS,
+        action: ServerAction.BILLING_FORCE_SYNCHRONIZE_USER,
         actionOnUser: user,
         message: `Cannot force synchronize user '${user.email}' with billing system`,
         detailedMessages: { error: error.message, stack: error.stack }
@@ -294,7 +295,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           }
           // Delete in e-Mobility
           if (!invoiceBilling && invoice) {
-            await BillingStorage.deleteInvoice(tenantID, invoiceIDInBilling);
+            await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
             Logging.logDebug({
               tenantID: tenantID,
               user: user,
@@ -376,6 +377,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     // Get recently updated invoices from Billing application
     let invoiceIDsInBilling: string[];
     if (billingUser) {
+      billingUser.billingData = user.billingData;
       // Get user's invoices
       invoiceIDsInBilling = await this.getUpdatedInvoiceIDsInBilling(billingUser);
     } else {
@@ -411,7 +413,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           }
           // Delete in e-Mobility
           if (!invoiceBilling && invoice) {
-            await BillingStorage.deleteInvoice(tenantID, invoiceIDInBilling);
+            await BillingStorage.deleteInvoiceByInvoiceID(tenantID, invoiceIDInBilling);
             Logging.logDebug({
               tenantID: tenantID,
               user: user,
@@ -428,6 +430,7 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
           if (invoice) {
             // If invoice already exists, set back its e-Mobility ID before saving
             invoiceBilling.id = invoice.id;
+            userInInvoice = user;
           } else {
             // Associate e-Mobility user to invoice according to invoice customer ID
             if (user) {

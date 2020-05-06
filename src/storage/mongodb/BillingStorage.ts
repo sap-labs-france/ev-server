@@ -206,4 +206,16 @@ export default class BillingStorage {
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }
+
+  public static async deleteInvoiceByInvoiceID(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteInvoice');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete the Company
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
+      .findOneAndDelete({ 'invoiceID': id });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
+  }
 }
