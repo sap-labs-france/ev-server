@@ -80,6 +80,8 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CONNECTION, action: [Action.CREATE, Action.READ, Action.DELETE], attributes: ['*'] },
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
+      { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
+      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
     ]
   },
   basic: {
@@ -94,7 +96,7 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR_CATALOGS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR_CATALOG, action: Action.READ, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
-      { resource: Entity.USER_CARS, action: Action.LIST, attributes: ['*'] },
+      { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       {
         resource: Entity.COMPANY, action: Action.READ, attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }

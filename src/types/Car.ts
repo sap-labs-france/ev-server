@@ -1,7 +1,7 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import User from './User';
 
-export interface CarCatalog extends CreatedUpdatedProps{
+export interface CarCatalog extends CreatedUpdatedProps {
   id: number;
   vehicleMake: string;
   vehicleModel: string;
@@ -129,6 +129,7 @@ export interface Car extends CreatedUpdatedProps {
   carCatalogID: number;
   carCatalog?: CarCatalog;
   userIDs?: string;
+  users?: User[];
 }
 
 export interface UserCar extends CreatedUpdatedProps {

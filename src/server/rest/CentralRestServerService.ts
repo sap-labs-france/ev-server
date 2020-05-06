@@ -110,7 +110,7 @@ class RequestMapper {
           [ServerAction.CAR_CATALOGS]: CarService.handleGetCarCatalogs.bind(this),
           [ServerAction.CAR_CATALOG]: CarService.handleGetCarCatalog.bind(this),
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
-          [ServerAction.USER_CARS]: CarService.handleGetUserCars.bind(this),
+          [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),

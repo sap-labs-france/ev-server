@@ -61,7 +61,7 @@ export enum ServerAction {
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
   CAR_MAKERS = 'CarMakers',
   CAR_CREATE = 'CarCreate',
-  USER_CARS = 'UserCars',
+  CARS = 'Cars',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',

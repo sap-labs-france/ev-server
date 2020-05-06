@@ -1,9 +1,10 @@
 import { Car, CarCatalog, CarMaker, UserCar } from '../../../../types/Car';
-import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
+import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -147,26 +148,49 @@ export default class CarSecurity {
     carCatalogs.result = filteredCarCatalogs;
   }
 
-  public static filterCarCreateRequest(request: any): any {
+  public static filterCarCreateRequest(request: any): HttpCarCreateRequest {
     return CarSecurity._filterCarRequest(request);
   }
 
-  public static filterUserCarsRequest(request: any): any {
-    const filteredRequest: any = {
-      Search: sanitize(request.Search),
-      CarMaker: sanitize(request.CarMaker),
-    } as any;
+  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
+    const filteredCars = [];
+
+    if (!cars.result) {
+      return null;
+    }
+    if (!Authorizations.canListCars(loggedUser)) {
+      return null;
+    }
+    for (const car of cars.result) {
+      // Add
+      if (car) {
+        filteredCars.push({
+          id: car.id,
+          carCatalog: car.carCatalog,
+          vin: car.vin,
+          licensePlate: car.licensePlate,
+        });
+      }
+    }
+    cars.result = filteredCars;
+  }
+
+  public static filterCarsRequest(request: any): HttpCarsRequest {
+    const filteredRequest: HttpCarsRequest = {
+      search: sanitize(request.Search),
+      carMaker: sanitize(request.CarMaker),
+    } as HttpCarsRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  private static _filterCarRequest(request: any): any {
+  private static _filterCarRequest(request: any): HttpCarCreateRequest {
     return {
       vin: sanitize(request.vin),
       licensePlate: sanitize(request.licensePlate),
-      carCatalogID: sanitize(request.carCatalogID),
-      forced: sanitize(request.forced)
+      carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
+      forced: UtilsSecurity.filterBoolean(request.forced)
     };
   }
 }

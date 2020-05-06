@@ -494,7 +494,7 @@ export default class CarStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(userCarMDB, userCarToSave);
     // Modify
-    await global.database.getCollection<Car>(tenantID, 'usercars').findOneAndUpdate(
+    await global.database.getCollection<Car>(tenantID, 'userscars').findOneAndUpdate(
       { _id: userCarMDB._id },
       { $set: userCarMDB },
       { upsert: true, returnOriginal: false }
@@ -504,19 +504,30 @@ export default class CarStorage {
     return userCarMDB._id.toHexString();
   }
 
-  public static async getCar(tenantID: string, params: { carID?: string; licensePlate?: string; vin?: string }, projectFields?: string[]): Promise<Car> {
+  public static async getCar(tenantID: string, carID: string, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
     // Query single Site
     const carsMDB = await CarStorage.getCars(tenantID,
-      params,
+      { carID: carID },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { params });
+    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { carID });
+    return carsMDB.count > 0 ? carsMDB.result[0] : null;
+  }
+
+  public static async getCarByVinLicensePlate(tenantID: string, licensePlate: string, vin: string, withUsers?: boolean, projectFields?: string[]): Promise<Car> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
+    // Query single Site
+    const carsMDB = await CarStorage.getCars(tenantID,
+      { licensePlate: licensePlate, vin: vin, withUsers: withUsers },
+      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
+    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { vin, licensePlate });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; carID?: string; carIDs?: number[]; licensePlate?: string; vin?: string } = {},
+    params: { search?: string; userID?: string; userIDs?: string[]; carID?: string; carIDs?: number[]; licensePlate?: string; vin?: string; withUsers?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCars');
@@ -525,18 +536,14 @@ export default class CarStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: number; licensePlate?: string; vin?: string; $or?: any[]; $and?: any[] } | undefined) = {};
+    const filters: ({ _id?: ObjectID; createdBy?: ObjectID; licensePlate?: string; vin?: string; $or?: any[]; $and?: any[] } | undefined) = {};
     if (params.carID) {
-      filters._id = Utils.convertToInt(params.carID);
+      filters._id = Utils.convertToObjectID(params.carID);
     }
-    if (params.licensePlate && params.vin) {
-      filters.$and = [
-        { 'licensePlate': params.licensePlate },
-        { 'vin': params.vin }
-      ];
-    } else if (params.licensePlate) {
+    if (params.licensePlate) {
       filters.licensePlate = params.licensePlate;
-    } else if (params.vin) {
+    }
+    if (params.vin) {
       filters.vin = params.vin;
     }
     if (params.search) {
@@ -553,7 +560,7 @@ export default class CarStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.carIDs.map((carID) => Utils.convertToInt(carID)) }
+          _id: { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) }
         }
       });
     }
@@ -563,10 +570,36 @@ export default class CarStorage {
         $match: filters
       });
     }
+    if ((params.userIDs && params.userIDs.length > 0) || params.userID || params.withUsers) {
+      DatabaseUtils.pushUserCarLookupInAggregation({
+        tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
+        asField: 'userscars', oneToOneCardinality: false
+      });
+      if (params.userID) {
+        aggregation.push({
+          $match: {
+            'userscars.userID': Utils.convertToObjectID(params.userID)
+          }
+        });
+      }
+      if (params.userIDs && params.userIDs.length > 0) {
+        aggregation.push({
+          $match: {
+            'userscars.userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) }
+          }
+        });
+      }
+    }
     DatabaseUtils.pushCarCatalogLookupInAggregation({
       tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
       asField: 'carCatalog', oneToOneCardinality: true
     });
+    if (params.withUsers) {
+      DatabaseUtils.pushUserLookupInAggregation({
+        tenantID: tenantID, aggregation, localField: 'userscars.userID', foreignField: '_id',
+        asField: 'users', oneToOneCardinality: false
+      });
+    }
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -641,7 +674,7 @@ export default class CarStorage {
 
   public static async getUserCars(tenantID: string,
     params: { search?: string; userCarID?: string; userCarIDs?: string[]; userID?: string; userIDs?: string[]; carID?: string } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<any>> {
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCars');
     // Check Limit
@@ -702,7 +735,7 @@ export default class CarStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<any>>(tenantID, 'usercars')
+    const carsCountMDB = await global.database.getCollection<DataResult<UserCar>>(tenantID, 'userscars')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -740,7 +773,7 @@ export default class CarStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const cars = await global.database.getCollection<Car>(tenantID, 'usercars')
+    const cars = await global.database.getCollection<UserCar>(tenantID, 'userscars')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true

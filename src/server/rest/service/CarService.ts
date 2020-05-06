@@ -2,6 +2,7 @@ import { Action, Entity } from '../../../types/Authorization';
 import { Car, UserCar } from '../../../types/Car';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
+
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -15,7 +16,6 @@ import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-
 
 const MODULE_NAME = 'CarService';
 
@@ -177,7 +177,6 @@ export default class CarService {
 
   public static async handleCarCreate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     let newCar: Car;
-    let userCar: UserCar;
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
@@ -199,26 +198,27 @@ export default class CarService {
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
       MODULE_NAME, 'handleCreateCar', req.user);
     // Check Car
-    const car = await CarStorage.getCar(req.user.tenantID, { licensePlate: filteredRequest.licensePlate, vin: filteredRequest.vin });
+    const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID, filteredRequest.licensePlate, filteredRequest.vin, true);
     if (car) {
       // Check if the car is already assigned
-      userCar = await CarStorage.getUserCar(req.user.tenantID, { userID: req.user.id, carID: car.id });
-      // Car exists with different user?
-      if (userCar) {
-        // User already assigned to this car!
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_ALREADY_ASSIGNED_TO_CAR,
-          message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist for that user`,
-          user: req.user,
-          module: MODULE_NAME,
-          method: 'handleCarCreate'
-        });
+      for (const user of car.users) {
+        // Car exists with different user?
+        if (user.id === req.user.id) {
+          // User already assigned to this car!
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.USER_ALREADY_ASSIGNED_TO_CAR,
+            message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist for that user`,
+            user: req.user,
+            module: MODULE_NAME,
+            method: 'handleCarCreate'
+          });
+        }
       }
       // Force to reuse the car
       if (filteredRequest.forced) {
         newCar = car;
-      // Send error to the UI
+        // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -261,29 +261,31 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetUserCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetCars(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.USER_CARS,
-      MODULE_NAME, 'handleGetUserCars');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.CARS,
+      MODULE_NAME, 'handleGetCars');
     // Check auth
-    if (!Authorizations.canListUserCars(req.user)) {
+    if (!Authorizations.canListCars(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
-        entity: Entity.USER_CARS,
+        action: Action.LIST,
+        entity: Entity.CARS,
         module: MODULE_NAME,
-        method: 'handleGetUserCars'
+        method: 'handleGetCars'
       });
     }
-    const filteredRequest = CarSecurity.filterUserCarsRequest(req.query);
-    let userCars;
+    const filteredRequest = CarSecurity.filterCarsRequest(req.query);
+    const params: any = { search: filteredRequest.search };
     if (Authorizations.isBasic(req.user)) {
-      userCars = await CarStorage.getUserCars(req.user.tenantID, { userID: req.user.id }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
-    } else {
-      // To Handle later
+      params.userID = req.user.id;
     }
-    res.json(userCars);
+
+    const cars = await CarStorage.getCars(req.user.tenantID,
+      params, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    CarSecurity.filterCarsResponse(cars, req.user);
+    res.json(cars);
     next();
   }
 }
