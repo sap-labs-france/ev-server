@@ -316,7 +316,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleSynchronizeInvoices',
+        module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
         action: action,
         user: req.user
       });
@@ -324,7 +324,7 @@ export default class BillingService {
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(action, user, `User '${req.user.id}' doesn't exist anymore.`,
-      MODULE_NAME, 'handleSynchronizeInvoices', req.user);
+      MODULE_NAME, 'handleSynchronizeUserInvoices', req.user);
     // Sync user invoices
     const synchronizeAction = await billingImpl.synchronizeInvoices(req.user.tenantID, user);
     // Ok
@@ -338,7 +338,7 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.USER, action: Action.SYNCHRONIZE_INVOICES,
-        module: MODULE_NAME, method: 'handleSynchronizeUserInvoices',
+        module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
       });
     }
     // Check if component is active
