@@ -1,39 +1,40 @@
+import { Action, Entity } from '../../../types/Authorization';
+import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 /* eslint-disable @typescript-eslint/member-ordering */
 import { NextFunction, Request, Response } from 'express';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
+import Constants from '../../../utils/Constants';
+import { DataResult } from '../../../types/DataResult';
+import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import { Action, Entity } from '../../../types/Authorization';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
-import { DataResult } from '../../../types/DataResult';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
-import { ServerAction } from '../../../types/Server';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import TenantComponents from '../../../types/TenantComponents';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
-import I18nManager from '../../../utils/I18nManager';
-import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -91,6 +92,18 @@ export default class ChargingStationService {
           method: 'handleAssignChargingStationsToSiteArea',
           value: chargingStationID
         });
+      }
+      for (const connector of chargingStation.connectors) {
+        if (connector.numberOfConnectedPhase > 1 && siteArea.numberOfConnectedPhases === 1 && action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `'Error occurred while updating SiteArea.'${chargingStation.id} is three phased`,
+            module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+            user: req.user, actionOnUser: req.user
+          });
+        }
       }
     }
     // Save
@@ -163,6 +176,20 @@ export default class ChargingStationService {
     if (filteredRequest.siteArea) {
       chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
       chargingStation.siteAreaID = chargingStation.siteArea.id;
+      if (filteredRequest.connectors) {
+        for (const connector of filteredRequest.connectors) {
+          if (connector.numberOfConnectedPhase > 1 && chargingStation.siteArea.numberOfConnectedPhases === 1) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+              message: `'Error occurred while updating chargingStation.'${chargingStation.id} is three phased`,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              user: req.user, actionOnUser: req.user
+            });
+          }
+        }
+      }
     } else {
       chargingStation.siteAreaID = null;
     }
