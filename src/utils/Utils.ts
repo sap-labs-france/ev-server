@@ -1014,6 +1014,18 @@ export default class Utils {
         });
       }
     }
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING) && siteArea.smartCharging) {
+      if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site area number of phases must be 1 or 3 but got ${siteArea.numberOfPhases}`,
+          module: MODULE_NAME,
+          method: '_checkIfSiteAreaValid',
+          user: req.user.id
+        });
+      }
+    }
   }
 
   public static checkIfCompanyValid(company: Partial<Company>, req: Request): void {
