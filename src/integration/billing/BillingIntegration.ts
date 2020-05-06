@@ -1,15 +1,16 @@
-import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
-import User, { UserStatus } from '../../types/User';
-import { BillingSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import { UserInErrorType } from '../../types/InError';
 import BackendError from '../../exception/BackendError';
 import BillingStorage from '../../storage/mongodb/BillingStorage';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import { BillingDataTransactionStart, BillingDataTransactionStop, BillingDataTransactionUpdate, BillingInvoice, BillingInvoiceItem, BillingTax, BillingUser, BillingUserSynchronizeAction } from '../../types/Billing';
+import { ActionsResponse } from '../../types/GlobalType';
+import { UserInErrorType } from '../../types/InError';
+import { ServerAction } from '../../types/Server';
+import { BillingSetting } from '../../types/Setting';
+import Transaction from '../../types/Transaction';
+import User, { UserStatus } from '../../types/User';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import Transaction from '../../types/Transaction';
-import UserStorage from '../../storage/mongodb/UserStorage';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'Billing';
@@ -253,9 +254,9 @@ export default abstract class BillingIntegration<T extends BillingSetting> {
     }
   }
 
-  public async forceSynchronizeUserInvoices(tenantID: string, user?: User): Promise<BillingUserSynchronizeAction> {
+  public async forceSynchronizeUserInvoices(tenantID: string, user?: User): Promise<ActionsResponse> {
     let billingUser: BillingUser = null;
-    const actionsDone: BillingUserSynchronizeAction = {
+    const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
     };

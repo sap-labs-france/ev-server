@@ -435,7 +435,7 @@ describe('Billing Service', function() {
         let response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesBefore = response.data.count;
         await testData.userService.billingApi.forceSynchronizeUser({ id: testData.userContext.id });
-        const a = await generateTransaction(testData.userContext, testData.chargingStationContext);
+        await generateTransaction(testData.userContext, testData.chargingStationContext);
         response = await testData.userService.billingApi.readAll({}, ClientConstants.DEFAULT_PAGING, ClientConstants.DEFAULT_ORDERING, '/client/api/BillingUserInvoices');
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
