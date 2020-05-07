@@ -63,16 +63,15 @@ export default class SiteAreaStorage {
       _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
       issuer: siteAreaToSave.issuer,
-      accessControl: siteAreaToSave.accessControl,
-      smartCharging: siteAreaToSave.smartCharging,
-      siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
+      accessControl: Utils.convertToBoolean(siteAreaToSave.accessControl),
+      smartCharging: Utils.convertToBoolean(siteAreaToSave.smartCharging),
+      siteID: Utils.convertToObjectID(siteAreaToSave.siteID),
+      maximumPower: Utils.convertToFloat(siteAreaToSave.maximumPower),
+      numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {
       siteAreaMDB.address = siteAreaToSave.address;
     }
-
-    siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
-
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify

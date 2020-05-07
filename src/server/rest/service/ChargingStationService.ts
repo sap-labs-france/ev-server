@@ -92,6 +92,18 @@ export default class ChargingStationService {
           value: chargingStationID
         });
       }
+      for (const connector of chargingStation.connectors) {
+        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
+            module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+            user: req.user
+          });
+        }
+      }
     }
     // Save
     if (action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
@@ -163,6 +175,20 @@ export default class ChargingStationService {
     if (filteredRequest.siteArea) {
       chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
       chargingStation.siteAreaID = chargingStation.siteArea.id;
+      if (filteredRequest.connectors) {
+        for (const connector of filteredRequest.connectors) {
+          if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea.numberOfPhases === 1) {
+            throw new AppError({
+              source: Constants.CENTRAL_SERVER,
+              action: action,
+              errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+              message: `Error occurred while updating chargingStation: '${chargingStation.id}'. Site area '${chargingStation.siteArea.name}' is single phased.`,
+              module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
+              user: req.user,
+            });
+          }
+        }
+      }
     } else {
       chargingStation.siteAreaID = null;
     }
