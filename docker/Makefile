@@ -85,13 +85,13 @@ docker-login-ecr:
 	aws ecr get-login-password --region $(DOCKER_ECR_REGION) | docker login --username AWS --password-stdin $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME)
 
 $(NAME)-docker-tag-ecr:
-	docker tag $(PROJECT_NAME)_$(NAME):$(DOCKER_ECR_TAG) $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
+	docker tag $(PROJECT_NAME)_$(NAME) $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
 $(NAME)-docker-push-ecr: $(NAME)-force $(NAME)-docker-tag-ecr docker-login-ecr
 	docker push $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
 $(NAME)-standalone-docker-tag-ecr:
-	docker tag $(PROJECT_NAME)_$(NAME)-standalone:$(DOCKER_ECR_TAG) $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
+	docker tag $(PROJECT_NAME)_$(NAME)-standalone $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
 
 $(NAME)-standalone-docker-push-ecr: $(NAME)-standalone-force $(NAME)-standalone-docker-tag-ecr docker-login-ecr
 	docker push $(DOCKER_ECR_ACCOUNT_ID).dkr.ecr.$(DOCKER_ECR_REGION).amazonaws.com/$(DOCKER_ECR_REGISTRY_NAME):$(DOCKER_ECR_TAG)
