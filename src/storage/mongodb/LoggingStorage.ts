@@ -70,7 +70,7 @@ export default class LoggingStorage {
       host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'),
       type: logToSave.type,
-      timestamp: logToSave.timestamp,
+      timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
       method: logToSave.method,
       action: logToSave.action,

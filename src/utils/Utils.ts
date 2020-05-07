@@ -347,7 +347,7 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
-  static convertToBoolean(value: any) {
+  static convertToBoolean(value: any): boolean {
     let result = false;
     // Check boolean
     if (value) {
@@ -1013,8 +1013,6 @@ export default class Utils {
           user: req.user.id
         });
       }
-    }
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING) && siteArea.smartCharging) {
       if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
