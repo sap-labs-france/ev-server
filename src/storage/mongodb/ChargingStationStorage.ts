@@ -462,8 +462,8 @@ export default class ChargingStationStorage {
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
-      issuer: chargingStationToSave.issuer,
-      private: chargingStationToSave.private,
+      issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
+      private: Utils.convertToBoolean(chargingStationToSave.private),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
@@ -479,11 +479,11 @@ export default class ChargingStationStorage {
       ocppProtocol: chargingStationToSave.ocppProtocol,
       cfApplicationIDAndInstanceIndex: chargingStationToSave.cfApplicationIDAndInstanceIndex,
       lastHeartBeat: chargingStationToSave.lastHeartBeat,
-      deleted: chargingStationToSave.deleted,
-      lastReboot: chargingStationToSave.lastReboot,
+      deleted: Utils.convertToBoolean(chargingStationToSave.deleted),
+      lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
-      maximumPower: chargingStationToSave.maximumPower,
-      cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
+      maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
+      cannotChargeInParallel: Utils.convertToBoolean(chargingStationToSave.cannotChargeInParallel),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
@@ -504,7 +504,7 @@ export default class ChargingStationStorage {
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       chargingStationFilter,
       { $set: chargingStationMDB },
       { upsert: true });
@@ -808,7 +808,7 @@ export default class ChargingStationStorage {
     const chargingProfileMDB: any = {
       _id: chargingProfileFilter._id,
       chargingStationID: chargingProfileToSave.chargingStationID,
-      connectorID: chargingProfileToSave.connectorID,
+      connectorID: Utils.convertToInt(chargingProfileToSave.connectorID),
       profile: chargingProfileToSave.profile
     };
     await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(

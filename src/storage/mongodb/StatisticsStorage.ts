@@ -580,29 +580,27 @@ export default class StatisticsStorage {
           currentMetrics = [...currentMetrics, ...sites];
           sites = [];
           companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
+        // Initialize company as if it is a site with a fixed name ALL
+        } else if (!companyStat) {
+          companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
         } else {
-          // Initialize company as if it is a site with a fixed name ALL
-          if (!companyStat) {
-            companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
-          } else {
-            // Cumulate company overall results
-            companyStat.currentConsumption += transactionStatMDB.siteCurrentConsumption;
-            companyStat.totalConsumption += transactionStatMDB.siteTotalConsumption;
-            companyStat.currentTotalInactivitySecs += transactionStatMDB.siteCurrentTotalInactivitySecs;
-            companyStat.maximumPower += transactionStatMDB.siteMaximumPower;
-            companyStat.maximumNumberOfChargingPoint += transactionStatMDB.siteMaximumNumberOfChargingPoint;
-            companyStat.occupiedChargingPoint += transactionStatMDB.siteOccupiedChargingPoint;
-            companyStat.trends.totalConsumption.min = (transactionStatMDB.siteChargingTrendsMinConsumption < companyStat.trends.totalConsumption.min ? transactionStatMDB.siteChargingTrendsMinConsumption : companyStat.trends.totalConsumption.min);
-            companyStat.trends.totalConsumption.max = (transactionStatMDB.siteChargingTrendsMaxConsumption > companyStat.trends.totalConsumption.max ? transactionStatMDB.siteChargingTrendsMaxConsumption : companyStat.trends.totalConsumption.max);
-            companyStat.trends.totalConsumption.avg += transactionStatMDB.siteChargingTrendsAvgConsumption;
-            companyStat.trends.duration.min = (transactionStatMDB.siteChargingTrendsMinDuration < companyStat.trends.duration.min ? transactionStatMDB.siteChargingTrendsMinDuration : companyStat.trends.duration.min);
-            companyStat.trends.duration.max = (transactionStatMDB.siteChargingTrendsMaxDuration > companyStat.trends.duration.max ? transactionStatMDB.siteChargingTrendsMaxDuration : companyStat.trends.duration.max);
-            companyStat.trends.duration.avg += transactionStatMDB.siteChargingTrendsAvgDuration;
-            companyStat.trends.inactivity.min = (transactionStatMDB.siteChargingTrendsMinInactivity < companyStat.trends.inactivity.min ? transactionStatMDB.siteChargingTrendsMinInactivity : companyStat.trends.inactivity.min);
-            companyStat.trends.inactivity.max = (transactionStatMDB.siteChargingTrendsMaxInactivity > companyStat.trends.inactivity.max ? transactionStatMDB.siteChargingTrendsMaxInactivity : companyStat.trends.inactivity.max);
-            companyStat.trends.inactivity.avg += transactionStatMDB.siteChargingTrendsAvgInactivity;
-            companyStat.address.push(transactionStatMDB._id.address);
-          }
+          // Cumulate company overall results
+          companyStat.currentConsumption += transactionStatMDB.siteCurrentConsumption;
+          companyStat.totalConsumption += transactionStatMDB.siteTotalConsumption;
+          companyStat.currentTotalInactivitySecs += transactionStatMDB.siteCurrentTotalInactivitySecs;
+          companyStat.maximumPower += transactionStatMDB.siteMaximumPower;
+          companyStat.maximumNumberOfChargingPoint += transactionStatMDB.siteMaximumNumberOfChargingPoint;
+          companyStat.occupiedChargingPoint += transactionStatMDB.siteOccupiedChargingPoint;
+          companyStat.trends.totalConsumption.min = (transactionStatMDB.siteChargingTrendsMinConsumption < companyStat.trends.totalConsumption.min ? transactionStatMDB.siteChargingTrendsMinConsumption : companyStat.trends.totalConsumption.min);
+          companyStat.trends.totalConsumption.max = (transactionStatMDB.siteChargingTrendsMaxConsumption > companyStat.trends.totalConsumption.max ? transactionStatMDB.siteChargingTrendsMaxConsumption : companyStat.trends.totalConsumption.max);
+          companyStat.trends.totalConsumption.avg += transactionStatMDB.siteChargingTrendsAvgConsumption;
+          companyStat.trends.duration.min = (transactionStatMDB.siteChargingTrendsMinDuration < companyStat.trends.duration.min ? transactionStatMDB.siteChargingTrendsMinDuration : companyStat.trends.duration.min);
+          companyStat.trends.duration.max = (transactionStatMDB.siteChargingTrendsMaxDuration > companyStat.trends.duration.max ? transactionStatMDB.siteChargingTrendsMaxDuration : companyStat.trends.duration.max);
+          companyStat.trends.duration.avg += transactionStatMDB.siteChargingTrendsAvgDuration;
+          companyStat.trends.inactivity.min = (transactionStatMDB.siteChargingTrendsMinInactivity < companyStat.trends.inactivity.min ? transactionStatMDB.siteChargingTrendsMinInactivity : companyStat.trends.inactivity.min);
+          companyStat.trends.inactivity.max = (transactionStatMDB.siteChargingTrendsMaxInactivity > companyStat.trends.inactivity.max ? transactionStatMDB.siteChargingTrendsMaxInactivity : companyStat.trends.inactivity.max);
+          companyStat.trends.inactivity.avg += transactionStatMDB.siteChargingTrendsAvgInactivity;
+          companyStat.address.push(transactionStatMDB._id.address);
         }
         // Push current site
         sites.push(StatisticsStorage.convertDBMetricsToSiteMetrics(transactionStatMDB));

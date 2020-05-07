@@ -269,9 +269,9 @@ export default class SiteStorage {
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
-      issuer: siteToSave.issuer,
+      issuer: Utils.convertToBoolean(siteToSave.issuer),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
+      autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
     // Add Last Changed/Created props
