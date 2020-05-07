@@ -30,7 +30,7 @@ const config = {
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: [/node_modules/, /\.git/]
+        exclude: [/node_modules/]
       }
     ]
   },
@@ -53,8 +53,12 @@ const config = {
   ],
   optimization: {
     minimize: false,
-    minimizer: [new TerserPlugin()]
-  }
+    minimizer: [
+      new TerserPlugin({
+        sourceMap: true,
+      }),
+    ],
+  },
 };
 
 module.exports = config;
