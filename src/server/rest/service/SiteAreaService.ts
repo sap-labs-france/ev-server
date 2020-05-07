@@ -317,9 +317,9 @@ export default class SiteAreaService {
               source: Constants.CENTRAL_SERVER,
               action: action,
               errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
-              message: `'Error occurred while updating SiteArea.'${charger.id} is not single phased`,
+              message: `'Error occurred while updating SiteArea.'${charger.id}' is not single phased`,
               module: MODULE_NAME, method: 'handleUpdateSiteArea',
-              user: req.user, actionOnUser: req.user
+              user: req.user
             });
           }
         }
