@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "Unable to synchronize <%- nbrCarsInError %> car(s) with the electric vehicules data provider.",
+      "Unable to synchronize <%- nbrCarsInError %> car(s) with the electric vehicles data provider.",
       ""
     ],
     "action": {
