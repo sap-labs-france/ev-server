@@ -247,14 +247,6 @@ export default class Logging {
     next();
   }
 
-  public static getLog(tenantID, id): any {
-    return LoggingStorage.getLog(tenantID, id);
-  }
-
-  public static getLogs(tenantID, params, dbParams): any {
-    return LoggingStorage.getLogs(tenantID, params, dbParams);
-  }
-
   private static _logActionExceptionMessage(tenantID: string, action: ServerAction, exception: any): void {
     // Log
     Logging.logError({

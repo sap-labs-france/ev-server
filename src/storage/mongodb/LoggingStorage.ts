@@ -94,8 +94,8 @@ export default class LoggingStorage {
   }
 
   public static async getLogs(tenantID: string, params: {
-    dateFrom?: Date; dateUntil?: Date; level?: LogLevel; sources?: string[]; type?: LogType; actions?: string[];
-    host?: string; userIDs?: string[]; search?: string; logID?: string;
+    startDateTime?: Date; endDateTime?: Date; levels?: string[]; sources?: string[]; type?: string; actions?: string[];
+    hosts?: string[]; userIDs?: string[]; search?: string; logID?: string;
   } = {}, dbParams: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -106,23 +106,23 @@ export default class LoggingStorage {
     // Set the filters
     const filters: any = {};
     // Date provided?
-    if (params.dateFrom || params.dateUntil) {
+    if (params.startDateTime || params.endDateTime) {
       filters.timestamp = {};
     }
     // Start date
-    if (params.dateFrom) {
-      filters.timestamp.$gte = new Date(params.dateFrom);
+    if (params.startDateTime) {
+      filters.timestamp.$gte = new Date(params.startDateTime);
     }
     // End date
-    if (params.dateUntil) {
-      filters.timestamp.$lte = new Date(params.dateUntil);
+    if (params.endDateTime) {
+      filters.timestamp.$lte = new Date(params.endDateTime);
     }
     // Filter on log levels
-    if (params.level && Array.isArray(params.level)) {
-      filters.level = { $in: params.level };
+    if (params.levels && params.levels.length > 0) {
+      filters.level = { $in: params.levels };
     }
     // Filter on charging Stations
-    if (params.sources && Array.isArray(params.sources) && params.sources.length > 0) {
+    if (params.sources && params.sources.length > 0) {
       filters.source = { $in: params.sources };
     }
     // Type
@@ -130,15 +130,15 @@ export default class LoggingStorage {
       filters.type = params.type;
     }
     // Filter on actions
-    if (params.actions && Array.isArray(params.actions) && params.actions.length > 0) {
+    if (params.actions && params.actions.length > 0) {
       filters.action = { $in: params.actions };
     }
     // Filter on host
-    if (params.host && Array.isArray(params.host) && params.host.length > 0) {
-      filters.host = { $in: params.host };
+    if (params.hosts && params.hosts.length > 0) {
+      filters.host = { $in: params.hosts };
     }
     // Filter on users
-    if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
+    if (params.userIDs && params.userIDs.length > 0) {
       filters.$or = [
         { userID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } },
         { actionOnUserID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } }

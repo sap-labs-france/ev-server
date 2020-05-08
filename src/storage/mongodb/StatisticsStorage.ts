@@ -1,14 +1,15 @@
+import moment from 'moment';
+import global from '../../types/GlobalType';
+import StatisticFilter from '../../types/Statistic';
 import Constants from '../../utils/Constants';
-import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
-import moment from 'moment';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'StatisticsStorage';
 
 export default class StatisticsStorage {
-  static async getChargingStationStats(tenantID, filter, groupBy) {
+  static async getChargingStationStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStationStats');
     // Check Tenant
@@ -16,43 +17,43 @@ export default class StatisticsStorage {
     // Build filter
     const match: any = {};
     // Date provided?
-    if (filter.startDateTime || filter.endDateTime) {
+    if (filters.startDateTime || filters.endDateTime) {
       match.timestamp = {};
     }
     // Start date
-    if (filter.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(filter.startDateTime);
+    if (filters.startDateTime) {
+      match.timestamp.$gte = Utils.convertToDate(filters.startDateTime);
     }
     // End date
-    if (filter.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(filter.endDateTime);
+    if (filters.endDateTime) {
+      match.timestamp.$lte = Utils.convertToDate(filters.endDateTime);
     }
     // Check stop tr
-    if (filter.stop) {
-      match.stop = filter.stop;
+    if (filters.stop) {
+      match.stop = filters.stop;
     }
     // Filter on Site?
-    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+    if (filters.siteIDs && Array.isArray(filters.siteIDs) && filters.siteIDs.length > 0) {
       match.siteID = {
-        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+    if (filters.siteAreaIDs && Array.isArray(filters.siteAreaIDs) && filters.siteAreaIDs.length > 0) {
       match.siteAreaID = {
-        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+        $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+    if (filters.chargeBoxIDs && Array.isArray(filters.chargeBoxIDs) && filters.chargeBoxIDs.length > 0) {
       match.chargeBoxID = {
-        $in: filter.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
+        $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+    if (filters.userIDs && Array.isArray(filters.userIDs) && filters.userIDs.length > 0) {
       match.userID = {
-        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };
     }
     // Create Aggregation
@@ -125,11 +126,11 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filter, groupBy });
+    Logging.traceEnd(MODULE_NAME, 'getChargingStationStats', uniqueTimerID, { filters, groupBy });
     return transactionStatsMDB;
   }
 
-  static async getUserStats(tenantID, filter, groupBy) {
+  static async getUserStats(tenantID: string, filters: StatisticFilter, groupBy: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserStats');
     // Check Tenant
@@ -137,43 +138,43 @@ export default class StatisticsStorage {
     // Build filter
     const match: any = {};
     // Date provided?
-    if (filter.startDateTime || filter.endDateTime) {
+    if (filters.startDateTime || filters.endDateTime) {
       match.timestamp = {};
     }
     // Start date
-    if (filter.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(filter.startDateTime);
+    if (filters.startDateTime) {
+      match.timestamp.$gte = Utils.convertToDate(filters.startDateTime);
     }
     // End date
-    if (filter.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(filter.endDateTime);
+    if (filters.endDateTime) {
+      match.timestamp.$lte = Utils.convertToDate(filters.endDateTime);
     }
     // Check stop tr
-    if (filter.stop) {
-      match.stop = filter.stop;
+    if (filters.stop) {
+      match.stop = filters.stop;
     }
     // Filter on Site?
-    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+    if (filters.siteIDs && Array.isArray(filters.siteIDs) && filters.siteIDs.length > 0) {
       match.siteID = {
-        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: filters.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Filter on Site Area?
-    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+    if (filters.siteAreaIDs && Array.isArray(filters.siteAreaIDs) && filters.siteAreaIDs.length > 0) {
       match.siteAreaID = {
-        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+        $in: filters.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
       };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+    if (filters.chargeBoxIDs && Array.isArray(filters.chargeBoxIDs) && filters.chargeBoxIDs.length > 0) {
       match.chargeBoxID = {
-        $in: filter.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
+        $in: filters.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
-    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+    if (filters.userIDs && Array.isArray(filters.userIDs) && filters.userIDs.length > 0) {
       match.userID = {
-        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+        $in: filters.userIDs.map((userID) => Utils.convertToObjectID(userID))
       };
     }
     // Create Aggregation
@@ -259,17 +260,17 @@ export default class StatisticsStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUserStats', uniqueTimerID, { filter, groupBy });
+    Logging.traceEnd(MODULE_NAME, 'getUserStats', uniqueTimerID, { filters, groupBy });
     return transactionStatsMDB;
   }
 
-  static async getCurrentMetrics(tenantID, filteredRequest) {
+  static async getCurrentMetrics(tenantID: string, filters: { periodInMonth: number }) {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCurrentMetrics');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Filter results of last 6 months
-    const transactionDateFilter = moment().utc().startOf('day').subtract(filteredRequest.periodInMonth, 'months').toDate();
+    const transactionDateFilter = moment().utc().startOf('day').subtract(filters.periodInMonth, 'months').toDate();
     // Beginning of the day
     const beginningOfTheDay = moment().utc().startOf('date').toDate();
     // Build filter
@@ -614,7 +615,7 @@ export default class StatisticsStorage {
     }
 
     // Debug
-    Logging.traceEnd(MODULE_NAME, 'getcurrentMetrics', uniqueTimerID, { filteredRequest });
+    Logging.traceEnd(MODULE_NAME, 'getcurrentMetrics', uniqueTimerID, { filters });
     return currentMetrics;
   }
 

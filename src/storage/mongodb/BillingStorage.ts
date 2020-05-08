@@ -52,8 +52,7 @@ export default class BillingStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
-    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
-
+    const filters: any = {};
     // Filter by ID
     if (params.invoiceID) {
       filters._id = Utils.convertToObjectID(params.invoiceID);
@@ -65,48 +64,31 @@ export default class BillingStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    // Set filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
     if (params.userIDs) {
-      aggregation.push({
-        $match: {
-          'userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) }
-        }
-      });
+      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     if (params.billingInvoiceID) {
-      aggregation.push({
-        $match: {
-          'invoiceID': { $eq: params.billingInvoiceID }
-        }
-      });
+      filters.invoiceID = { $eq: params.billingInvoiceID };
     }
     // Status
     if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
-      aggregation.push({
-        $match: {
-          'status': { $in: params.invoiceStatus }
-        }
-      });
+      filters.status = { $in: params.invoiceStatus };
+    }
+    if (params.startDateTime || params.endDateTime) {
+      filters.createdOn = {};
     }
     // Start date
     if (params.startDateTime) {
-      aggregation.push({
-        $match: {
-          'createdOn': { $gte: Utils.convertToDate(params.startDateTime) }
-        }
-      });
+      filters.createdOn.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
+      filters.createdOn.$lte = Utils.convertToDate(params.endDateTime);
+    }
+    // Set filters
+    if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
-        $match: {
-          'createdOn': { $lte: Utils.convertToDate(params.endDateTime) }
-        }
+        $match: filters
       });
     }
     // Limit records?
