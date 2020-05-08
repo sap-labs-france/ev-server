@@ -39,7 +39,7 @@ export default class BillingStorage {
 
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceID?: string; billingInvoiceID?: string; search?: string; userID?: string[]; invoiceStatus?: BillingInvoiceStatus[];
+      invoiceID?: string; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
       startDateTime?: Date; endDateTime?: Date;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
@@ -71,10 +71,10 @@ export default class BillingStorage {
         $match: filters
       });
     }
-    if (params.userID) {
+    if (params.userIDs) {
       aggregation.push({
         $match: {
-          'userID': { $in: params.userID.map((userID) => Utils.convertToObjectID(userID)) }
+          'userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) }
         }
       });
     }

@@ -30,7 +30,7 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadBillingTaxes(loggedUser)) {
+    if (Authorizations.canReadTaxesBilling(loggedUser)) {
       // Set only necessary info
       filteredTax.id = tax.id;
       filteredTax.description = tax.description;
@@ -61,7 +61,7 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadBillingInvoices(loggedUser)) {
+    if (Authorizations.canReadInvoicesBilling(loggedUser)) {
       // Set only necessary info
       filteredInvoice.userID = invoice.userID;
       filteredInvoice.invoiceID = invoice.invoiceID;
@@ -111,7 +111,7 @@ export default class BillingSecurity {
   static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
     const filteredUser = {} as HttpForceSynchronizeUserInvoicesRequest;
     if (request.id) {
-      filteredUser.id = sanitize(request.id);
+      filteredUser.userID = sanitize(request.userID);
     }
     return filteredUser;
   }

@@ -163,9 +163,9 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
   public async getInvoice(id: string): Promise<BillingInvoice> {
     // Check Stripe
     await this.checkConnection();
-    try {
-      // Get Invoice
-      const stripeInvoice = await this.stripe.invoices.retrieve(id);
+    // Get Invoice
+    const stripeInvoice = await this.stripe.invoices.retrieve(id);
+    if (stripeInvoice) {
       return {
         invoiceID: stripeInvoice.id,
         customerID: stripeInvoice.customer.toString(),
@@ -176,9 +176,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
         createdOn: new Date(stripeInvoice.created * 1000),
         nbrOfItems: stripeInvoice.lines.total_count
       } as BillingInvoice;
-    } catch (error) {
-      return null;
     }
+    return null;
   }
 
   public async getUpdatedUserIDsInBilling(): Promise<string[]> {
@@ -219,13 +218,11 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
     return collectedCustomerIDs;
   }
 
-  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser, since?: number): Promise<string[]> {
+  public async getUpdatedInvoiceIDsInBilling(billingUser?: BillingUser): Promise<string[]> {
     let createdSince: string;
     // Check Stripe
     await this.checkConnection();
-    if (since) {
-      createdSince = since.toString();
-    } else if (billingUser) {
+    if (billingUser) {
       // Start sync from last invoices sync
       createdSince = billingUser.billingData.invoicesLastSynchronizedOn ? `${moment(billingUser.billingData.invoicesLastSynchronizedOn).unix()}` : '0';
     } else {

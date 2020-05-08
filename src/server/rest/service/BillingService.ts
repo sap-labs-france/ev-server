@@ -179,7 +179,7 @@ export default class BillingService {
   }
 
   public static async handleGetBillingTaxes(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    if (!Authorizations.canReadBillingTaxes(req.user)) {
+    if (!Authorizations.canReadTaxesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -216,7 +216,7 @@ export default class BillingService {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.LIST, Entity.INVOICES, MODULE_NAME, 'handleGetUserInvoices');
-    if (!Authorizations.canReadBillingInvoices(req.user)) {
+    if (!Authorizations.canReadInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -247,7 +247,7 @@ export default class BillingService {
     // Get invoices
     const invoices = await BillingStorage.getInvoices(req.user.tenantID,
       {
-        userID: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
+        userIDs: filteredRequest.UserID ? filteredRequest.UserID.split('|') : null,
         invoiceStatus: filteredRequest.Status ? filteredRequest.Status.split('|') as BillingInvoiceStatus[] : null,
         search: filteredRequest.Search ? filteredRequest.Search : null,
         startDateTime: filteredRequest.StartDateTime ? filteredRequest.StartDateTime : null,
@@ -358,8 +358,8 @@ export default class BillingService {
     }
     const filteredRequest = BillingSecurity.filterForceSynchronizeUserInvoicesRequest(req.body);
     // Get the User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.id}' doesn't exist anymore.`,
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
+    UtilsService.assertObjectExists(action, user, `User '${filteredRequest.userID}' doesn't exist anymore.`,
       MODULE_NAME, 'handleForceSynchronizeUserInvoices', req.user);
     // Sync user invoices
     const synchronizeAction = await billingImpl.forceSynchronizeUserInvoices(req.user.tenantID, user);
