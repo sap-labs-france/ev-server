@@ -1,7 +1,8 @@
+import User, { UserRole } from '../../types/User';
+
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { UserRole } from '../../types/User';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
@@ -18,7 +19,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
 
   async migrateSuperTenant() {
     // Read all users
-    const users: any = await global.database.getCollection(Constants.DEFAULT_TENANT, 'users').aggregate().toArray();
+    const users: any = await global.database.getCollection<User>(Constants.DEFAULT_TENANT, 'users').aggregate().toArray();
     // Process each user
     for (const user of users) {
       // Exists?
@@ -42,7 +43,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
 
   async migrateTenant(tenant) {
     // Read all users
-    const users: any = await global.database.getCollection(tenant.id, 'users').aggregate().toArray();
+    const users: any = await global.database.getCollection<User>(tenant.id, 'users').aggregate().toArray();
     // Process each user
     for (const user of users) {
       if (user.notificationsActive) {

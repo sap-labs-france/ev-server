@@ -3,6 +3,8 @@ import Constants from '../../utils/Constants';
 import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import { LockEntity } from '../../types/Locking';
+import LockingManager from '../../locking/LockingManager';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Tenant from '../../types/Tenant';
@@ -77,8 +79,17 @@ export default class TenantStorage {
   public static async createTenantDB(tenantID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'createTenantDB');
-    // Create DB
-    await global.database.checkAndCreateTenantDatabase(tenantID);
+    // Database creation Lock
+    const createDatabaseLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE, 'create-database');
+    if (await LockingManager.acquire(createDatabaseLock)) {
+      try {
+        // Create tenant collections
+        await global.database.checkAndCreateTenantDatabase(tenantID);
+      } finally {
+        // Release the database creation Lock
+        await LockingManager.release(createDatabaseLock);
+      }
+    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'createTenantDB', uniqueTimerID, { tenantID });
   }

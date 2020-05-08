@@ -30,7 +30,7 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<any>(tenantID, 'logs')
+    const result = await global.database.getCollection<Log>(tenantID, 'logs')
       .deleteMany(filters);
     // Return the result
     return result.result;
@@ -52,7 +52,7 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection<any>(tenantID, 'logs')
+    const result = await global.database.getCollection<Log>(tenantID, 'logs')
       .deleteMany(filters);
     // Return the result
     return result.result;
@@ -70,7 +70,7 @@ export default class LoggingStorage {
       host: logToSave.host ? logToSave.host : (Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()),
       process: logToSave.process ? logToSave.process : (cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'),
       type: logToSave.type,
-      timestamp: logToSave.timestamp,
+      timestamp: Utils.convertToDate(logToSave.timestamp),
       module: logToSave.module,
       method: logToSave.method,
       action: logToSave.action,
@@ -78,7 +78,7 @@ export default class LoggingStorage {
       detailedMessages: logToSave.detailedMessages
     };
     // Insert
-    await global.database.getCollection<any>(tenantID, 'logs').insertOne(logMDB);
+    await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
   }
 
   public static async getLog(tenantID: string, id: string): Promise<Log> {

@@ -195,7 +195,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
       ).catch(
-        () => {}
+        () => { }
       );
       // Log
       Logging.logInfo({
@@ -1089,7 +1089,7 @@ export default class OCPPService {
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
         }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 
@@ -1196,7 +1196,7 @@ export default class OCPPService {
           consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
           // Compute it for Charging Stations
-          const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [ chargingStation.siteAreaID ] }, Constants.DB_PARAMS_MAX_LIMIT);
+          const chargingStationsOfSiteArea = await ChargingStationStorage.getChargingStations(tenantID, { siteAreaIDs: [chargingStation.siteAreaID] }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStationOfSiteArea of chargingStationsOfSiteArea.result) {
             for (const connector of chargingStationOfSiteArea.connectors) {
               consumption.limitSiteAreaWatts += connector.power;
@@ -1526,7 +1526,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 
@@ -1550,7 +1550,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 
@@ -1788,7 +1788,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL':
             await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
         }
-      ).catch(() => {});
+      ).catch(() => { });
     }
   }
 
@@ -1886,7 +1886,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         }
-      ).catch(() => {});
+      ).catch(() => { });
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
         NotificationHandler.sendEndOfSignedSession(
@@ -1918,7 +1918,7 @@ export default class OCPPService {
             'endSignedData': transaction.stop.signedData,
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           }
-        ).catch(() => {});
+        ).catch(() => { });
       }
     }
   }
@@ -1928,20 +1928,16 @@ export default class OCPPService {
     const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
     if (siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
-      if (!siteAreaLock) {
-        return;
-      }
-      try {
-        const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
-        if (smartCharging) {
-          await smartCharging.computeAndApplyChargingProfiles(siteArea);
+      if (siteAreaLock) {
+        try {
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+          if (smartCharging) {
+            await smartCharging.computeAndApplyChargingProfiles(siteArea);
+          }
+        } finally {
+          // Release lock
+          await LockingManager.release(siteAreaLock);
         }
-        // Release lock
-        await LockingManager.release(siteAreaLock);
-      } catch (error) {
-        // Release lock
-        await LockingManager.release(siteAreaLock);
-        throw error;
       }
     }
   }

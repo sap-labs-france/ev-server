@@ -141,7 +141,6 @@ export default class NotificationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
     const ocpiEndpointMDB: any = {
       _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
       userID: Utils.convertToObjectID(notificationToSave.userID),
@@ -152,7 +151,6 @@ export default class NotificationStorage {
       data: notificationToSave.data,
       chargeBoxID: notificationToSave.chargeBoxID
     };
-
     // Create
     await global.database.getCollection<any>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);

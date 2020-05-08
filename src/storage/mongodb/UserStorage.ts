@@ -239,7 +239,7 @@ export default class UserStorage {
     // eslint-disable-next-line prefer-const
     let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
-      issuer: userToSave.issuer,
+      issuer: Utils.convertToBoolean(userToSave.issuer),
       name: userToSave.name,
       firstName: userToSave.firstName,
       email: userToSave.email,
