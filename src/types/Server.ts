@@ -335,7 +335,6 @@ export enum ServerAction {
   BILLING_TAXES = 'BillingTaxes',
   BILLING_USER_INVOICES = 'BillingUserInvoices',
   BILLING_SYNCHRONIZE_INVOICES = 'BillingSynchronizeInvoices',
-  BILLING_SYNCHRONIZE_USER_INVOICES = 'BillingSynchronizeUserInvoices',
   BILLING_FORCE_SYNCHRONIZE_USER_INVOICES = 'BillingForceSynchronizeUserInvoices',
 
   MONGO_DB = 'MongoDB',

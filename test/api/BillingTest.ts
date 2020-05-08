@@ -489,18 +489,6 @@ describe('Billing Service', function() {
         const invoicesAfter = response.data.count;
         expect(invoicesAfter).to.be.eq(invoicesBefore + 1);
       });
-
-      it('should only synchronize invoices owned by user', async () => {
-        await testData.userService.billingApi.synchronizeUserInvoices();
-        const adminUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN);
-        const basicUser = testData.tenantContext.getUserContext(ContextDefinition.USER_CONTEXTS.BASIC_USER);
-        await generateTransaction(adminUser, testData.chargingStationContext); // Generate a transaction as Admin
-        await generateTransaction(basicUser, testData.chargingStationContext); // Generate a transaction as Basic
-        // Basic user should synchronize 1 invoice
-        const response = await testData.userService.billingApi.synchronizeUserInvoices();
-        expect(response.data).containSubset(Constants.REST_RESPONSE_SUCCESS);
-        expect(response.data.inSuccess).to.be.eq(1);
-      });
     });
   });
 });
