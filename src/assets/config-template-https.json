@@ -1,7 +1,7 @@
 {
   "EVDatabase": {
-    "url":"",
-    "key":""
+    "url": "",
+    "key": ""
   },
   "Crypto": {
     "key": "",
@@ -15,7 +15,7 @@
     {
       "type": "ocpp",
       "implementation": "soap",
-      "protocol": "http",
+      "protocol": "https",
       "host": "localhost",
       "port": 8000,
       "debug": false
@@ -95,14 +95,14 @@
     "monitorDBChange": true,
     "debug": false
   },
-	"Notification": {
+  "Notification": {
     "Email": {
       "enabled": true
     },
-		"RemotePushNotification": {
+    "RemotePushNotification": {
       "enabled": true
-		}
-	},
+    }
+  },
   "Firebase": {
     "type": "",
     "projectID": "",
@@ -158,8 +158,7 @@
   },
   "Scheduler": {
     "active": false,
-    "tasks": [
-    ]
+    "tasks": []
   },
   "Logging": {
     "logLevel": "D",
