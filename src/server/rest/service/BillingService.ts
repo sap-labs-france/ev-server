@@ -333,17 +333,17 @@ export default class BillingService {
   }
 
   public static async handleForceSynchronizeUserInvoices(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    if (!Authorizations.canForceSynchronizeInvoicesBilling(req.user)) {
+    if (!Authorizations.canSynchronizeInvoicesBilling(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        entity: Entity.USER, action: Action.FORCE_SYNCHRONIZE_INVOICES,
+        entity: Entity.USER, action: Action.SYNCHRONIZE_INVOICES,
         module: MODULE_NAME, method: 'handleForceSynchronizeUserInvoices',
       });
     }
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.FORCE_SYNCHRONIZE_INVOICES, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
+      Action.SYNCHRONIZE_INVOICES, Entity.BILLING, MODULE_NAME, 'handleForceSynchronizeUserInvoices');
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
     if (!billingImpl) {
