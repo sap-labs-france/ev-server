@@ -1,3 +1,4 @@
+import { Car, UserCar } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -1404,6 +1405,49 @@ export default class Utils {
   public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+  }
+
+  public static checkIfCarValid(car: Partial<Car>, req: Request): void {
+    if (req.method !== 'POST' && !car.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car ID is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.vin) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Vin Car is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.licensePlate) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'License Plate is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.carCatalogID) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car Catalog ID  is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
   }
 
   private static _isUserEmailValid(email: string): boolean {

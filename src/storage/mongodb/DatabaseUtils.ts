@@ -49,6 +49,24 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushCarCatalogLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('carcatalogs', {
+      ...lookupParams
+    });
+  }
+
+  public static pushCarLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('cars', {
+      ...lookupParams
+    });
+  }
+
+  public static pushUserCarLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('userscars', {
+      ...lookupParams
+    });
+  }
+
   public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
       ...lookupParams
@@ -102,7 +120,9 @@ export default class DatabaseUtils {
     if (!lookupParams.pipelineMatch) {
       lookupParams.pipelineMatch = {};
     }
-    lookupParams.pipelineMatch['$expr'] = { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
+    lookupParams.pipelineMatch['$expr'] = lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
+      { '$in': [`$${lookupParams.foreignField}`, '$$fieldVar.' + lookupParams.localField.split('.')[1]] } :
+      { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
     const pipeline: any[] = [
       { '$match': lookupParams.pipelineMatch }
     ];
@@ -131,7 +151,9 @@ export default class DatabaseUtils {
     lookupParams.aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(lookupParams.tenantID, collection),
-        'let': { 'fieldVar': `$${lookupParams.localField}` },
+        'let': { 'fieldVar': `$${lookupParams.localField.includes('.') && !lookupParams.oneToOneCardinality ?
+          lookupParams.localField.split('.')[0] :
+          lookupParams.localField}` },
         pipeline,
         'as': lookupParams.asField
       }

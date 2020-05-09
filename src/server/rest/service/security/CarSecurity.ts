@@ -1,9 +1,11 @@
-import { CarCatalog, CarMaker } from '../../../../types/Car';
-import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarMakersRequest } from '../../../../types/requests/HttpCarRequest';
+import { Car, CarCatalog, CarMaker } from '../../../../types/Car';
+import { HttpCarCatalogByIDRequest, HttpCarCatalogImagesRequest, HttpCarCatalogsRequest, HttpCarCreateRequest, HttpCarMakersRequest, HttpCarsRequest } from '../../../../types/requests/HttpCarRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
 
@@ -145,5 +147,71 @@ export default class CarSecurity {
       }
     }
     carCatalogs.result = filteredCarCatalogs;
+  }
+
+  public static filterCarCreateRequest(request: any): HttpCarCreateRequest {
+    return {
+      vin: sanitize(request.vin),
+      licensePlate: sanitize(request.licensePlate),
+      carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
+      forced: UtilsSecurity.filterBoolean(request.forced)
+    };
+  }
+
+  public static filterCarsResponse(cars: DataResult<Car>, loggedUser: UserToken) {
+    const filteredCars: Car[] = [];
+    if (!cars.result) {
+      return null;
+    }
+    if (!Authorizations.canListCars(loggedUser)) {
+      return null;
+    }
+    for (const car of cars.result) {
+      // Add
+      if (car) {
+        filteredCars.push(
+          this.filterCarResponse(car, loggedUser)
+        );
+      }
+    }
+    cars.result = filteredCars;
+  }
+
+  public static filterCarResponse(car: Car, loggedUser: UserToken): Car {
+    let filteredCar: Car;
+    if (!car) {
+      return null;
+    }
+    // Admin?
+    if (Authorizations.isAdmin(loggedUser)) {
+      // Yes: set all params
+      filteredCar = car;
+    } else {
+      // Set only necessary info
+      filteredCar = {
+        id: car.id,
+        vin: car.vin,
+        licensePlate: car.licensePlate,
+        carCatalogID: car.carCatalogID,
+      };
+    }
+    if (car.users) {
+      filteredCar.users = car.users.map(
+        (user) => UserSecurity.filterUserResponse(user, loggedUser));
+    }
+    if (car.carCatalog) {
+      filteredCar.carCatalog = CarSecurity.filterCarCatalogResponse(car.carCatalog, loggedUser);
+    }
+    return filteredCar;
+  }
+
+  public static filterCarsRequest(request: any): HttpCarsRequest {
+    const filteredRequest: HttpCarsRequest = {
+      Search: sanitize(request.Search),
+      CarMaker: sanitize(request.CarMaker),
+    } as HttpCarsRequest;
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 }

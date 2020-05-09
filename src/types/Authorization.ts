@@ -27,7 +27,7 @@ export interface AuthorizationDefinition {
 
 export interface Grant {
   resource: Entity;
-  action: Action|Action[];
+  action: Action | Action[];
   attributes?: string[];
   args?: any;
   condition?: any;
@@ -67,6 +67,8 @@ export enum Entity {
   ASSETS = 'Assets',
   CAR_CATALOG = 'CarCatalog',
   CAR_CATALOGS = 'CarCatalogs',
+  CAR = 'Car',
+  CARS = 'Cars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes'

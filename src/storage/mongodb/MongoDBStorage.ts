@@ -106,6 +106,14 @@ export default class MongoDBStorage {
       { fields: { siteID: 1, userID: 1 }, options: { unique: true } },
       { fields: { userID: 1 } }
     ]);
+    // User Cars
+    await this.handleIndexesInCollection(collections, tenantID, 'usercars', [
+      { fields: { userID: 1, carID: 1 }, options: { unique: true } }
+    ]);
+    // Cars
+    await this.handleIndexesInCollection(collections, tenantID, 'cars', [
+      { fields: { vin: 1, licensePlate: 1 }, options: { unique: true } }
+    ]);
     // Transactions
     await this.handleIndexesInCollection(collections, tenantID, 'transactions', [
       { fields: { timestamp: 1 } },

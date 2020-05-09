@@ -15,3 +15,15 @@ export interface HttpCarCatalogImagesRequest extends HttpDatabaseRequest {
 export interface HttpCarCatalogByIDRequest {
   ID: number;
 }
+
+export interface HttpCarCreateRequest {
+  vin: string;
+  licensePlate: string;
+  carCatalogID: number;
+  forced: boolean;
+}
+
+export interface HttpCarsRequest extends HttpDatabaseRequest {
+  Search: string;
+  CarMaker: string;
+}

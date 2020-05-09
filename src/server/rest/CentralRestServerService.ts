@@ -94,7 +94,8 @@ class RequestMapper {
           [ServerAction.OCPI_ENPOINT_SEND_TOKENS]: OCPIEndpointService.handleSendTokensOcpiEndpoint.bind(this),
           [ServerAction.OCPI_ENPOINT_GENERATE_LOCAL_TOKEN]: OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint.bind(this),
           [ServerAction.INTEGRATION_CONNECTION_CREATE]: ConnectionService.handleCreateConnection.bind(this),
-          [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this)
+          [ServerAction.CHARGING_STATION_REQUEST_OCPP_PARAMETERS]: ChargingStationService.handleRequestChargingStationOcppParameters.bind(this),
+          [ServerAction.CAR_CREATE]: CarService.handleCarCreate.bind(this)
         });
         break;
 
@@ -109,6 +110,7 @@ class RequestMapper {
           [ServerAction.CAR_CATALOGS]: CarService.handleGetCarCatalogs.bind(this),
           [ServerAction.CAR_CATALOG]: CarService.handleGetCarCatalog.bind(this),
           [ServerAction.CAR_MAKERS]: CarService.handleGetCarMakers.bind(this),
+          [ServerAction.CARS]: CarService.handleGetCars.bind(this),
           [ServerAction.CAR_CATALOG_IMAGES]: CarService.handleGetCarCatalogImages.bind(this),
           [ServerAction.CHARGING_STATIONS_EXPORT]: ChargingStationService.handleGetChargingStationsExport.bind(this),
           [ServerAction.CHARGING_STATIONS_OCPP_PARAMS_EXPORT]: ChargingStationService.handleChargingStationsOCPPParamsExport.bind(this),
