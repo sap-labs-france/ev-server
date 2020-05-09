@@ -1450,39 +1450,6 @@ export default class Utils {
     }
   }
 
-  public static checkIfUserCarValid(userCar: Partial<UserCar>, req: Request): void {
-    if (req.method !== 'POST' && !userCar.id) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserCarValid',
-        user: req.user.id
-      });
-    }
-    if (!userCar.carID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Car ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserCarValid',
-        user: req.user.id
-      });
-    }
-    if (!userCar.userID) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'User ID is mandatory',
-        module: MODULE_NAME,
-        method: 'checkIfUserCarValid',
-        user: req.user.id
-      });
-    }
-  }
-
   private static _isUserEmailValid(email: string): boolean {
     return validator.isEmail(email);
   }

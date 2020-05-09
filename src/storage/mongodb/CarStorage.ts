@@ -20,7 +20,6 @@ export default class CarStorage {
     const carCatalogsMDB = await CarStorage.getCarCatalogs(
       { carCatalogID: Utils.convertToInt(id) },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-
     Logging.traceEnd(MODULE_NAME, 'getCarCatalog', uniqueTimerID, { id });
     return carCatalogsMDB.count > 0 ? carCatalogsMDB.result[0] : null;
   }
@@ -330,7 +329,7 @@ export default class CarStorage {
     Logging.traceEnd(MODULE_NAME, 'saveCarImages', uniqueTimerID, { carID });
   }
 
-  public static async getCarCatalogImages(id: number, dbParams?: DbParams): Promise<DataResult<Image>> {
+  public static async getCarCatalogImages(id: number = Constants.UNKNOWN_NUMBER_ID, dbParams?: DbParams): Promise<DataResult<Image>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarCatalogImages');
     // Check Limit
@@ -494,7 +493,7 @@ export default class CarStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(userCarMDB, userCarToSave);
     // Modify
-    await global.database.getCollection<Car>(tenantID, 'userscars').findOneAndUpdate(
+    await global.database.getCollection(tenantID, 'userscars').findOneAndUpdate(
       { _id: userCarMDB._id },
       { $set: userCarMDB },
       { upsert: true, returnOriginal: false }
@@ -504,30 +503,32 @@ export default class CarStorage {
     return userCarMDB._id.toHexString();
   }
 
-  public static async getCar(tenantID: string, carID: string, projectFields?: string[]): Promise<Car> {
+  public static async getCar(tenantID: string, carID: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<Car> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
     // Query single Site
     const carsMDB = await CarStorage.getCars(tenantID,
-      { carID: carID },
+      { carIDs: [carID] },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { carID });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
-  public static async getCarByVinLicensePlate(tenantID: string, licensePlate: string, vin: string, withUsers?: boolean, projectFields?: string[]): Promise<Car> {
+  public static async getCarByVinLicensePlate(tenantID: string,
+    licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
+    withUsers?: boolean, projectFields?: string[]): Promise<Car> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCar');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarByVinLicensePlate');
     // Query single Site
     const carsMDB = await CarStorage.getCars(tenantID,
       { licensePlate: licensePlate, vin: vin, withUsers: withUsers },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(MODULE_NAME, 'getCar', uniqueTimerID, { vin, licensePlate });
+    Logging.traceEnd(MODULE_NAME, 'getCarByVinLicensePlate', uniqueTimerID, { vin, licensePlate });
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
   public static async getCars(tenantID: string,
-    params: { search?: string; userID?: string; userIDs?: string[]; carID?: string; carIDs?: number[]; licensePlate?: string; vin?: string; withUsers?: boolean } = {},
+    params: { search?: string; userIDs?: string[]; carIDs?: string[]; licensePlate?: string; vin?: string; withUsers?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Car>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCars');
@@ -536,10 +537,7 @@ export default class CarStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; createdBy?: ObjectID; licensePlate?: string; vin?: string; $or?: any[]; $and?: any[] } | undefined) = {};
-    if (params.carID) {
-      filters._id = Utils.convertToObjectID(params.carID);
-    }
+    const filters: any = {};
     if (params.licensePlate) {
       filters.licensePlate = params.licensePlate;
     }
@@ -553,42 +551,27 @@ export default class CarStorage {
         { 'licensePlate': { $regex: searchRegex, $options: 'i' } },
       ];
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Car for Basic Users
     if (params.carIDs && params.carIDs.length > 0) {
       // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) }
-        }
+      filters._id = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
+    }
+    // Create Aggregation
+    const aggregation = [];
+    if ((params.userIDs && params.userIDs.length > 0) || params.withUsers) {
+      DatabaseUtils.pushUserCarLookupInAggregation({
+        tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
+        asField: 'userscars', oneToOneCardinality: false
       });
+      if (params.userIDs && params.userIDs.length > 0) {
+        filters['userscars.userID'] = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+      }
     }
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
-    }
-    if ((params.userIDs && params.userIDs.length > 0) || params.userID || params.withUsers) {
-      DatabaseUtils.pushUserCarLookupInAggregation({
-        tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
-        asField: 'userscars', oneToOneCardinality: false
-      });
-      if (params.userID) {
-        aggregation.push({
-          $match: {
-            'userscars.userID': Utils.convertToObjectID(params.userID)
-          }
-        });
-      }
-      if (params.userIDs && params.userIDs.length > 0) {
-        aggregation.push({
-          $match: {
-            'userscars.userID': { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) }
-          }
-        });
-      }
     }
     DatabaseUtils.pushCarCatalogLookupInAggregation({
       tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'carCatalogID', foreignField: '_id',
@@ -660,134 +643,4 @@ export default class CarStorage {
       result: cars
     };
   }
-
-  public static async getUserCar(tenantID: string, params: { userCarID?: string; carID?: string; userID?: string }, projectFields?: string[]): Promise<UserCar> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCar');
-    // Query single Site
-    const userCarsMDB = await CarStorage.getUserCars(tenantID,
-      params,
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(MODULE_NAME, 'getUserCar', uniqueTimerID, { params });
-    return userCarsMDB.count > 0 ? userCarsMDB.result[0] : null;
-  }
-
-  public static async getUserCars(tenantID: string,
-    params: { search?: string; userCarID?: string; userCarIDs?: string[]; userID?: string; userIDs?: string[]; carID?: string } = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<UserCar>> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUserCars');
-    // Check Limit
-    const limit = Utils.checkRecordLimit(dbParams.limit);
-    // Check Skip
-    const skip = Utils.checkRecordSkip(dbParams.skip);
-    // Set the filters
-    const filters: ({ _id?: ObjectID; userID?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
-    if (params.userCarID) {
-      filters._id = Utils.convertToObjectID(params.userCarID);
-    } else if (params.userID && params.carID) {
-      filters.$and = [
-        { 'userID': Utils.convertToObjectID(params.userID) },
-        { 'carID': Utils.convertToObjectID(params.carID) }
-      ];
-    } else if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
-    } else if (params.carID) {
-      filters.userID = Utils.convertToObjectID(params.carID);
-    }
-    // Create Aggregation
-    const aggregation = [];
-    // Limit on Car for Basic Users
-    if (params.userCarIDs && params.userCarIDs.length > 0) {
-      // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.userCarIDs.map((UserCarID) => UserCarID) }
-        }
-      });
-    } else if (params.userIDs && params.userIDs.length > 0) {
-      // Build filter
-      aggregation.push({
-        $match: {
-          userID: { $in: params.userIDs.map((UserID) => Utils.convertToObjectID(UserID)) }
-        }
-      });
-    }
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
-    // Car Lookup
-    DatabaseUtils.pushCarLookupInAggregation({
-      tenantID: tenantID, aggregation, localField: 'carID', foreignField: '_id',
-      asField: 'car', oneToOneCardinality: true
-    });
-    // Car Catalog Lookup
-    DatabaseUtils.pushCarCatalogLookupInAggregation({
-      tenantID: Constants.DEFAULT_TENANT, aggregation, localField: 'car.carCatalogID', foreignField: '_id',
-      asField: 'carCatalog', oneToOneCardinality: true
-    });
-    // Limit records?
-    if (!dbParams.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const carsCountMDB = await global.database.getCollection<DataResult<UserCar>>(tenantID, 'userscars')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (carsCountMDB.length > 0 ? carsCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Handle the ID
-    DatabaseUtils.pushRenameDatabaseID(aggregation);
-    // Sort
-    if (dbParams.sort) {
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      aggregation.push({
-        $sort: { name: 1 }
-      });
-    }
-    // Skip
-    if (skip > 0) {
-      aggregation.push({ $skip: skip });
-    }
-    // Limit
-    aggregation.push({
-      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
-    });
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
-    // Read DB
-    const cars = await global.database.getCollection<UserCar>(tenantID, 'userscars')
-      .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
-        allowDiskUse: true
-      })
-      .toArray();
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'getUserCars', uniqueTimerID,
-      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-    // Ok
-    return {
-      count: (carsCountMDB.length > 0 ?
-        (carsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : carsCountMDB[0].count) : 0),
-      result: cars
-    };
-  }
-
 }

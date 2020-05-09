@@ -14,6 +14,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -75,7 +76,6 @@ export default class CarService {
     // Filter
     const filteredRequest = CarSecurity.filterCarCatalogRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
-
     let carCatalog;
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Get the car
@@ -124,6 +124,11 @@ export default class CarService {
   }
 
   public static async handleSynchronizeCarCatalogs(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isSuperAdmin(req.user)) {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.SYNCHRONIZE_CAR_CATALOGS, Entity.CAR_CATALOGS, MODULE_NAME, 'handleSynchronizeCarCatalogs');
+    }
     // Check auth
     if (!Authorizations.canSynchronizeCarCatalogs(req.user)) {
       throw new AppAuthError({
@@ -152,7 +157,8 @@ export default class CarService {
   public static async handleGetCarMakers(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isSuperAdmin(req.user)) {
       // Check if component is active
-      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.CAR_CATALOG, MODULE_NAME, 'handleGetCarMakers');
     }
     // Check auth
     if (!Authorizations.canReadCarCatalog(req.user)) {
@@ -179,7 +185,7 @@ export default class CarService {
     let newCar: Car;
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
-      Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCreateCar');
+      Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCarCreate');
     // Filter
     const filteredRequest = CarSecurity.filterCarCreateRequest(req.body);
     // Check
@@ -190,35 +196,45 @@ export default class CarService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.CREATE, entity: Entity.CAR,
-        module: MODULE_NAME, method: 'handleCreateCar'
+        module: MODULE_NAME, method: 'handleCarCreate'
       });
     }
     // Check Car Catalog
     const carCatalog = await CarStorage.getCarCatalog(filteredRequest.carCatalogID);
     UtilsService.assertObjectExists(action, carCatalog, `Car Catalog ID '${filteredRequest.carCatalogID}' does not exist`,
-      MODULE_NAME, 'handleCreateCar', req.user);
+      MODULE_NAME, 'handleCarCreate', req.user);
     // Check Car
     const car = await CarStorage.getCarByVinLicensePlate(req.user.tenantID, filteredRequest.licensePlate, filteredRequest.vin, true);
     if (car) {
-      // Check if the car is already assigned
-      for (const user of car.users) {
-        // Car exists with different user?
-        if (user.id === req.user.id) {
+      // If Admin, car already exits!
+      if (Authorizations.isAdmin(req.user)) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.USER_ALREADY_ASSIGNED_TO_CAR,
+          message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
+          user: req.user,
+          module: MODULE_NAME, method: 'handleCarCreate'
+        });
+      }
+      // Basic users: Check if the car is already assigned to user
+      if (car.users) {
+        const foundUser = car.users.find((user: User) => user.id === req.user.id);
+        if (foundUser) {
           // User already assigned to this car!
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_ALREADY_ASSIGNED_TO_CAR,
-            message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist for that user`,
+            errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
+            message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist for this user`,
             user: req.user,
-            module: MODULE_NAME,
-            method: 'handleCarCreate'
+            actionOnUser: foundUser,
+            module: MODULE_NAME, method: 'handleCarCreate'
           });
         }
       }
       // Force to reuse the car
       if (filteredRequest.forced) {
         newCar = car;
-        // Send error to the UI
+      // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
@@ -270,21 +286,21 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST,
-        entity: Entity.CARS,
-        module: MODULE_NAME,
-        method: 'handleGetCars'
+        action: Action.LIST, entity: Entity.CARS,
+        module: MODULE_NAME, method: 'handleGetCars'
       });
     }
     const filteredRequest = CarSecurity.filterCarsRequest(req.query);
-    const params: any = { search: filteredRequest.search };
-    if (Authorizations.isBasic(req.user)) {
-      params.userID = req.user.id;
-    }
-
+    // Get cars
     const cars = await CarStorage.getCars(req.user.tenantID,
-      params, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+      {
+        search: filteredRequest.Search,
+        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    // Filter
     CarSecurity.filterCarsResponse(cars, req.user);
+    // Return
     res.json(cars);
     next();
   }

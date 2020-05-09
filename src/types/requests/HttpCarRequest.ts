@@ -24,6 +24,6 @@ export interface HttpCarCreateRequest {
 }
 
 export interface HttpCarsRequest extends HttpDatabaseRequest {
-  search: string;
-  carMaker: string;
+  Search: string;
+  CarMaker: string;
 }
