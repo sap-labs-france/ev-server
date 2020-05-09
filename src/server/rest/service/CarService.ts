@@ -210,7 +210,7 @@ export default class CarService {
       if (Authorizations.isAdmin(req.user)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_ALREADY_ASSIGNED_TO_CAR,
+          errorCode: HTTPError.CAR_ALREADY_EXIST_ERROR,
           message: `The Car with VIN: '${filteredRequest.vin}' and License plate: '${filteredRequest.licensePlate}' already exist`,
           user: req.user,
           module: MODULE_NAME, method: 'handleCarCreate'
