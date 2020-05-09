@@ -109,10 +109,8 @@ export default class BillingSecurity {
   }
 
   static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
-    const filteredUser = {} as HttpForceSynchronizeUserInvoicesRequest;
-    if (request.id) {
-      filteredUser.userID = sanitize(request.userID);
-    }
-    return filteredUser;
+    return {
+      userID: sanitize(request.userID)
+    };
   }
 }

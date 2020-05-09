@@ -131,7 +131,7 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, id: string): Promise<User> {
+  public static async getUser(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getUser');
     // Get user
@@ -505,46 +505,36 @@ export default class UserStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     const filters: any = {
-      '$and': [{
-        '$or': DatabaseUtils.getNotDeletedFilter()
-      }]
+      '$or': DatabaseUtils.getNotDeletedFilter()
     };
     // Filter by ID
     if (params.userID) {
-      filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
+      filters._id = Utils.convertToObjectID(params.userID);
       // Filter by other properties
     } else if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      filters.$and.push({
-        '$or': [
-          { 'name': { $regex: searchRegex, $options: 'i' } },
-          { 'firstName': { $regex: searchRegex, $options: 'i' } },
-          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
-          { 'email': { $regex: searchRegex, $options: 'i' } },
-          { 'plateID': { $regex: searchRegex, $options: 'i' } }
-        ]
-      });
+      filters.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'firstName': { $regex: searchRegex, $options: 'i' } },
+        { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+        { 'email': { $regex: searchRegex, $options: 'i' } },
+        { 'plateID': { $regex: searchRegex, $options: 'i' } }
+      ];
     }
     if (params.issuer === true || params.issuer === false) {
-      filters.$and.push({ 'issuer': params.issuer });
+      filters.issuer = params.issuer;
     }
     // Email
     if (params.email) {
-      filters.$and.push({
-        'email': params.email
-      });
+      filters.email = params.email;
     }
     // TagID
     if (params.tagID) {
-      filters.$and.push({
-        'tags.id': params.tagID
-      });
+      filters['tags.id'] = params.tagID;
     }
     // Password Reset Hash
     if (params.passwordResetHash) {
-      filters.$and.push({
-        'passwordResetHash': params.passwordResetHash
-      });
+      filters.passwordResetHash = params.passwordResetHash;
     }
     // Role
     if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
@@ -552,60 +542,45 @@ export default class UserStorage {
     }
     // Billing Customer
     if (params.billingUserID) {
-      filters.$and.push(
-        { 'billingData': { '$exists': true } },
-        { 'billingData.customerID': { '$exists': true } },
-        { 'billingData.customerID': params.billingUserID }
-      );
+      filters['billingData.customerID'] = params.billingUserID;
     }
     // Status (Previously getUsersInError)
-    if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
+    if (params.statuses && params.statuses.length > 0) {
       filters.status = { $in: params.statuses };
     }
     // Notifications
     if (params.notificationsActive) {
-      filters.$and.push({
-        'notificationsActive': params.notificationsActive
-      });
+      filters.notificationsActive = params.notificationsActive;
     }
     // Filter on last login to detect inactive user accounts
     if (params.noLoginSince && moment(params.noLoginSince).isValid()) {
-      filters.$and.push({
-        'eulaAcceptedOn': { $lte: params.noLoginSince },
-        'role': 'B'
-      });
+      filters.eulaAcceptedOn = { $lte: params.noLoginSince };
+      filters.role = UserRole.BASIC;
     }
     if (params.notifications) {
       for (const key in params.notifications) {
-        const notificationFilter = {};
-        notificationFilter[`notifications.${key}`] = params.notifications[key];
-        filters.$and.push(notificationFilter);
+        filters[`notifications.${key}`] = params.notifications[key];
       }
     }
     // Create Aggregation
     const aggregation = [];
-
     // Add Tags
     DatabaseUtils.pushTagLookupInAggregation({
       tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'tags'
     });
-
     if (dbParams === Constants.DB_PARAMS_SINGLE_RECORD) {
       DatabaseUtils.pushTransactionsLookupInAggregation({
         tenantID, aggregation, localField: '_id', foreignField: 'userID', asField: 'sessionsCount', countField: 'tagID'
       });
     }
-
     // Select non-synchronized billing data
     if (params.notSynchronizedBillingData) {
-      filters.$and.push({
-        '$or': [
-          { 'billingData': { '$exists': false } },
-          { 'billingData.lastChangedOn': { '$exists': false } },
-          { 'billingData.lastChangedOn': null },
-          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
-        ]
-      });
+      filters.$or = [
+        { 'billingData': { '$exists': false } },
+        { 'billingData.lastChangedOn': { '$exists': false } },
+        { 'billingData.lastChangedOn': null },
+        { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
+      ];
     }
     // Filters
     if (filters) {
@@ -734,28 +709,26 @@ export default class UserStorage {
     // Create Aggregation
     const aggregation = [];
     if (params) {
-      const filters = [];
+      const filters: any = {};
       if (params.tagID) {
-        filters.push({ _id: params.tagID });
+        filters._id = params.tagID;
       }
       if (params.userID) {
-        filters.push({ userID: Utils.convertToObjectID(params.userID) });
+        filters.userID = Utils.convertToObjectID(params.userID);
       }
       if (params.issuer === true || params.issuer === false) {
-        filters.push({ issuer: params.issuer });
+        filters.issuer = params.issuer;
       }
       if (params.dateFrom && moment(params.dateFrom).isValid()) {
-        filters.push({ lastChangedOn: { $gte: new Date(params.dateFrom) } });
+        filters.lastChangedOn = { $gte: new Date(params.dateFrom) };
       }
       if (params.dateTo && moment(params.dateTo).isValid()) {
-        filters.push({ lastChangedOn: { $lte: new Date(params.dateTo) } });
+        filters.lastChangedOn = { $lte: new Date(params.dateTo) };
       }
-
-      if (filters.length > 0) {
-        aggregation.push({ $match: { $and: filters } });
+      if (!Utils.isEmptyJSon(filters)) {
+        aggregation.push({ $match: filters });
       }
     }
-
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -793,7 +766,6 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
-
     aggregation.push({
       $project: {
         id: '$_id',
@@ -837,22 +809,20 @@ export default class UserStorage {
     // Mongodb aggregation creation
     const aggregation = [];
     // Mongodb filter block ($match)
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
-    match.$and.push({ issuer: true });
+    const match: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    match.issuer = true;
     if (params.roles) {
-      match.$and.push({ role: { '$in': params.roles } });
+      match.role = { '$in': params.roles };
     }
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
-      match.$and.push({
-        '$or': [
-          { 'name': { $regex: searchRegex, $options: 'i' } },
-          { 'firstName': { $regex: searchRegex, $options: 'i' } },
-          { 'tags.id': { $regex: searchRegex, $options: 'i' } },
-          { 'email': { $regex: searchRegex, $options: 'i' } },
-          { 'plateID': { $regex: searchRegex, $options: 'i' } }
-        ]
-      });
+      match.$or = [
+        { 'name': { $regex: searchRegex, $options: 'i' } },
+        { 'firstName': { $regex: searchRegex, $options: 'i' } },
+        { 'tags.id': { $regex: searchRegex, $options: 'i' } },
+        { 'email': { $regex: searchRegex, $options: 'i' } },
+        { 'plateID': { $regex: searchRegex, $options: 'i' } }
+      ];
     }
     aggregation.push({ $match: match });
     // Mongodb Lookup block

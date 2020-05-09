@@ -81,7 +81,7 @@ export default class LoggingStorage {
     await global.database.getCollection<Log>(tenantID, 'logs').insertOne(logMDB);
   }
 
-  public static async getLog(tenantID: string, id: string): Promise<Log> {
+  public static async getLog(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Log> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getLog');
     // Query single Site

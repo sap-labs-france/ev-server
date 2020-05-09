@@ -14,7 +14,7 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'TenantStorage';
 
 export default class TenantStorage {
-  public static async getTenant(id: string): Promise<Tenant> {
+  public static async getTenant(id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Tenant> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTenant');
     // Delegate querying

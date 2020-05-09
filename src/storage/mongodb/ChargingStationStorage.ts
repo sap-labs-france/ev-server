@@ -92,7 +92,7 @@ export default class ChargingStationStorage {
     Logging.traceEnd(MODULE_NAME, 'saveChargingStationTemplate', uniqueTimerID);
   }
 
-  public static async getChargingStation(tenantID: string, id: string): Promise<ChargingStation> {
+  public static async getChargingStation(tenantID: string, id: string = Constants.UNKNOWN_STRING_ID): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getChargingStation');
     // Query single Charging Station

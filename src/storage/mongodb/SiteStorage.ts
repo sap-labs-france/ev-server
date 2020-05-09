@@ -16,7 +16,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
-  public static async getSite(tenantID: string, id: string,
+  public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withCompany?: boolean } = {}): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSite');

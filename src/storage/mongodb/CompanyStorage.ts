@@ -13,7 +13,7 @@ const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
 
-  public static async getCompany(tenantID: string, id: string): Promise<Company> {
+  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompany');
     // Reuse

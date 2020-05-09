@@ -13,7 +13,7 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenantID: string, id: string): Promise<BillingInvoice> {
+  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoice');
     // Query single Site
