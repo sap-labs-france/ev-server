@@ -17,7 +17,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -76,7 +76,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: { search?: string; issuer?: boolean; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
+    params: { search?: string; issuer?: boolean; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompanies');
@@ -88,10 +88,7 @@ export default class CompanyStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
-    // Build filter
-    if (params.companyID) {
-      filters._id = Utils.convertToObjectID(params.companyID);
-    } else if (params.search) {
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },
@@ -110,7 +107,6 @@ export default class CompanyStorage {
         }
       });
     }
-
     if (params.issuer === true || params.issuer === false) {
       aggregation.push({
         $match: {

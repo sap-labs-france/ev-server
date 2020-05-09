@@ -233,7 +233,7 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: {
       transactionId?: number; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
-      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
       ocpiSessionId?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
@@ -360,9 +360,9 @@ export default class TransactionStorage {
       };
     }
     // Site ID
-    if (params.siteID) {
+    if (params.siteIDs) {
       filterMatch.siteID = {
-        $in: params.siteID.map((siteID) => Utils.convertToObjectID(siteID))
+        $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
       };
     }
     // Refund status
@@ -583,7 +583,9 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getRefundReports(tenantID: string, filter: { ownerID?: string; siteAdminIDs?: string[] }, dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[]; stats: {} }> {
+  public static async getRefundReports(tenantID: string,
+    params: { ownerID?: string; siteAdminIDs?: string[] },
+    dbParams: DbParams, projectFields?: string[]): Promise<{ count: number; result: RefundReport[]; stats: {} }> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactions');
     // Check
@@ -598,15 +600,15 @@ export default class TransactionStorage {
     const filterMatch = {};
     filterMatch['refundData.reportId'] = { '$ne': null };
 
-    if (filter.ownerID) {
+    if (params.ownerID) {
       ownerMatch.$or.push({
-        userID: Utils.convertToObjectID(filter.ownerID)
+        userID: Utils.convertToObjectID(params.ownerID)
       });
     }
-    if (filter.siteAdminIDs) {
+    if (params.siteAdminIDs) {
       ownerMatch.$or.push({
         siteID: {
-          $in: filter.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
         }
       });
     }
@@ -721,7 +723,7 @@ export default class TransactionStorage {
   static async getTransactionsInError(tenantID,
     params: {
       search?: string; issuer?: boolean; userIDs?: string[]; chargeBoxIDs?: string[];
-      siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+      siteAreaIDs?: string[]; siteIDs?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
       errorType?: (TransactionInErrorType.LONG_INACTIVITY | TransactionInErrorType.NEGATIVE_ACTIVITY | TransactionInErrorType.NEGATIVE_DURATION | TransactionInErrorType.OVER_CONSUMPTION | TransactionInErrorType.INVALID_START_DATE | TransactionInErrorType.NO_CONSUMPTION | TransactionInErrorType.MISSING_USER | TransactionInErrorType.MISSING_PRICE)[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<TransactionInError>> {
@@ -774,9 +776,9 @@ export default class TransactionStorage {
       };
     }
     // Sites
-    if (params.siteID) {
+    if (params.siteIDs) {
       match.siteID = {
-        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
+        $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
     }
     // Create Aggregation

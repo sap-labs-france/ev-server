@@ -19,7 +19,7 @@ export default class AssetStorage {
     const assetsMDB = await AssetStorage.getAssets(
       tenantID,
       {
-        assetID: id,
+        assetIDs: [id],
         withSiteArea: params.withSiteArea
       },
       Constants.DB_PARAMS_SINGLE_RECORD
@@ -86,7 +86,7 @@ export default class AssetStorage {
   }
 
   public static async getAssets(tenantID: string,
-    params: { search?: string; assetID?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
+    params: { search?: string; assetIDs?: string[]; siteAreaIDs?: string[]; withSiteArea?: boolean;
       withNoSiteArea?: boolean; } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Asset>> {
     // Debug
@@ -100,9 +100,7 @@ export default class AssetStorage {
     // Set the filters
     const filters: any = {};
     // Build filter
-    if (params.assetID) {
-      filters._id = Utils.convertToObjectID(params.assetID);
-    } else if (params.search) {
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'name': { $regex: searchRegex, $options: 'i' } },

@@ -697,7 +697,9 @@ export default class UserStorage {
     return tag.count > 0 ? tag.result[0] : null;
   }
 
-  public static async getTags(tenantID: string, params: { issuer?: boolean; tagID?: string; userID?: string; dateFrom?: Date; dateTo?: Date }, dbParams: DbParams): Promise<DataResult<Tag>> {
+  public static async getTags(tenantID: string,
+    params: { issuer?: boolean; tagID?: string; userID?: string; dateFrom?: Date; dateTo?: Date },
+    dbParams: DbParams): Promise<DataResult<Tag>> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTags');
     // Check Tenant
     await Utils.checkTenant(tenantID);
