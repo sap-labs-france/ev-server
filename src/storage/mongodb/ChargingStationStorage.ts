@@ -121,33 +121,25 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Set the filters
-    const filters: any = {
-      $and: [{
-        $or: DatabaseUtils.getNotDeletedFilter()
-      }]
-    };
+    const filters: any = { $or: DatabaseUtils.getNotDeletedFilter() };
     // Filter
     if (params.chargingStationID) {
-      filters.$and.push({
-        _id: params.chargingStationID
-      });
+      filters._id = params.chargingStationID;
       // Search filters
     } else if (params.search) {
-      filters.$and.push({
-        '$or': [
-          { '_id': { $regex: params.search, $options: 'i' } },
-          { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-          { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
-        ]
-      });
+      filters.$or = [
+        { '_id': { $regex: params.search, $options: 'i' } },
+        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
+        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+      ];
     }
     // Filter on last heart beat
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
+      filters.lastHeartBeat = { $lte: params.offlineSince };
     }
     // Issuer
     if (params.issuer === true || params.issuer === false) {
-      filters.$and.push({ 'issuer': params.issuer });
+      filters.issuer = params.issuer;
     }
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
@@ -157,16 +149,14 @@ export default class ChargingStationStorage {
     });
     // Include deleted charging stations if requested
     if (params.includeDeleted) {
-      filters.$and[0].$or.push({
+      filters.$or.push({
         'deleted': true
       });
     }
     // Connector Status
     if (params.connectorStatuses) {
-      filters.$and.push({
-        'connectors.status': { $in: params.connectorStatuses },
-        'inactive': false
-      });
+      filters['connectors.status'] = { $in: params.connectorStatuses };
+      filters.inactive = false;
       // Filter connectors array
       aggregation.push({
         '$addFields': {
@@ -184,9 +174,7 @@ export default class ChargingStationStorage {
     }
     // Connector Type
     if (params.connectorTypes) {
-      filters.$and.push({
-        'connectors.type': { $in: params.connectorTypes }
-      });
+      filters['connectors.type'] = { $in: params.connectorTypes };
       // Filter connectors array
       aggregation.push({
         '$addFields': {
@@ -204,15 +192,11 @@ export default class ChargingStationStorage {
     }
     // With no Site Area
     if (params.withNoSiteArea) {
-      filters.$and.push({
-        'siteAreaID': null
-      });
+      filters.siteAreaID = null;
     } else {
       // Query by siteAreaID
       if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs)) {
-        filters.$and.push({
-          'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) }
-        });
+        filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
       }
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation({
@@ -328,24 +312,23 @@ export default class ChargingStationStorage {
     // Add Charging Station inactive flag
     DatabaseUtils.pushChargingStationInactiveFlag(aggregation);
     // Set the filters
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
-    match.$and.push({ issuer: true });
+    const filters: any = { '$or': DatabaseUtils.getNotDeletedFilter() };
+    filters.issuer = true;
     if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
-      match.$and.push({
-        'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) }
-      });
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Search filters
     if (params.search) {
-      match.$and.push({
-        '$or': [
-          { '_id': { $regex: params.search, $options: 'i' } },
-          { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-          { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
-        ]
-      });
+      filters.$or = [
+        { '_id': { $regex: params.search, $options: 'i' } },
+        { 'chargePointModel': { $regex: params.search, $options: 'i' } },
+        { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
+      ];
     }
-    aggregation.push({ $match: match });
+    // Add in aggregation
+    aggregation.push({
+      $match: filters
+    });
     // Build lookups to fetch sites from chargers
     aggregation.push({
       $lookup: {
@@ -860,16 +843,13 @@ export default class ChargingStationStorage {
       // At least one ChargingStation
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
-          $and: [
-            { '_id': { $in: chargingStationIDs } },
-            { 'siteAreaID': Utils.convertToObjectID(siteAreaID) }
-          ]
-        }, {
-          $set: { siteAreaID: null }
-        }, {
-          upsert: false
-        });
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+          { '_id': { $in: chargingStationIDs } },
+          {
+            $set: { siteAreaID: null }
+          }, {
+            upsert: false
+          });
       }
     }
     // Debug
@@ -889,15 +869,13 @@ export default class ChargingStationStorage {
       // At least one ChargingStation
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
-          $and: [
-            { '_id': { $in: chargingStationIDs } }
-          ]
-        }, {
-          $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
-        }, {
-          upsert: false
-        });
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+          { '_id': { $in: chargingStationIDs } },
+          {
+            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+          }, {
+            upsert: false
+          });
       }
     }
     // Debug
