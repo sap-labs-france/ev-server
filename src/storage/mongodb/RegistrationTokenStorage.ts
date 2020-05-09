@@ -146,7 +146,7 @@ export default class RegistrationTokenStorage {
     };
   }
 
-  static async getRegistrationToken(tenantID: string, id: string): Promise<RegistrationToken> {
+  static async getRegistrationToken(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<RegistrationToken> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getRegistrationToken');
     // Reuse

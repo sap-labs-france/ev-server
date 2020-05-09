@@ -547,11 +547,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.BILLING, Action.SYNCHRONIZE_USER);
   }
 
-  public static canReadBillingTaxes(loggedUser: UserToken): boolean {
+  public static canReadTaxesBilling(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.TAXES, Action.LIST);
   }
 
-  public static canReadBillingInvoices(loggedUser: UserToken): boolean {
+  public static canReadInvoicesBilling(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.INVOICES, Action.LIST);
   }
 

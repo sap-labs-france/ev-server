@@ -1,4 +1,4 @@
-import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import HttpStatisticsRequest, { HttpMetricsStatisticsRequest } from '../../../../types/requests/HttpStatisticRequest';
 import Utils from '../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 
@@ -6,8 +6,8 @@ export default class StatisticSecurity {
   static filterStatisticsRequest(request: any): HttpStatisticsRequest {
     return {
       Year: Utils.convertToInt(sanitize(request.Year)),
-      DateFrom: request.DateFrom ? sanitize(request.DateFrom) : null,
-      DateUntil: request.DateUntil ? sanitize(request.DateUntil) : null,
+      StartDateTime: request.StartDateTime ? sanitize(request.StartDateTime) : null,
+      EndDateTime: request.EndDateTime ? sanitize(request.EndDateTime) : null,
       SiteAreaIDs: request.SiteAreaID ? sanitize(request.SiteAreaID).split('|') : null,
       ChargeBoxIDs: request.ChargeBoxID ? sanitize(request.ChargeBoxID).split('|') : null,
       UserIDs: request.UserID ? sanitize(request.UserID).split('|') : null,
@@ -15,9 +15,8 @@ export default class StatisticSecurity {
     };
   }
 
-  static filterMetricsStatisticsRequest(request: any): HttpStatisticsRequest {
-    if (!request.PeriodInMonth) {}
-    return { PeriodInMonth: sanitize(request.PeriodInMonth) };
+  static filterMetricsStatisticsRequest(request: any): HttpMetricsStatisticsRequest {
+    return { PeriodInMonth: request.PeriodInMonth ? sanitize(request.PeriodInMonth) : null };
   }
 
   static filterExportStatisticsRequest(request: any): HttpStatisticsRequest {

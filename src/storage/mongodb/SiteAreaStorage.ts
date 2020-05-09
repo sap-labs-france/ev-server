@@ -27,7 +27,7 @@ export default class SiteAreaStorage {
     };
   }
 
-  public static async getSiteArea(tenantID: string, id: string,
+  public static async getSiteArea(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withSite?: boolean; withChargingStations?: boolean } = {}): Promise<SiteArea> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteArea');

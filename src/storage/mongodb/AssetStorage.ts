@@ -11,7 +11,7 @@ import global from '../../types/GlobalType';
 
 export default class AssetStorage {
 
-  public static async getAsset(tenantID: string, id: string,
+  public static async getAsset(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withSiteArea?: boolean} = {}): Promise<Asset> {
     // Debug
     const uniqueTimerID = Logging.traceStart('AssetStorage', 'getAsset');
@@ -98,7 +98,7 @@ export default class AssetStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
+    const filters: any = {};
     // Build filter
     if (params.assetID) {
       filters._id = Utils.convertToObjectID(params.assetID);
@@ -110,27 +110,19 @@ export default class AssetStorage {
     }
     // With no Site Area
     if (params.withNoSiteArea) {
-      filters.$and = [
-        { 'siteAreaID': null }
-      ];
+      filters.siteAreaID = null;
     } else if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
-      filters.$and = [
-        { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
-      ];
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Create Aggregation
     const aggregation = [];
     // Limit on Asset for Basic Users
     if (params.assetIDs && params.assetIDs.length > 0) {
       // Build filter
-      aggregation.push({
-        $match: {
-          _id: { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) }
-        }
-      });
+      filters._id = { $in: params.assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) };
     }
     // Filters
-    if (filters) {
+    if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
         $match: filters
       });
@@ -217,7 +209,7 @@ export default class AssetStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    const filters: ({ _id?: ObjectID; $or?: any[]; $and?: any[] } | undefined) = {};
+    const filters: any = {};
     if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
@@ -225,14 +217,12 @@ export default class AssetStorage {
       ];
     }
     if (params.siteAreaIDs && Array.isArray(params.siteAreaIDs) && params.siteAreaIDs.length > 0) {
-      filters.$and = [
-        { 'siteAreaID': { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) } }
-      ];
+      filters.siteAreaID = { $in: params.siteAreaIDs.map((id) => Utils.convertToObjectID(id)) };
     }
     // Create Aggregation
     const aggregation = [];
     // Filters
-    if (filters) {
+    if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
         $match: filters
       });
@@ -319,15 +309,13 @@ export default class AssetStorage {
       // At least one Asset
       if (assetIDs && assetIDs.length > 0) {
         // Update all assets
-        await global.database.getCollection<any>(tenantID, 'assets').updateMany({
-          $and: [
-            { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } }
-          ]
-        }, {
-          $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
-        }, {
-          upsert: false
-        });
+        await global.database.getCollection<any>(tenantID, 'assets').updateMany(
+          { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
+          {
+            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+          }, {
+            upsert: false
+          });
       }
     }
     // Debug
@@ -347,16 +335,13 @@ export default class AssetStorage {
       // At least one Asset
       if (assetIDs && assetIDs.length > 0) {
         // Update all assets
-        await global.database.getCollection<any>(tenantID, 'assets').updateMany({
-          $and: [
-            { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
-            { 'siteAreaID': Utils.convertToObjectID(siteAreaID) }
-          ]
-        }, {
-          $set: { siteAreaID: null }
-        }, {
-          upsert: false
-        });
+        await global.database.getCollection<any>(tenantID, 'assets').updateMany(
+          { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
+          {
+            $set: { siteAreaID: null }
+          }, {
+            upsert: false
+          });
       }
     }
     // Debug

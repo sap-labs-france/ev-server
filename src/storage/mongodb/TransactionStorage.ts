@@ -895,7 +895,7 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
+  public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransaction');
     // Check

@@ -13,7 +13,7 @@ import global from '../../types/GlobalType';
 const MODULE_NAME = 'BillingStorage';
 
 export default class BillingStorage {
-  public static async getInvoice(tenantID: string, id: string): Promise<BillingInvoice> {
+  public static async getInvoice(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<BillingInvoice> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getInvoice');
     // Query single Site
@@ -39,7 +39,7 @@ export default class BillingStorage {
 
   public static async getInvoices(tenantID: string,
     params: {
-      invoiceID?: string; billingInvoiceID?: string; search?: string; userID?: string; invoiceStatus?: BillingInvoiceStatus[];
+      invoiceID?: string; billingInvoiceID?: string; search?: string; userIDs?: string[]; invoiceStatus?: BillingInvoiceStatus[];
       startDateTime?: Date; endDateTime?: Date;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<BillingInvoice>> {
@@ -52,7 +52,7 @@ export default class BillingStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Search filters
-    const filters: ({ _id?: ObjectID; $or?: any[] } | undefined) = {};
+    const filters: any = {};
     // Filter by ID
     if (params.invoiceID) {
       filters._id = Utils.convertToObjectID(params.invoiceID);
@@ -64,48 +64,31 @@ export default class BillingStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    // Set filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
-    if (params.userID) {
-      aggregation.push({
-        $match: {
-          'userID': { $eq: Utils.convertToObjectID(params.userID) }
-        }
-      });
+    if (params.userIDs) {
+      filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     if (params.billingInvoiceID) {
-      aggregation.push({
-        $match: {
-          'invoiceID': { $eq: params.billingInvoiceID }
-        }
-      });
+      filters.invoiceID = { $eq: params.billingInvoiceID };
     }
     // Status
     if (params.invoiceStatus && Array.isArray(params.invoiceStatus) && params.invoiceStatus.length > 0) {
-      aggregation.push({
-        $match: {
-          'status': { $in: params.invoiceStatus }
-        }
-      });
+      filters.status = { $in: params.invoiceStatus };
+    }
+    if (params.startDateTime || params.endDateTime) {
+      filters.createdOn = {};
     }
     // Start date
     if (params.startDateTime) {
-      aggregation.push({
-        $match: {
-          'createdOn': { $gte: Utils.convertToDate(params.startDateTime) }
-        }
-      });
+      filters.createdOn.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
+      filters.createdOn.$lte = Utils.convertToDate(params.endDateTime);
+    }
+    // Set filters
+    if (!Utils.isEmptyJSon(filters)) {
       aggregation.push({
-        $match: {
-          'createdOn': { $lte: Utils.convertToDate(params.endDateTime) }
-        }
+        $match: filters
       });
     }
     // Limit records?
@@ -202,6 +185,18 @@ export default class BillingStorage {
     // Delete the Company
     await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
+  }
+
+  public static async deleteInvoiceByInvoiceID(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteInvoice');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete the Company
+    await global.database.getCollection<BillingInvoice>(tenantID, 'invoices')
+      .findOneAndDelete({ 'invoiceID': id });
     // Debug
     Logging.traceEnd(MODULE_NAME, 'deleteInvoice', uniqueTimerID, { id });
   }
