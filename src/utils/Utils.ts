@@ -348,7 +348,7 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
-  static convertToBoolean(value: any) {
+  static convertToBoolean(value: any): boolean {
     let result = false;
     // Check boolean
     if (value) {
@@ -1009,6 +1009,16 @@ export default class Utils {
           source: Constants.CENTRAL_SERVER,
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
+          module: MODULE_NAME,
+          method: '_checkIfSiteAreaValid',
+          user: req.user.id
+        });
+      }
+      if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HTTPError.GENERAL_ERROR,
+          message: `Site area number of phases must be 1 or 3 but got ${siteArea.numberOfPhases}`,
           module: MODULE_NAME,
           method: '_checkIfSiteAreaValid',
           user: req.user.id

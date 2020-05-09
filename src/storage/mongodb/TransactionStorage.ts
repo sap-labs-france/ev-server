@@ -52,7 +52,7 @@ export default class TransactionStorage {
     // Transfer
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
-      issuer: transactionToSave.issuer,
+      issuer: Utils.convertToBoolean(transactionToSave.issuer),
       siteID: Utils.convertToObjectID(transactionToSave.siteID),
       siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
@@ -895,7 +895,7 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
+  public static async getTransaction(tenantID: string, id: number = Constants.UNKNOWN_NUMBER_ID): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransaction');
     // Check

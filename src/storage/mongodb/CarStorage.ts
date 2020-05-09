@@ -13,7 +13,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'CarStorage';
 
 export default class CarStorage {
-  public static async getCarCatalog(id: number, projectFields?: string[]): Promise<CarCatalog> {
+  public static async getCarCatalog(id: number = Constants.UNKNOWN_NUMBER_ID, projectFields?: string[]): Promise<CarCatalog> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarCatalog');
     // Query single Site

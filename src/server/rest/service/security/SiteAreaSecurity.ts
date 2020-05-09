@@ -67,6 +67,7 @@ export default class SiteAreaSecurity {
       address: UtilsSecurity.filterAddressRequest(request.address),
       image: sanitize(request.image),
       maximumPower: sanitize(request.maximumPower),
+      numberOfPhases: sanitize(request.numberOfPhases),
       smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
       accessControl: UtilsSecurity.filterBoolean(request.accessControl),
       siteID: sanitize(request.siteID)
@@ -91,6 +92,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
         filteredSiteArea.maximumPower = siteArea.maximumPower;
+        filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       }
       if (Utils.objectHasProperty(siteArea, 'address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);

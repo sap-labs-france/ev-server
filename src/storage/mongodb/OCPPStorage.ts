@@ -347,16 +347,12 @@ export default class OCPPStorage {
     const aggregation = [];
     // Set the filters
     const filters: any = {
-      '$and': [{
-        '$or': DatabaseUtils.getNotDeletedFilter()
-      }]
+      '$or': DatabaseUtils.getNotDeletedFilter()
     };
 
     // Charging Station ID
     if (params.chargeBoxID) {
-      filters.$and.push({
-        '_id': params.chargeBoxID
-      });
+      filters._id = params.chargeBoxID;
     }
     // Filters
     aggregation.push({

@@ -16,7 +16,7 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SiteStorage';
 
 export default class SiteStorage {
-  public static async getSite(tenantID: string, id: string,
+  public static async getSite(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID,
     params: { withCompany?: boolean } = {}): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSite');
@@ -269,9 +269,9 @@ export default class SiteStorage {
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
-      issuer: siteToSave.issuer,
+      issuer: Utils.convertToBoolean(siteToSave.issuer),
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
+      autoUserSiteAssignment: Utils.convertToBoolean(siteToSave.autoUserSiteAssignment),
       name: siteToSave.name,
     };
     // Add Last Changed/Created props

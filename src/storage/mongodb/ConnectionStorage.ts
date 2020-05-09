@@ -81,7 +81,7 @@ export default class ConnectionStorage {
     };
   }
 
-  static async getConnection(tenantID: string, id: string): Promise<Connection> {
+  static async getConnection(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Connection> {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getConnection');
     await Utils.checkTenant(tenantID);
     const aggregation = [];

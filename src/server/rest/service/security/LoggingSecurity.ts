@@ -1,39 +1,41 @@
+import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import { DataResult } from '../../../../types/DataResult';
+import { Log } from '../../../../types/Log';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpLogsRequest } from '../../../../types/requests/HttpLoggingRequest';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
 
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingsRequest(request: any) {
-    const filteredRequest: any = {};
+  static filterLoggingsRequest(request: any): HttpLogsRequest {
+    const filteredRequest = {} as HttpLogsRequest;
     // Get logs
-    filteredRequest.DateFrom = sanitize(request.DateFrom);
-    filteredRequest.DateUntil = sanitize(request.DateUntil);
-    filteredRequest.Level = request.Level ? sanitize(request.Level).split('|') : null;
-    filteredRequest.Source = request.Source ? sanitize(request.Source).split('|') : null;
-    filteredRequest.Host = request.Host ? sanitize(request.Host).split('|') : null;
-    filteredRequest.Process = sanitize(request.Process);
+    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    filteredRequest.Level = sanitize(request.Level);
+    filteredRequest.Source = sanitize(request.Source);
+    filteredRequest.Host = sanitize(request.Host);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SortDate = sanitize(request.SortDate);
     filteredRequest.Type = sanitize(request.Type);
-    filteredRequest.Action = request.Action ? sanitize(request.Action).split('|') : null;
-    filteredRequest.UserID = request.UserID ? sanitize(request.UserID).split('|') : null;
+    filteredRequest.Action = sanitize(request.Action);
+    filteredRequest.UserID = sanitize(request.UserID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingRequest(request: any) {
-    const filteredRequest: any = {};
-    // Get logs
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  static filterLoggingRequest(request: any): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
   }
 
-  static filterLoggingResponse(logging, loggedUser: UserToken, withDetailedMessage = false) {
+  static filterLoggingResponse(logging, loggedUser: UserToken, withDetailedMessage = false): Log {
     const filteredLogging: any = {};
 
     if (!logging) {
@@ -69,22 +71,21 @@ export default class LoggingSecurity {
     return filteredLogging;
   }
 
-  static filterLoggingsResponse(loggings, loggedUser) {
-    const filteredLoggings = [];
-
-    if (!loggings.result) {
+  static filterLoggingsResponse(logs: DataResult<Log>, loggedUser): void {
+    const filteredLogs = [];
+    if (!logs.result) {
       return null;
     }
-    for (const logging of loggings.result) {
+    for (const logging of logs.result) {
       // Filter
       const filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
       // Ok?
       if (filteredLogging) {
         // Add
-        filteredLoggings.push(filteredLogging);
+        filteredLogs.push(filteredLogging);
       }
     }
-    loggings.result = filteredLoggings;
+    logs.result = filteredLogs;
   }
 }
 

@@ -1,20 +1,22 @@
-import { Action, Entity } from '../../../types/Authorization';
 import { NextFunction, Request, Response } from 'express';
-
-import AppAuthError from '../../../exception/AppAuthError';
+import fs from 'fs';
+import moment from 'moment';
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
-import { HTTPAuthError } from '../../../types/HTTPError';
-import { ServerAction } from '../../../types/Server';
-import StatisticSecurity from './security/StatisticSecurity';
+import AppAuthError from '../../../exception/AppAuthError';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError } from '../../../types/HTTPError';
+import HttpStatisticsRequest from '../../../types/requests/HttpStatisticRequest';
+import { ServerAction } from '../../../types/Server';
+import StatisticFilter from '../../../types/Statistic';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
 import Utils from '../../../utils/Utils';
+import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import moment from 'moment';
+
 
 const MODULE_NAME = 'StatisticService';
 
@@ -324,7 +326,8 @@ export default class StatisticService {
     // Filter
     const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
     // Get Data
-    const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
+    const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID,
+      { periodInMonth: filteredRequest.PeriodInMonth });
     // Return
     res.json(metrics);
     next();
@@ -399,26 +402,26 @@ export default class StatisticService {
   }
 
   // Only completed transactions
-  static buildFilter(filteredRequest, loggedUser) {
-    const filter: any = { stop: { $exists: true } };
+  static buildFilter(filteredRequest: HttpStatisticsRequest, loggedUser: UserToken): StatisticFilter {
+    const filter: StatisticFilter = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {
       if (filteredRequest.Year > 0) {
-        filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
-        filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
+        filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate();
+        filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate();
       }
     } else {
       // Current year
-      filter.startDateTime = moment().startOf('year').toDate().toISOString();
-      filter.endDateTime = moment().endOf('year').toDate().toISOString();
+      filter.startDateTime = moment().startOf('year').toDate();
+      filter.endDateTime = moment().endOf('year').toDate();
     }
     // DateFrom
-    if (filteredRequest.DateFrom) {
-      filter.startDateTime = filteredRequest.DateFrom;
+    if (filteredRequest.StartDateTime) {
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     // DateUntil
-    if (filteredRequest.DateUntil) {
-      filter.endDateTime = filteredRequest.DateUntil;
+    if (filteredRequest.EndDateTime) {
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     // Site
     if (filteredRequest.SiteIDs) {

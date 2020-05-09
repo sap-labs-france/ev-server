@@ -1,9 +1,9 @@
 import { BillingInvoice, BillingTax } from '../../../../types/Billing';
+import { HttpForceSynchronizeUserInvoicesRequest, HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
 import { HttpBillingInvoiceRequest } from '../../../../types/requests/HttpBillingRequest';
-import { HttpSynchronizeUserRequest } from '../../../../types/requests/HttpUserRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
@@ -30,7 +30,7 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadBillingTaxes(loggedUser)) {
+    if (Authorizations.canReadTaxesBilling(loggedUser)) {
       // Set only necessary info
       filteredTax.id = tax.id;
       filteredTax.description = tax.description;
@@ -61,7 +61,7 @@ export default class BillingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadBillingInvoices(loggedUser)) {
+    if (Authorizations.canReadInvoicesBilling(loggedUser)) {
       // Set only necessary info
       filteredInvoice.userID = invoice.userID;
       filteredInvoice.invoiceID = invoice.invoiceID;
@@ -88,6 +88,9 @@ export default class BillingSecurity {
 
   static filterGetUserInvoicesRequest(request: any): HttpBillingInvoiceRequest {
     const filteredRequest = {} as HttpBillingInvoiceRequest;
+    if (request.UserID) {
+      filteredRequest.UserID = sanitize(request.UserID);
+    }
     if (request.Status) {
       filteredRequest.Status = sanitize(request.Status);
     }
@@ -103,5 +106,11 @@ export default class BillingSecurity {
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
+  }
+
+  static filterForceSynchronizeUserInvoicesRequest(request: any): HttpForceSynchronizeUserInvoicesRequest {
+    return {
+      userID: sanitize(request.userID)
+    };
   }
 }

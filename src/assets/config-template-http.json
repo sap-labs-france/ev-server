@@ -1,7 +1,7 @@
 {
   "EVDatabase": {
-    "url":"",
-    "key":""
+    "url": "",
+    "key": ""
   },
   "Crypto": {
     "key": "",
@@ -88,14 +88,14 @@
     "monitorDBChange": true,
     "debug": false
   },
-	"Notification": {
+  "Notification": {
     "Email": {
       "enabled": true
     },
-		"RemotePushNotification": {
+    "RemotePushNotification": {
       "enabled": true
-		}
-	},
+    }
+  },
   "Firebase": {
     "type": "",
     "projectID": "",
@@ -151,8 +151,7 @@
   },
   "Scheduler": {
     "active": false,
-    "tasks": [
-    ]
+    "tasks": []
   },
   "Logging": {
     "logLevel": "D",

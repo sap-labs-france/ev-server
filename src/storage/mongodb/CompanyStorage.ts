@@ -13,7 +13,7 @@ const MODULE_NAME = 'CompanyStorage';
 
 export default class CompanyStorage {
 
-  public static async getCompany(tenantID: string, id: string): Promise<Company> {
+  public static async getCompany(tenantID: string, id: string = Constants.UNKNOWN_OBJECT_ID): Promise<Company> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCompany');
     // Reuse
@@ -53,7 +53,7 @@ export default class CompanyStorage {
     const companyMDB: any = {
       _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
       name: companyToSave.name,
-      issuer: companyToSave.issuer,
+      issuer: Utils.convertToBoolean(companyToSave.issuer),
     };
     if (companyToSave.address) {
       companyMDB.address = companyToSave.address;

@@ -16,6 +16,10 @@ export default class Constants {
     name: Constants.DEFAULT_TENANT
   } as Tenant;
 
+  public static readonly UNKNOWN_OBJECT_ID: string = '000000000000000000000000';
+  public static readonly UNKNOWN_STRING_ID: string = '000000000000000000000000';
+  public static readonly UNKNOWN_NUMBER_ID: number = -1;
+
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
 
   public static readonly DELAY_SMART_CHARGING_EXECUTION_MILLIS = 3000;
