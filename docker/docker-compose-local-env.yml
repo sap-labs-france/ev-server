@@ -1,0 +1,52 @@
+version: "3.7"
+networks:
+  ev_network:
+    driver: bridge
+volumes:
+  mongo-data: {}
+
+services:
+  mongodb:
+    build:
+      context: .
+      dockerfile: ev_mongo.Dockerfile
+      args:
+        mongodb_name: evse
+        mongodb_user: mongodb
+        mongodb_home: /home/mongodb
+        export_file: export-empty-evse-db.zip
+    image: mongo:4.2
+    ports:
+    - 27017:27017
+    volumes:
+    - "mongo-data:/data/db"
+    env_file:
+    - ev_mongo.env
+    command: --replSet 'rs0'
+    networks:
+      ev_network:
+        aliases:
+        - ev_mongo
+    extra_hosts:
+    - ev_mongo:127.0.0.1
+  enablereplset:
+    depends_on:
+    - mongodb
+    build:
+      context: replica
+    links:
+    - mongodb
+    networks:
+    - ev_network
+    environment:
+      WAIT_HOSTS: ev_mongo:27017
+      WAIT_HOSTS_TIMEOUT: 90
+  mailserver:
+    image: maildev/maildev
+    ports:
+    - 1025:1025
+    - 1080:1080
+    networks:
+    - ev_network
+    command: bin/maildev -w 1080 -s 1025 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
+

@@ -1,0 +1,39 @@
+{
+  "subject": "OCPI - Erreur Mise à Jour des Statuts des Bornes",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Erreur Mise à jour des Statuts des Bornes",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "La mise à jour des statuts des bornes a échoué sur le site <b>'<%- location %>'</b>.",
+      "",
+      "Veuillez contrôler le journal des logs.",
+      ""
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

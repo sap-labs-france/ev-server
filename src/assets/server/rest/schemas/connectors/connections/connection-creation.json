@@ -1,0 +1,20 @@
+{
+  "title": "Connector connection creation",
+  "description": "Describes properties required to create a connection to a connector",
+  "type": "object",
+  "properties": {
+    "connectorId": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "connectorId",
+    "userId"
+  ]
+}

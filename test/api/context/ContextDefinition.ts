@@ -1,0 +1,603 @@
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
+
+import faker from 'faker';
+
+export interface TenantDefinition {
+  id: string;
+  subdomain: string;
+  tenantName: string;
+  componentSettings?: {
+    pricing?: { content?: SettingDBContent };
+    ocpi?: { content?: SettingDBContent };
+    organization?: { content?: SettingDBContent };
+    statistics?: { content?: SettingDBContent };
+    refund?: { content?: SettingDBContent };
+    analytics?: { content?: SettingDBContent };
+    smartCharging?: { content?: SettingDBContent };
+    billing?: { content?: SettingDBContent };
+    asset?: { content?: SettingDBContent };
+    car?: { content?: SettingDBContent };
+  };
+}
+
+export default class ContextDefinition {
+  static readonly TENANT_CONTEXTS: any = {
+    TENANT_WITH_ALL_COMPONENTS: 'utall', // All components are active
+    TENANT_WITH_NO_COMPONENTS: 'utnothing', // No components are active
+    TENANT_ORGANIZATION: 'utorg', // Only organization component is active
+    TENANT_SIMPLE_PRICING: 'utpricing', // Only pricing component is active
+    TENANT_CONVERGENT_CHARGING: 'utconvcharg', // Only convergent charging component is active
+    TENANT_OCPI: 'utocpi', // Only ocpi component is active
+    TENANT_FUNDING: 'utrefund', // Only refund component is active
+    TENANT_BILLING: 'utbilling', // Only billing and pricing component is active
+    TENANT_ASSET: 'utasset', // Only asset component is active
+    TENANT_CAR: 'utcar', // Only car component is active
+  };
+
+  static readonly SITE_CONTEXTS: any = {
+    NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
+    SITE_BASIC: 'ut-site', // Default site with no settings
+    SITE_WITH_AUTO_USER_ASSIGNMENT: 'ut-site-auto', // Automatic user assignment is active
+    SITE_WITH_OTHER_USER_STOP_AUTHORIZATION: 'ut-site-stop' // Authorization to stop other users transaction is active
+  };
+
+  static readonly SITE_AREA_CONTEXTS: any = {
+    NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
+    WITH_ACL: 'withACL', // ACL is active
+    WITHOUT_ACL: 'withoutACL' // ACL is inactive
+  };
+
+  static readonly CHARGING_STATION_CONTEXTS: any = {
+    UNREGISTERED_OCPP16: faker.random.alphaNumeric(10),
+    INVALID_IDENTIFIER_OCPP16: 'inv@l!d:1.6',
+    ASSIGNED_OCPP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
+    UNASSIGNED_OCPP16: 'cs-notassigned16', // Charging station is not assigned and use OCPP16
+    UNREGISTERED_OCPP15: faker.random.alphaNumeric(10),
+    INVALID_IDENTIFIER_OCPP15: 'inv@l!d-1,5',
+    ASSIGNED_OCPP15: 'cs-15', // Charging Station is assigned to each site area with OCPP15
+    UNASSIGNED_OCPP15: 'cs-notassigned15' // Charging station is not assigned and use OCPP15
+  };
+
+  static readonly USER_CONTEXTS: any = {
+    DEFAULT_ADMIN: {
+      role: 'A', status: 'A', assignedToSite: true, withTags: true
+    },
+    ADMIN_UNASSIGNED: {
+      role: 'A', status: 'A', assignedToSite: false, withTags: true
+    },
+    BASIC_USER: {
+      role: 'B', status: 'A', assignedToSite: true, withTags: true
+    },
+    BASIC_USER_UNASSIGNED: {
+      role: 'B', status: 'A', assignedToSite: false, withTags: true
+    },
+    BASIC_USER_PENDING: {
+      role: 'B', status: 'P', assignedToSite: true, withTags: true
+    },
+    BASIC_USER_LOCKED: {
+      role: 'B', status: 'L', assignedToSite: true, withTags: true
+    },
+    BASIC_USER_NO_TAGS: {
+      role: 'B', status: 'A', assignedToSite: true, withTags: false
+    },
+    DEMO_USER: {
+      role: 'D', status: 'A', assignedToSite: true, withTags: true
+    },
+  };
+
+  /**
+   * Definition of the different contexts
+   */
+  static readonly TENANT_CONTEXT_LIST: TenantDefinition[] = [{
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+    componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.SIMPLE,
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
+        },
+      },
+      ocpi: {
+        content: {
+          type: RoamingSettingsType.GIREVE,
+          ocpi: {
+            cpo: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            emsp: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            businessDetails: {
+              name: 'Test OCPI',
+              website: 'http://www.uttest.net'
+            }
+          }
+        }
+      },
+      organization: {},
+      statistics: {},
+      refund: {
+        content: {
+          type: RefundSettingsType.CONCUR,
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            appUrl: '',
+            clientId: '',
+            clientSecret: '',
+            paymentTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
+          }
+        }
+      },
+      analytics: {
+        content: {
+          type: AnalyticsSettingsType.SAC,
+          sac: {
+            mainUrl: '',
+            timezone: 'Europe/Paris'
+          }
+        }
+      },
+      smartCharging: {
+        content: {
+          type: SmartChargingSettingsType.SAP_SMART_CHARGING,
+          sapSmartCharging: {
+            optimizerUrl: '',
+            user: '',
+            password: ''
+          }
+        }
+      },
+      billing: {
+        content: {
+          type: BillingSettingsType.STRIPE,
+          stripe: {
+            currency: 'EUR',
+            url: '',
+            secretKey: '',
+            publicKey: '',
+            noCardAllowed: true,
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            advanceBillingAllowed: true,
+            taxID: ''
+          }
+        }
+      }
+    },
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    componentSettings: {
+      organization: {}
+    }
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.SIMPLE,
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
+        }
+      }
+    },
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.CONVERGENT_CHARGING,
+          convergentCharging: {
+            url: '',
+            chargeableItemName: '',
+            user: '',
+            password: ''
+          }
+        }
+      }
+    },
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_OCPI,
+    componentSettings: {
+      ocpi: {
+        content: {
+          type: RoamingSettingsType.GIREVE,
+          ocpi: {
+            cpo: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            emsp: {
+              countryCode: 'FR',
+              partyID: 'UT',
+            },
+            businessDetails: {
+              name: 'Test OCPI',
+              website: 'http://www.uttest.net'
+            }
+          }
+        }
+      },
+    },
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_FUNDING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_FUNDING,
+    componentSettings: {
+      refund: {
+        content: {
+          type: RefundSettingsType.CONCUR,
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            appUrl: '',
+            clientId: '',
+            clientSecret: '',
+            paymentTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
+          }
+        }
+      }
+    }
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa8',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_BILLING,
+    componentSettings: {
+      pricing: {
+        content: {
+          type: PricingSettingsType.SIMPLE,
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
+        }
+      },
+      billing: {
+        content: {
+          type: BillingSettingsType.STRIPE,
+          stripe: {
+            currency: 'EUR',
+            url: '',
+            secretKey: '',
+            publicKey: '',
+            noCardAllowed: true,
+            immediateBillingAllowed: true,
+            periodicBillingAllowed: true,
+            advanceBillingAllowed: true,
+            taxID: ''
+          }
+        }
+      }
+    },
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa9',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_ASSET,
+    componentSettings: {
+      asset: {},
+      organization: {}
+    }
+  },
+  {
+    tenantName: ContextDefinition.TENANT_CONTEXTS.TENANT_CAR,
+    id: 'aaaaaaaaaaaaaaaaaaaaaab1',
+    subdomain: ContextDefinition.TENANT_CONTEXTS.TENANT_CAR,
+    componentSettings: {
+      car: {},
+    }
+  }];
+
+  // List of users created in a tenant
+  static readonly TENANT_USER_LIST: any = [
+    // Email and password are taken from config file for all users
+    { // Default Admin user.
+      id: '5ce249a1a39ae1c056c389bd',
+      name: 'Admin',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.role,
+      status: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
+      tags: (ContextDefinition.USER_CONTEXTS.DEFAULT_ADMIN.withTags ? [{
+        id: 'A1234',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Admin not assigned
+      id: '5ce249a1a39ae1c056c123ef',
+      name: 'Admin',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
+      status: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
+      emailPrefix: 'a-unassigned-',
+      tags: (ContextDefinition.USER_CONTEXTS.ADMIN_UNASSIGNED.withTags ? [{
+        id: 'A12341',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Basic user
+      id: '5ce249a1a39ae1c056c123ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER.assignedToSite,
+      emailPrefix: 'basic-',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER.withTags ? [{
+        id: 'A12342',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Demo user
+      id: '5ce249a1a39ae1c056c123cd',
+      name: 'Demo',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.DEMO_USER.role,
+      status: ContextDefinition.USER_CONTEXTS.DEMO_USER.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.DEMO_USER.assignedToSite,
+      emailPrefix: 'demo-',
+      tags: (ContextDefinition.USER_CONTEXTS.DEMO_USER.withTags ? [{
+        id: 'A12343',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Basic user unassigned
+      id: '5ce249a1a39ae1c056c456ad',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
+      emailPrefix: 'b-unassigned-',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTags ? [{
+        id: 'A12348',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Basic user pending
+      id: '5ce249a1a39ae1c056c456ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
+      emailPrefix: 'b-pending-',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_PENDING.withTags ? [{
+        id: 'A12349',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Basic user Locked
+      id: '5ce249a1a39ae1c056c789ef',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
+      emailPrefix: 'b-locked-',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_LOCKED.withTags ? [{
+        id: 'A123410',
+        issuer: false,
+        active: true
+      }] : null)
+    },
+    { // Basic user No Tags
+      id: '5ce249a1a39ae1c056c567ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
+      role: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
+      status: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
+      assignedToSite: ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
+      emailPrefix: 'b-notTag',
+      tags: (ContextDefinition.USER_CONTEXTS.BASIC_USER_NO_TAGS.withTags ? [{
+        id: 'A123411',
+        issuer: false,
+        active: true
+      }] : null)
+    }
+  ];
+
+  // List of companies created in a tenant where organization component is active
+  static readonly TENANT_COMPANY_LIST: any = [
+    { // Default company no settings yet
+      id: '5ce249a2372f0b1c8caf928f'
+    }
+  ];
+
+  // List of sites created in a tenant where organization component is active
+  static readonly TENANT_SITE_LIST: any = [
+    { // Default site
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      id: '5ce249a2372f0b1c8caf9294',
+      name: ContextDefinition.SITE_CONTEXTS.SITE_BASIC,
+      autoUserSiteAssignment: false,
+      companyID: '5ce249a2372f0b1c8caf928f'
+    },
+    { // Site with other user stop
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      id: '5ce249a2372f0b1c8caf8367',
+      name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
+      autoUserSiteAssignment: false,
+      companyID: '5ce249a2372f0b1c8caf928f'
+    },
+    { // Site with auto user assignment
+      // contextName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      id: '5ce249a2372f0b1c8caf6532',
+      name: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
+      autoUserSiteAssignment: true,
+      companyID: '5ce249a2372f0b1c8caf928f'
+    }
+  ];
+
+  // List of siteArea created in a tenant where organization component is active
+  // sitename must refer an existing site from TENANT_SITE_LIST
+  static readonly TENANT_SITEAREA_LIST: any = [
+    { // With access control
+      id: '5ce249a2372f0b1c8caf9294',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      accessControl: true,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // Without access control
+      id: '5ce249a2372f0b1c8caf5476',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      accessControl: false,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_BASIC
+    },
+    { // With access control
+      id: '5ce249a2372f0b1c8caf1234',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      accessControl: true,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+    },
+    { // Without access control
+      id: '5ce249a2372f0b1c8caf4678',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      accessControl: false,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT
+    },
+    { // With access control
+      id: '5ce249a2372f0b1c8caf5497',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      accessControl: true,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+    },
+    { // Without access control
+      id: '5ce249a2372f0b1c8caf5432',
+      name: `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      accessControl: false,
+      siteName: ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
+    }
+  ];
+
+  // List of Charging Station created in a tenant
+  // siteAreaNames must refer the site Areas where teh charging station will be created
+  // if siteAreaNames is null then the CS will not be assigned or created in tenant with no porganization, so the baseName MUST be unique
+  static readonly TENANT_CHARGING_STATION_LIST: any = [
+    {
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
+      ocppVersion: '1.6',
+      siteAreaNames: [
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+    },
+    {
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName
+      ocppVersion: '1.5',
+      siteAreaNames: [
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${ContextDefinition.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+    },
+    {
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16,
+      ocppVersion: '1.6',
+      siteAreaNames: null,
+    },
+    {
+      baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15,
+      ocppVersion: '1.5',
+      siteAreaNames: null,
+    }
+  ];
+
+  // List of assets created in a tenant where organization component is active
+  static readonly TENANT_ASSET_LIST: any = [
+    {
+      id: '5e68ae9e2fa3df719875edef',
+      siteAreaID: '5ce249a2372f0b1c8caf9294'
+    },
+    {
+      id: '5e7a4509fe033d9842cfd545',
+      siteAreaID: '5ce249a2372f0b1c8caf9294'
+    },
+    {
+      id: '5e7b41b76b802f26bcce005d',
+      siteAreaID: '5ce249a2372f0b1c8caf5476'
+    },
+    {
+      id: '5e7b434f6b802f26bcce0066',
+      siteAreaID: '5ce249a2372f0b1c8caf5432'
+    }
+  ];
+}

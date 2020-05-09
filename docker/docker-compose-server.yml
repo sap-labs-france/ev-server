@@ -1,0 +1,31 @@
+version: "3.7"
+networks:
+  ev_network:
+    driver: bridge
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/ev_server.Dockerfile
+      args:
+        build: prod
+    ports:
+    - 81:81
+    - 8000:8000
+    - 8010:8010
+    - 8080:8080
+    - 9090:9090
+    - 9292:9292
+    external_links:
+    - evse_mongodb_1
+    - evse_mailserver_1
+    environment:
+      WAIT_HOSTS: ev_mongo:27017
+      WAIT_HOSTS_TIMEOUT: 90
+      WAIT_AFTER_HOSTS: 3
+    networks:
+      ev_network:
+        aliases:
+        - ev_server
+    extra_hosts:
+    - ev_server:127.0.0.1
