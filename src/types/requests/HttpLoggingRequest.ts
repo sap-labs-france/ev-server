@@ -1,4 +1,5 @@
 import { LogLevel, LogType } from '../Log';
+
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpLogsRequest extends HttpDatabaseRequest {
