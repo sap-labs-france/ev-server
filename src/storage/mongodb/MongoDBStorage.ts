@@ -366,7 +366,7 @@ export default class MongoDBStorage {
               // Release the indexes drop Lock
               await LockingManager.release(dropIndexesLock);
             }
-
+          }
         }
       }
     }
