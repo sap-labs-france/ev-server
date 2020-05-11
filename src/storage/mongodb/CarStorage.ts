@@ -18,14 +18,14 @@ export default class CarStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarCatalog');
     // Query single Site
     const carCatalogsMDB = await CarStorage.getCarCatalogs(
-      { carCatalogID: Utils.convertToInt(id) },
+      { carCatalogIDs: [id] },
       Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
     Logging.traceEnd(MODULE_NAME, 'getCarCatalog', uniqueTimerID, { id });
     return carCatalogsMDB.count > 0 ? carCatalogsMDB.result[0] : null;
   }
 
   public static async getCarCatalogs(
-    params: { search?: string; carCatalogID?: number; carCatalogIDs?: number[]; carMaker?: string[] } = {},
+    params: { search?: string; carCatalogIDs?: number[]; carMaker?: string[] } = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<CarCatalog>> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getCarCatalogs');
@@ -35,9 +35,7 @@ export default class CarStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: ({ _id?: number; $or?: any[] } | undefined) = {};
-    if (params.carCatalogID) {
-      filters._id = Utils.convertToInt(params.carCatalogID);
-    } else if (params.search) {
+    if (params.search) {
       const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
       filters.$or = [
         { 'vehicleModel': { $regex: searchRegex, $options: 'i' } },

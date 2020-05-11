@@ -627,9 +627,7 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
-      .findOne({
-        '_id': id
-      });
+      .findOne({ '_id': id });
     // Found?
     const parameters: OcppParameter[] = [];
     if (parametersMDB && parametersMDB.configuration && parametersMDB.configuration.length > 0) {
