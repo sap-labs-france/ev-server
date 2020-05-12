@@ -5,7 +5,6 @@ import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocati
 
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
 import { OCPICdr } from '../../types/ocpi/OCPICdr';

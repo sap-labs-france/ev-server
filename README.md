@@ -482,7 +482,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 ### Tests
 **Prerequisite:** The database must contain an admin user.
 
-* Create a local configuration file located in './test/config/local.json' with the parameters to override like
+* Create a local configuration file located in './test/config/local.json' from the template file './test/config-template.json' with the parameters to override like
 
         {
           "superadmin": {
@@ -491,8 +491,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
           },
           "admin": {
             "username": "YOUR_ADMIN_USERNAME",
-            "password": "YOUR_ADMIN_PASSWORD",
-            "tenant": "YOUR_TENANT"
+            "password": "YOUR_ADMIN_PASSWORD"
           },
           "server": {
             "logs": "json"
