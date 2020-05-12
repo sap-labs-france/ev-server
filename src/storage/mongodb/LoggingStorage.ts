@@ -111,11 +111,11 @@ export default class LoggingStorage {
     }
     // Start date
     if (params.startDateTime) {
-      filters.timestamp.$gte = new Date(params.startDateTime);
+      filters.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
-      filters.timestamp.$lte = new Date(params.endDateTime);
+      filters.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     // Filter on log levels
     if (params.levels && params.levels.length > 0) {
