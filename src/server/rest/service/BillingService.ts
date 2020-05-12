@@ -14,9 +14,9 @@ import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UtilsService from './UtilsService';
-import User from '../../../types/User';
 
 const MODULE_NAME = 'BillingService';
 

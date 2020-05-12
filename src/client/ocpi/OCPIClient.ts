@@ -308,8 +308,6 @@ export default abstract class OCPIClient {
     return this.settings[this.role].partyID;
   }
 
-  async abstract triggerJobs();
-
   protected getEndpointUrl(service, action: ServerAction) {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
@@ -319,4 +317,6 @@ export default abstract class OCPIClient {
       module: MODULE_NAME, method: 'getLocalPartyID',
     });
   }
+
+  async abstract triggerJobs();
 }
