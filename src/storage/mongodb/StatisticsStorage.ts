@@ -1,10 +1,10 @@
-import moment from 'moment';
-import global from '../../types/GlobalType';
-import StatisticFilter from '../../types/Statistic';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import DatabaseUtils from './DatabaseUtils';
+import Logging from '../../utils/Logging';
+import StatisticFilter from '../../types/Statistic';
+import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'StatisticsStorage';
 

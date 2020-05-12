@@ -55,10 +55,6 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    // Check if this is the server that performs the migration
-    if (!this.migrationConfig || !this.migrationConfig.active) {
-      return;
-    }
     Logging.logDebug({
       tenantID: tenantID,
       action: ServerAction.MONGO_DB,
@@ -234,7 +230,7 @@ export default class MongoDBStorage {
     // Get the EVSE DB
     this.db = mongoDBClient.db(this.dbConfig.schema);
     // Check Database only when migration is active
-    if (Configuration.getMigrationConfig().active) {
+    if (this.migrationConfig.active) {
       await this.checkDatabase();
     }
     console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
@@ -338,8 +334,17 @@ export default class MongoDBStorage {
         // Check if it exists
         const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
         if (!foundIndex) {
-          // Create Index
-          this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          // Indexes creation Lock
+          const createIndexesLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `index-${JSON.stringify(index.fields)}`);
+          if (await LockingManager.acquire(createIndexesLock)) {
+            try {
+              // Create Indexes
+              this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+            } finally {
+              // Release the indexes creation Lock
+              await LockingManager.release(createIndexesLock);
+            }
+          }
         }
       }
       // Check each index that should be dropped
@@ -351,8 +356,17 @@ export default class MongoDBStorage {
         // Exists?
         const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
         if (!foundIndex) {
-          // Drop Index
-          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+          // Indexes drop Lock
+          const dropIndexesLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `index-${JSON.stringify(databaseIndex.key)}`);
+          if (await LockingManager.acquire(dropIndexesLock)) {
+            try {
+              // Drop indexes
+              await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+            } finally {
+              // Release the indexes drop Lock
+              await LockingManager.release(dropIndexesLock);
+            }
+          }
         }
       }
     }

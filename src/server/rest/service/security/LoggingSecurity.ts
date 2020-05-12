@@ -1,12 +1,12 @@
-import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import { Log } from '../../../../types/Log';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpLogsRequest } from '../../../../types/requests/HttpLoggingRequest';
+import { Log } from '../../../../types/Log';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import sanitize from 'mongo-sanitize';
 
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
