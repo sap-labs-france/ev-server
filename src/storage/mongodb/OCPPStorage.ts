@@ -1,13 +1,14 @@
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
 import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPNormalizedMeterValues, OCPPStatusNotificationRequestExtended } from '../../types/ocpp/OCPPServer';
-
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import global from '../../types/GlobalType';
+import DatabaseUtils from './DatabaseUtils';
+
 
 const MODULE_NAME = 'OCPPStorage';
 
@@ -447,24 +448,32 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMeterValues');
     // Check
     await Utils.checkTenant(tenantID);
-    const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
-      const meterValueMDB = {
-        _id: Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
-        chargeBoxID: meterValueToSave.chargeBoxID,
-        connectorId: Utils.convertToInt(meterValueToSave.connectorId),
-        transactionId: Utils.convertToInt(meterValueToSave.transactionId),
-        timestamp,
-        value: meterValueToSave.attribute.format === 'SignedData' ? meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
-        attribute: meterValueToSave.attribute,
-      };
-      // Add
-      meterValuesMDB.push(meterValueMDB);
+      try {
+        const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
+        const meterValueMDB = {
+          _id: Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`),
+          chargeBoxID: meterValueToSave.chargeBoxID,
+          connectorId: Utils.convertToInt(meterValueToSave.connectorId),
+          transactionId: Utils.convertToInt(meterValueToSave.transactionId),
+          timestamp,
+          value: meterValueToSave.attribute.format === 'SignedData' ? meterValueToSave.value : Utils.convertToInt(meterValueToSave.value),
+          attribute: meterValueToSave.attribute,
+        };
+        // Execute
+        await global.database.getCollection<any>(tenantID, 'metervalues').insertOne(meterValueMDB);
+      } catch (error) {
+        Logging.logError({
+          tenantID,
+          source: meterValueToSave.chargeBoxID,
+          module: MODULE_NAME, method: 'saveMeterValues',
+          action: ServerAction.METER_VALUES,
+          message: 'An error occurred while trying to save the meter value',
+          detailedMessages: { error: error.message, stack: error.stack, meterValue: meterValueToSave }
+        });
+      }
     }
-    // Execute
-    await global.database.getCollection<any>(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
   }
