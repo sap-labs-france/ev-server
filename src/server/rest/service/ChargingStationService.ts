@@ -750,7 +750,7 @@ export default class ChargingStationService {
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {
       // Check all chargers
-      if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.site.id)) {
+      if (!Authorizations.canExportParams(req.user, chargingStation.siteArea.siteID)) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
           user: req.user,
@@ -1222,6 +1222,9 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    console.log('====================================');
+    console.log(filteredRequest);
+    console.log('====================================');
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
