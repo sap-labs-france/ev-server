@@ -1222,9 +1222,6 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-    console.log('====================================');
-    console.log(filteredRequest);
-    console.log('====================================');
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {
