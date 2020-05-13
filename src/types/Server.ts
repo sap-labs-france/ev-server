@@ -66,7 +66,6 @@ export enum ServerAction {
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
   REGISTER_USER = 'RegisterUser',
-  POWER_LIMITATION = 'ChargingStationLimitPower',
   CHARGING_PROFILES = 'ChargingProfiles',
   CHARGING_PROFILE_DELETE = 'ChargingProfileDelete',
   CHARGING_PROFILE_UPDATE = 'ChargingProfileUpdate',
