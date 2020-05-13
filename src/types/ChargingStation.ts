@@ -1,9 +1,10 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-import { InactivityStatus, InactivityStatusLevel } from './Transaction';
+import { InactivityStatus } from './Transaction';
 
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { KeyValue } from './GlobalType';
 import SiteArea from './SiteArea';
+import { OCPIEvse } from './ocpi/OCPIEvse';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -43,6 +44,9 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
   currentType: ChargingStationCurrentType;
+  ocpiData?: {
+    evse?: OCPIEvse;
+  };
 }
 
 export enum ChargingStationCurrentType {
