@@ -7,6 +7,9 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
+import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
+import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
@@ -18,9 +21,6 @@ import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import cron from 'node-cron';
-import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
-import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
-import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 
 const MODULE_NAME = 'SchedulerManager';
 
