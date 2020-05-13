@@ -250,7 +250,6 @@ export default class CarService {
         carCatalogID: filteredRequest.carCatalogID,
         licensePlate: filteredRequest.licensePlate,
         vin: filteredRequest.vin,
-        type: filteredRequest.isPrivate ? 'private' : 'company',
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as Car;
@@ -268,6 +267,7 @@ export default class CarService {
       let newUserCar: UserCar = {
         carID: newCar.id,
         userID: req.user.id,
+        type: filteredRequest.isPrivate ? 'private' : 'company',
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as UserCar;
