@@ -21,6 +21,8 @@ export interface HttpCarCreateRequest {
   licensePlate: string;
   carCatalogID: number;
   forced: boolean;
+  isPrivate: boolean;
+  isDefault: boolean;
 }
 
 export interface HttpCarsRequest extends HttpDatabaseRequest {

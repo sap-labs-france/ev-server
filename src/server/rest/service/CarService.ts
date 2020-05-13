@@ -250,6 +250,7 @@ export default class CarService {
         carCatalogID: filteredRequest.carCatalogID,
         licensePlate: filteredRequest.licensePlate,
         vin: filteredRequest.vin,
+        type: filteredRequest.isPrivate ? 'private' : 'company',
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as Car;
@@ -264,13 +265,20 @@ export default class CarService {
     });
     // If Basic user, auto assign the car to him
     if (Authorizations.isBasic(req.user)) {
-      const newUserCar: UserCar = {
+      let newUserCar: UserCar = {
         carID: newCar.id,
         userID: req.user.id,
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as UserCar;
+      const defaultCar = await CarStorage.getDefaultCar(req.user.tenantID, req.user.id);
+      if (!defaultCar) {
+        newUserCar = Object.assign(newUserCar, { default: true });
+      }
       newUserCar.id = await CarStorage.saveUserCar(req.user.tenantID, newUserCar);
+      if (defaultCar && filteredRequest.isDefault) {
+        await CarStorage.updateDefaultCar(req.user.tenantID, newCar.id, req.user.id);
+      }
     }
     // Ok
     res.json(Object.assign({ id: newCar.id }, Constants.REST_RESPONSE_SUCCESS));
