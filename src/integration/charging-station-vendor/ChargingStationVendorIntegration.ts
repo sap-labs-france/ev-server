@@ -24,7 +24,7 @@ export default abstract class ChargingStationVendorIntegration {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: ServerAction.POWER_LIMITATION,
+      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
       message: 'Set Power limitation is being called',
       module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { connectorID, maxAmps }
@@ -33,7 +33,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.POWER_LIMITATION,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station does not support static power limitation'
       });
@@ -41,7 +41,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (connectorID > 0) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.POWER_LIMITATION,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
       });
@@ -49,7 +49,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.POWER_LIMITATION,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
@@ -57,7 +57,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (Utils.isEmptyArray(chargingStation.connectors)) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.POWER_LIMITATION,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'The Charging Station has no connector',
         detailedMessages: { maxAmps }
@@ -70,7 +70,7 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingStationClient) {
       throw new BackendError({
         source: chargingStation.id,
-        action: ServerAction.POWER_LIMITATION,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setPowerLimitation',
         message: 'Charging Station is not connected to the backend',
       });
@@ -105,7 +105,7 @@ export default abstract class ChargingStationVendorIntegration {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
-      action: ServerAction.POWER_LIMITATION,
+      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
       message: 'Set Power limitation has been called',
       module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { result }
