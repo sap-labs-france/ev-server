@@ -1,10 +1,10 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-import { InactivityStatus } from './Transaction';
 
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
-import SiteArea from './SiteArea';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import SiteArea from './SiteArea';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
