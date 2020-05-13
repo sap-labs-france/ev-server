@@ -3,7 +3,6 @@ import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 
 import AbstractEndpoint from '../AbstractEndpoint';
 import AbstractOCPIService from '../../AbstractOCPIService';
-import { Action } from '../../../../types/Authorization';
 import AppError from '../../../../exception/AppError';
 import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStation from '../../../../types/ChargingStation';

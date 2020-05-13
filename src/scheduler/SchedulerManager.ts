@@ -18,6 +18,9 @@ import SynchronizeBillingUsersTask from './tasks/SynchronizeBillingUsersTask';
 import SynchronizeCarsTask from './tasks/SynchronizeCarsTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import cron from 'node-cron';
+import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
+import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
+import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
 
 const MODULE_NAME = 'SchedulerManager';
 
@@ -74,6 +77,15 @@ export default class SchedulerManager {
             break;
           case 'OCPIGetSessionsTask':
             schedulerTask = new OCPIGetSessionsTask();
+            break;
+          case 'OCPICheckLocationsTask':
+            schedulerTask = new OCPICheckLocationsTask();
+            break;
+          case 'OCPICheckSessionsTask':
+            schedulerTask = new OCPICheckSessionsTask();
+            break;
+          case 'OCPICheckCdrsTask':
+            schedulerTask = new OCPICheckCdrsTask();
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
