@@ -476,7 +476,8 @@ export default class ChargingStationStorage {
       capabilities: chargingStationToSave.capabilities,
       ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
-      ocppVendorParameters: chargingStationToSave.ocppVendorParameters
+      ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
+      ocpiData: chargingStationToSave.ocpiData
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
