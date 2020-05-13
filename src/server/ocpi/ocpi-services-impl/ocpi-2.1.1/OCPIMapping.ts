@@ -66,7 +66,10 @@ export default class OCPIMapping {
       connectors: [],
       chargeBoxSerialNumber: evse.evse_id,
       imsi: evse.uid,
-      iccid: location.id
+      iccid: location.id,
+      ocpiData: {
+        evse: evse
+      }
     } as ChargingStation;
     if (evse.coordinates && evse.coordinates.latitude && evse.coordinates.longitude) {
       chargingStation.coordinates = [
@@ -300,7 +303,8 @@ export default class OCPIMapping {
         'evse_id': evseID,
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
         'capabilites': [OCPICapability.REMOTE_START_STOP_CAPABLE, OCPICapability.RFID_READER],
-        'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)]
+        'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)],
+        'last_updated': chargingStation.lastHeartBeat
       };
       // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
