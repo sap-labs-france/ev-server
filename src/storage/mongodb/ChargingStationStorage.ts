@@ -476,14 +476,17 @@ export default class ChargingStationStorage {
       capabilities: chargingStationToSave.capabilities,
       ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
-      ocppVendorParameters: chargingStationToSave.ocppVendorParameters
+      ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
+      ocpiData: chargingStationToSave.ocpiData
     };
+
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
     }
     if (!chargingStationMDB.remoteAuthorizations) {
       chargingStationMDB.remoteAuthorizations = [];
     }
+
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
