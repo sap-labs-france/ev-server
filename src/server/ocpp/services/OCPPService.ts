@@ -1100,6 +1100,10 @@ export default class OCPPService {
     if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Set current
       transaction.currentStateOfCharge = Utils.convertToFloat(meterValue.value);
+      // If Transaction.Begin not provided (Cahors)
+      if (transaction.stateOfCharge === 0) {
+        transaction.stateOfCharge = transaction.currentStateOfCharge;
+      }
       // Consumption?
     } else if (OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Update
