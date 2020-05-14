@@ -155,7 +155,7 @@ export default class CarSecurity {
       licensePlate: sanitize(request.licensePlate),
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
-      isPrivate: UtilsSecurity.filterBoolean(request.isPrivate),
+      type: sanitize(request.type),
       isDefault: UtilsSecurity.filterBoolean(request.isDefault)
     };
   }
