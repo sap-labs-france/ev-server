@@ -122,6 +122,12 @@ export interface CarCatalog extends CreatedUpdatedProps {
   imagesHash?: string;
 }
 
+export enum CarType {
+  PRIVATE = 'private',
+  COMPANY = 'company',
+  POOL = 'pool',
+}
+
 export interface Car extends CreatedUpdatedProps {
   id: string;
   vin: string;
@@ -139,7 +145,7 @@ export interface UserCar extends CreatedUpdatedProps {
   user?: User;
   car?: Car;
   default?: boolean;
-  type?: string;
+  type?: CarType;
 }
 
 export interface CarMaker {
