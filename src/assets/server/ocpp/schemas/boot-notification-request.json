@@ -48,7 +48,7 @@
         "meterType": {
             "type": "string",
             "description": "string defining the meter type of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 25
         },
         "meterSerialNumber": {
