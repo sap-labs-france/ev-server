@@ -592,7 +592,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: 'Get Current Connector Limit has been called',
+      message: `Get Current Connector Limit has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });
