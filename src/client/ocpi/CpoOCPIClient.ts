@@ -61,9 +61,9 @@ export default class CpoOCPIClient extends OCPIClient {
     let tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PULL_TOKENS);
     if (partial) {
       const momentFrom = moment().utc().subtract(1, 'days').startOf('day');
-      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=25`;
+      tokensUrl = `${tokensUrl}?date_from=${momentFrom.format()}&limit=100`;
     } else {
-      tokensUrl = `${tokensUrl}?limit=25`;
+      tokensUrl = `${tokensUrl}?limit=100`;
     }
     let nextResult = true;
     while (nextResult) {
