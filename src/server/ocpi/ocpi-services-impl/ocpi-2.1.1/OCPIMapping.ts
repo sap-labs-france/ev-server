@@ -53,7 +53,7 @@ export default class OCPIMapping {
         'longitude': site.address.coordinates[0].toString()
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
-      'last_updated': site.lastChangedOn
+      'last_updated': site.lastChangedOn ? site.lastChangedOn : site.createdOn
     };
   }
 
