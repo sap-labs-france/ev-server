@@ -463,10 +463,16 @@ export default class OCPPUtils {
       && meterValue.attribute.measurand === 'SoC';
   }
 
-  static isConsumptionMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isActiveEnergyMeterValue(meterValue: OCPPNormalizedMeterValue) {
     return !meterValue.attribute ||
-      (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-        && (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
+      (meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
+      (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
+  }
+
+  static isActivePowerMeterValue(meterValue: OCPPNormalizedMeterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === 'Power.Active.Import' &&
+       meterValue.attribute.context === 'Sample.Periodic');
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {

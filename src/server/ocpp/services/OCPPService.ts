@@ -343,7 +343,7 @@ export default class OCPPService {
       // Normalize Meter Values
       const newMeterValues = this.normalizeMeterValues(chargingStation, meterValues);
       // Handle Charging Station's specificities
-      this.filterMeterValuesOnCharger(headers.tenantID, chargingStation, newMeterValues);
+      this.filterMeterValuesOnSpecificChargingStations(headers.tenantID, chargingStation, newMeterValues);
       // No Values?
       if (newMeterValues.values.length === 0) {
         Logging.logDebug({
@@ -364,7 +364,7 @@ export default class OCPPService {
           // Save Meter Values
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
           // Handle Meter Values
-          await this.updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
+          await this.buildConsumptionsWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
           // OCPI
           await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
@@ -1093,7 +1093,8 @@ export default class OCPPService {
     }
   }
 
-  private async buildConsumptionAndUpdateTransactionFromMeterValue(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
+  private async buildConsumptionWithMeterValue(tenantID: string, transaction: Transaction,
+    chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
@@ -1105,7 +1106,7 @@ export default class OCPPService {
         transaction.stateOfCharge = transaction.currentStateOfCharge;
       }
       // Consumption?
-    } else if (OCPPUtils.isConsumptionMeterValue(meterValue)) {
+    } else if (OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
       // Update
       transaction.numberOfMeterValues = transaction.numberOfMeterValues + 1;
       transaction.lastMeterValue = {
@@ -1147,7 +1148,7 @@ export default class OCPPService {
     transaction: Transaction, startedAt: Date, endedAt: Date, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
-      OCPPUtils.isConsumptionMeterValue(meterValue)) {
+      OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
       // Init
       const consumption: Consumption = {
         transactionId: transaction.id,
@@ -1215,7 +1216,7 @@ export default class OCPPService {
     }
   }
 
-  private async updateTransactionWithMeterValues(tenantID: string, transaction: Transaction,
+  private async buildConsumptionsWithMeterValues(tenantID: string, transaction: Transaction,
     meterValues: OCPPNormalizedMeterValues, chargingStation: ChargingStation) {
     // Build consumptions
     const consumptions: Consumption[] = [];
@@ -1244,9 +1245,9 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-        OCPPUtils.isConsumptionMeterValue(meterValue)) {
+          OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
-        const consumption: Consumption = await this.buildConsumptionAndUpdateTransactionFromMeterValue(
+        const consumption: Consumption = await this.buildConsumptionWithMeterValue(
           tenantID, transaction, chargingStation, meterValue);
         if (consumption) {
           // Existing Consumption (SoC or Consumption MeterValue)?
@@ -1608,7 +1609,7 @@ export default class OCPPService {
     return moment.duration(transaction.stop.totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 
-  private filterMeterValuesOnCharger(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPNormalizedMeterValues) {
+  private filterMeterValuesOnSpecificChargingStations(tenantID: string, chargingStation: ChargingStation, meterValues: OCPPNormalizedMeterValues) {
     // Clean up Sample.Clock meter value
     if (chargingStation.chargePointVendor !== ChargerVendor.ABB ||
       chargingStation.ocppVersion !== OCPPVersion.VERSION_15) {
@@ -1620,7 +1621,7 @@ export default class OCPPService {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
-            module: MODULE_NAME, method: 'filterMeterValuesOnCharger',
+            module: MODULE_NAME, method: 'filterMeterValuesOnSpecificChargingStations',
             action: ServerAction.METER_VALUES,
             message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
             detailedMessages: { meterValue }
