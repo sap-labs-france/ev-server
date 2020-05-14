@@ -36,19 +36,19 @@
         "iccid": {
             "type": "string",
             "description": "string defining the iccid of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 20
         },
         "imsi": {
             "type": "string",
             "description": "string defining the imsi of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 20
         },
         "meterType": {
             "type": "string",
             "description": "string defining the meter type of the charge point. To be treated as case insensitive.",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 25
         },
         "meterSerialNumber": {

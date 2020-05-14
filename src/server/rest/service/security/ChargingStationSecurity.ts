@@ -96,6 +96,9 @@ export default class ChargingStationSecurity {
       if (chargingStation.siteArea) {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
+      if (chargingStation.ocpiData) {
+        filteredChargingStation.ocpiData = chargingStation.ocpiData;
+      }
     }
     // Sort Connector
     filteredChargingStation.connectors.sort(

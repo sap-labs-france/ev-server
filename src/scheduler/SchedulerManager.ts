@@ -7,6 +7,9 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import OCPICheckCdrsTask from './tasks/ocpi/OCPICheckCdrsTask';
+import OCPICheckLocationsTask from './tasks/ocpi/OCPICheckLocationsTask';
+import OCPICheckSessionsTask from './tasks/ocpi/OCPICheckSessionsTask';
 import OCPIGetCdrsTask from './tasks/ocpi/OCPIGetCdrsTask';
 import OCPIGetLocationsTask from './tasks/ocpi/OCPIGetLocationsTask';
 import OCPIGetSessionsTask from './tasks/ocpi/OCPIGetSessionsTask';
@@ -74,6 +77,15 @@ export default class SchedulerManager {
             break;
           case 'OCPIGetSessionsTask':
             schedulerTask = new OCPIGetSessionsTask();
+            break;
+          case 'OCPICheckLocationsTask':
+            schedulerTask = new OCPICheckLocationsTask();
+            break;
+          case 'OCPICheckSessionsTask':
+            schedulerTask = new OCPICheckSessionsTask();
+            break;
+          case 'OCPICheckCdrsTask':
+            schedulerTask = new OCPICheckCdrsTask();
             break;
           case 'OCPIGetTokensTask':
             schedulerTask = new OCPIGetTokensTask();
