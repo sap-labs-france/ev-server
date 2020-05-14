@@ -22,7 +22,8 @@ const RECORDS_LIMIT = 20;
 
 /**
  * Locations Endpoint
- */export default class CPOLocationsEndpoint extends AbstractEndpoint {
+ */
+export default class CPOLocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
