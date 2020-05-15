@@ -125,7 +125,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
 export enum CarType {
   PRIVATE = 'private',
   COMPANY = 'company',
-  POOL = 'pool',
+  POOL_CAR = 'pool_car',
 }
 
 export interface Car extends CreatedUpdatedProps {
