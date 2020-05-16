@@ -51,8 +51,8 @@ export default class OCPIUtils {
     if (offset + limit < total) {
       // Build url
       const query = req.query;
-      query.offset = (offset + limit);
-      query.limit = limit;
+      query.offset = (offset + limit).toString();
+      query.limit = limit.toString();
       let queryString;
       for (const param in query) {
         queryString = queryString ? `${queryString}&${param}=${query[param]}` : `${param}=${query[param]}`;
