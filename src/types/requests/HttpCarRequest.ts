@@ -1,3 +1,4 @@
+import { CarType } from '../Car';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 export interface HttpCarCatalogsRequest extends HttpDatabaseRequest {
   Search?: string;
@@ -21,6 +22,8 @@ export interface HttpCarCreateRequest {
   licensePlate: string;
   carCatalogID: number;
   forced: boolean;
+  type: CarType;
+  isDefault: boolean;
 }
 
 export interface HttpCarsRequest extends HttpDatabaseRequest {
