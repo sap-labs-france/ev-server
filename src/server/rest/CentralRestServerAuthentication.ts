@@ -24,7 +24,7 @@ export default {
     if (req.body && req.body.tenant) {
       tenantID = await AuthService.getTenantID(req.body.tenant);
     } else if (req.query && req.query.tenant) {
-      tenantID = await AuthService.getTenantID(req.query.tenant);
+      tenantID = await AuthService.getTenantID(req.query.tenant.toString());
     } else if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }

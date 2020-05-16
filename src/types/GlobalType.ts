@@ -34,7 +34,7 @@ interface TSGlobal extends Global {
 // Export global variables
 declare const global: TSGlobal;
 // Use bluebird Promise as default
-global.Promise = bluebird;
+global.Promise = bluebird as any;
 // AppRoot full path
 if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
   global.appRoot = path.resolve(__dirname, '../');

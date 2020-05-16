@@ -70,7 +70,7 @@ export default class MongoDBStorageNotification {
       }
 
       const dbChangeStream = this.database.watch(_pipeline, _options);
-      dbChangeStream.on('change', (change) => {
+      dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
         if (change.ns && change.ns.coll) {
@@ -158,7 +158,7 @@ export default class MongoDBStorageNotification {
 
   private handleTransactionChange(tenantID: string, transactionID: string, action: string, changeEvent) {
     if (transactionID) {
-      const notification: any = {
+      const notification: { [key: string]: any } = {
         'id': transactionID
       };
       // Operation
@@ -187,7 +187,7 @@ export default class MongoDBStorageNotification {
 
   private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: string, changeEvent) {
     if (metervaluesID) {
-      const notification: any = {};
+      const notification: { [key: string]: any } = {};
       // Insert/Create?
       if (action === Action.CREATE) {
         notification.id = changeEvent.fullDocument.transactionId;

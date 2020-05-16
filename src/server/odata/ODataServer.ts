@@ -4,6 +4,7 @@ import Logging from '../../utils/Logging';
 import ODataRestAdapter from './ODataRestAdapter';
 import ODataSchema from './odata-schema/ODataSchema';
 import ODataServerFactory from '../odata/ODataServerFactory';
+import ODataServiceConfiguration from '../../types/configuration/ODataServiceConfiguration';
 import { ServerAction } from '../../types/Server';
 import express from 'express';
 import expressTools from '../ExpressTools';
@@ -11,7 +12,7 @@ import morgan from 'morgan';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataServer {
-  private oDataServerConfig: any;
+  private oDataServerConfig: ODataServiceConfiguration;
   private express: express.Application;
 
   // Create the rest server
@@ -51,7 +52,7 @@ export default class ODataServer {
     ODataRestAdapter.restServerUrl = restServerUrl;
     this.express.use(
       '/odata',
-      ODataSchema.getSchema,
+      ODataSchema.getSchema.bind(this),
       function(req, res) {
         oDataServer.handle(req, res);
       }

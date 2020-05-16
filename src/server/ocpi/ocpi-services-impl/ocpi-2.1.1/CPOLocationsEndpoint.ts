@@ -107,7 +107,7 @@ export default class CPOLocationsEndpoint extends AbstractEndpoint {
     } else {
       // Get query parameters
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-      const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+      const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
       // Get all locations
       const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
       payload = result.locations;
