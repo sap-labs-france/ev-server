@@ -31,7 +31,7 @@ export default class Bootstrap {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static centralRestServer: CentralRestServer;
   private static chargingStationConfig: ChargingStationConfiguration;
-  private static storageNotification: any;
+  private static storageNotification: MongoDBStorageNotification;
   private static storageConfig: StorageConfiguration;
   private static centralSystemsConfig: CentralSystemConfiguration[];
   private static SoapCentralSystemServer: SoapCentralSystemServer;

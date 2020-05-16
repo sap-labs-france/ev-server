@@ -28,6 +28,7 @@ export default class MigrationStorage {
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveMigration');
     // Transfer
     const migrationMDB = {
+      // FIXME: Use a hash like in other collections
       _id: `${migrationToSave.name}~${migrationToSave.version}`,
       timestamp: Utils.convertToDate(migrationToSave.timestamp),
       name: migrationToSave.name,

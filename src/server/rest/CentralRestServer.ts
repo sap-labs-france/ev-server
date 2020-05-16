@@ -6,9 +6,10 @@ import ChangeNotification from '../../types/ChangeNotification';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { Entity } from '../../types/Authorization';
+import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
-import SessionHashService from '../rest/service/SessionHashService';
+import SessionHashService from './service/SessionHashService';
 import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 import cluster from 'cluster';
@@ -22,7 +23,6 @@ import util from 'util';
 const MODULE_NAME = 'CentralRestServer';
 
 export default class CentralRestServer {
-
   private static centralSystemRestConfig;
   private static restHttpServer;
   private static socketIO;
@@ -91,7 +91,7 @@ export default class CentralRestServer {
         message: `Unhandled URL ${req.method} request (original URL ${req.originalUrl})`,
         detailedMessages: 'Request: ' + util.inspect(req)
       });
-      res.sendStatus(404);
+      res.sendStatus(HttpStatusCodes.NOT_FOUND);
     });
 
     // Create HTTP server to serve the express app
@@ -188,11 +188,10 @@ export default class CentralRestServer {
     expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
-  notifyUser(tenantID: string, action: string, data) {
+  public notifyUser(tenantID: string, action: string, data) {
     // On User change rebuild userHashID
     if (data && data.id) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      SessionHashService.rebuildUserHashID(tenantID, data.id);
+      SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => {});
     }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
@@ -208,11 +207,10 @@ export default class CentralRestServer {
     });
   }
 
-  notifyTenant(tenantID: string, action: string, data) {
+  public notifyTenant(tenantID: string, action: string, data) {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      SessionHashService.rebuildTenantHashID(data.id);
+      SessionHashService.rebuildTenantHashID(data.id).catch(() => {});
     }
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
@@ -228,7 +226,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifySite(tenantID: string, action: string, data) {
+  public notifySite(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -243,7 +241,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifySiteArea(tenantID: string, action: string, data) {
+  public notifySiteArea(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -258,7 +256,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyCompany(tenantID: string, action: string, data) {
+  public notifyCompany(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -273,7 +271,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyAsset(tenantID: string, action: string, data) {
+  public notifyAsset(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -288,7 +286,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyTransaction(tenantID: string, action: string, data) {
+  public notifyTransaction(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -303,7 +301,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyChargingStation(tenantID: string, action: string, data) {
+  public notifyChargingStation(tenantID: string, action: string, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -318,12 +316,42 @@ export default class CentralRestServer {
     });
   }
 
-  notifyLogging(tenantID: string, action: string) {
+  public notifyLogging(tenantID: string, action: string) {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.LOGGINGS,
       'action': action
+    });
+  }
+
+  public notifyRegistrationToken(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.REGISTRATION_TOKEN,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.REGISTRATION_TOKENS,
+    });
+  }
+
+  public notifyInvoice(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.INVOICE,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.INVOICES
     });
   }
 
