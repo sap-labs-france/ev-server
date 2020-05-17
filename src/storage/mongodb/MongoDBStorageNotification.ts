@@ -15,9 +15,9 @@ const _options = {
 const MODULE_NAME = 'MongoDBStorageNotification';
 
 export default class MongoDBStorageNotification {
-  public dbConfig: StorageConfiguration;
-  public centralRestServer: CentralRestServer;
-  public database: MongoDBStorage;
+  private dbConfig: StorageConfiguration;
+  private database: MongoDBStorage;
+  private centralRestServer: CentralRestServer;
 
   constructor(dbConfig: StorageConfiguration, centralRestServer: CentralRestServer) {
     this.dbConfig = dbConfig;
@@ -49,7 +49,8 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  static handleDBChangeStreamError(error: Error) { // Log
+  static handleDBChangeStreamError(error: Error) {
+    // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
@@ -94,7 +95,7 @@ export default class MongoDBStorageNotification {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
+        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
@@ -153,6 +154,12 @@ export default class MongoDBStorageNotification {
       case 'logs':
         this.centralRestServer.notifyLogging(tenantID, action);
         break;
+      case 'registrationtokens':
+        this.centralRestServer.notifyRegistrationToken(tenantID, action, { id: documentID });
+        break;
+      case 'invoices':
+        this.centralRestServer.notifyInvoice(tenantID, action, { id: documentID });
+        break;
     }
   }
 
@@ -205,7 +212,7 @@ export default class MongoDBStorageNotification {
   private handleConfigurationChange(tenantID: string, configurationID: string, action: string, changeEvent) {
     if (configurationID) {
       this.centralRestServer.notifyChargingStation(tenantID, action, {
-        'type': Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+        'type': Constants.CHARGING_STATION_CONFIGURATION,
         'id': configurationID
       });
     } else {

@@ -1,10 +1,9 @@
-import * as HttpStatus from 'http-status-codes';
-
 import express, { NextFunction, Request, Response } from 'express';
 
 import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
+import HttpStatusCodes from 'http-status-codes';
 import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import bodyParser from 'body-parser';
@@ -41,7 +40,7 @@ export default class ExpressTools {
     }));
     // Health Check Handling
     if (Configuration.getHealthCheckConfig().enabled) {
-      app.get('/health-check', ExpressTools.healthCheckService);
+      app.get('/health-check', ExpressTools.healthCheckService.bind(this));
     }
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
@@ -122,6 +121,6 @@ export default class ExpressTools {
   }
 
   public static async healthCheckService(req: Request, res: Response, next: NextFunction) {
-    res.sendStatus(HttpStatus.OK);
+    res.sendStatus(HttpStatusCodes.OK);
   }
 }
