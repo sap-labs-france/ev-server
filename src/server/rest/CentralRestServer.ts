@@ -2,7 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
-import CentralSystemConfiguration from '../../types/configuration/CentralSystemConfiguration';
+import CentralSystemRestServiceConfiguration from '../../types/configuration/CentralSystemRestServiceConfiguration';
 import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
@@ -38,7 +38,7 @@ export default class CentralRestServer {
   private express: express.Application;
 
   // Create the rest server
-  constructor(centralSystemRestConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
+  constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Keep params
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
