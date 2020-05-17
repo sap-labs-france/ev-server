@@ -163,6 +163,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     const authorizationInfo: OCPIAuthorizationInfo = {
       allowed: allowedStatus,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: uuid(),
       location: locationReference
     };
