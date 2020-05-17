@@ -163,16 +163,6 @@ export default class CentralRestServer {
             detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
-        // Handle Socket IO disconnection
-        socket.on('disconnect', (reason) => {
-          Logging.logDebug({
-            tenantID: userToken.tenantID,
-            module: MODULE_NAME, method: 'startSocketIO',
-            action: ServerAction.SOCKET_IO,
-            message: `SocketIO client is disconnected: ${reason}`,
-            detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
-          });
-        });
       }
     });
 
