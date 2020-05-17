@@ -367,6 +367,36 @@ export default class CentralRestServer {
     });
   }
 
+  public notifyCar(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CARS
+    });
+  }
+
+  public notifyChargingProfile(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILE,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILES
+    });
+  }
+
   private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
     // Add in buffer
