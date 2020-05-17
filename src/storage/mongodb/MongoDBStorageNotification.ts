@@ -3,9 +3,9 @@ import { Action, Entity } from '../../types/Authorization';
 import CentralRestServer from '../../server/rest/CentralRestServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MongoDBStorage from './MongoDBStorage';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import global from '../../types/GlobalType';
 
 const _pipeline = [];
 const _options = {
@@ -16,7 +16,6 @@ const MODULE_NAME = 'MongoDBStorageNotification';
 
 export default class MongoDBStorageNotification {
   private dbConfig: StorageConfiguration;
-  private database: MongoDBStorage;
   private centralRestServer: CentralRestServer;
 
   constructor(dbConfig: StorageConfiguration, centralRestServer: CentralRestServer) {
@@ -62,15 +61,12 @@ export default class MongoDBStorageNotification {
 
   async start() {
     if (this.dbConfig.monitorDBChange) {
-      this.database = new MongoDBStorage(this.dbConfig);
-      await this.database.start();
-
       // Check
       if (!this.centralRestServer) {
         return;
       }
 
-      const dbChangeStream = this.database.watch(_pipeline, _options);
+      const dbChangeStream = global.database.watch(_pipeline, _options);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
@@ -159,6 +155,10 @@ export default class MongoDBStorageNotification {
         break;
       case 'invoices':
         this.centralRestServer.notifyInvoice(tenantID, action, { id: documentID });
+        break;
+      case 'carcatalogimages':
+      case 'carcatalogs':
+        this.centralRestServer.notifyCarCatalog(tenantID, action, { id: documentID });
         break;
       case 'cars':
         this.centralRestServer.notifyCar(tenantID, action, { id: documentID });

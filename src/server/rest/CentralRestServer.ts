@@ -163,16 +163,6 @@ export default class CentralRestServer {
             detailedMessages: { socketHandshake: socket.handshake }
           });
         });
-        // Handle Socket IO disconnecting reason
-        socket.on('disconnecting', (reason) => {
-          Logging.logDebug({
-            tenantID: userToken.tenantID,
-            module: MODULE_NAME, method: 'startSocketIO',
-            action: ServerAction.SOCKET_IO,
-            message: `SocketIO client is disconnecting: ${reason}`,
-            detailedMessages: { socketHandshake: socket.handshake }
-          });
-        });
       }
     });
 
@@ -379,6 +369,21 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.CARS
+    });
+  }
+
+  public notifyCarCatalog(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOGS
     });
   }
 
