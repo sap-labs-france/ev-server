@@ -116,7 +116,7 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
-    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 5000, pingInterval: 10000 });
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
