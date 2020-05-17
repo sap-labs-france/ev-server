@@ -24,7 +24,7 @@ import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 
-interface SocketIO extends socketio.Socket {
+interface SocketIOJwt extends socketio.Socket {
   decoded_token: UserToken;
 }
 
@@ -104,10 +104,6 @@ export default class CentralRestServer {
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.express);
   }
 
-  get httpServer() {
-    return CentralRestServer.restHttpServer;
-  }
-
   startSocketIO() {
     // Log
     const logMsg = 'Starting REST SocketIO Server...';
@@ -120,8 +116,8 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
-    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer);
-    CentralRestServer.socketIOServer.use((socket, next) => {
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 12500 });
+    CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
@@ -137,11 +133,12 @@ export default class CentralRestServer {
       decodedPropertyName: 'decoded_token',
     }));
     // Handle Socket IO connection
-    CentralRestServer.socketIOServer.on('connection', (socket: SocketIO) => {
-      if (!socket.decoded_token || !socket.decoded_token.tenantID) {
+    CentralRestServer.socketIOServer.on('connect', (socket: SocketIOJwt) => {
+      const userToken: UserToken = socket.decoded_token;
+      if (!userToken || !userToken.tenantID) {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME, method: 'start',
+          module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
           detailedMessages: { socketHandshake: socket.handshake }
@@ -149,20 +146,30 @@ export default class CentralRestServer {
         socket.disconnect(true);
       } else {
         Logging.logDebug({
-          tenantID: socket.decoded_token.tenantID,
-          module: MODULE_NAME, method: 'start',
+          tenantID: userToken.tenantID,
+          module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is connected',
           detailedMessages: { socketHandshake: socket.handshake }
         });
-        socket.join(socket.decoded_token.tenantID);
-        // Handle Socket IO connection
+        socket.join(userToken.tenantID);
+        // Handle Socket IO disconnection
         socket.on('disconnect', () => {
           Logging.logDebug({
-            tenantID: socket.decoded_token.tenantID,
-            module: MODULE_NAME, method: 'start',
+            tenantID: userToken.tenantID,
+            module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
             message: 'SocketIO client is disconnected',
+            detailedMessages: { socketHandshake: socket.handshake }
+          });
+        });
+        // Handle Socket IO disconnecting reason
+        socket.on('disconnecting', (reason) => {
+          Logging.logDebug({
+            tenantID: userToken.tenantID,
+            module: MODULE_NAME, method: 'startSocketIO',
+            action: ServerAction.SOCKET_IO,
+            message: `SocketIO client is disconnecting: ${reason}`,
             detailedMessages: { socketHandshake: socket.handshake }
           });
         });
