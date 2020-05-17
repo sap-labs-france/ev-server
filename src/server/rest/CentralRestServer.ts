@@ -2,7 +2,9 @@ import express, { NextFunction, Request, Response } from 'express';
 
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
+import CentralSystemConfiguration from '../../types/configuration/CentralSystemConfiguration';
 import ChangeNotification from '../../types/ChangeNotification';
+import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import { Entity } from '../../types/Authorization';
@@ -22,17 +24,21 @@ import util from 'util';
 
 const MODULE_NAME = 'CentralRestServer';
 
+interface SocketIO extends socketio.Socket {
+  decoded_token: UserToken;
+}
+
 export default class CentralRestServer {
   private static centralSystemRestConfig;
   private static restHttpServer;
-  private static socketIO;
+  private static socketIOServer: socketio.Server;
   private static changeNotifications: ChangeNotification[] = [];
   private static singleChangeNotifications: SingleChangeNotification[] = [];
-  private chargingStationConfig: any;
+  private chargingStationConfig: ChargingStationConfiguration;
   private express: express.Application;
 
   // Create the rest server
-  constructor(centralSystemRestConfig, chargingStationConfig) {
+  constructor(centralSystemRestConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Keep params
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
@@ -114,8 +120,8 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
-    CentralRestServer.socketIO = socketio(CentralRestServer.restHttpServer);
-    CentralRestServer.socketIO.use((socket, next) => {
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer);
+    CentralRestServer.socketIOServer.use((socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
@@ -125,15 +131,14 @@ export default class CentralRestServer {
       });
       next();
     });
-    CentralRestServer.socketIO.use(socketioJwt.authorize({
+    CentralRestServer.socketIOServer.use(socketioJwt.authorize({
       secret: Configuration.getCentralSystemRestServiceConfig().userTokenKey,
       handshake: true,
       decodedPropertyName: 'decoded_token',
     }));
     // Handle Socket IO connection
-    CentralRestServer.socketIO.on('connection', (socket) => {
-      const userToken: UserToken = socket.decoded_token;
-      if (!userToken || !userToken.tenantID) {
+    CentralRestServer.socketIOServer.on('connection', (socket: SocketIO) => {
+      if (!socket.decoded_token || !socket.decoded_token.tenantID) {
         Logging.logWarning({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME, method: 'start',
@@ -144,17 +149,17 @@ export default class CentralRestServer {
         socket.disconnect(true);
       } else {
         Logging.logDebug({
-          tenantID: userToken.tenantID,
+          tenantID: socket.decoded_token.tenantID,
           module: MODULE_NAME, method: 'start',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is connected',
           detailedMessages: { socketHandshake: socket.handshake }
         });
-        socket.join(userToken.tenantID);
+        socket.join(socket.decoded_token.tenantID);
         // Handle Socket IO connection
         socket.on('disconnect', () => {
           Logging.logDebug({
-            tenantID: userToken.tenantID,
+            tenantID: socket.decoded_token.tenantID,
             module: MODULE_NAME, method: 'start',
             action: ServerAction.SOCKET_IO,
             message: 'SocketIO client is disconnected',
@@ -169,7 +174,7 @@ export default class CentralRestServer {
       // Send
       while (CentralRestServer.singleChangeNotifications.length > 0) {
         const notification = CentralRestServer.singleChangeNotifications.shift();
-        CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
+        CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
     }, CentralRestServer.centralSystemRestConfig.socketIOSingleNotificationIntervalSecs * 1000);
 
@@ -178,7 +183,7 @@ export default class CentralRestServer {
       // Send
       while (CentralRestServer.changeNotifications.length > 0) {
         const notification = CentralRestServer.changeNotifications.shift();
-        CentralRestServer.socketIO.to(notification.tenantID).emit(notification.entity, notification);
+        CentralRestServer.socketIOServer.to(notification.tenantID).emit(notification.entity, notification);
       }
     }, CentralRestServer.centralSystemRestConfig.socketIOListNotificationIntervalSecs * 1000);
   }
