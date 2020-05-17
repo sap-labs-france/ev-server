@@ -745,7 +745,7 @@ export default class ChargingStationService {
 
   public static async handleChargingStationsOCPPParamsExport(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Always with site
-    req.query.WithSite = true;
+    req.query.WithSite = 'true';
     // Get Charging Stations
     const chargingStations = await ChargingStationService.getChargingStations(req);
     for (const chargingStation of chargingStations.result) {

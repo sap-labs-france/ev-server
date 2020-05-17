@@ -17,8 +17,9 @@ import Utils from '../../utils/Utils';
 import auth from 'basic-auth';
 
 const MODULE_NAME = 'ODataServer';
+
 export default class ODataRestAdapter {
-  public static restServerUrl: any;
+  public static restServerUrl: string;
 
   static async query(collection, query?, req?, cb?) {
     // Get tenant from url
@@ -111,7 +112,7 @@ export default class ODataRestAdapter {
     if (!oDataServer) {
       return;
     }
-    oDataServer.model(ODataModel).query(ODataRestAdapter.query);
+    oDataServer.model(ODataModel).query(ODataRestAdapter.query.bind(this));
   }
 }
 

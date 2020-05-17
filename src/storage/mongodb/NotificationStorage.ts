@@ -152,7 +152,7 @@ export default class NotificationStorage {
       chargeBoxID: notificationToSave.chargeBoxID
     };
     // Create
-    await global.database.getCollection<any>(tenantID, 'notifications')
+    await global.database.getCollection<Notification>(tenantID, 'notifications')
       .insertOne(ocpiEndpointMDB);
     // Debug
     Logging.traceEnd(MODULE_NAME, 'saveNotification', uniqueTimerID, { notificationToSave });

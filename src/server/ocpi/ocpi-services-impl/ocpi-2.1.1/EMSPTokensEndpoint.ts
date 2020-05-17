@@ -56,9 +56,9 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     urlSegment.shift();
     // Get query parameters
     const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+    const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
     // Get all tokens
-    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset, req.query.date_from, req.query.date_to);
+    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset, Utils.convertToDate(req.query.date_from), Utils.convertToDate(req.query.date_to));
     // Set header
     res.set({
       'X-Total-Count': tokens.count,
