@@ -12,7 +12,7 @@ import OCPPError from '../../../exception/OcppError';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';
 

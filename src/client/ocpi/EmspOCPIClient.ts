@@ -32,7 +32,7 @@ import UserStorage from '../../storage/mongodb/UserStorage';
 import _ from 'lodash';
 import axios from 'axios';
 import moment from 'moment';
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'EmspOCPIClient';
 

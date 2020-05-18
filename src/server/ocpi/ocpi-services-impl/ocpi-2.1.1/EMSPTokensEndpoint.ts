@@ -17,7 +17,7 @@ import Tenant from '../../../../types/Tenant';
 import { UserStatus } from '../../../../types/User';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
@@ -163,6 +163,7 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     }
     const authorizationInfo: OCPIAuthorizationInfo = {
       allowed: allowedStatus,
+      // eslint-disable-next-line @typescript-eslint/camelcase
       authorization_id: uuid(),
       location: locationReference
     };
