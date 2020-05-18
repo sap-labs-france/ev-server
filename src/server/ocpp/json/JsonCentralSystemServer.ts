@@ -11,7 +11,7 @@ import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
 import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
   private _serverName: string;
