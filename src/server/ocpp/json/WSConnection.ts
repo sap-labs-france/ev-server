@@ -1,5 +1,3 @@
-import * as http from 'http';
-
 import WebSocket, { OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
@@ -12,6 +10,7 @@ import OCPPError from '../../../exception/OcppError';
 import { ServerAction } from '../../../types/Server';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Utils from '../../../utils/Utils';
+import http from 'http';
 import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'WSConnection';

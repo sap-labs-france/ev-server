@@ -120,7 +120,7 @@ export default class CentralRestServer {
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'start',
+        module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
         detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
