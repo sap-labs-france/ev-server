@@ -153,13 +153,13 @@ export default class CentralRestServer {
           detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
-        // Handle Socket IO disconnecting reason
-        socket.on('disconnecting', (reason) => {
+        // Handle Socket IO disconnection
+        socket.on('disconnect', (reason) => {
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
-            message: `SocketIO client is disconnecting: ${reason}`,
+            message: `SocketIO client is disconnected: ${reason}`,
             detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
@@ -354,6 +354,51 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.INVOICES
+    });
+  }
+
+  public notifyCar(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CARS
+    });
+  }
+
+  public notifyCarCatalog(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOGS
+    });
+  }
+
+  public notifyChargingProfile(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILE,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILES
     });
   }
 
