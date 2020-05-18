@@ -82,6 +82,7 @@ export enum Action {
   READ = 'Read',
   CREATE = 'Create',
   UPDATE = 'Update',
+  REPLACE = 'Replace',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
   LOGIN = 'Login',
