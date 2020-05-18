@@ -1,3 +1,4 @@
+import { Action, Entity } from '../../types/Authorization';
 import express, { NextFunction, Request, Response } from 'express';
 
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
@@ -7,7 +8,6 @@ import ChangeNotification from '../../types/ChangeNotification';
 import ChargingStationConfiguration from '../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import { Entity } from '../../types/Authorization';
 import HttpStatusCodes from 'http-status-codes';
 import Logging from '../../utils/Logging';
 import { ServerAction } from '../../types/Server';
@@ -16,6 +16,7 @@ import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 import cluster from 'cluster';
 import expressTools from '../ExpressTools';
+import http from 'http';
 import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
@@ -30,7 +31,7 @@ interface SocketIOJwt extends socketio.Socket {
 
 export default class CentralRestServer {
   private static centralSystemRestConfig;
-  private static restHttpServer;
+  private static restHttpServer: http.Server;
   private static socketIOServer: socketio.Server;
   private static changeNotifications: ChangeNotification[] = [];
   private static singleChangeNotifications: SingleChangeNotification[] = [];
@@ -116,14 +117,14 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
-    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 12500 });
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME, method: 'start',
+        module: MODULE_NAME, method: 'startSocketIO',
         action: ServerAction.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
-        detailedMessages: { socketHandshake: socket.handshake }
+        detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
       });
       next();
     });
@@ -141,7 +142,7 @@ export default class CentralRestServer {
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
-          detailedMessages: { socketHandshake: socket.handshake }
+          detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
@@ -150,27 +151,17 @@ export default class CentralRestServer {
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is connected',
-          detailedMessages: { socketHandshake: socket.handshake }
+          detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
         // Handle Socket IO disconnection
-        socket.on('disconnect', () => {
+        socket.on('disconnect', (reason) => {
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
-            message: 'SocketIO client is disconnected',
-            detailedMessages: { socketHandshake: socket.handshake }
-          });
-        });
-        // Handle Socket IO disconnecting reason
-        socket.on('disconnecting', (reason) => {
-          Logging.logDebug({
-            tenantID: userToken.tenantID,
-            module: MODULE_NAME, method: 'startSocketIO',
-            action: ServerAction.SOCKET_IO,
-            message: `SocketIO client is disconnecting: ${reason}`,
-            detailedMessages: { socketHandshake: socket.handshake }
+            message: `SocketIO client is disconnected: ${reason}`,
+            detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
       }
@@ -200,7 +191,7 @@ export default class CentralRestServer {
     expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
-  public notifyUser(tenantID: string, action: string, data) {
+  public notifyUser(tenantID: string, action: Action, data) {
     // On User change rebuild userHashID
     if (data && data.id) {
       SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => {});
@@ -215,11 +206,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.USERS
+      'entity': Entity.USERS,
+      'action': action
     });
   }
 
-  public notifyTenant(tenantID: string, action: string, data) {
+  public notifyTenant(tenantID: string, action: Action, data) {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
       SessionHashService.rebuildTenantHashID(data.id).catch(() => {});
@@ -234,11 +226,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.TENANTS
+      'entity': Entity.TENANTS,
+      'action': action
     });
   }
 
-  public notifySite(tenantID: string, action: string, data) {
+  public notifySite(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -249,11 +242,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.SITES
+      'entity': Entity.SITES,
+      'action': action
     });
   }
 
-  public notifySiteArea(tenantID: string, action: string, data) {
+  public notifySiteArea(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -264,11 +258,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.SITE_AREAS
+      'entity': Entity.SITE_AREAS,
+      'action': action
     });
   }
 
-  public notifyCompany(tenantID: string, action: string, data) {
+  public notifyCompany(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -279,11 +274,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.COMPANIES
+      'entity': Entity.COMPANIES,
+      'action': action
     });
   }
 
-  public notifyAsset(tenantID: string, action: string, data) {
+  public notifyAsset(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -294,11 +290,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.ASSETS
+      'entity': Entity.ASSETS,
+      'action': action
     });
   }
 
-  public notifyTransaction(tenantID: string, action: string, data) {
+  public notifyTransaction(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -309,11 +306,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.TRANSACTIONS
+      'entity': Entity.TRANSACTIONS,
+      'action': action
     });
   }
 
-  public notifyChargingStation(tenantID: string, action: string, data) {
+  public notifyChargingStation(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -324,11 +322,12 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.CHARGING_STATIONS
+      'entity': Entity.CHARGING_STATIONS,
+      'action': action
     });
   }
 
-  public notifyLogging(tenantID: string, action: string) {
+  public notifyLogging(tenantID: string, action: Action) {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -337,7 +336,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyRegistrationToken(tenantID: string, action: string, data) {
+  public notifyRegistrationToken(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -349,10 +348,11 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.REGISTRATION_TOKENS,
+      'action': action
     });
   }
 
-  public notifyInvoice(tenantID: string, action: string, data) {
+  public notifyInvoice(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -363,7 +363,72 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.INVOICES
+      'entity': Entity.INVOICES,
+      'action': action
+    });
+  }
+
+  public notifyCar(tenantID: string, action: Action, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CARS,
+      'action': action
+    });
+  }
+
+  public notifyCarCatalog(tenantID: string, action: Action, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOG,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CAR_CATALOGS,
+      'action': action
+    });
+  }
+
+  public notifyChargingProfile(tenantID: string, action: Action, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILE,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.CHARGING_PROFILES,
+      'action': action
+    });
+  }
+
+  public notifyOcpiEndpoint(tenantID: string, action: Action, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.OCPI_ENDPOINT,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.OCPI_ENDPOINTS,
+      'action': action
     });
   }
 
