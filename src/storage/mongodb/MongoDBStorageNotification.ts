@@ -166,6 +166,9 @@ export default class MongoDBStorageNotification {
       case 'chargingprofiles':
         this.centralRestServer.notifyChargingProfile(tenantID, action, { id: documentID });
         break;
+      case 'ocpiendpoints':
+        this.centralRestServer.notifyOcpiEndpoint(tenantID, action, { id: documentID });
+        break;
     }
   }
 

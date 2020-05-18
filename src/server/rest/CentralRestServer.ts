@@ -402,6 +402,21 @@ export default class CentralRestServer {
     });
   }
 
+  public notifyOcpiEndpoint(tenantID: string, action: string, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.OCPI_ENDPOINT,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.OCPI_ENDPOINTS
+    });
+  }
+
   private addChangeNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
     // Add in buffer
