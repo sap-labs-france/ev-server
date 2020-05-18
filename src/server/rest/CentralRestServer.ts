@@ -16,6 +16,7 @@ import SingleChangeNotification from '../../types/SingleChangeNotification';
 import UserToken from '../../types/UserToken';
 import cluster from 'cluster';
 import expressTools from '../ExpressTools';
+import http from 'http';
 import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import socketio from 'socket.io';
@@ -30,7 +31,7 @@ interface SocketIOJwt extends socketio.Socket {
 
 export default class CentralRestServer {
   private static centralSystemRestConfig;
-  private static restHttpServer;
+  private static restHttpServer: http.Server;
   private static socketIOServer: socketio.Server;
   private static changeNotifications: ChangeNotification[] = [];
   private static singleChangeNotifications: SingleChangeNotification[] = [];
@@ -205,7 +206,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.USERS
+      'entity': Entity.USERS,
+      'action': action
     });
   }
 
@@ -224,7 +226,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.TENANTS
+      'entity': Entity.TENANTS,
+      'action': action
     });
   }
 
@@ -239,7 +242,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.SITES
+      'entity': Entity.SITES,
+      'action': action
     });
   }
 
@@ -254,7 +258,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.SITE_AREAS
+      'entity': Entity.SITE_AREAS,
+      'action': action
     });
   }
 
@@ -269,7 +274,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.COMPANIES
+      'entity': Entity.COMPANIES,
+      'action': action
     });
   }
 
@@ -284,7 +290,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.ASSETS
+      'entity': Entity.ASSETS,
+      'action': action
     });
   }
 
@@ -299,7 +306,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.TRANSACTIONS
+      'entity': Entity.TRANSACTIONS,
+      'action': action
     });
   }
 
@@ -314,7 +322,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.CHARGING_STATIONS
+      'entity': Entity.CHARGING_STATIONS,
+      'action': action
     });
   }
 
@@ -339,6 +348,7 @@ export default class CentralRestServer {
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
       'entity': Entity.REGISTRATION_TOKENS,
+      'action': action
     });
   }
 
@@ -353,7 +363,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.INVOICES
+      'entity': Entity.INVOICES,
+      'action': action
     });
   }
 
@@ -368,7 +379,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.CARS
+      'entity': Entity.CARS,
+      'action': action
     });
   }
 
@@ -383,7 +395,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.CAR_CATALOGS
+      'entity': Entity.CAR_CATALOGS,
+      'action': action
     });
   }
 
@@ -398,7 +411,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.CHARGING_PROFILES
+      'entity': Entity.CHARGING_PROFILES,
+      'action': action
     });
   }
 
@@ -413,7 +427,8 @@ export default class CentralRestServer {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
-      'entity': Entity.OCPI_ENDPOINTS
+      'entity': Entity.OCPI_ENDPOINTS,
+      'action': action
     });
   }
 
