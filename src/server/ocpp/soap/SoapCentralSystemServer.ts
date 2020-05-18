@@ -113,7 +113,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-      method: 'start',
+      method: '_handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
@@ -126,7 +126,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       // Log
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-        method: 'start',
+        method: '_handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }
