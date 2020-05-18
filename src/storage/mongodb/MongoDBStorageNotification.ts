@@ -29,8 +29,9 @@ export default class MongoDBStorageNotification {
         case 'insert':
           return Action.CREATE;
         case 'update':
-        case 'replace':
           return Action.UPDATE;
+        case 'replace':
+          return Action.REPLACE;
         case 'delete':
           return Action.DELETE;
       }
@@ -110,7 +111,7 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: string, changeEvent) {
+  private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: Action, changeEvent) {
     switch (collection) {
       case 'users':
       case 'userimages':
@@ -172,23 +173,23 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleTransactionChange(tenantID: string, transactionID: string, action: string, changeEvent) {
+  private handleTransactionChange(tenantID: string, transactionID: string, action: Action, changeEvent) {
     if (transactionID) {
       const notification: { [key: string]: any } = {
         'id': transactionID
       };
       // Operation
       switch (action) {
-        case 'insert': // Insert/Create
+        case Action.CREATE: // Insert/Create
           notification.connectorId = changeEvent.fullDocument.connectorId;
           notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID;
           break;
-        case 'update': // Update
+        case Action.UPDATE: // Update
           if (changeEvent.updateDescription && changeEvent.updateDescription.updatedFields && changeEvent.updateDescription.updatedFields.stop) {
             notification.type = Entity.TRANSACTION_STOP;
           }
           break;
-        case 'replace': // Replace
+        case Action.REPLACE: // Replace
           if (changeEvent.fullDocument && changeEvent.fullDocument.stop) {
             notification.type = Entity.TRANSACTION_STOP;
           }
@@ -201,7 +202,7 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: string, changeEvent) {
+  private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: Action, changeEvent) {
     if (metervaluesID) {
       const notification: { [key: string]: any } = {};
       // Insert/Create?
@@ -218,7 +219,7 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleConfigurationChange(tenantID: string, configurationID: string, action: string, changeEvent) {
+  private handleConfigurationChange(tenantID: string, configurationID: string, action: Action, changeEvent) {
     if (configurationID) {
       this.centralRestServer.notifyChargingStation(tenantID, action, {
         'type': Constants.CHARGING_STATION_CONFIGURATION,
