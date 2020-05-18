@@ -91,7 +91,7 @@ export default class ExpressTools {
       const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: serverModuleName, method: 'start',
+        module: serverModuleName, method: 'startServer',
         action: ServerAction.STARTUP,
         message: logMsg
       });
