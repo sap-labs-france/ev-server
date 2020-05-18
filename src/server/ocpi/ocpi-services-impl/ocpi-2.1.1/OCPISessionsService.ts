@@ -257,6 +257,7 @@ export default class OCPISessionsService {
         endedAt: new Date(session.last_updated),
         consumption: transaction.currentConsumptionWh,
         instantPower: Math.round(transaction.currentConsumption),
+        instantAmps: Utils.convertWattToAmp(1, transaction.currentConsumption),
         cumulatedConsumption: transaction.currentTotalConsumption,
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?

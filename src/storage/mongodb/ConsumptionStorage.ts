@@ -37,6 +37,7 @@ export default class ConsumptionStorage {
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
       instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
@@ -113,7 +114,9 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
+        instantAmps: { $sum: '$instantAmps'},
         limitWatts: { $last: '$limitSiteAreaWatts' },
+        limitAmps: {$last: '$limitSiteAreaAmps'}
       }
     });
     // Rebuild the date

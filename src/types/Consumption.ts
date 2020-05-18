@@ -17,6 +17,7 @@ export default interface Consumption {
   roundedAmount: number;
   currencyCode: string;
   instantPower: number;
+  instantAmps: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;
   stateOfCharge: number;

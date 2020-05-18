@@ -1,5 +1,6 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
+import AddInstantAmpsToConsumptionsTask from './tasks/AddInstantAmpsToConsumptionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
 import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
@@ -70,6 +71,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
+        currentMigrationTasks.push(new AddInstantAmpsToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
