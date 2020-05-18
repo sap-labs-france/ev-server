@@ -116,14 +116,14 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
-    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 12500 });
+    CentralRestServer.socketIOServer = socketio(CentralRestServer.restHttpServer, { pingTimeout: 15000, pingInterval: 30000 });
     CentralRestServer.socketIOServer.use((socket: socketio.Socket, next) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.SOCKET_IO,
         message: 'SocketIO client is trying to connect from ' + socket.handshake.headers.origin,
-        detailedMessages: { socketHandshake: socket.handshake }
+        detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
       });
       next();
     });
@@ -141,7 +141,7 @@ export default class CentralRestServer {
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is trying to connect without token',
-          detailedMessages: { socketHandshake: socket.handshake }
+          detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.disconnect(true);
       } else {
@@ -150,19 +150,9 @@ export default class CentralRestServer {
           module: MODULE_NAME, method: 'startSocketIO',
           action: ServerAction.SOCKET_IO,
           message: 'SocketIO client is connected',
-          detailedMessages: { socketHandshake: socket.handshake }
+          detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
         });
         socket.join(userToken.tenantID);
-        // Handle Socket IO disconnection
-        socket.on('disconnect', () => {
-          Logging.logDebug({
-            tenantID: userToken.tenantID,
-            module: MODULE_NAME, method: 'startSocketIO',
-            action: ServerAction.SOCKET_IO,
-            message: 'SocketIO client is disconnected',
-            detailedMessages: { socketHandshake: socket.handshake }
-          });
-        });
         // Handle Socket IO disconnecting reason
         socket.on('disconnecting', (reason) => {
           Logging.logDebug({
@@ -170,7 +160,7 @@ export default class CentralRestServer {
             module: MODULE_NAME, method: 'startSocketIO',
             action: ServerAction.SOCKET_IO,
             message: `SocketIO client is disconnecting: ${reason}`,
-            detailedMessages: { socketHandshake: socket.handshake }
+            detailedMessages: { socketIOid: socket.id, socketIOHandshake: socket.handshake }
           });
         });
       }
