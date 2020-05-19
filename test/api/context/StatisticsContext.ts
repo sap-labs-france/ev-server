@@ -1,5 +1,3 @@
-import * as faker from 'faker';
-
 import chai, { expect } from 'chai';
 
 import CentralServerService from '../client/CentralServerService';
@@ -9,6 +7,7 @@ import TenantContext from './TenantContext';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
 import User from '../../types/User';
 import chaiSubset from 'chai-subset';
+import faker from 'faker';
 import moment from 'moment';
 import responseHelper from '../../helpers/responseHelper';
 

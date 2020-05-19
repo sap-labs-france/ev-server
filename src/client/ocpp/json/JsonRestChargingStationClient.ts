@@ -8,7 +8,7 @@ import { JsonWSClientConfiguration } from '../../../types/configuration/WSClient
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 

@@ -1,17 +1,16 @@
 import BaseApi from './BaseApi';
-import User from '../../../types/User';
 import jwt from 'jsonwebtoken';
 
 export default class AuthenticatedApi extends BaseApi {
-  public user: User;
+  public username: string;
   public password: string;
-  public tenant: any;
-  public token: any;
+  public tenant: string;
+  public token: string;
   public tenantID: string;
 
-  constructor(baseURL, user: User, password, tenant) {
+  constructor(baseURL, username, password, tenant) {
     super(baseURL);
-    this.user = user;
+    this.username = username;
     this.password = password;
     this.tenant = tenant;
     this.token = null;
@@ -29,7 +28,7 @@ export default class AuthenticatedApi extends BaseApi {
     // Already logged?
     if (!this.token) {
       // No, try to log in
-      const response = await this.login(this.user, this.password, true, this.tenant);
+      const response = await this.login(this.username, this.password, true, this.tenant);
       // Keep the token
       this.token = response.data.token;
       this.tenantID = (jwt.decode(this.token) as any).tenantID;

@@ -264,9 +264,16 @@ export default class CarService {
     });
     // If Basic user, auto assign the car to him
     if (Authorizations.isBasic(req.user)) {
+      // Clear default car
+      if (filteredRequest.isDefault) {
+        await CarStorage.clearDefaultUserCar(req.user.tenantID, req.user.id);
+      }
+      // Assign to User
       const newUserCar: UserCar = {
         carID: newCar.id,
         userID: req.user.id,
+        type: filteredRequest.type,
+        default: filteredRequest.isDefault,
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as UserCar;

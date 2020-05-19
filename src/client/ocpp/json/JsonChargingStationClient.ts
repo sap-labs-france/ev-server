@@ -4,7 +4,7 @@ import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import { Profile } from '../../../types/ChargingProfile';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
   public tagID: string;

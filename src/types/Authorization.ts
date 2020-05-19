@@ -71,13 +71,18 @@ export enum Entity {
   CARS = 'Cars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
-  TAXES = 'Taxes'
+  TAXES = 'Taxes',
+  REGISTRATION_TOKEN = 'RegistrationToken',
+  REGISTRATION_TOKENS = 'RegistrationTokens',
+  CHARGING_PROFILE = 'ChargingProfile',
+  CHARGING_PROFILES = 'ChargingProfiles'
 }
 
 export enum Action {
   READ = 'Read',
   CREATE = 'Create',
   UPDATE = 'Update',
+  REPLACE = 'Replace',
   DELETE = 'Delete',
   LOGOUT = 'Logout',
   LOGIN = 'Login',
