@@ -1,3 +1,4 @@
+import { ConnectorCurrentType, ConnectorType } from '../ChargingStation';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
@@ -32,6 +33,24 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;
+}
+
+export interface HttpChargingStationParamsUpdateRequest {
+  id: string;
+  chargingStationURL: string;
+  maximumPower: number;
+  private: boolean;
+  siteAreaID: string;
+  coordinates: number[];
+  connectors: {
+    connectorId: number;
+    type: ConnectorType;
+    power: number;
+    amperage: number;
+    voltage: number;
+    currentType: ConnectorCurrentType;
+    numberOfConnectedPhase: number;
+  }[];
 }
 
 export interface HttpChargingStationRequest {

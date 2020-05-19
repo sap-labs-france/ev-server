@@ -14,10 +14,6 @@ import global from './../../types/GlobalType';
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
 export default class UpdateChargingStationTemplatesTask extends MigrationTask {
-  getVersion() {
-    return '1.7';
-  }
-
   isAsynchronous() {
     return true;
   }
@@ -34,12 +30,16 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       // Update Charging Station OCPP Params
-      await this.updateChargingStationsOCPPParametersInTemplate(tenant);
+      // await this.updateChargingStationsOCPPParametersInTemplate(tenant);
       // Update current Charging Station with Template
       await this.updateChargingStationsParametersWithTemplate(tenant);
       // Remove unused props
       await this.removeChargingStationUnusedPropsInDB(tenant);
     }
+  }
+
+  getVersion() {
+    return '1.810';
   }
 
   private async updateChargingStationsOCPPParametersInTemplate(tenant: Tenant) {
@@ -153,11 +153,14 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
 
   private async removeChargingStationUnusedPropsInDB(tenant: Tenant) {
     const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-      { 'inactive': { $exists: true } },
+      { 'ocppAdvancedCommands': { $exists: true } },
       {
         $unset: {
           'numberOfConnectedPhase': '',
-          'inactive': ''
+          'inactive': '',
+          'cannotChargeInParallel': '',
+          'currentType': '',
+          'ocppAdvancedCommands': '',
         }
       },
       { upsert: false }

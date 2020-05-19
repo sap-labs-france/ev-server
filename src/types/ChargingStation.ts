@@ -9,6 +9,7 @@ import SiteArea from './SiteArea';
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
   templateHash?: string;
+  templateHashTechnical?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -32,9 +33,10 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
-  cannotChargeInParallel: boolean;
+  excludeFromPowerLimitation?: boolean;
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
+  chargePoints: ChargingStationChargePoint[];
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
@@ -43,7 +45,6 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocppAdvancedCommands?: OcppAdvancedCommands[];
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
-  currentType: ChargingStationCurrentType;
   ocpiData?: {
     evse?: OCPIEvse;
   };
@@ -112,6 +113,7 @@ export interface Connector {
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: ConnectorCurrentType;
+  chargePointID?: number;
 }
 
 export interface RemoteAuthorization {
@@ -143,47 +145,62 @@ export enum ConnectorCurrentType {
   DC = 'DC'
 }
 
+export interface ChargingStationChargePoint {
+  currentType: ChargingStationCurrentType;
+  voltage: number;
+  amperage: number;
+  numberOfConnectedPhase: number;
+  cannotChargeInParallel: boolean;
+  sharePowerToAllConnectors: boolean;
+  excludeFromPowerLimitation: boolean;
+  power: number;
+  efficiency: number;
+  connectorIDs: number[];
+}
+
 export interface ChargingStationTemplate {
   id?: string;
   hash?: string;
+  hashTechnical?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
   };
-  template: {
-    private: boolean;
-    cannotChargeInParallel: boolean;
-    currentType: ChargingStationCurrentType;
+  technical: {
     maximumPower: number;
+    excludeFromPowerLimitation: boolean;
+    powerLimitUnit: PowerLimitUnits;
+    chargePoints?: ChargingStationChargePoint[];
     connectors: {
       connectorId: number;
-      power: number;
       type: ConnectorType;
-      currentType: ConnectorCurrentType;
-      numberOfConnectedPhase: number;
-      voltage: number;
-      amperage: number;
-    }[];
-    capabilities: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      capabilities: ChargingStationCapabilities;
-    }[];
-    ocppAdvancedCommands: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      commands: OcppAdvancedCommands[];
-    }[];
-    ocppStandardParameters: {
-      supportedOcppVersions: string[];
-      parameters: object;
-    }[];
-    ocppVendorParameters: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      parameters: object;
+      power?: number;
+      amperage?: number;
+      voltage?: number;
+      chargePointID?: number;
+      currentType?: ConnectorCurrentType;
+      numberOfConnectedPhase?: number;
     }[];
   };
+  capabilities: {
+    supportedFirmwareVersions: string[];
+    supportedOcppVersions: string[];
+    capabilities: ChargingStationCapabilities;
+  }[];
+  ocppAdvancedCommands: {
+    supportedFirmwareVersions: string[];
+    supportedOcppVersions: string[];
+    commands: OcppAdvancedCommands[];
+  }[];
+  ocppStandardParameters: {
+    supportedOcppVersions: string[];
+    parameters: object;
+  }[];
+  ocppVendorParameters: {
+    supportedFirmwareVersions: string[];
+    supportedOcppVersions: string[];
+    parameters: object;
+  }[];
 }
 
 export enum ConnectorType {

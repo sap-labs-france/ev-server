@@ -1,39 +1,41 @@
-import { Action, Entity } from '../../../types/Authorization';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
-import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import fs from 'fs';
 
+import { NextFunction, Request, Response } from 'express';
+import sanitize from 'mongo-sanitize';
+
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import { DataResult } from '../../../types/DataResult';
-import I18nManager from '../../../utils/I18nManager';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import Logging from '../../../utils/Logging';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import TenantComponents from '../../../types/TenantComponents';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
+import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -128,26 +130,27 @@ export default class ChargingStationService {
   public static async handleUpdateChargingStationParams(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
-    // Check existence
+    console.log('====================================');
+    console.log(filteredRequest);
+    console.log('====================================');
+    // Check the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
-    // Check
-    UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
+    UtilsService.assertObjectExists(action, chargingStation, `Charging Station '${filteredRequest.id}' doesn't exist.`,
       MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
-    let siteID = null;
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
-      // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
-      siteID = siteArea ? siteArea.siteID : null;
+    let siteArea: SiteArea = null;
+    // Check the Site Area
+    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
+      siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist.`,
+        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
     }
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user, siteID)) {
+    if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.UPDATE,
-        entity: Entity.CHARGING_STATION,
-        module: MODULE_NAME,
-        method: 'handleUpdateChargingStationParams',
+        action: Action.UPDATE, entity: Entity.CHARGING_STATION,
+        module: MODULE_NAME, method: 'handleUpdateChargingStationParams',
         value: chargingStation.id
       });
     }
@@ -159,22 +162,14 @@ export default class ChargingStationService {
     if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
-    // Update Current Type
-    if (Utils.objectHasProperty(filteredRequest, 'currentType')) {
-      chargingStation.currentType = filteredRequest.currentType;
-    }
-    // Update Cannot Charge in Parallel
-    if (Utils.objectHasProperty(filteredRequest, 'cannotChargeInParallel')) {
-      chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
-    }
     // Update Private property
     if (Utils.objectHasProperty(filteredRequest, 'private')) {
       chargingStation.private = filteredRequest.private;
     }
     // Update Site Area
-    if (filteredRequest.siteArea) {
-      chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
-      chargingStation.siteAreaID = chargingStation.siteArea.id;
+    if (siteArea) {
+      chargingStation.siteAreaID = siteArea.id;
+      // Check number of phases corresponds to the site area one
       if (filteredRequest.connectors) {
         for (const connector of filteredRequest.connectors) {
           if (connector.numberOfConnectedPhase !== 1 && chargingStation.siteArea.numberOfPhases === 1) {
@@ -192,10 +187,6 @@ export default class ChargingStationService {
     } else {
       chargingStation.siteAreaID = null;
     }
-    // Update Site Area
-    if (Utils.objectHasProperty(filteredRequest, 'powerLimitUnit')) {
-      chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
-    }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
         sanitize(filteredRequest.coordinates[0]),
@@ -204,16 +195,15 @@ export default class ChargingStationService {
     }
     // Update Connectors
     if (filteredRequest.connectors) {
-      const chargerConnectors = chargingStation.connectors;
       // Assign to Charging Station's connector
-      for (const connector of filteredRequest.connectors) {
+      for (const filteredConnector of filteredRequest.connectors) {
         // Set
-        chargerConnectors[connector.connectorId - 1].power = connector.power;
-        chargerConnectors[connector.connectorId - 1].type = connector.type;
-        chargerConnectors[connector.connectorId - 1].voltage = connector.voltage;
-        chargerConnectors[connector.connectorId - 1].amperage = connector.amperage;
-        chargerConnectors[connector.connectorId - 1].currentType = connector.currentType;
-        chargerConnectors[connector.connectorId - 1].numberOfConnectedPhase = connector.numberOfConnectedPhase;
+        chargingStation.connectors[filteredConnector.connectorId - 1].type = filteredConnector.type;
+        chargingStation.connectors[filteredConnector.connectorId - 1].power = filteredConnector.power;
+        chargingStation.connectors[filteredConnector.connectorId - 1].amperage = filteredConnector.amperage;
+        chargingStation.connectors[filteredConnector.connectorId - 1].voltage = filteredConnector.voltage;
+        chargingStation.connectors[filteredConnector.connectorId - 1].currentType = filteredConnector.currentType;
+        chargingStation.connectors[filteredConnector.connectorId - 1].numberOfConnectedPhase = filteredConnector.numberOfConnectedPhase;
       }
     }
     // Update timestamp
@@ -1267,7 +1257,7 @@ export default class ChargingStationService {
 
   private static convertToCSV(loggedUser: UserToken, chargingStations: ChargingStation[]): string {
     const i18nManager = new I18nManager(loggedUser.locale);
-    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Can Charge In Parallel${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
+    let csv = `Name${Constants.CSV_SEPARATOR}Created On${Constants.CSV_SEPARATOR}Number of Connectors${Constants.CSV_SEPARATOR}Site Area${Constants.CSV_SEPARATOR}Latitude${Constants.CSV_SEPARATOR}Longitude${Constants.CSV_SEPARATOR}Charge Point S/N${Constants.CSV_SEPARATOR}Model${Constants.CSV_SEPARATOR}Charge Box S/N${Constants.CSV_SEPARATOR}Vendor${Constants.CSV_SEPARATOR}Firmware Version${Constants.CSV_SEPARATOR}OCPP Version${Constants.CSV_SEPARATOR}OCPP Protocol${Constants.CSV_SEPARATOR}Last Heartbeat${Constants.CSV_SEPARATOR}Last Reboot${Constants.CSV_SEPARATOR}Maximum Power (Watt)${Constants.CSV_SEPARATOR}Power Limit Unit\r\n`;
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.createdOn, 'L')} ${i18nManager.formatDateTime(chargingStation.createdOn, 'LT')}` + Constants.CSV_SEPARATOR;
@@ -1289,7 +1279,6 @@ export default class ChargingStationService {
       csv += `${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'L')} ${i18nManager.formatDateTime(chargingStation.lastHeartBeat, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${i18nManager.formatDateTime(chargingStation.lastReboot, 'L')} ${i18nManager.formatDateTime(chargingStation.lastReboot, 'LT')}` + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.maximumPower}` + Constants.CSV_SEPARATOR;
-      csv += (!chargingStation.cannotChargeInParallel ? 'yes' : 'no') + Constants.CSV_SEPARATOR;
       csv += `${chargingStation.powerLimitUnit}\r\n`;
     }
     return csv;

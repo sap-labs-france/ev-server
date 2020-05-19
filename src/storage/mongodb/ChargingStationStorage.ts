@@ -27,7 +27,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
-    let chargingStationTemplates;
+    let chargingStationTemplates: ChargingStationTemplate[];
     try {
       chargingStationTemplates =
         JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
@@ -39,8 +39,9 @@ export default class ChargingStationStorage {
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
-        // Set the hash
+        // Set the hashes
         chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
@@ -429,15 +430,32 @@ export default class ChargingStationStorage {
       for (const connector of chargingStationToSave.connectors) {
         if (connector) {
           connector.connectorId = Utils.convertToInt(connector.connectorId);
+          connector.power = Utils.convertToInt(connector.power);
+          connector.amperage = connector.amperage ? Utils.convertToInt(connector.amperage) : null;
+          connector.voltage = connector.voltage ? Utils.convertToInt(connector.voltage) : null;
+          connector.chargePointID = connector.chargePointID ? Utils.convertToInt(connector.chargePointID) : null;
+          connector.currentType = connector.currentType ? connector.currentType : null;
+          connector.numberOfConnectedPhase = connector.numberOfConnectedPhase ? Utils.convertToInt(connector.numberOfConnectedPhase) : null;
           connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
           connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
           connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
-          connector.power = Utils.convertToInt(connector.power);
-          connector.voltage = Utils.convertToInt(connector.voltage);
-          connector.amperage = Utils.convertToInt(connector.amperage);
-          connector.numberOfConnectedPhase = Utils.convertToInt(connector.numberOfConnectedPhase);
           connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
           connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+        }
+      }
+    }
+    if (chargingStationToSave.chargePoints && Array.isArray(chargingStationToSave.chargePoints)) {
+      for (const chargePoint of chargingStationToSave.chargePoints) {
+        if (chargePoint) {
+          chargePoint.voltage = Utils.convertToInt(chargePoint.voltage);
+          chargePoint.amperage = Utils.convertToInt(chargePoint.amperage);
+          chargePoint.numberOfConnectedPhase = Utils.convertToInt(chargePoint.numberOfConnectedPhase);
+          chargePoint.cannotChargeInParallel = Utils.convertToBoolean(chargePoint.cannotChargeInParallel);
+          chargePoint.sharePowerToAllConnectors = Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors);
+          chargePoint.excludeFromPowerLimitation = Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation);
+          chargePoint.power = Utils.convertToInt(chargePoint.power);
+          chargePoint.efficiency = Utils.convertToInt(chargePoint.efficiency);
+          chargePoint.connectorIDs = chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID));
         }
       }
     }
@@ -445,6 +463,7 @@ export default class ChargingStationStorage {
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
+      templateHashTechnical: chargingStationToSave.templateHashTechnical,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       private: Utils.convertToBoolean(chargingStationToSave.private),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
@@ -466,12 +485,12 @@ export default class ChargingStationStorage {
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
-      cannotChargeInParallel: Utils.convertToBoolean(chargingStationToSave.cannotChargeInParallel),
+      excludeFromPowerLimitation: Utils.convertToBoolean(chargingStationToSave.excludeFromPowerLimitation),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
-      coordinates: chargingStationToSave.coordinates,
+      chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints : null,
       connectors: chargingStationToSave.connectors,
+      coordinates: chargingStationToSave.coordinates,
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
-      currentType: chargingStationToSave.currentType,
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
       ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
