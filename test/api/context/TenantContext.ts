@@ -252,11 +252,12 @@ export default class TenantContext {
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
         connectorId: i + 1,
-        status: (connectorsDef && connectorsDef.status ? connectorsDef.status : 'Available'),
-        errorCode: (connectorsDef && connectorsDef.errorCode ? connectorsDef.errorCode : 'NoError'),
-        timestamp: (connectorsDef && connectorsDef.timestamp ? connectorsDef.timestamp : new Date().toISOString()),
-        type: (connectorsDef && connectorsDef.type ? connectorsDef.type : 'U'),
-        power: (connectorsDef && connectorsDef.power ? connectorsDef.power : 22170)
+        status: (connectorsDef && connectorsDef[i].status ? connectorsDef[i].status : 'Available'),
+        errorCode: (connectorsDef && connectorsDef[i].errorCode ? connectorsDef[i].errorCode : 'NoError'),
+        timestamp: (connectorsDef && connectorsDef[i].timestamp ? connectorsDef[i].timestamp : new Date().toISOString()),
+        type: (connectorsDef && connectorsDef[i].type ? connectorsDef[i].type : 'U'),
+        power: (connectorsDef && connectorsDef[i].power ? connectorsDef[i].power : 22170),
+        numberOfConnectedPhase: (connectorsDef && connectorsDef[i].numberOfConnectedPhase ? connectorsDef[i].numberOfConnectedPhase : 3)
       };
     }
     for (const connector of createdChargingStation.connectors) {

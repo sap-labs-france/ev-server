@@ -7,6 +7,7 @@ import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
 import Factory from '../../factories/Factory';
+import JsonCentralSystemServer from '../../server/ocpp/json/JsonCentralSystemServer';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import OCPIEndpoint from '../../../src/types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../../src/storage/mongodb/OCPIEndpointStorage';
@@ -288,6 +289,9 @@ export default class ContextBuilder {
           siteAreaTemplate.accessControl = siteAreaDef.accessControl;
           siteAreaTemplate.siteID = site.id;
           siteAreaTemplate.issuer = true;
+          siteAreaTemplate.smartCharging = siteAreaDef.smartCharging;
+          siteAreaTemplate.maximumPower = siteAreaDef.maximumPower;
+          siteAreaTemplate.numberOfPhases = siteAreaDef.numberOfPhases;
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
@@ -296,18 +300,34 @@ export default class ContextBuilder {
             (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
-            const chargingStationTemplate = Factory.chargingStation.build();
-            chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-            console.log(chargingStationTemplate.id);
-            const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-            await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            if (siteAreaModel.smartCharging) {
+              const chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(chargingStationTemplate.id);
+              const connectorsDef: any = [{
+                numberOfConnectedPhase: siteAreaModel.numberOfPhases,
+                status: 'Charging'
+              },
+              {
+                numberOfConnectedPhase: siteAreaModel.numberOfPhases,
+                status: 'Charging'
+              }];
+              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, connectorsDef, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            } else {
+              const chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
+              console.log(chargingStationTemplate.id);
+              const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+              await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            }
           }
         }
         newTenantContext.addSiteContext(siteContext);
       }
       // Check if the asset tenant exists and is activated
       if (Utils.objectHasProperty(buildTenant.components, TenantComponents.ASSET) &&
-      buildTenant.components[TenantComponents.ASSET].active) {
+        buildTenant.components[TenantComponents.ASSET].active) {
         // Create Asset list
         for (const assetDef of ContextDefinition.TENANT_ASSET_LIST) {
           const dummyAsset = Factory.asset.build();
