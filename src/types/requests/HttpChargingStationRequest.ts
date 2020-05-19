@@ -1,4 +1,5 @@
 import { ConnectorCurrentType, ConnectorType } from '../ChargingStation';
+
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
