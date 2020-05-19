@@ -179,7 +179,7 @@ export default class WSConnection {
             module: MODULE_NAME,
             method: 'sendMessage',
             action: ServerAction.WS_ERROR,
-            message: `Error occured when calling the command '${commandName}'`,
+            message: `Error occurred when calling the command '${commandName}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
           if (!this._requests[messageId]) {
