@@ -208,7 +208,7 @@ export default class UserService {
           source: Constants.CENTRAL_SERVER,
           action: action,
           errorCode: HTTPError.BILLING_DELETE_ERROR,
-          message: 'Error occured in billing system',
+          message: 'Error occurred in billing system',
           module: MODULE_NAME, method: 'handleDeleteUser',
           user: req.user, actionOnUser: user,
           detailedMessages: { error: error.message, stack: error.stack }
