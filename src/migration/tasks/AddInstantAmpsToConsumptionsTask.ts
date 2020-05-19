@@ -20,33 +20,25 @@ export default class AddInstantAmpsToConsumptionsTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant) {
-    // let modifiedCount = 0;
-    // const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
-    // for (const chargingStation of chargingStations.result) {
-    //     // Update
-    //     const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-    //       {
-    //         chargeBoxID: chargingStation.id,
-    //         instantAmps: { $exists: false },
-    //       },
-    //       {
-    //         $set: {
-    //            instantAmps: { $mul: { '$instantPower': 0.23}}
-    //         }
-    //       }
-    //     );
-    //     modifiedCount += result.modifiedCount;
-    //     console.log(modifiedCount);
-    // }
-    // // Log in the default tenant
-    // if (modifiedCount > 0) {
-    //   Logging.logDebug({
-    //     tenantID: Constants.DEFAULT_TENANT,
-    //     action: ServerAction.MIGRATION,
-    //     module: MODULE_NAME, method: 'migrateTenant',
-    //     message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
-    //   });
-    // }
+    let modifiedCount = 0;
+    const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+      {
+        instantAmps: { $exists: false },
+      },
+      [
+        { '$set': { 'instantAmps': { '$round': [{ '$divide': ['$instantPower', 230] }] } } }
+      ]
+    );
+    modifiedCount += result.modifiedCount;
+    // Log in the default tenant
+    if (modifiedCount > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.MIGRATION,
+        module: MODULE_NAME, method: 'migrateTenant',
+        message: `${modifiedCount} Consumptions have been updated in Tenant '${tenant.name}'`
+      });
+    }
   }
 
   getVersion() {
