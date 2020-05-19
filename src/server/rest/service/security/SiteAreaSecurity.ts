@@ -153,7 +153,7 @@ export default class SiteAreaSecurity {
       instantPower: consumption.instantPower,
       instantAmps: consumption.instantAmps,
       limitWatts: consumption.limitWatts,
-      limitAmps: consumption.limitAmps * 3,
+      limitAmps: consumption.limitAmps,
     }));
     return filteredSiteArea;
   }
