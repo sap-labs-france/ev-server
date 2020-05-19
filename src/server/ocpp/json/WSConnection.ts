@@ -109,7 +109,7 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
-      Logging.logException(error, ServerAction.WS_CONNECTION , this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
+      Logging.logException(error, ServerAction.WS_CONNECTION, this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError({
         source: this.getChargingStationID(),
         action: ServerAction.WS_CONNECTION,
@@ -127,9 +127,11 @@ export default class WSConnection {
   }
 
   public async onMessage(messageEvent: MessageEvent) {
-    // Parse the message
-    const [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
+    let [messageType, messageId, commandName, commandPayload, errorDetails] = [0, '', ServerAction.CHARGING_STATION, '', ''];
     try {
+      // Parse the message
+      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(messageEvent.data);
+
       // Initialize: done in the message as init could be lengthy and first message may be lost
       await this.initialize();
 
@@ -275,7 +277,6 @@ export default class WSConnection {
     // Send a message through WSConnection
     const self = this;
     // Create a promise
-    // eslint-disable-next-line no-undef
     return await new Promise((resolve, reject) => {
       let messageToSend;
       // Type of message
@@ -329,7 +330,7 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = [() => {}, () => {}];
+        self._requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);
