@@ -323,7 +323,7 @@ export default class TransactionSecurity {
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,
-        limitAmps: consumption.limitAmps
+        limitAmps: consumption.limitAmps * 3,
       };
       if (consumption.stateOfCharge) {
         newConsumption.stateOfCharge = consumption.stateOfCharge;
