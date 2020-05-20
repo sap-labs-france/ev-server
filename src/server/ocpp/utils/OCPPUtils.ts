@@ -56,12 +56,10 @@ export default class OCPPUtils {
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        console.log('Changed in templateHash');
         // Set the hash
         chargingStation.templateHash = chargingStationTemplate.hash;
         // Check Technical Hash
         if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
-          console.log('Changed in templateHashTechnical');
           // Set the hash
           chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
@@ -168,7 +166,7 @@ export default class OCPPUtils {
         return true;
       }
       // Log
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
@@ -177,7 +175,6 @@ export default class OCPPUtils {
         detailedMessages: { chargingStationTemplate }
       });
       return false;
-
     }
     // Log
     Logging.logWarning({

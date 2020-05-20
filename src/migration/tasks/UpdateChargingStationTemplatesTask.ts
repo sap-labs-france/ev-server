@@ -1,4 +1,3 @@
-import ChargingStation from '../../types/ChargingStation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -30,7 +29,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       // Update Charging Station OCPP Params
-      // await this.updateChargingStationsOCPPParametersInTemplate(tenant);
+      await this.updateChargingStationsOCPPParametersInTemplate(tenant);
       // Update current Charging Station with Template
       await this.updateChargingStationsParametersWithTemplate(tenant);
       // Remove unused props
@@ -39,11 +38,11 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.810';
+    return '1.894';
   }
 
   private async updateChargingStationsOCPPParametersInTemplate(tenant: Tenant) {
-    // Get the charging station
+    // Get the charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
@@ -115,17 +114,16 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
 
   private async updateChargingStationsParametersWithTemplate(tenant: Tenant) {
     let updated = 0;
-    // Get Charging Stations
-    const chargingStationsMDB: ChargingStation[] = await global.database.getCollection<any>(
-      tenant.id, 'chargingstations').find({
+    // Get the charging stations
+    const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       issuer: true
-    }).toArray();
+    }, Constants.DB_PARAMS_MAX_LIMIT);
     // Update
-    for (const chargingStationMDB of chargingStationsMDB) {
+    for (const chargingStation of chargingStations.result) {
       // Enrich
-      let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStationMDB);
+      let chargingStationUpdated = await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
       // Check Connectors
-      for (const connector of chargingStationMDB.connectors) {
+      for (const connector of chargingStation.connectors) {
         if (!Utils.objectHasProperty(connector, 'amperageLimit')) {
           connector.amperageLimit = connector.amperage;
           chargingStationUpdated = true;
@@ -133,11 +131,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       }
       // Save
       if (chargingStationUpdated) {
-        await global.database.getCollection(tenant.id, 'chargingstations').findOneAndUpdate(
-          { '_id': chargingStationMDB['_id'] },
-          { $set: chargingStationMDB },
-          { upsert: true, returnOriginal: false }
-        );
+        await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
         updated++;
       }
     }

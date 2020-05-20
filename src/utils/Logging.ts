@@ -55,9 +55,7 @@ obs.observe({ entryTypes: ['measure'] });
 export default class Logging {
   // Log Debug
   public static logDebug(log: Log): void {
-    // Log
     log.level = LogLevel.DEBUG;
-    // Log it
     Logging._log(log);
   }
 
