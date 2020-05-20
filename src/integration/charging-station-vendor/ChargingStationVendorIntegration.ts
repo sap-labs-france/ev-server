@@ -1,13 +1,12 @@
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../exception/BackendError';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-
-import BackendError from '../../exception/BackendError';
-import { ChargingProfile } from '../../types/ChargingProfile';
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ChargingStationVendor';
@@ -25,7 +24,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: 'Set Power limitation is being called',
+      message: `Set Power limitation is being called with ${maxAmps}A for '${chargingStation.chargePointVendor}'`,
       module: MODULE_NAME, method: 'setPowerLimitation',
       detailedMessages: { connectorID, maxAmps }
     });
@@ -64,7 +63,7 @@ export default abstract class ChargingStationVendorIntegration {
       });
     }
     // Fixed the max amp per connector
-    const maxAmpsPerConnector = maxAmps / chargingStation.connectors.length;
+    const occpLimitAmpValue = this.getOCPPParamValueForChargingLimitation(chargingStation, maxAmps);
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -77,10 +76,18 @@ export default abstract class ChargingStationVendorIntegration {
     }
     let result: OCPPChangeConfigurationCommandResult;
     try {
+      Logging.logDebug({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `Set Power limitation via OCPP to ${occpLimitAmpValue}A for '${chargingStation.chargePointVendor}'`,
+        module: MODULE_NAME, method: 'setPowerLimitation',
+        detailedMessages: { connectorID, maxAmps, occpLimitAmpValue }
+      });
       // Change the config
       result = await chargingStationClient.changeConfiguration({
         key: this.getOCPPParamNameForChargingLimitation(),
-        value: maxAmpsPerConnector + ''
+        value: occpLimitAmpValue + ''
       });
     } catch (error) {
       if (!error.status) {
@@ -97,7 +104,7 @@ export default abstract class ChargingStationVendorIntegration {
       await OCPPUtils.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
       // Update the charger's connectors
       for (const connector of chargingStation.connectors) {
-        connector.amperageLimit = maxAmpsPerConnector;
+        connector.amperageLimit = maxAmps / chargingStation.connectors.length;
       }
       // Save it
       await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
@@ -177,22 +184,15 @@ export default abstract class ChargingStationVendorIntegration {
         message: 'Charging Station is not connected to the backend',
       });
     }
-    // Clone
-    const schneiderChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
-    // Check connector
-    if (schneiderChargingProfile.connectorID === 0 && schneiderChargingProfile.profile && schneiderChargingProfile.profile.chargingSchedule && chargingStation.connectors) {
-      // Divide the power by the number of connectors
-      for (const schedulePeriod of schneiderChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
-        schedulePeriod.limit /= chargingStation.connectors.length;
-      }
-    }
+    // Convert to vendor specific profile
+    const vendorSpecificChargingProfile = this.convertToVendorChargingProfile(chargingStation, chargingProfile);
     try {
       // Check if we have to load all connectors in case connector 0 fails
       if (chargingProfile.connectorID === 0) {
         // Set the Profile
         const result = await chargingStationClient.setChargingProfile({
-          connectorId: schneiderChargingProfile.connectorID,
-          csChargingProfiles: schneiderChargingProfile.profile
+          connectorId: vendorSpecificChargingProfile.connectorID,
+          csChargingProfiles: vendorSpecificChargingProfile.profile
         });
         // Call each connector?
         if (result.status !== OCPPChargingProfileStatus.ACCEPTED) {
@@ -208,7 +208,7 @@ export default abstract class ChargingStationVendorIntegration {
           for (const connector of chargingStation.connectors) {
             const ret = await chargingStationClient.setChargingProfile({
               connectorId: connector.connectorId,
-              csChargingProfiles: schneiderChargingProfile.profile
+              csChargingProfiles: vendorSpecificChargingProfile.profile
             });
             results.push(ret);
           }
@@ -234,8 +234,8 @@ export default abstract class ChargingStationVendorIntegration {
       }
       // Connector ID > 0
       const result = await chargingStationClient.setChargingProfile({
-        connectorId: schneiderChargingProfile.connectorID,
-        csChargingProfiles: schneiderChargingProfile.profile
+        connectorId: vendorSpecificChargingProfile.connectorID,
+        csChargingProfiles: vendorSpecificChargingProfile.profile
       });
       Logging.logDebug({
         tenantID: tenantID,
@@ -600,4 +600,9 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public abstract getOCPPParamNameForChargingLimitation(): string;
+
+  public abstract getOCPPParamValueForChargingLimitation(chargingStation: ChargingStation, limitAmp: number);
+
+  public abstract convertToVendorChargingProfile(chargingStation: ChargingStation, chargingProfile: ChargingProfile): ChargingProfile;
 }
+

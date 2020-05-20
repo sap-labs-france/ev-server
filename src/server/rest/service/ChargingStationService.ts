@@ -440,7 +440,6 @@ export default class ChargingStationService {
       }
     }
     // Ok
-    // FIXME: handle failure to take the lock in the response sent
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
@@ -448,12 +447,12 @@ export default class ChargingStationService {
   public static async handleUpdateChargingProfile(action: ServerAction, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingProfileUpdateRequest(req.body);
-    // Check Mandatory fields
-    Utils.checkIfChargingProfileIsValid(filteredRequest, req);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargingStationID);
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${req.body.ChargingStationID}' doesn't exist.`,
       MODULE_NAME, 'handleUpdateChargingProfile', req.user);
+    // Check Mandatory fields
+    Utils.checkIfChargingProfileIsValid(chargingStation, filteredRequest, req);
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
