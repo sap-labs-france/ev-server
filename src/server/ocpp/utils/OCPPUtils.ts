@@ -1,6 +1,6 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import BackendError from '../../../exception/BackendError';
@@ -453,11 +453,6 @@ export default class OCPPUtils {
 
   public static recalculateChargingStationMaxPower(chargingStation: ChargingStation) {
     let maximumPower = 0;
-    // Only for AC
-    // TODO
-    // if (chargingStation.currentType !== ChargingStationCurrentType.AC) {
-    //   return;
-    // }
     for (const connector of chargingStation.connectors) {
       if (Utils.objectHasProperty(connector, 'power')) {
         maximumPower += connector.power;

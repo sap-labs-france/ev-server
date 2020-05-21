@@ -1,4 +1,4 @@
-import { ConnectorCurrentType, ConnectorType } from '../ChargingStation';
+import { ConnectorType, CurrentType } from '../ChargingStation';
 
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
@@ -49,7 +49,7 @@ export interface HttpChargingStationParamsUpdateRequest {
     power: number;
     amperage: number;
     voltage: number;
-    currentType: ConnectorCurrentType;
+    currentType: CurrentType;
     numberOfConnectedPhase: number;
   }[];
 }

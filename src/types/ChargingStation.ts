@@ -43,18 +43,11 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   currentIPAddress?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
-  ocppAdvancedCommands?: OcppAdvancedCommands[];
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
   ocpiData?: {
     evse?: OCPIEvse;
   };
-}
-
-export enum ChargingStationCurrentType {
-  AC = 'AC',
-  DC = 'DC',
-  AC_DC = 'AC/DC',
 }
 
 export interface OcppCommand {
@@ -76,10 +69,6 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
-}
-
-export interface OcppAdvancedCommands {
-  command: string|OcppCommand;
 }
 
 export enum PowerLimitUnits {
@@ -113,7 +102,7 @@ export interface Connector {
   statusLastChangedOn?: Date;
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
-  currentType?: ConnectorCurrentType;
+  currentType?: CurrentType;
   chargePointID?: number;
 }
 
@@ -141,13 +130,13 @@ export enum ConnectorCurrentLimitSource {
   CONNECTOR = 'CO'
 }
 
-export enum ConnectorCurrentType {
+export enum CurrentType {
   AC = 'AC',
   DC = 'DC'
 }
 
 export interface ChargePoint {
-  currentType: ChargingStationCurrentType;
+  currentType: CurrentType;
   voltage: number;
   amperage: number;
   numberOfConnectedPhase: number;
@@ -180,7 +169,7 @@ export interface ChargingStationTemplate {
       amperage?: number;
       voltage?: number;
       chargePointID?: number;
-      currentType?: ConnectorCurrentType;
+      currentType?: CurrentType;
       numberOfConnectedPhase?: number;
     }[];
   };

@@ -14,7 +14,7 @@ export default class WebastoChargingStationVendorIntegration extends ChargingSta
   }
 
   public getOCPPParamValueForChargingLimitation(chargingStation: ChargingStation, limitAmp: number): number {
-    return limitAmp / chargingStation.connectors.length / Utils.getNumberOfConnectedPhases(chargingStation);
+    return limitAmp / chargingStation.connectors.length / Utils.getChargingStationNumberOfConnectedPhases(chargingStation);
   }
 
   public convertToVendorChargingProfile(chargingStation: ChargingStation, chargingProfile: ChargingProfile): ChargingProfile {
@@ -29,7 +29,7 @@ export default class WebastoChargingStationVendorIntegration extends ChargingSta
       // Divide the power by the number of connectors and number of phases
       for (const schedulePeriod of vendorSpecificChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         schedulePeriod.limit = schedulePeriod.limit / (vendorSpecificChargingProfile.connectorID === 0 ?
-          chargingStation.connectors.length : 1) / Utils.getNumberOfConnectedPhases(chargingStation, chargingProfile.connectorID);
+          chargingStation.connectors.length : 1) / Utils.getChargingStationNumberOfConnectedPhases(chargingStation, chargingProfile.connectorID);
         // Check Unit
         if (chargingStation.powerLimitUnit === PowerLimitUnits.WATT) {
           schedulePeriod.limit = Utils.convertAmpToWatt(chargingStation, chargingProfile.connectorID, schedulePeriod.limit);
@@ -52,7 +52,7 @@ export default class WebastoChargingStationVendorIntegration extends ChargingSta
         }
         // Limit is per connector and per phase Convert to max Amp
         chargingSchedulePeriod.limit = chargingSchedulePeriod.limit * (connectorID === 0 ?
-          chargingStation.connectors.length : 1) * Utils.getNumberOfConnectedPhases(chargingStation, connectorID);
+          chargingStation.connectors.length : 1) * Utils.getChargingStationNumberOfConnectedPhases(chargingStation, connectorID);
       }
     }
     // Convert to Amps?

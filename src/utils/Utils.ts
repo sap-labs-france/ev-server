@@ -1,5 +1,5 @@
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -502,7 +502,7 @@ export default class Utils {
     return 0;
   }
 
-  public static getNumberOfConnectedPhases(chargingStation: ChargingStation, connectorId = 0): number {
+  public static getChargingStationNumberOfConnectedPhases(chargingStation: ChargingStation, connectorId = 0): number {
     if (chargingStation) {
       // Check phase at charge point level
       if (chargingStation.chargePoints) {
@@ -535,7 +535,7 @@ export default class Utils {
   public static getChargingStationVoltage(chargingStation: ChargingStation, connectorId = 0): number {
     if (chargingStation) {
       // Check voltage at charging station level
-      if (connectorId === 0 && chargingStation.voltage > 0) {
+      if (chargingStation.voltage > 0) {
         return chargingStation.voltage;
       }
       // Check voltage at charge point level
@@ -566,6 +566,35 @@ export default class Utils {
     return 0;
   }
 
+  public static getChargingStationCurrentType(chargingStation: ChargingStation, connectorId = 0): CurrentType {
+    if (chargingStation) {
+      // Check voltage at charge point level
+      if (chargingStation.chargePoints) {
+        for (const chargePoint of chargingStation.chargePoints) {
+          // Take the first
+          if (connectorId === 0 && chargePoint.currentType) {
+            return chargePoint.currentType;
+          }
+          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.currentType) {
+            return chargePoint.currentType;
+          }
+        }
+      }
+      // Check voltage at connector level
+      if (chargingStation.connectors) {
+        for (const connector of chargingStation.connectors) {
+          // Take the first
+          if (connectorId === 0 && connector.currentType) {
+            return connector.currentType;
+          }
+          if (connector.connectorId === connectorId && connector.currentType) {
+            return connector.currentType;
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   public static isEmptyArray(array): boolean {
     if (Array.isArray(array) && array.length > 0) {
