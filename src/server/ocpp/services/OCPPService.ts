@@ -1197,7 +1197,7 @@ export default class OCPPService {
         // Maximum power of the Site Area provided?
         if (chargingStation.siteArea.maximumPower) {
           consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaAmps = chargingStation.siteArea.maximumPower / 230;
           consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
           // Compute it for Charging Stations
@@ -1207,7 +1207,7 @@ export default class OCPPService {
               consumption.limitSiteAreaWatts += connector.power;
             }
           }
-          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, consumption.limitSiteAreaWatts);
+          consumption.limitSiteAreaAmps = consumption.limitSiteAreaWatts / 230;
           consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
         }
       }

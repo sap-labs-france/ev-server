@@ -486,16 +486,16 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static convertAmpToWatt(chargingStation: ChargingStation, ampValue: number): number {
-    const voltage = Utils.getChargingStationVoltage(chargingStation);
+  public static convertAmpToWatt(chargingStation: ChargingStation, connectorID = 0, ampValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation, connectorID);
     if (voltage > 0) {
       return voltage * ampValue;
     }
     return 0;
   }
 
-  public static convertWattToAmp(chargingStation: ChargingStation, wattValue: number): number {
-    const voltage = Utils.getChargingStationVoltage(chargingStation);
+  public static convertWattToAmp(chargingStation: ChargingStation, connectorID = 0, wattValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation, connectorID);
     if (voltage > 0) {
       return Math.floor(wattValue / voltage);
     }

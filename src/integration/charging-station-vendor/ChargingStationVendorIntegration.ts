@@ -436,7 +436,8 @@ export default abstract class ChargingStationVendorIntegration {
               chargingRateUnit: chargingStation.powerLimitUnit
             });
             // Convert
-            connectorResult.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, connectorResult.chargingSchedule);
+            connectorResult.chargingSchedule = this.convertFromVendorChargingSchedule(
+              chargingStation, connectorResult.connectorId, connectorResult.chargingSchedule);
             results.push(connectorResult);
           }
           Logging.logDebug({
@@ -458,7 +459,8 @@ export default abstract class ChargingStationVendorIntegration {
           detailedMessages: { result }
         });
         // Convert
-        result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, result.chargingSchedule);
+        result.chargingSchedule = this.convertFromVendorChargingSchedule(
+          chargingStation, result.connectorId, result.chargingSchedule);
         return result;
       }
       // Connector ID > 0
@@ -477,7 +479,8 @@ export default abstract class ChargingStationVendorIntegration {
         detailedMessages: { result }
       });
       // Convert
-      result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, result.chargingSchedule);
+      result.chargingSchedule = this.convertFromVendorChargingSchedule(
+        chargingStation, result.connectorId, result.chargingSchedule);
       return result;
     } catch (error) {
       Logging.logError({
