@@ -147,7 +147,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
 
   private async removeChargingStationUnusedPropsInDB(tenant: Tenant) {
     const result = await global.database.getCollection<any>(tenant.id, 'chargingstations').updateMany(
-      { 'ocppAdvancedCommands': { $exists: true } },
+      { },
       {
         $unset: {
           'numberOfConnectedPhase': '',

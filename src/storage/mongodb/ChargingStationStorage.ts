@@ -430,7 +430,7 @@ export default class ChargingStationStorage {
       for (const connector of chargingStationToSave.connectors) {
         if (connector) {
           connector.connectorId = Utils.convertToInt(connector.connectorId);
-          connector.power = Utils.convertToInt(connector.power);
+          connector.power = connector.power ? Utils.convertToInt(connector.power) : null;
           connector.amperage = connector.amperage ? Utils.convertToInt(connector.amperage) : null;
           connector.voltage = connector.voltage ? Utils.convertToInt(connector.voltage) : null;
           connector.chargePointID = connector.chargePointID ? Utils.convertToInt(connector.chargePointID) : null;
@@ -447,14 +447,14 @@ export default class ChargingStationStorage {
     if (chargingStationToSave.chargePoints && Array.isArray(chargingStationToSave.chargePoints)) {
       for (const chargePoint of chargingStationToSave.chargePoints) {
         if (chargePoint) {
-          chargePoint.voltage = Utils.convertToInt(chargePoint.voltage);
-          chargePoint.amperage = Utils.convertToInt(chargePoint.amperage);
-          chargePoint.numberOfConnectedPhase = Utils.convertToInt(chargePoint.numberOfConnectedPhase);
+          chargePoint.voltage = chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null;
+          chargePoint.amperage = chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null;
+          chargePoint.numberOfConnectedPhase = chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null;
           chargePoint.cannotChargeInParallel = Utils.convertToBoolean(chargePoint.cannotChargeInParallel);
           chargePoint.sharePowerToAllConnectors = Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors);
           chargePoint.excludeFromPowerLimitation = Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation);
-          chargePoint.power = Utils.convertToInt(chargePoint.power);
-          chargePoint.efficiency = Utils.convertToInt(chargePoint.efficiency);
+          chargePoint.power = chargePoint.power ? Utils.convertToInt(chargePoint.power) : null;
+          chargePoint.efficiency = chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null;
           chargePoint.connectorIDs = chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID));
         }
       }
