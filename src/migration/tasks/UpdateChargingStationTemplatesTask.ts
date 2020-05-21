@@ -38,7 +38,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.894';
+    return '1.897';
   }
 
   private async updateChargingStationsOCPPParametersInTemplate(tenant: Tenant) {

@@ -75,6 +75,9 @@ export default class OCPPUtils {
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'powerLimitUnit')) {
             chargingStation.powerLimitUnit = chargingStationTemplate.technical.powerLimitUnit;
           }
+          if (Utils.objectHasProperty(chargingStationTemplate.technical, 'voltage')) {
+            chargingStation.voltage = chargingStationTemplate.technical.voltage;
+          }
           // Enrich connectors
           if (chargingStation.connectors) {
             for (const connector of chargingStation.connectors) {
@@ -186,7 +189,6 @@ export default class OCPPUtils {
       detailedMessages: { chargingStation }
     });
     return false;
-
   }
 
   public static async enrichChargingStationConnectorWithTemplate(

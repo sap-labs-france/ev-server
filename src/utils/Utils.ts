@@ -1,32 +1,25 @@
-import fs from 'fs';
-import path from 'path';
-import url from 'url';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import User, { UserRole, UserStatus } from '../types/User';
 
-import bcrypt from 'bcryptjs';
-import { Request } from 'express';
-import _ from 'lodash';
-import moment from 'moment';
-import { ObjectID } from 'mongodb';
-import passwordGenerator from 'password-generator';
-import tzlookup from 'tz-lookup';
-import { v4 as uuid } from 'uuid';
-import validator from 'validator';
-
-import Authorizations from '../authorization/Authorizations';
+import { ActionsResponse } from '../types/GlobalType';
 import AppError from '../exception/AppError';
-import BackendError from '../exception/BackendError';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import Asset from '../types/Asset';
+import Authorizations from '../authorization/Authorizations';
+import BackendError from '../exception/BackendError';
 import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
-import ChargingStation, { ConnectorCurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import Company from '../types/Company';
+import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
-import { ActionsResponse } from '../types/GlobalType';
+import Constants from './Constants';
+import Cypher from './Cypher';
 import { HTTPError } from '../types/HTTPError';
+import { InactivityStatus } from '../types/Transaction';
+import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
+import { ObjectID } from 'mongodb';
+import { Request } from 'express';
 import { ServerAction } from '../types/Server';
 import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
@@ -34,13 +27,19 @@ import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import { InactivityStatus } from '../types/Transaction';
-import User, { UserRole, UserStatus } from '../types/User';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
-import Configuration from './Configuration';
-import Constants from './Constants';
-import Cypher from './Cypher';
-import Logging from './Logging';
+import _ from 'lodash';
+import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import moment from 'moment';
+import passwordGenerator from 'password-generator';
+import path from 'path';
+import tzlookup from 'tz-lookup';
+import url from 'url';
+import { v4 as uuid } from 'uuid';
+import validator from 'validator';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -236,32 +235,38 @@ export default class Utils {
 
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
     // Cannot charge in //
-    if (chargingStation.cannotChargeInParallel) {
-      let lockAllConnectors = false;
-      // Check
-      for (const connector of chargingStation.connectors) {
-        if (!connector) {
-          continue;
-        }
-        if (connector.status !== ChargePointStatus.AVAILABLE) {
-          lockAllConnectors = true;
-          break;
-        }
-      }
-      // Lock?
-      if (lockAllConnectors) {
-        for (const connector of chargingStation.connectors) {
-          if (!connector) {
-            continue;
+    if (chargingStation.chargePoints) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        if (chargePoint.cannotChargeInParallel) {
+          let lockAllConnectors = false;
+          // Check
+          for (const connectorID of chargePoint.connectorIDs) {
+            const connector = chargingStation.connectors[connectorID];
+            if (!connector) {
+              continue;
+            }
+            if (connector.status !== ChargePointStatus.AVAILABLE) {
+              lockAllConnectors = true;
+              break;
+            }
           }
-          if (connector.status === ChargePointStatus.AVAILABLE) {
-            // Check OCPP Version
-            if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
-              // Set OCPP 1.5 Occupied
-              connector.status = ChargePointStatus.OCCUPIED;
-            } else {
-              // Set OCPP 1.6 Unavailable
-              connector.status = ChargePointStatus.UNAVAILABLE;
+          // Lock?
+          if (lockAllConnectors) {
+            for (const connectorID of chargePoint.connectorIDs) {
+              const connector = chargingStation.connectors[connectorID];
+              if (!connector) {
+                continue;
+              }
+              if (connector.status === ChargePointStatus.AVAILABLE) {
+                // Check OCPP Version
+                if (chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
+                  // Set OCPP 1.5 Occupied
+                  connector.status = ChargePointStatus.OCCUPIED;
+                } else {
+                  // Set OCPP 1.6 Unavailable
+                  connector.status = ChargePointStatus.UNAVAILABLE;
+                }
+              }
             }
           }
         }
@@ -473,17 +478,7 @@ export default class Utils {
     return userID;
   }
 
-  public static convertAmpToPowerWatts(chargingStation: ChargingStation, connectorID: number, ampValue: number): number {
-    // AC Chargers?
-    if (chargingStation &&
-        chargingStation.connectors && chargingStation.connectors.length > 0 &&
-        chargingStation.connectors[connectorID - 1].currentType === ConnectorCurrentType.AC,chargingStation.connectors[connectorID - 1].numberOfConnectedPhase) {
-      return this.convertAmpToWatt(chargingStation.connectors[connectorID - 1].numberOfConnectedPhase, ampValue);
-    }
-    return 0;
-  }
-
-  public static getTotalAmpsOfChargingStation(chargingStation: ChargingStation): number {
+  public static getTotalAmpLimitOfChargingStation(chargingStation: ChargingStation): number {
     let totalAmps = 0;
     for (const connector of chargingStation.connectors) {
       totalAmps += connector.amperageLimit;
@@ -491,27 +486,86 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static convertAmpToWatt(numberOfConnectedPhase: number, maxIntensityInAmper: number): number {
-    // Compute it
-    if (numberOfConnectedPhase === 0) {
-      return Math.floor(230 * maxIntensityInAmper * 3);
+  public static convertAmpToWatt(chargingStation: ChargingStation, ampValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation);
+    if (voltage > 0) {
+      return voltage * ampValue;
     }
-    if (numberOfConnectedPhase === 3) {
-      return Math.floor(230 * maxIntensityInAmper * 3);
-    }
-    return Math.floor(230 * maxIntensityInAmper);
+    return 0;
   }
 
-  public static convertWattToAmp(numberOfConnectedPhase: number, maxIntensityInWatt: number): number {
-    // Compute it
-    if (numberOfConnectedPhase === 0) {
-      return Math.floor(maxIntensityInWatt / 230 / 3);
+  public static convertWattToAmp(chargingStation: ChargingStation, wattValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation);
+    if (voltage > 0) {
+      return Math.floor(wattValue / voltage);
     }
-    if (numberOfConnectedPhase === 3) {
-      return Math.floor(maxIntensityInWatt / 230 / 3);
-    }
-    return Math.floor(maxIntensityInWatt / 230);
+    return 0;
   }
+
+  public static getNumberOfConnectedPhases(chargingStation: ChargingStation, connectorId = 0): number {
+    if (chargingStation) {
+      // Check phase at charge point level
+      if (chargingStation.chargePoints) {
+        for (const chargePoint of chargingStation.chargePoints) {
+          // Take the first
+          if (connectorId === 0 && chargePoint.numberOfConnectedPhase > 0) {
+            return chargePoint.numberOfConnectedPhase;
+          }
+          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.numberOfConnectedPhase > 0) {
+            return chargePoint.numberOfConnectedPhase;
+          }
+        }
+      }
+      // Check phases at connector level
+      if (chargingStation.connectors) {
+        for (const connector of chargingStation.connectors) {
+          // Take the first
+          if (connectorId === 0 && connector.numberOfConnectedPhase > 0) {
+            return connector.numberOfConnectedPhase;
+          }
+          if (connector.connectorId === connectorId && connector.numberOfConnectedPhase > 0) {
+            return connector.numberOfConnectedPhase;
+          }
+        }
+      }
+    }
+    return 1;
+  }
+
+  public static getChargingStationVoltage(chargingStation: ChargingStation, connectorId = 0): number {
+    if (chargingStation) {
+      // Check voltage at charging station level
+      if (connectorId === 0 && chargingStation.voltage > 0) {
+        return chargingStation.voltage;
+      }
+      // Check voltage at charge point level
+      if (chargingStation.chargePoints) {
+        for (const chargePoint of chargingStation.chargePoints) {
+          // Take the first
+          if (connectorId === 0 && chargePoint.voltage > 0) {
+            return chargePoint.voltage;
+          }
+          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.voltage > 0) {
+            return chargePoint.voltage;
+          }
+        }
+      }
+      // Check voltage at connector level
+      if (chargingStation.connectors) {
+        for (const connector of chargingStation.connectors) {
+          // Take the first
+          if (connectorId === 0 && connector.voltage > 0) {
+            return connector.voltage;
+          }
+          if (connector.connectorId === connectorId && connector.voltage > 0) {
+            return connector.voltage;
+          }
+        }
+      }
+    }
+    return 0;
+  }
+
 
   public static isEmptyArray(array): boolean {
     if (Array.isArray(array) && array.length > 0) {

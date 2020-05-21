@@ -1,6 +1,8 @@
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStation from '../../../types/ChargingStation';
+import { ChargingProfile, ChargingRateUnitType, ChargingSchedule } from '../../../types/ChargingProfile';
+import ChargingStation, { PowerLimitUnits } from '../../../types/ChargingStation';
+
 import ChargingStationVendorIntegration from '../ChargingStationVendorIntegration';
+import Utils from '../../../utils/Utils';
 
 export default class SchneiderChargingStationVendorIntegration extends ChargingStationVendorIntegration {
   constructor(chargingStation: ChargingStation) {
@@ -12,14 +14,7 @@ export default class SchneiderChargingStationVendorIntegration extends ChargingS
   }
 
   public getOCPPParamValueForChargingLimitation(chargingStation: ChargingStation, limitAmp: number): number {
-    let numberOfPhase = 1;
-    for (const connector of chargingStation.connectors) {
-      if (connector && connector.numberOfConnectedPhase > 0) {
-        numberOfPhase = connector.numberOfConnectedPhase;
-        break;
-      }
-    }
-    return limitAmp / chargingStation.connectors.length / numberOfPhase;
+    return limitAmp / chargingStation.connectors.length / Utils.getNumberOfConnectedPhases(chargingStation);
   }
 
   public convertToVendorChargingProfile(chargingStation: ChargingStation, chargingProfile: ChargingProfile): ChargingProfile {
@@ -27,19 +22,42 @@ export default class SchneiderChargingStationVendorIntegration extends ChargingS
     const vendorSpecificChargingProfile = JSON.parse(JSON.stringify(chargingProfile));
     // Check connector
     if (chargingStation.connectors && vendorSpecificChargingProfile.profile && vendorSpecificChargingProfile.profile.chargingSchedule) {
-      let numberOfPhase = 1;
-      // Check the Connector
-      for (const connector of chargingStation.connectors) {
-        if (connector.numberOfConnectedPhase > 0) {
-          numberOfPhase = connector.numberOfConnectedPhase;
-        }
+      // Convert to Watts?
+      if (chargingStation.powerLimitUnit === PowerLimitUnits.WATT) {
+        chargingProfile.profile.chargingSchedule.chargingRateUnit = ChargingRateUnitType.WATT;
       }
       // Divide the power by the number of connectors and number of phases
       for (const schedulePeriod of vendorSpecificChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         schedulePeriod.limit = schedulePeriod.limit / (vendorSpecificChargingProfile.connectorID === 0 ?
-          chargingStation.connectors.length : 1) / numberOfPhase;
+          chargingStation.connectors.length : 1) / Utils.getNumberOfConnectedPhases(chargingStation, chargingProfile.connectorID);
+        // Check Unit
+        if (chargingStation.powerLimitUnit === PowerLimitUnits.WATT) {
+          schedulePeriod.limit = Utils.convertAmpToWatt(chargingStation, schedulePeriod.limit);
+        }
       }
     }
     return vendorSpecificChargingProfile;
+  }
+
+  public convertFromVendorChargingSchedule(chargingStation: ChargingStation, connectorID: number, chargingSchedule: ChargingSchedule): ChargingSchedule {
+    // Get vendor specific charging profile
+    if (!chargingSchedule) {
+      return chargingSchedule;
+    }
+    if (chargingSchedule.chargingSchedulePeriod) {
+      for (const chargingSchedulePeriod of chargingSchedule.chargingSchedulePeriod) {
+        // Convert to Amps?
+        if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
+          chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, chargingSchedulePeriod.limit);
+        }
+        // Limit is per connector and per phase Convert to max Amp
+        chargingSchedulePeriod.limit = chargingSchedulePeriod.limit * (connectorID === 0 ?
+          chargingStation.connectors.length : 1) * Utils.getNumberOfConnectedPhases(chargingStation, connectorID);
+      }
+    }
+    // Convert to Amps?
+    if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
+      chargingSchedule.chargingRateUnit = ChargingRateUnitType.AMPERE;
+    }
   }
 }

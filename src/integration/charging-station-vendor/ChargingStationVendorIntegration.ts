@@ -1,12 +1,13 @@
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import BackendError from '../../exception/BackendError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { ChargingProfile } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingSchedule } from '../../types/ChargingProfile';
 import ChargingStation, { ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../types/Server';
+
+import BackendError from '../../exception/BackendError';
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'ChargingStationVendor';
@@ -320,7 +321,7 @@ export default abstract class ChargingStationVendorIntegration {
           }
           // Reapply the current limitation
           await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpsOfChargingStation(chargingStation));
+            Utils.getTotalAmpLimitOfChargingStation(chargingStation));
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
@@ -334,7 +335,7 @@ export default abstract class ChargingStationVendorIntegration {
         // Reapply the current limitation
         if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
           await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpsOfChargingStation(chargingStation));
+            Utils.getTotalAmpLimitOfChargingStation(chargingStation));
         }
         Logging.logDebug({
           tenantID: tenantID,
@@ -354,7 +355,7 @@ export default abstract class ChargingStationVendorIntegration {
       if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
         // Reapply the current limitation
         await this.setPowerLimitation(tenantID, chargingStation, 0,
-          Utils.getTotalAmpsOfChargingStation(chargingStation));
+          Utils.getTotalAmpLimitOfChargingStation(chargingStation));
       }
       Logging.logDebug({
         tenantID: tenantID,
@@ -429,12 +430,14 @@ export default abstract class ChargingStationVendorIntegration {
           const results = [] as OCPPGetCompositeScheduleCommandResult[];
           for (const connector of chargingStation.connectors) {
             // Get the Composite Schedule
-            const ret = await chargingStationClient.getCompositeSchedule({
+            const connectorResult = await chargingStationClient.getCompositeSchedule({
               connectorId: connector.connectorId,
               duration: durationSecs,
               chargingRateUnit: chargingStation.powerLimitUnit
             });
-            results.push(ret);
+            // Convert
+            connectorResult.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, connectorResult.chargingSchedule);
+            results.push(connectorResult);
           }
           Logging.logDebug({
             tenantID: tenantID,
@@ -454,6 +457,8 @@ export default abstract class ChargingStationVendorIntegration {
           module: MODULE_NAME, method: 'getCompositeSchedule',
           detailedMessages: { result }
         });
+        // Convert
+        result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, result.chargingSchedule);
         return result;
       }
       // Connector ID > 0
@@ -471,6 +476,8 @@ export default abstract class ChargingStationVendorIntegration {
         module: MODULE_NAME, method: 'getCompositeSchedule',
         detailedMessages: { result }
       });
+      // Convert
+      result.chargingSchedule = this.convertFromVendorChargingSchedule(chargingStation, result.chargingSchedule);
       return result;
     } catch (error) {
       Logging.logError({
@@ -521,8 +528,8 @@ export default abstract class ChargingStationVendorIntegration {
         // Get the current connector limitation from the charging plan
         // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
         if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-          compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+            compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+            compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
           let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
           // Check
           if (connectorLimitAmps > limitDefaultMaxAmps) {
@@ -530,7 +537,7 @@ export default abstract class ChargingStationVendorIntegration {
           }
           const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
+            limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
             limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
           };
           Logging.logDebug({
@@ -558,7 +565,7 @@ export default abstract class ChargingStationVendorIntegration {
           }
           const result: ConnectorCurrentLimit = {
             limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToPowerWatts(chargingStation, connectorID, connectorLimitAmps),
+            limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
             limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
           };
           Logging.logDebug({
@@ -604,5 +611,7 @@ export default abstract class ChargingStationVendorIntegration {
   public abstract getOCPPParamValueForChargingLimitation(chargingStation: ChargingStation, limitAmp: number);
 
   public abstract convertToVendorChargingProfile(chargingStation: ChargingStation, chargingProfile: ChargingProfile): ChargingProfile;
+
+  public abstract convertFromVendorChargingSchedule(chargingStation: ChargingStation, connectorID: number, vendorSpecificChargingSchedule: ChargingSchedule): ChargingSchedule;
 }
 

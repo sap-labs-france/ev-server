@@ -1,9 +1,10 @@
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import SiteArea from './SiteArea';
-import { InactivityStatus } from './Transaction';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -168,6 +169,7 @@ export interface ChargingStationTemplate {
   };
   technical: {
     maximumPower: number;
+    voltage?: number;
     excludeFromPowerLimitation: boolean;
     powerLimitUnit: PowerLimitUnits;
     chargePoints?: ChargingStationChargePoint[];
