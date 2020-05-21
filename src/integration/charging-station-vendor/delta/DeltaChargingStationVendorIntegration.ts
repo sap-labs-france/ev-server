@@ -59,5 +59,6 @@ export default class DeltaChargingStationVendorIntegration extends ChargingStati
     if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
       chargingSchedule.chargingRateUnit = ChargingRateUnitType.AMPERE;
     }
+    return chargingSchedule;
   }
 }

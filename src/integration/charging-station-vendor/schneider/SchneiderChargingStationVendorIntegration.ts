@@ -59,5 +59,6 @@ export default class SchneiderChargingStationVendorIntegration extends ChargingS
     if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
       chargingSchedule.chargingRateUnit = ChargingRateUnitType.AMPERE;
     }
+    return chargingSchedule;
   }
 }

@@ -59,5 +59,6 @@ export default class WebastoChargingStationVendorIntegration extends ChargingSta
     if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
       chargingSchedule.chargingRateUnit = ChargingRateUnitType.AMPERE;
     }
+    return chargingSchedule;
   }
 }
