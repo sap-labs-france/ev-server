@@ -37,7 +37,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   excludeFromPowerLimitation?: boolean;
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
-  chargePoints: ChargingStationChargePoint[];
+  chargePoints: ChargePoint[];
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
@@ -146,7 +146,7 @@ export enum ConnectorCurrentType {
   DC = 'DC'
 }
 
-export interface ChargingStationChargePoint {
+export interface ChargePoint {
   currentType: ChargingStationCurrentType;
   voltage: number;
   amperage: number;
@@ -172,7 +172,7 @@ export interface ChargingStationTemplate {
     voltage?: number;
     excludeFromPowerLimitation: boolean;
     powerLimitUnit: PowerLimitUnits;
-    chargePoints?: ChargingStationChargePoint[];
+    chargePoints?: ChargePoint[];
     connectors: {
       connectorId: number;
       type: ConnectorType;
