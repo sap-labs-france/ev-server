@@ -309,6 +309,7 @@ export default class SiteAreaService {
     siteArea.image = filteredRequest.image;
     const siteAreaMaxPowerHasChanged = siteArea.maximumPower !== filteredRequest.maximumPower;
     siteArea.maximumPower = filteredRequest.maximumPower;
+    siteArea.voltage = filteredRequest.voltage;
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
       for (const charger of siteArea.chargingStations) {
         for (const connector of charger.connectors) {
@@ -341,6 +342,7 @@ export default class SiteAreaService {
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Regtrigger Smart Charging
     if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
         if (siteAreaLock) {

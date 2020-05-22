@@ -1,5 +1,6 @@
+import ChargingStation, { Voltage } from '../types/ChargingStation';
+
 import Address from './Address';
-import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from '../types/Site';
@@ -9,6 +10,7 @@ export default interface SiteArea extends CreatedUpdatedProps {
   name: string;
   issuer: boolean;
   maximumPower: number;
+  voltage: Voltage;
   numberOfPhases: number;
   address: Address;
   image: string;

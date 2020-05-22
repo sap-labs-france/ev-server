@@ -33,7 +33,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
-  voltage: number;
+  voltage: Voltage;
   excludeFromPowerLimitation?: boolean;
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
@@ -93,7 +93,7 @@ export interface Connector {
   vendorErrorCode?: string;
   power: number;
   type: ConnectorType;
-  voltage?: number;
+  voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
   activeTransactionID?: number;
@@ -137,7 +137,7 @@ export enum CurrentType {
 
 export interface ChargePoint {
   currentType: CurrentType;
-  voltage: number;
+  voltage: Voltage;
   amperage: number;
   numberOfConnectedPhase: number;
   cannotChargeInParallel: boolean;
@@ -146,6 +146,11 @@ export interface ChargePoint {
   power: number;
   efficiency: number;
   connectorIDs: number[];
+}
+
+export enum Voltage {
+  VOLTAGE_230 = 230,
+  VOLTAGE_110 = 110,
 }
 
 export interface ChargingStationTemplate {
@@ -158,7 +163,7 @@ export interface ChargingStationTemplate {
   };
   technical: {
     maximumPower: number;
-    voltage?: number;
+    voltage?: Voltage;
     excludeFromPowerLimitation: boolean;
     powerLimitUnit: PowerLimitUnits;
     chargePoints?: ChargePoint[];
@@ -167,7 +172,7 @@ export interface ChargingStationTemplate {
       type: ConnectorType;
       power?: number;
       amperage?: number;
-      voltage?: number;
+      voltage?: Voltage;
       chargePointID?: number;
       currentType?: CurrentType;
       numberOfConnectedPhase?: number;
