@@ -9,7 +9,10 @@ import SiteArea from './SiteArea';
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
   templateHash?: string;
+  templateHashCapabilities?: string;
   templateHashTechnical?: string;
+  templateHashOcppStandard?: string;
+  templateHashOcppVendor?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -48,6 +51,12 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   ocpiData?: {
     evse?: OCPIEvse;
   };
+}
+
+export interface TemplateUpdateResult {
+  technicalUpdated: boolean;
+  capabilitiesUpdated: boolean;
+  ocppUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -136,6 +145,7 @@ export enum CurrentType {
 }
 
 export interface ChargePoint {
+  chargePointID: number;
   currentType: CurrentType;
   voltage: Voltage;
   amperage: number;
@@ -143,6 +153,7 @@ export interface ChargePoint {
   cannotChargeInParallel: boolean;
   sharePowerToAllConnectors: boolean;
   excludeFromPowerLimitation: boolean;
+  ocppParamForPowerLimitation: string;
   power: number;
   efficiency: number;
   connectorIDs: number[];
@@ -157,6 +168,9 @@ export interface ChargingStationTemplate {
   id?: string;
   hash?: string;
   hashTechnical?: string;
+  hashCapabilities?: string;
+  hashOcppStandard?: string;
+  hashOcppVendor?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;

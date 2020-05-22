@@ -13,7 +13,7 @@ export interface HttpTriggerSmartChargingRequest {
 
 export interface HttpChargingStationLimitPowerRequest {
   chargeBoxID: string;
-  connectorId: number;
+  chargePointID: number;
   ampLimitValue: number;
   forceUpdateChargingPlan: boolean;
 }

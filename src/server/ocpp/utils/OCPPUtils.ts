@@ -1,6 +1,6 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import BackendError from '../../../exception/BackendError';
@@ -49,17 +49,22 @@ export default class OCPPUtils {
     return foundTemplate;
   }
 
-  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<boolean> {
+  public static async enrichChargingStationWithTemplate(tenantID: string, chargingStation: ChargingStation): Promise<TemplateUpdateResult> {
+    const templateUpdateResult: TemplateUpdateResult = {
+      technicalUpdated: false,
+      capabilitiesUpdated: false,
+      ocppUpdated: false,
+    };
     // Get Template
     const chargingStationTemplate = await OCPPUtils.getChargingStationTemplate(chargingStation);
     // Copy from template
     if (chargingStationTemplate) {
       // Already updated?
       if (chargingStation.templateHash !== chargingStationTemplate.hash) {
-        // Set the hash
         chargingStation.templateHash = chargingStationTemplate.hash;
         // Check Technical Hash
         if (chargingStation.templateHashTechnical !== chargingStationTemplate.hashTechnical) {
+          templateUpdateResult.technicalUpdated = true;
           // Set the hash
           chargingStation.templateHashTechnical = chargingStationTemplate.hashTechnical;
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
@@ -82,87 +87,112 @@ export default class OCPPUtils {
             }
           }
         }
-        // Handle capabilities
-        chargingStation.capabilities = {} as ChargingStationCapabilities;
-        if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
-          let matchFirmware = true;
-          let matchOcpp = true;
-          // Search Firmware/Ocpp match
-          for (const capabilities of chargingStationTemplate.capabilities) {
-            // Check Firmware version
-            if (capabilities.supportedFirmwareVersions) {
-              matchFirmware = capabilities.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
-            }
-            // Check Ocpp version
-            if (capabilities.supportedOcppVersions) {
-              matchOcpp = capabilities.supportedOcppVersions.includes(chargingStation.ocppVersion);
-            }
-            // Found?
-            if (matchFirmware && matchOcpp) {
-              chargingStation.capabilities = capabilities.capabilities;
-              break;
+        // Already updated?
+        if (chargingStation.templateHashCapabilities !== chargingStationTemplate.hashCapabilities) {
+          chargingStation.templateHashCapabilities = chargingStationTemplate.hashCapabilities;
+          templateUpdateResult.capabilitiesUpdated = true;
+          // Handle capabilities
+          chargingStation.capabilities = {} as ChargingStationCapabilities;
+          if (Utils.objectHasProperty(chargingStationTemplate, 'capabilities')) {
+            let matchFirmware = true;
+            let matchOcpp = true;
+            // Search Firmware/Ocpp match
+            for (const capabilities of chargingStationTemplate.capabilities) {
+              // Check Firmware version
+              if (capabilities.supportedFirmwareVersions) {
+                matchFirmware = capabilities.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
+              }
+              // Check Ocpp version
+              if (capabilities.supportedOcppVersions) {
+                matchOcpp = capabilities.supportedOcppVersions.includes(chargingStation.ocppVersion);
+              }
+              // Found?
+              if (matchFirmware && matchOcpp) {
+                chargingStation.capabilities = capabilities.capabilities;
+                break;
+              }
             }
           }
         }
-        // Handle OCPP Standard Parameters
-        chargingStation.ocppStandardParameters = [];
-        if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
-          let matchOcpp = true;
-          // Search Firmware/Ocpp match
-          for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
-            // Check Ocpp version
-            if (ocppStandardParameters.supportedOcppVersions) {
-              matchOcpp = ocppStandardParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
-            }
-            // Found?
-            if (matchOcpp) {
-              for (const parameter in ocppStandardParameters.parameters) {
-                chargingStation.ocppStandardParameters.push({
-                  key: parameter,
-                  value: ocppStandardParameters.parameters[parameter]
-                });
+        // Already updated?
+        if (chargingStation.templateHashOcppStandard !== chargingStationTemplate.hashOcppStandard) {
+          chargingStation.templateHashOcppStandard = chargingStationTemplate.hashOcppStandard;
+          templateUpdateResult.ocppUpdated = true;
+          // Handle OCPP Standard Parameters
+          chargingStation.ocppStandardParameters = [];
+          if (Utils.objectHasProperty(chargingStationTemplate, 'ocppStandardParameters')) {
+            let matchOcpp = true;
+            // Search Firmware/Ocpp match
+            for (const ocppStandardParameters of chargingStationTemplate.ocppStandardParameters) {
+              // Check Ocpp version
+              if (ocppStandardParameters.supportedOcppVersions) {
+                matchOcpp = ocppStandardParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
               }
-              break;
+              // Found?
+              if (matchOcpp) {
+                for (const parameter in ocppStandardParameters.parameters) {
+                  chargingStation.ocppStandardParameters.push({
+                    key: parameter,
+                    value: ocppStandardParameters.parameters[parameter]
+                  });
+                }
+                break;
+              }
             }
           }
         }
-        // Handle OCPP Vendor Parameters
-        chargingStation.ocppVendorParameters = [];
-        if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
-          let matchFirmware = true;
-          let matchOcpp = true;
-          // Search Firmware/Ocpp match
-          for (const ocppVendorParameters of chargingStationTemplate.ocppVendorParameters) {
-            // Check Firmware version
-            if (ocppVendorParameters.supportedFirmwareVersions) {
-              matchFirmware = ocppVendorParameters.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
-            }
-            // Check Ocpp version
-            if (ocppVendorParameters.supportedOcppVersions) {
-              matchOcpp = ocppVendorParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
-            }
-            // Found?
-            if (matchFirmware && matchOcpp) {
-              for (const parameter in ocppVendorParameters.parameters) {
-                chargingStation.ocppVendorParameters.push({
-                  key: parameter,
-                  value: ocppVendorParameters.parameters[parameter]
-                });
+        // Already updated?
+        if (chargingStation.templateHashOcppVendor !== chargingStationTemplate.hashOcppVendor) {
+          chargingStation.templateHashOcppVendor = chargingStationTemplate.hashOcppVendor;
+          templateUpdateResult.ocppUpdated = true;
+          // Handle OCPP Vendor Parameters
+          chargingStation.ocppVendorParameters = [];
+          if (Utils.objectHasProperty(chargingStationTemplate, 'ocppVendorParameters')) {
+            let matchFirmware = true;
+            let matchOcpp = true;
+            // Search Firmware/Ocpp match
+            for (const ocppVendorParameters of chargingStationTemplate.ocppVendorParameters) {
+              // Check Firmware version
+              if (ocppVendorParameters.supportedFirmwareVersions) {
+                matchFirmware = ocppVendorParameters.supportedFirmwareVersions.includes(chargingStation.firmwareVersion);
               }
-              break;
+              // Check Ocpp version
+              if (ocppVendorParameters.supportedOcppVersions) {
+                matchOcpp = ocppVendorParameters.supportedOcppVersions.includes(chargingStation.ocppVersion);
+              }
+              // Found?
+              if (matchFirmware && matchOcpp) {
+                for (const parameter in ocppVendorParameters.parameters) {
+                  chargingStation.ocppVendorParameters.push({
+                    key: parameter,
+                    value: ocppVendorParameters.parameters[parameter]
+                  });
+                }
+                break;
+              }
             }
           }
         }
         // Log
+        const sectionsUpdated = [];
+        if (templateUpdateResult.technicalUpdated) {
+          sectionsUpdated.push('Technical');
+        }
+        if (templateUpdateResult.ocppUpdated) {
+          sectionsUpdated.push('OCPP');
+        }
+        if (templateUpdateResult.capabilitiesUpdated) {
+          sectionsUpdated.push('Capabilities');
+        }
         Logging.logInfo({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-          message: `Template has been applied successfully for '${chargingStation.chargePointVendor}'`,
-          detailedMessages: { chargingStationTemplate }
+          message: `Template applied and updated the following sections: ${sectionsUpdated.join(', ')}`,
+          detailedMessages: { templateUpdateResult, chargingStationTemplate }
         });
-        return true;
+        return templateUpdateResult;
       }
       // Log
       Logging.logDebug({
@@ -170,10 +200,10 @@ export default class OCPPUtils {
         source: chargingStation.id,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'enrichChargingStationWithTemplate',
-        message: `Template has already been applied for '${chargingStation.chargePointVendor}'`,
+        message: 'Template has already been applied',
         detailedMessages: { chargingStationTemplate }
       });
-      return false;
+      return templateUpdateResult;
     }
     // Log
     Logging.logWarning({
@@ -184,7 +214,7 @@ export default class OCPPUtils {
       message: 'No Template has been found!',
       detailedMessages: { chargingStation }
     });
-    return false;
+    return templateUpdateResult;
   }
 
   public static async enrichChargingStationConnectorWithTemplate(
@@ -511,7 +541,7 @@ export default class OCPPUtils {
   }
 
   public static async requestAndSaveChargingStationOcppParameters(tenantID: string,
-    chargingStation: ChargingStation, forceUpdateOCPPParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
+    chargingStation: ChargingStation, forceUpdateOcppParametersWithTemplate = false): Promise<OCPPChangeConfigurationCommandResult> {
     try {
       // Get the OCPP Client
       const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -552,7 +582,7 @@ export default class OCPPUtils {
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
       // Check OCPP Configuration
-      if (forceUpdateOCPPParametersWithTemplate) {
+      if (forceUpdateOcppParametersWithTemplate) {
         await this.checkAndUpdateChargingStationOcppParameters(tenantID, chargingStation, chargingStationOcppParameters);
       }
       // Ok
@@ -572,7 +602,7 @@ export default class OCPPUtils {
   }
 
   public static async checkAndUpdateChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation, currentParameters: ChargingStationOcppParameters) {
-    let oneOCPPParameterUpdated = false;
+    let oneOcppParameterUpdated = false;
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       Logging.logInfo({
         tenantID: tenantID,
@@ -630,7 +660,7 @@ export default class OCPPUtils {
         });
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
           // Ok
-          oneOCPPParameterUpdated = true;
+          oneOcppParameterUpdated = true;
           // Value is different: Update it
           Logging.logInfo({
             tenantID: tenantID,
@@ -660,8 +690,7 @@ export default class OCPPUtils {
       }
     }
     // Parameter Updated?
-    if (oneOCPPParameterUpdated) {
-      // Reload the configuration
+    if (oneOcppParameterUpdated) {
       await this.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
     }
   }

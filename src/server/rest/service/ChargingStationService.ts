@@ -243,11 +243,31 @@ export default class ChargingStationService {
         user: req.user
       });
     }
+    if (!filteredRequest.chargePointID) {
+      throw new AppError({
+        source: filteredRequest.chargeBoxID,
+        action: action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'You must provide a Charge Point ID',
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    // Check
     UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${filteredRequest.chargeBoxID}' doesn't exist.`,
       MODULE_NAME, 'handleChargingStationLimitPower', req.user);
+    // Check
+    if (!Utils.getChargingStationChargePointFromID(chargingStation, filteredRequest.chargePointID)) {
+      throw new AppError({
+        source: filteredRequest.chargeBoxID,
+        action: action,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `The Charge Point ID number '${filteredRequest.chargePointID}' does not exist`,
+        module: MODULE_NAME, method: 'handleChargingStationLimitPower',
+        user: req.user
+      });
+    }
     let siteID = null;
     if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION)) {
       // Get the Site Area
@@ -338,8 +358,8 @@ export default class ChargingStationService {
       }
     }
     // Call the limitation
-    const result = await chargingStationVendor.setPowerLimitation(
-      req.user.tenantID, chargingStation, filteredRequest.connectorId, filteredRequest.ampLimitValue);
+    const result = await chargingStationVendor.setStaticPowerLimitation(req.user.tenantID, chargingStation,
+      filteredRequest.chargePointID, filteredRequest.ampLimitValue);
     if (result.status !== OCPPConfigurationStatus.ACCEPTED && result.status !== OCPPConfigurationStatus.REBOOT_REQUIRED) {
       throw new AppError({
         source: chargingStation.id,

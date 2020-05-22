@@ -26,7 +26,7 @@ export default class ChargingStationSecurity {
   public static filterChargingStationLimitPowerRequest(request: any): HttpChargingStationLimitPowerRequest {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
-      connectorId: sanitize(request.connectorId),
+      chargePointID: sanitize(request.chargePointID),
       ampLimitValue: sanitize(request.ampLimitValue),
       forceUpdateChargingPlan: UtilsSecurity.filterBoolean(request.forceUpdateChargingPlan),
     };

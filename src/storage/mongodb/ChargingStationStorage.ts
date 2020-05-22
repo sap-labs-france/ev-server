@@ -42,6 +42,9 @@ export default class ChargingStationStorage {
         // Set the hashes
         chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
         chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
+        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
+        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
+        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
@@ -464,6 +467,9 @@ export default class ChargingStationStorage {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
       templateHashTechnical: chargingStationToSave.templateHashTechnical,
+      templateHashCapabilities: chargingStationToSave.templateHashCapabilities,
+      templateHashOcppStandard: chargingStationToSave.templateHashOcppStandard,
+      templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       private: Utils.convertToBoolean(chargingStationToSave.private),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),

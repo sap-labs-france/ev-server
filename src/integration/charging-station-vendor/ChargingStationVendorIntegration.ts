@@ -19,38 +19,105 @@ export default abstract class ChargingStationVendorIntegration {
     this.chargingStation = chargingStation;
   }
 
-  public async setPowerLimitation(tenantID: string, chargingStation: ChargingStation,
-    connectorID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+  public async getStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation, chargePointID?: number): Promise<number> {
+    const chargePoint = Utils.getChargingStationChargePointFromID(chargingStation, chargePointID);
+    let ampLimitation = 0;
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: `Set Power limitation is being called with ${maxAmps}A for '${chargingStation.chargePointVendor}'`,
-      module: MODULE_NAME, method: 'setPowerLimitation',
-      detailedMessages: { connectorID, maxAmps }
+      message: 'Get Power limitation is being called',
+      module: MODULE_NAME, method: 'getStaticPowerLimitation',
+      detailedMessages: { chargePoint }
     });
+    if (chargePoint.excludeFromPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `Charge Point '${chargePointID}' is excluded from power limitation`,
+        module: MODULE_NAME, method: 'getStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return ampLimitation;
+    }
+    if (!chargePoint.ocppParamForPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `No OCPP parameter provided in template for Charge Point '${chargePointID}'`,
+        module: MODULE_NAME, method: 'getStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return ampLimitation;
+    }
+    // Read the OCPP Parameter
+    const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
+      tenantID, chargingStation, { key: [chargePoint.ocppParamForPowerLimitation] });
+    if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
+      ocppConfiguration.configurationKey[0].value) {
+      const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
+      ampLimitation = this.convertFromVendorAmp(chargingStation, 0, connectorLimitAmps);
+    }
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+      message: 'Get Power limitation has been called',
+      module: MODULE_NAME, method: 'getStaticPowerLimitation',
+      detailedMessages: { ampLimitation }
+    });
+    return ampLimitation;
+  }
+
+  public async setStaticPowerLimitation(tenantID: string, chargingStation: ChargingStation,
+    chargePointID?: number, maxAmps?: number): Promise<OCPPChangeConfigurationCommandResult> {
+    const chargePoint = Utils.getChargingStationChargePointFromID(chargingStation, chargePointID);
+    Logging.logDebug({
+      tenantID: tenantID,
+      source: chargingStation.id,
+      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+      message: `Set Power limitation is being called with ${maxAmps}A`,
+      module: MODULE_NAME, method: 'setStaticPowerLimitation',
+      detailedMessages: { chargePoint, maxAmps }
+    });
+    if (chargePoint.excludeFromPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `Charge Point '${chargePointID}' is excluded from power limitation`,
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
+    }
+    if (!chargePoint.ocppParamForPowerLimitation) {
+      Logging.logWarning({
+        tenantID: tenantID,
+        source: chargingStation.id,
+        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
+        message: `No OCPP parameter provided in template for Charge Point '${chargePointID}'`,
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
+        detailedMessages: { chargePoint }
+      });
+      return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
+    }
     // Check if feature is supported
     if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'Charging Station does not support static power limitation'
-      });
-    }
-    if (connectorID > 0) {
-      throw new BackendError({
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setPowerLimitation',
-        message: `Not allowed to limit the power on Connector ID '${connectorID}' but only on the whole Charging Station (Connector ID '0')`,
       });
     }
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: `Cannot set the minimum power limit to ${maxAmps}A, minimum expected ${StaticLimitAmps.MIN_LIMIT}A`,
       });
     }
@@ -58,7 +125,7 @@ export default abstract class ChargingStationVendorIntegration {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'The Charging Station has no connector',
         detailedMessages: { maxAmps }
       });
@@ -71,7 +138,7 @@ export default abstract class ChargingStationVendorIntegration {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        module: MODULE_NAME, method: 'setPowerLimitation',
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -81,13 +148,13 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-        message: `Set Power limitation via OCPP to ${occpLimitAmpValue}A for '${chargingStation.chargePointVendor}'`,
-        module: MODULE_NAME, method: 'setPowerLimitation',
-        detailedMessages: { connectorID, maxAmps, occpLimitAmpValue }
+        message: `Set Power limitation via OCPP to ${occpLimitAmpValue}A`,
+        module: MODULE_NAME, method: 'setStaticPowerLimitation',
+        detailedMessages: { maxAmps, ocppParam: chargePoint.ocppParamForPowerLimitation, occpLimitAmpValue }
       });
       // Change the config
       result = await chargingStationClient.changeConfiguration({
-        key: this.getOCPPParamNameForChargingLimitation(),
+        key: chargePoint.ocppParamForPowerLimitation,
         value: occpLimitAmpValue.toString()
       });
     } catch (error) {
@@ -116,7 +183,7 @@ export default abstract class ChargingStationVendorIntegration {
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_LIMIT_POWER,
       message: 'Set Power limitation has been called',
-      module: MODULE_NAME, method: 'setPowerLimitation',
+      module: MODULE_NAME, method: 'setStaticPowerLimitation',
       detailedMessages: { result }
     });
     return result;
@@ -132,21 +199,26 @@ export default abstract class ChargingStationVendorIntegration {
       module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
       detailedMessages: { ocppParamName, ocppParamValue }
     });
-    if (ocppParamName === this.getOCPPParamNameForChargingLimitation()) {
-      // Update the charger
-      for (const connector of chargingStation.connectors) {
-        connector.amperageLimit = Utils.convertToInt(ocppParamValue);
+    for (const chargePoint of chargingStation.chargePoints) {
+      if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
+        // Update the charger
+        for (const connectorID of chargePoint.connectorIDs) {
+          const connector = chargingStation.connectors[connectorID];
+          connector.amperageLimit = this.convertFromVendorAmp(
+            chargingStation, connectorID, Utils.convertToInt(ocppParamValue));
+          Logging.logInfo({
+            tenantID: tenantID,
+            source: chargingStation.id,
+            action: ServerAction.OCPP_PARAM_UPDATE,
+            message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
+            module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
+            detailedMessages: { ocppParamName, ocppParamValue, connectorID,
+              amperageLimit: connector.amperageLimit, chargePoint }
+          });
+        }
+        // Save it
+        await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
       }
-      // Save it
-      await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
-      Logging.logInfo({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.OCPP_PARAM_UPDATE,
-        message: 'Charging Station power limit has been updated following an OCPP parameter update',
-        module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
-        detailedMessages: { ocppParamName, ocppParamValue, chargingStation }
-      });
     }
     Logging.logDebug({
       tenantID: tenantID,
@@ -321,8 +393,10 @@ export default abstract class ChargingStationVendorIntegration {
             results.push(ret);
           }
           // Reapply the current limitation
-          await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpLimitOfChargingStation(chargingStation));
+          for (const chargePoint of chargingStation.chargePoints) {
+            await this.setStaticPowerLimitation(tenantID, chargingStation, chargePoint.chargePointID,
+              Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
+          }
           Logging.logDebug({
             tenantID: tenantID,
             source: chargingStation.id,
@@ -335,8 +409,10 @@ export default abstract class ChargingStationVendorIntegration {
         }
         // Reapply the current limitation
         if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-          await this.setPowerLimitation(tenantID, chargingStation, 0,
-            Utils.getTotalAmpLimitOfChargingStation(chargingStation));
+          for (const chargePoint of chargingStation.chargePoints) {
+            await this.setStaticPowerLimitation(tenantID, chargingStation, chargePoint.chargePointID,
+              Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
+          }
         }
         Logging.logDebug({
           tenantID: tenantID,
@@ -353,10 +429,12 @@ export default abstract class ChargingStationVendorIntegration {
       const result = await chargingStationClient.clearChargingProfile({
         connectorId: chargingProfile.connectorID
       });
+      // Reapply the current limitation
       if (result.status === OCPPClearChargingProfileStatus.ACCEPTED) {
-        // Reapply the current limitation
-        await this.setPowerLimitation(tenantID, chargingStation, 0,
-          Utils.getTotalAmpLimitOfChargingStation(chargingStation));
+        for (const chargePoint of chargingStation.chargePoints) {
+          await this.setStaticPowerLimitation(tenantID, chargingStation, chargePoint.chargePointID,
+            Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
+        }
       }
       Logging.logDebug({
         tenantID: tenantID,
@@ -501,8 +579,7 @@ export default abstract class ChargingStationVendorIntegration {
     }
   }
 
-  public async getCurrentConnectorLimit(tenantID: string,
-    chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
+  public async getCurrentConnectorLimit(tenantID: string, chargingStation: ChargingStation, connectorID: number): Promise<ConnectorCurrentLimit> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -512,8 +589,8 @@ export default abstract class ChargingStationVendorIntegration {
       detailedMessages: { connectorID }
     });
     // Default
-    const limitDefaultMaxAmps = chargingStation.connectors[connectorID - 1].amperageLimit;
-    const limitDefaultMaxPower = chargingStation.connectors[connectorID - 1].power;
+    const limitDefaultMaxAmps = Utils.getChargingStationConnectorFromID(chargingStation, connectorID).amperageLimit;
+    const limitDefaultMaxPower = Utils.getChargingStationConnectorFromID(chargingStation, connectorID).power;
     // Should fail safe!
     try {
       if (connectorID === 0) {
@@ -557,31 +634,27 @@ export default abstract class ChargingStationVendorIntegration {
       }
       // Check next the static power limitation
       if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitationForChargingStation) {
-        // Read the OCPP Parameter
-        const ocppConfiguration = await OCPPUtils.requestChargingStationOcppParameters(
-          tenantID, chargingStation, { key: [this.getOCPPParamNameForChargingLimitation()] });
-        if (ocppConfiguration && ocppConfiguration.configurationKey && ocppConfiguration.configurationKey.length > 0 &&
-          ocppConfiguration.configurationKey[0].value) {
-          let connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
-          // Check
-          if (connectorLimitAmps > limitDefaultMaxAmps) {
-            connectorLimitAmps = limitDefaultMaxAmps;
-          }
-          const result: ConnectorCurrentLimit = {
-            limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
-            limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
-          };
-          Logging.logDebug({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `Get current limitation on Static Limitation has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
-            module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-            detailedMessages: { result }
-          });
-          return result;
+        // Read the static limitation
+        const connector = Utils.getChargingStationChargePointFromID(chargingStation, connectorID);
+        let connectorLimitAmps = await this.getStaticPowerLimitation(tenantID, chargingStation, connector.chargePointID);
+        // Check
+        if (connectorLimitAmps > limitDefaultMaxAmps) {
+          connectorLimitAmps = limitDefaultMaxAmps;
         }
+        const result: ConnectorCurrentLimit = {
+          limitAmps: connectorLimitAmps,
+          limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
+          limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
+        };
+        Logging.logDebug({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+          message: `Get current limitation on Static Limitation has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
+          module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+          detailedMessages: { result }
+        });
+        return result;
       }
     } catch (error) {
       Logging.logError({
@@ -664,8 +737,8 @@ export default abstract class ChargingStationVendorIntegration {
           chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, connectorID, chargingSchedulePeriod.limit);
         }
         // Limit is per connector and per phase Convert to max Amp
-        chargingSchedulePeriod.limit = chargingSchedulePeriod.limit * (connectorID === 0 ?
-          chargingStation.connectors.length : 1) * Utils.getChargingStationNumberOfConnectedPhases(chargingStation, connectorID);
+        chargingSchedulePeriod.limit = this.convertFromVendorAmp(
+          chargingStation, connectorID, chargingSchedulePeriod.limit);
       }
     }
     // Convert to Amps?
@@ -675,6 +748,9 @@ export default abstract class ChargingStationVendorIntegration {
     return chargingSchedule;
   }
 
-  public abstract getOCPPParamNameForChargingLimitation(): string;
+  private convertFromVendorAmp(chargingStation: ChargingStation, connectorID = 0, ampLimit: number): number {
+    return ampLimit * (connectorID === 0 ? chargingStation.connectors.length : 1) *
+      Utils.getChargingStationNumberOfConnectedPhases(chargingStation, connectorID);
+  }
 }
 
