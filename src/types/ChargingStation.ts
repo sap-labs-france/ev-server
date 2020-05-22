@@ -34,7 +34,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   chargingStationURL: string;
   maximumPower: number;
   voltage: Voltage;
-  excludeFromPowerLimitation?: boolean;
+  excludeFromSmartCharging?: boolean;
   powerLimitUnit: PowerLimitUnits;
   coordinates: number[];
   chargePoints: ChargePoint[];
@@ -164,7 +164,6 @@ export interface ChargingStationTemplate {
   technical: {
     maximumPower: number;
     voltage?: Voltage;
-    excludeFromPowerLimitation: boolean;
     powerLimitUnit: PowerLimitUnits;
     chargePoints?: ChargePoint[];
     connectors: {
@@ -182,11 +181,6 @@ export interface ChargingStationTemplate {
     supportedFirmwareVersions: string[];
     supportedOcppVersions: string[];
     capabilities: ChargingStationCapabilities;
-  }[];
-  ocppAdvancedCommands: {
-    supportedFirmwareVersions: string[];
-    supportedOcppVersions: string[];
-    commands: OcppAdvancedCommands[];
   }[];
   ocppStandardParameters: {
     supportedOcppVersions: string[];

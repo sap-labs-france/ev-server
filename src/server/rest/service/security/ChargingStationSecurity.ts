@@ -236,6 +236,9 @@ export default class ChargingStationSecurity {
     if (Utils.objectHasProperty(request, 'maximumPower')) {
       filteredRequest.maximumPower = sanitize(request.maximumPower);
     }
+    if (Utils.objectHasProperty(request, 'excludeFromSmartCharging')) {
+      filteredRequest.excludeFromSmartCharging = UtilsSecurity.filterBoolean(request.excludeFromSmartCharging);
+    }
     if (Utils.objectHasProperty(request, 'private')) {
       filteredRequest.private = UtilsSecurity.filterBoolean(request.private);
     }

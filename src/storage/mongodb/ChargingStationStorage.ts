@@ -485,7 +485,7 @@ export default class ChargingStationStorage {
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
-      excludeFromPowerLimitation: Utils.convertToBoolean(chargingStationToSave.excludeFromPowerLimitation),
+      excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints : null,

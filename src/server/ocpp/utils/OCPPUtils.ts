@@ -65,10 +65,6 @@ export default class OCPPUtils {
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'maximumPower')) {
             chargingStation.maximumPower = chargingStationTemplate.technical.maximumPower;
           }
-          // Assign props
-          if (Utils.objectHasProperty(chargingStationTemplate.technical, 'excludeFromPowerLimitation')) {
-            chargingStation.excludeFromPowerLimitation = chargingStationTemplate.technical.excludeFromPowerLimitation;
-          }
           if (Utils.objectHasProperty(chargingStationTemplate.technical, 'chargePoints')) {
             chargingStation.chargePoints = chargingStationTemplate.technical.chargePoints;
           }

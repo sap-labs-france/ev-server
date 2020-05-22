@@ -150,17 +150,18 @@ export default class ChargingStationService {
         value: chargingStation.id
       });
     }
-    // Update URL
+    // Update props
     if (filteredRequest.chargingStationURL) {
       chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
-    // Update Power Max
     if (Utils.objectHasProperty(filteredRequest, 'maximumPower')) {
       chargingStation.maximumPower = filteredRequest.maximumPower;
     }
-    // Update Private property
     if (Utils.objectHasProperty(filteredRequest, 'private')) {
       chargingStation.private = filteredRequest.private;
+    }
+    if (Utils.objectHasProperty(filteredRequest, 'excludeFromSmartCharging')) {
+      chargingStation.excludeFromSmartCharging = filteredRequest.excludeFromSmartCharging;
     }
     // Update Site Area
     if (siteArea) {
@@ -180,7 +181,12 @@ export default class ChargingStationService {
           }
         }
       }
+      // Check Smart Charging
+      if (!siteArea.smartCharging) {
+        delete chargingStation.excludeFromSmartCharging;
+      }
     } else {
+      delete chargingStation.excludeFromSmartCharging;
       chargingStation.siteAreaID = null;
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
