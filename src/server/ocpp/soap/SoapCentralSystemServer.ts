@@ -17,7 +17,6 @@ import { soap } from 'strong-soap';
 
 const MODULE_NAME = 'SoapCentralSystemServer';
 export default class SoapCentralSystemServer extends CentralSystemServer {
-
   private express: express.Application;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {

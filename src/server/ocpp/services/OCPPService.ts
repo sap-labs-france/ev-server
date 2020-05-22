@@ -1245,7 +1245,7 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
+        OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionWithMeterValue(
           tenantID, transaction, chargingStation, meterValue);
