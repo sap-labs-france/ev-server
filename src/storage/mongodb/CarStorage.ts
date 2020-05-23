@@ -520,16 +520,13 @@ export default class CarStorage {
     // Set
     for (const userCar of usersCarToSave) {
       try {
-        const isDefault = userCar.default;
-        const defaultCar = await CarStorage.getDefaultCar(tenantID, userCar.userID);
+        if (userCar.default) {
+          await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
+        }
         userCar.carID = carID;
-        userCar.default = !defaultCar;
         userCar.createdOn = new Date();
         userCar.active = true;
         await CarStorage.saveUserCar(tenantID, userCar);
-        if (defaultCar && isDefault) {
-          await CarStorage.updateDefaultCar(tenantID, carID, userCar.userID);
-        }
         actionsDone.inSuccess++;
       } catch (error) {
         actionsDone.inError++;
@@ -571,22 +568,22 @@ export default class CarStorage {
         const userCarDB = await CarStorage.getUserCarByCarUser(tenantID, carID, userCar.userID);
         if (userCarDB) {
           if (userCarDB.default !== userCar.default || !userCar.active) {
+            if (userCar.default) {
+              await CarStorage.clearDefaultUserCar(tenantID,userCar.userID);
+            }
             userCarDB.active = true;
             userCarDB.default = userCar.default;
             await CarStorage.saveUserCar(tenantID, userCarDB);
             actionsDone.inSuccess++;
           }
         } else {
-          const isDefault = userCar.default;
-          const defaultCar = await CarStorage.getDefaultCar(tenantID, userCar.userID);
+          if (userCar.default) {
+            await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
+          }
           userCar.carID = carID;
-          userCar.default = !defaultCar;
           userCar.lastChangedOn = new Date();
           userCar.active = true;
           await CarStorage.saveUserCar(tenantID, userCar);
-          if (defaultCar && isDefault) {
-            await CarStorage.updateDefaultCar(tenantID, carID, userCar.userID);
-          }
           actionsDone.inSuccess++;
         }
       } catch (error) {
