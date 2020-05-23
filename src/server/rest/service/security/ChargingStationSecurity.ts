@@ -93,6 +93,7 @@ export default class ChargingStationSecurity {
             return chargePoint;
           }
           return {
+            chargePointID: chargePoint.chargePointID,
             currentType: chargePoint.currentType,
             voltage: chargePoint.voltage,
             amperage: chargePoint.amperage,
@@ -100,6 +101,7 @@ export default class ChargingStationSecurity {
             cannotChargeInParallel: chargePoint.cannotChargeInParallel,
             sharePowerToAllConnectors: chargePoint.sharePowerToAllConnectors,
             excludeFromPowerLimitation: chargePoint.excludeFromPowerLimitation,
+            ocppParamForPowerLimitation: chargePoint.ocppParamForPowerLimitation,
             power: chargePoint.power,
             efficiency: chargePoint.efficiency,
             connectorIDs: chargePoint.connectorIDs
@@ -282,6 +284,9 @@ export default class ChargingStationSecurity {
     }
     if (Utils.objectHasProperty(request, 'connectorID')) {
       filteredRequest.connectorID = sanitize(request.connectorID);
+    }
+    if (Utils.objectHasProperty(request, 'chargePointID')) {
+      filteredRequest.chargePointID = sanitize(request.chargePointID);
     }
     if (Utils.objectHasProperty(request, 'profile')) {
       filteredRequest.profile = ChargingStationSecurity.filterChargingProfile(request.profile);

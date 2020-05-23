@@ -424,6 +424,8 @@ export default class OCPPUtils {
         message: 'Charging Station not found',
       });
     }
+    // Get charge point
+    const chargePoint = Utils.getChargingStationChargePointFromID(chargingStation, chargingProfile.chargePointID);
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {
@@ -435,7 +437,8 @@ export default class OCPPUtils {
       });
     }
     // Set Charging Profile
-    const result = await chargingStationVendor.setChargingProfile(tenantID, chargingStation, chargingProfile);
+    const result = await chargingStationVendor.setChargingProfile(
+      tenantID, chargingStation, chargePoint, chargingProfile);
     // Check for Array
     let resultStatus = OCPPChargingProfileStatus.ACCEPTED;
     if (Array.isArray(result)) {
