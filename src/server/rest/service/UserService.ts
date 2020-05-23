@@ -815,6 +815,10 @@ export default class UserService {
       UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
         Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
     }
+    if (filteredRequest.ExcludeUserIDs && filteredRequest.ExcludeUserIDs.length > 0) {
+      UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+        Action.READ, Entity.USER, MODULE_NAME, 'handleGetUsers');
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -824,6 +828,7 @@ export default class UserService {
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
+        excludeUserIDs: (filteredRequest.ExcludeUserIDs ? filteredRequest.ExcludeUserIDs.split('|') : null)
       },
       {
         limit: filteredRequest.Limit,

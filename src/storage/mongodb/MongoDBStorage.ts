@@ -103,7 +103,7 @@ export default class MongoDBStorage {
       { fields: { userID: 1 } }
     ]);
     // User Cars
-    await this.handleIndexesInCollection(collections, tenantID, 'usercars', [
+    await this.handleIndexesInCollection(collections, tenantID, 'userscars', [
       { fields: { userID: 1, carID: 1 }, options: { unique: true } }
     ]);
     // Cars

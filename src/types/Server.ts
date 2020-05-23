@@ -61,8 +61,13 @@ export enum ServerAction {
   CAR_CATALOG_IMAGES = 'CarCatalogImages',
   CAR_MAKERS = 'CarMakers',
   CAR_CREATE = 'CarCreate',
+  CAR_UPDATE = 'CarUpdate',
+  USER_CAR_UPDATE = 'UserCarUpdate',
   CARS = 'Cars',
+  CAR = 'Car',
+  USERS_CAR = 'UsersCar',
   SYNCHRONIZE_CAR_CATALOGS = 'SynchronizeCarCatalogs',
+  ASSIGN_USERS_CAR = 'AssignUsersCar',
 
   GET_CONNECTOR_CURRENT_LIMIT = 'GetConnectorCurrentLimit',
   REGISTER_USER = 'RegisterUser',

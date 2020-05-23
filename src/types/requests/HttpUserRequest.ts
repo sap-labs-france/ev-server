@@ -33,6 +33,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   Status: string;
   ErrorType?: string;
   ExcludeSiteID: string;
+  ExcludeUserIDs: string;
 }
 
 export interface HttpUserSitesRequest extends HttpDatabaseRequest {

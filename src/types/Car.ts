@@ -136,6 +136,7 @@ export interface Car extends CreatedUpdatedProps {
   carCatalog?: CarCatalog;
   userIDs?: string;
   users?: User[];
+  type?: CarType;
 }
 
 export interface UserCar extends CreatedUpdatedProps {
@@ -145,7 +146,7 @@ export interface UserCar extends CreatedUpdatedProps {
   user?: User;
   car?: Car;
   default?: boolean;
-  type?: CarType;
+  active?: boolean;
 }
 
 export interface CarMaker {

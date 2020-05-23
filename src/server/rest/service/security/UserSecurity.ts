@@ -46,6 +46,9 @@ export default class UserSecurity {
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
+    if (request.ExcludeUserIDs) {
+      request.ExcludeUserIDs = sanitize(request.ExcludeUserIDs);
+    }
     UtilsSecurity.filterSkipAndLimit(request, request);
     UtilsSecurity.filterSort(request, request);
     return request as HttpUsersRequest;

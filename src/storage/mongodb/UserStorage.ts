@@ -490,7 +490,7 @@ export default class UserStorage {
 
   public static async getUsers(tenantID: string,
     params: {
-      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
+      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; excludeUserIDs?: string[];
       userID?: string; tagID?: string; email?: string; issuer?: boolean; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingUserID?: string; notSynchronizedBillingData?: boolean;
       notifications?: any; noLoginSince?: Date;
@@ -523,6 +523,9 @@ export default class UserStorage {
     }
     if (params.issuer === true || params.issuer === false) {
       filters.issuer = params.issuer;
+    }
+    if (params.excludeUserIDs && params.excludeUserIDs.length > 0) {
+      filters._id = { $nin : params.excludeUserIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }
     // Email
     if (params.email) {

@@ -469,12 +469,32 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Entity.CARS, Action.LIST);
   }
 
+  public static canReadCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.READ);
+  }
+
+  public static canListUsersCars(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.LIST);
+  }
+
+  public static canAssignUsersCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USER_CAR, Action.CREATE);
+  }
+
+  public static canUpdateUsersCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.USERS_CARS, Action.UPDATE);
+  }
+
   public static canSynchronizeCarCatalogs(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR_CATALOGS, Action.SYNCHRONIZE_CAR_CATALOGS);
   }
 
   public static canCreateCar(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.CREATE);
+  }
+
+  public static canUpdateCar(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Entity.CAR, Action.UPDATE);
   }
 
   public static canListAssets(loggedUser: UserToken): boolean {
