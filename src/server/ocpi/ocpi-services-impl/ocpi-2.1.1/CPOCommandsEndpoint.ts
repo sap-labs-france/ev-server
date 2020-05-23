@@ -288,7 +288,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
-      await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
+      await this.sendCommandResponse(tenant, ServerAction.OCPI_START_SESSION, startSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
     }
   }
 
@@ -305,7 +305,7 @@ export default class CPOCommandsEndpoint extends AbstractEndpoint {
     if (result && result.status === OCPPRemoteStartStopStatus.ACCEPTED) {
       await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
     } else {
-      await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.ACCEPTED, ocpiEndpoint);
+      await this.sendCommandResponse(tenant, ServerAction.OCPI_STOP_SESSION, stopSession.response_url, OCPICommandResponseType.REJECTED, ocpiEndpoint);
     }
   }
 

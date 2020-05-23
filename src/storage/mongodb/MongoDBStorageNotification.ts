@@ -3,9 +3,9 @@ import { Action, Entity } from '../../types/Authorization';
 import CentralRestServer from '../../server/rest/CentralRestServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MongoDBStorage from './MongoDBStorage';
 import { ServerAction } from '../../types/Server';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
+import global from '../../types/GlobalType';
 
 const _pipeline = [];
 const _options = {
@@ -15,9 +15,8 @@ const _options = {
 const MODULE_NAME = 'MongoDBStorageNotification';
 
 export default class MongoDBStorageNotification {
-  public dbConfig: StorageConfiguration;
-  public centralRestServer: CentralRestServer;
-  public database: MongoDBStorage;
+  private dbConfig: StorageConfiguration;
+  private centralRestServer: CentralRestServer;
 
   constructor(dbConfig: StorageConfiguration, centralRestServer: CentralRestServer) {
     this.dbConfig = dbConfig;
@@ -30,8 +29,9 @@ export default class MongoDBStorageNotification {
         case 'insert':
           return Action.CREATE;
         case 'update':
-        case 'replace':
           return Action.UPDATE;
+        case 'replace':
+          return Action.REPLACE;
         case 'delete':
           return Action.DELETE;
       }
@@ -49,7 +49,8 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  static handleDBChangeStreamError(error: Error) { // Log
+  static handleDBChangeStreamError(error: Error) {
+    // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       action: ServerAction.DB_WATCH,
@@ -61,16 +62,13 @@ export default class MongoDBStorageNotification {
 
   async start() {
     if (this.dbConfig.monitorDBChange) {
-      this.database = new MongoDBStorage(this.dbConfig);
-      await this.database.start();
-
       // Check
       if (!this.centralRestServer) {
         return;
       }
 
-      const dbChangeStream = this.database.watch(_pipeline, _options);
-      dbChangeStream.on('change', (change) => {
+      const dbChangeStream = global.database.watch(_pipeline, _options);
+      dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
         if (change.ns && change.ns.coll) {
@@ -94,7 +92,7 @@ export default class MongoDBStorageNotification {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
-        message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
+        message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
@@ -113,7 +111,7 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: string, changeEvent) {
+  private handleCollectionChange(tenantID: string, collection: string, documentID: string, action: Action, changeEvent) {
     switch (collection) {
       case 'users':
       case 'userimages':
@@ -153,26 +151,45 @@ export default class MongoDBStorageNotification {
       case 'logs':
         this.centralRestServer.notifyLogging(tenantID, action);
         break;
+      case 'registrationtokens':
+        this.centralRestServer.notifyRegistrationToken(tenantID, action, { id: documentID });
+        break;
+      case 'invoices':
+        this.centralRestServer.notifyInvoice(tenantID, action, { id: documentID });
+        break;
+      case 'carcatalogimages':
+      case 'carcatalogs':
+        this.centralRestServer.notifyCarCatalog(tenantID, action, { id: documentID });
+        break;
+      case 'cars':
+        this.centralRestServer.notifyCar(tenantID, action, { id: documentID });
+        break;
+      case 'chargingprofiles':
+        this.centralRestServer.notifyChargingProfile(tenantID, action, { id: documentID });
+        break;
+      case 'ocpiendpoints':
+        this.centralRestServer.notifyOcpiEndpoint(tenantID, action, { id: documentID });
+        break;
     }
   }
 
-  private handleTransactionChange(tenantID: string, transactionID: string, action: string, changeEvent) {
+  private handleTransactionChange(tenantID: string, transactionID: string, action: Action, changeEvent) {
     if (transactionID) {
-      const notification: any = {
+      const notification: { [key: string]: any } = {
         'id': transactionID
       };
       // Operation
       switch (action) {
-        case 'insert': // Insert/Create
+        case Action.CREATE: // Insert/Create
           notification.connectorId = changeEvent.fullDocument.connectorId;
           notification.chargeBoxID = changeEvent.fullDocument.chargeBoxID;
           break;
-        case 'update': // Update
+        case Action.UPDATE: // Update
           if (changeEvent.updateDescription && changeEvent.updateDescription.updatedFields && changeEvent.updateDescription.updatedFields.stop) {
             notification.type = Entity.TRANSACTION_STOP;
           }
           break;
-        case 'replace': // Replace
+        case Action.REPLACE: // Replace
           if (changeEvent.fullDocument && changeEvent.fullDocument.stop) {
             notification.type = Entity.TRANSACTION_STOP;
           }
@@ -185,9 +202,9 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: string, changeEvent) {
+  private handleMeterValuesChange(tenantID: string, metervaluesID: string, action: Action, changeEvent) {
     if (metervaluesID) {
-      const notification: any = {};
+      const notification: { [key: string]: any } = {};
       // Insert/Create?
       if (action === Action.CREATE) {
         notification.id = changeEvent.fullDocument.transactionId;
@@ -202,10 +219,10 @@ export default class MongoDBStorageNotification {
     }
   }
 
-  private handleConfigurationChange(tenantID: string, configurationID: string, action: string, changeEvent) {
+  private handleConfigurationChange(tenantID: string, configurationID: string, action: Action, changeEvent) {
     if (configurationID) {
       this.centralRestServer.notifyChargingStation(tenantID, action, {
-        'type': Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+        'type': Constants.CHARGING_STATION_CONFIGURATION,
         'id': configurationID
       });
     } else {

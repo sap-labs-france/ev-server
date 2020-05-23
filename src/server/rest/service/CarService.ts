@@ -266,18 +266,19 @@ export default class CarService {
     });
     // If Basic user, auto assign the car to him
     if (Authorizations.isBasic(req.user)) {
-      const defaultCar = await CarStorage.getDefaultCar(req.user.tenantID, req.user.id);
+      // Clear default car
+      if (filteredRequest.isDefault) {
+        await CarStorage.clearDefaultUserCar(req.user.tenantID, req.user.id);
+      }
+      // Assign to User
       const newUserCar: UserCar = {
         carID: newCar.id,
         userID: req.user.id,
-        default: !defaultCar,
+        default: filteredRequest.isDefault,
         createdBy: { id: req.user.id },
         createdOn: new Date()
       } as UserCar;
       newUserCar.id = await CarStorage.saveUserCar(req.user.tenantID, newUserCar);
-      if (defaultCar && filteredRequest.isDefault) {
-        await CarStorage.updateDefaultCar(req.user.tenantID, newCar.id, req.user.id);
-      }
     }
     // Ok
     res.json(Object.assign({ id: newCar.id }, Constants.REST_RESPONSE_SUCCESS));
@@ -399,7 +400,7 @@ export default class CarService {
       });
     }
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCarCatalog', req.user);
+    UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
 
     // Get the car
     const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);

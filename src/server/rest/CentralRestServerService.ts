@@ -268,7 +268,6 @@ class RequestMapper {
 
 export default {
   // Util Service
-  // eslint-disable-next-line no-unused-vars
   async restServiceUtil(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;

@@ -615,17 +615,6 @@ export default class CarStorage {
     return carsMDB.count > 0 ? carsMDB.result[0] : null;
   }
 
-  public static async getDefaultCar(tenantID: string, userID: string = Constants.UNKNOWN_STRING_ID, projectFields?: string[]): Promise<Car> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getDefaultCar');
-    // Query single Car
-    const carsMDB = await CarStorage.getCars(tenantID,
-      { userIDs: [userID], defaultCar: true },
-      Constants.DB_PARAMS_SINGLE_RECORD, projectFields);
-    Logging.traceEnd(MODULE_NAME, 'getDefaultCar', uniqueTimerID, { userID });
-    return carsMDB.count > 0 ? carsMDB.result[0] : null;
-  }
-
   public static async getCarByVinLicensePlate(tenantID: string,
     licensePlate: string = Constants.UNKNOWN_STRING_ID, vin: string = Constants.UNKNOWN_STRING_ID,
     withUsers?: boolean, projectFields?: string[]): Promise<Car> {
@@ -759,8 +748,8 @@ export default class CarStorage {
     };
   }
 
-  public static async updateDefaultCar(tenantID: string, carID: string, userID: string): Promise<void> {
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateDefaultCar');
+  public static async clearDefaultUserCar(tenantID: string, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearDefaultCar');
     await Utils.checkTenant(tenantID);
 
     await global.database.getCollection<any>(tenantID, 'userscars').updateMany(
@@ -771,15 +760,7 @@ export default class CarStorage {
       {
         $set: { default: false }
       });
-    await global.database.getCollection<any>(tenantID, 'userscars').updateOne(
-      {
-        carID: Utils.convertToObjectID(carID),
-        userID: Utils.convertToObjectID(userID)
-      },
-      {
-        $set: { default: true }
-      });
-    Logging.traceEnd(MODULE_NAME, 'updateDefaultCar', uniqueTimerID, { carID, userID });
+    Logging.traceEnd(MODULE_NAME, 'clearDefaultCar', uniqueTimerID, { userID });
   }
 
   public static async getUserCarByCarUser(tenantID: string,

@@ -1,5 +1,3 @@
-import * as http from 'http';
-
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
@@ -9,6 +7,7 @@ import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
+import http from 'http';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 

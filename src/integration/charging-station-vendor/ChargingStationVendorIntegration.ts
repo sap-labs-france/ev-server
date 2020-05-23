@@ -496,7 +496,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: 'Get Current Connector Limit is being called',
+      message: 'Get current connector limitation is being called',
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { connectorID }
     });
@@ -537,7 +537,7 @@ export default abstract class ChargingStationVendorIntegration {
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: 'Get Current Connector Limit has been called',
+            message: `Get current limitation on Chargin Plan has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
           });
@@ -565,7 +565,7 @@ export default abstract class ChargingStationVendorIntegration {
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: 'Get Current Connector Limit has been called',
+            message: `Get current limitation on Static Limitation has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { result }
           });
@@ -592,7 +592,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: 'Get Current Connector Limit has been called',
+      message: `Get current limitation on Connectors has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });

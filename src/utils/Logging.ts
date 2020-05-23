@@ -17,7 +17,7 @@ import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;

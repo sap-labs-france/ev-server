@@ -22,7 +22,8 @@ const RECORDS_LIMIT = 20;
 
 /**
  * Locations Endpoint
- */export default class CPOLocationsEndpoint extends AbstractEndpoint {
+ */
+export default class CPOLocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER);
@@ -106,7 +107,7 @@ const RECORDS_LIMIT = 20;
     } else {
       // Get query parameters
       const offset = (req.query.offset) ? Utils.convertToInt(req.query.offset) : 0;
-      const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
+      const limit = (req.query.limit && Utils.convertToInt(req.query.limit) < RECORDS_LIMIT) ? Utils.convertToInt(req.query.limit) : RECORDS_LIMIT;
       // Get all locations
       const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
       payload = result.locations;

@@ -31,7 +31,7 @@ export default class Constants {
   public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
   public static readonly STATS_GROUP_BY_PRICING = 'P';
 
-  public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
+  public static readonly CHARGING_STATION_CONFIGURATION = 'Configuration';
 
   public static readonly CENTRAL_SERVER = 'Central Server';
   public static readonly OCPI_SERVER = 'OCPI Server';

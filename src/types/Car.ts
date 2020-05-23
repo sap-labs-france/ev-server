@@ -6,7 +6,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
   vehicleMake: string;
   vehicleModel: string;
   vehicleModelVersion?: string;
-  availabilityStatus: AvailabilityStatus;
+  availabilityStatus: string;
   availabilityDateFrom: string;
   availabilityDateTo?: string;
   priceFromDE?: number;
@@ -55,7 +55,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
   efficiencyRealBHwy?: number;
   efficiencyRealBCmb?: number;
   efficiencyRealBCty?: number;
-  chargePlug?: ChargePlug;
+  chargePlug?: string;
   chargePlugEstimate?: boolean;
   chargePlugLocation?: string;
   chargeStandardPower: number;
@@ -88,7 +88,7 @@ export interface CarCatalog extends CreatedUpdatedProps {
   fastChargeEstimate?: boolean;
   batteryCapacityUseable: number;
   batteryCapacityFull: number;
-  batteryCapacityEstimate: BatteryCapacityEstimate;
+  batteryCapacityEstimate: string;
   dimsLength?: number;
   dimsWidth?: number;
   dimsHeight?: number;
@@ -123,9 +123,9 @@ export interface CarCatalog extends CreatedUpdatedProps {
 }
 
 export enum CarType {
-  PRIVATE = 'private',
-  COMPANY = 'company',
-  POOL = 'pool',
+  PRIVATE = 'P',
+  COMPANY = 'C',
+  POOL_CAR = 'PC',
 }
 
 export interface Car extends CreatedUpdatedProps {
@@ -189,26 +189,4 @@ export interface ChargeStandardTable {
   chargePower: number;
   chargeTime: number;
   chargeSpeed: number;
-}
-
-export enum AvailabilityStatus {
-  NO_LONGER_FOR_SALE = 0,
-  AVAILABLE = 1,
-  EXPECTED_IN_MARKET_ON_DATE_WITH_PRE_ORDER = 2,
-  EXPECTED_IN_MARKET_ON_DATE_WITHOUT_PRE_ORDER = 3,
-  CONCEPT_NEARING_PRODUCTION_CONFIRMED_WITH_PRE_ORDER = 12,
-  CONCEPT_NEARING_PRODUCTION_CONFIRMED_WITHOUT_PRE_ORDER = 13,
-  CONCEPT_NOT_CLOSE_TO_PRODUCTION_UNCONFIRMED_WITH_PRE_ORDER = 22,
-  CONCEPT_NOT_CLOSE_TO_PRODUCTION_UNCONFIRMED_WITHOUT_PRE_ORDER = 23,
-}
-
-export enum ChargePlug {
-  Type_ONE_CONNECTOR = 'Type 1',
-  Type_TWO_CONNECTOR = 'Type 2',
-}
-export enum BatteryCapacityEstimate {
-  BOTH_OF_THE_BATTERY_KWH__FIELDS_ARE_ESTIMATES = 'B',
-  BATTERY_KWH_FULL_FIELD_IS_ESTIMATE = 'F',
-  NONE_OF_THE_BATTERY_KWH__FIELDS_ARE_ESTIMATES = 'N',
-  BATTERY_KWH_USEABLE_FIELD_IS_ESTIMATE = 'U',
 }

@@ -38,7 +38,7 @@ import passwordGenerator from 'password-generator';
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
-import uuidV4 from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import validator from 'validator';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -129,7 +129,7 @@ export default class Utils {
   }
 
   public static generateGUID() {
-    return uuidV4();
+    return uuid();
   }
 
   static generateTagID(name, firstName) {
