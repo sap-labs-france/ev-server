@@ -35,14 +35,14 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.899991';
+    return '1.8';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
     let updated = 0;
     // Get the charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
-      issuer: true
+      issuer: true, includeDeleted: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
     // Update
     for (const chargingStation of chargingStations.result) {
