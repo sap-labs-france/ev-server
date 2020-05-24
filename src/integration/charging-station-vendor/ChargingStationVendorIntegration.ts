@@ -669,15 +669,19 @@ export default abstract class ChargingStationVendorIntegration {
     if (!chargingSchedule) {
       return chargingSchedule;
     }
+    chargingSchedule['durationMins'] = Math.round(chargingSchedule.duration / 60);
     if (chargingSchedule.chargingSchedulePeriod) {
       for (const chargingSchedulePeriod of chargingSchedule.chargingSchedulePeriod) {
+        chargingSchedulePeriod['startPeriodMins'] = Math.round(chargingSchedulePeriod.startPeriod / 60);
         // Convert to Amps for all phases
         if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
+          chargingSchedulePeriod['limitWatts'] = chargingSchedulePeriod.limit;
           chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, connectorID, chargingSchedulePeriod.limit);
         }
         // Limit is per connector and per phase Convert to max Amp
         chargingSchedulePeriod.limit = this.convertLimitAmpToAllPhases(
           chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
+        chargingSchedulePeriod['limitWatts'] = Utils.convertAmpToWatt(chargingStation, connectorID, chargingSchedulePeriod.limit);
       }
     }
     // Convert to Amps?

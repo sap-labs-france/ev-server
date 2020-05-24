@@ -816,6 +816,7 @@ export default class ChargingStationStorage {
       _id: chargingProfileFilter._id,
       chargingStationID: chargingProfileToSave.chargingStationID,
       connectorID: Utils.convertToInt(chargingProfileToSave.connectorID),
+      chargePointID: Utils.convertToInt(chargingProfileToSave.chargePointID),
       profile: chargingProfileToSave.profile
     };
     await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
