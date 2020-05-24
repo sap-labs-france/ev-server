@@ -177,7 +177,8 @@ export default class OCPPService {
         chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
       }
       // Enrich Charging Station
-      const chargingStationTemplateUpdated = await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
+      const chargingStationTemplateUpdated =
+        await OCPPUtils.enrichChargingStationWithTemplate(headers.tenantID, chargingStation);
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Save Boot Notification
@@ -208,7 +209,7 @@ export default class OCPPService {
       setTimeout(async () => {
         // Get config and save it
         await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-          headers.tenantID, chargingStation, chargingStationTemplateUpdated);
+          headers.tenantID, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
       }, Constants.DELAY_REQUEST_CONFIGURATION_EXECUTION_MILLIS);
       // Return the result
       return {
@@ -1177,14 +1178,18 @@ export default class OCPPService {
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (chargingStationVendor) {
         // Get current limitation
-        const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(tenantID, chargingStation, transaction.connectorId);
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
+          tenantID, chargingStation, chargePoint, transaction.connectorId);
         consumption.limitAmps = connectorLimit.limitAmps;
         consumption.limitWatts = connectorLimit.limitWatts;
         consumption.limitSource = connectorLimit.limitSource;
       } else {
         // Default
-        consumption.limitAmps = chargingStation.connectors[transaction.connectorId - 1].amperageLimit;
-        consumption.limitWatts = chargingStation.connectors[transaction.connectorId - 1].power;
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        consumption.limitAmps = connector.amperageLimit;
+        consumption.limitWatts = connector.power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
       // Check Org
@@ -1195,7 +1200,7 @@ export default class OCPPService {
         // Maximum power of the Site Area provided?
         if (chargingStation.siteArea.maximumPower) {
           consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, chargingStation.siteArea.maximumPower);
+          consumption.limitSiteAreaAmps = chargingStation.siteArea.maximumPower / 230;
           consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
           // Compute it for Charging Stations
@@ -1205,7 +1210,7 @@ export default class OCPPService {
               consumption.limitSiteAreaWatts += connector.power;
             }
           }
-          consumption.limitSiteAreaAmps = Utils.convertWattToAmp(1, consumption.limitSiteAreaWatts);
+          consumption.limitSiteAreaAmps = consumption.limitSiteAreaWatts / 230;
           consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
         }
       }
