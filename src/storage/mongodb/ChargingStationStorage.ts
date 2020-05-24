@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCurrentType, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
@@ -27,7 +27,7 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateChargingStationTemplatesFromFile');
     // Read File
-    let chargingStationTemplates;
+    let chargingStationTemplates: ChargingStationTemplate[];
     try {
       chargingStationTemplates =
         JSON.parse(fs.readFileSync(`${global.appRoot}/assets/charging-station-templates/charging-stations.json`, 'utf8'));
@@ -39,8 +39,12 @@ export default class ChargingStationStorage {
     // Update Templates
     for (const chargingStationTemplate of chargingStationTemplates) {
       try {
-        // Set the hash
+        // Set the hashes
         chargingStationTemplate.hash = Cypher.hash(JSON.stringify(chargingStationTemplate));
+        chargingStationTemplate.hashTechnical = Cypher.hash(JSON.stringify(chargingStationTemplate.technical));
+        chargingStationTemplate.hashCapabilities = Cypher.hash(JSON.stringify(chargingStationTemplate.capabilities));
+        chargingStationTemplate.hashOcppStandard = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppStandardParameters));
+        chargingStationTemplate.hashOcppVendor = Cypher.hash(JSON.stringify(chargingStationTemplate.ocppVendorParameters));
         // Save
         await ChargingStationStorage.saveChargingStationTemplate(chargingStationTemplate);
       } catch (error) {
@@ -429,15 +433,32 @@ export default class ChargingStationStorage {
       for (const connector of chargingStationToSave.connectors) {
         if (connector) {
           connector.connectorId = Utils.convertToInt(connector.connectorId);
+          connector.power = connector.power ? Utils.convertToInt(connector.power) : null;
+          connector.amperage = connector.amperage ? Utils.convertToInt(connector.amperage) : null;
+          connector.voltage = connector.voltage ? Utils.convertToInt(connector.voltage) : null;
+          connector.chargePointID = connector.chargePointID ? Utils.convertToInt(connector.chargePointID) : null;
+          connector.currentType = connector.currentType ? connector.currentType : null;
+          connector.numberOfConnectedPhase = connector.numberOfConnectedPhase ? Utils.convertToInt(connector.numberOfConnectedPhase) : null;
           connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
           connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
           connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
-          connector.power = Utils.convertToInt(connector.power);
-          connector.voltage = Utils.convertToInt(connector.voltage);
-          connector.amperage = Utils.convertToInt(connector.amperage);
-          connector.numberOfConnectedPhase = Utils.convertToInt(connector.numberOfConnectedPhase);
           connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
           connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+        }
+      }
+    }
+    if (chargingStationToSave.chargePoints && Array.isArray(chargingStationToSave.chargePoints)) {
+      for (const chargePoint of chargingStationToSave.chargePoints) {
+        if (chargePoint) {
+          chargePoint.voltage = chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null;
+          chargePoint.amperage = chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null;
+          chargePoint.numberOfConnectedPhase = chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null;
+          chargePoint.cannotChargeInParallel = Utils.convertToBoolean(chargePoint.cannotChargeInParallel);
+          chargePoint.sharePowerToAllConnectors = Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors);
+          chargePoint.excludeFromPowerLimitation = Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation);
+          chargePoint.power = chargePoint.power ? Utils.convertToInt(chargePoint.power) : null;
+          chargePoint.efficiency = chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null;
+          chargePoint.connectorIDs = chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID));
         }
       }
     }
@@ -445,6 +466,10 @@ export default class ChargingStationStorage {
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
+      templateHashTechnical: chargingStationToSave.templateHashTechnical,
+      templateHashCapabilities: chargingStationToSave.templateHashCapabilities,
+      templateHashOcppStandard: chargingStationToSave.templateHashOcppStandard,
+      templateHashOcppVendor: chargingStationToSave.templateHashOcppVendor,
       issuer: Utils.convertToBoolean(chargingStationToSave.issuer),
       private: Utils.convertToBoolean(chargingStationToSave.private),
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
@@ -466,15 +491,15 @@ export default class ChargingStationStorage {
       lastReboot: Utils.convertToDate(chargingStationToSave.lastReboot),
       chargingStationURL: chargingStationToSave.chargingStationURL,
       maximumPower: Utils.convertToInt(chargingStationToSave.maximumPower),
-      cannotChargeInParallel: Utils.convertToBoolean(chargingStationToSave.cannotChargeInParallel),
+      excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
-      coordinates: chargingStationToSave.coordinates,
+      voltage: Utils.convertToInt(chargingStationToSave.voltage),
+      chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints : null,
       connectors: chargingStationToSave.connectors,
+      coordinates: chargingStationToSave.coordinates,
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
-      currentType: chargingStationToSave.currentType,
       currentIPAddress: chargingStationToSave.currentIPAddress,
       capabilities: chargingStationToSave.capabilities,
-      ocppAdvancedCommands: chargingStationToSave.ocppAdvancedCommands,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
       ocpiData: chargingStationToSave.ocpiData
@@ -791,6 +816,7 @@ export default class ChargingStationStorage {
       _id: chargingProfileFilter._id,
       chargingStationID: chargingProfileToSave.chargingStationID,
       connectorID: Utils.convertToInt(chargingProfileToSave.connectorID),
+      chargePointID: Utils.convertToInt(chargingProfileToSave.chargePointID),
       profile: chargingProfileToSave.profile
     };
     await global.database.getCollection<any>(tenantID, 'chargingprofiles').findOneAndUpdate(
@@ -896,16 +922,8 @@ export default class ChargingStationStorage {
               { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null },
               { 'powerLimitUnit': { $nin: [PowerLimitUnits.AMPERE, PowerLimitUnits.WATT] } },
               { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
-              { 'cannotChargeInParallel': { $exists: false } }, { 'cannotChargeInParallel': null },
-              { 'currentType': { $exists: false } }, { 'currentType': null },
-              { 'currentType': { $nin: [ChargingStationCurrentType.AC, ChargingStationCurrentType.DC, ChargingStationCurrentType.AC_DC] } },
-              { 'connectors.numberOfConnectedPhase': { $exists: false } }, { 'connectors.numberOfConnectedPhase': null }, { 'connectors.numberOfConnectedPhase': { $nin: [0, 1, 3] } },
               { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
               { 'connectors.type': { $nin: [ConnectorType.CHADEMO, ConnectorType.COMBO_CCS, ConnectorType.DOMESTIC, ConnectorType.TYPE_1, ConnectorType.TYPE_1_CCS, ConnectorType.TYPE_2, ConnectorType.TYPE_3C] } },
-              { 'connectors.currentType': { $exists: false } }, { 'connectors.currentType': null }, { 'connectors.currentType': { $eq: '' } },
-              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } },
-              { 'connectors.voltage': { $exists: false } }, { 'connectors.voltage': null }, { 'connectors.voltage': { $lte: 0 } },
-              { 'connectors.amperage': { $exists: false } }, { 'connectors.amperage': null }, { 'connectors.amperage': { $lte: 0 } },
             ]
           }
         },
