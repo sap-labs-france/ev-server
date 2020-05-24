@@ -33,7 +33,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
           },
           {
             $set: {
-              limitSiteAreaAmps: Utils.convertWattToAmp(1, siteArea.maximumPower),
+              limitSiteAreaAmps: siteArea.maximumPower / 230,
               limitSiteAreaWatts: siteArea.maximumPower,
               limitSiteAreaSource: SiteAreaLimitSource.SITE_AREA
             }
@@ -55,7 +55,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
           },
           {
             $set: {
-              limitSiteAreaAmps: Utils.convertWattToAmp(1, limitSiteAreaWatts),
+              limitSiteAreaAmps: limitSiteAreaWatts / 230,
               limitSiteAreaWatts: limitSiteAreaWatts,
               limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
             }

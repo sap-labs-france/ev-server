@@ -5,8 +5,4 @@ export default class WebastoChargingStationVendorIntegration extends ChargingSta
   constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }
-
-  public getOCPPParamNameForChargingLimitation(): string {
-    return 'OperatorCurrentLimit';
-  }
 }
