@@ -23,6 +23,7 @@ import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
 import cluster from 'cluster';
@@ -71,6 +72,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
+        currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
