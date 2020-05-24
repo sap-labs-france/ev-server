@@ -1180,8 +1180,8 @@ export default class OCPPService {
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (chargingStationVendor) {
         // Get current limitation
-        const connector = Utils.getChargingStationConnectorFromID(chargingStation, transaction.connectorId);
-        const chargePoint = Utils.getChargingStationChargePointFromID(chargingStation, connector.chargePointID);
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
         const connectorLimit = await chargingStationVendor.getCurrentConnectorLimit(
           tenantID, chargingStation, chargePoint, transaction.connectorId);
         consumption.limitAmps = connectorLimit.limitAmps;
@@ -1189,7 +1189,7 @@ export default class OCPPService {
         consumption.limitSource = connectorLimit.limitSource;
       } else {
         // Default
-        const connector = Utils.getChargingStationConnectorFromID(chargingStation, transaction.connectorId);
+        const connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
         consumption.limitAmps = connector.amperageLimit;
         consumption.limitWatts = connector.power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;

@@ -425,7 +425,7 @@ export default class OCPPUtils {
       });
     }
     // Get charge point
-    const chargePoint = Utils.getChargingStationChargePointFromID(chargingStation, chargingProfile.chargePointID);
+    const chargePoint = Utils.getChargePointFromID(chargingStation, chargingProfile.chargePointID);
     // Get Vendor Instance
     const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
     if (!chargingStationVendor) {

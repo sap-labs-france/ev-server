@@ -109,7 +109,7 @@ export default abstract class ChargingStationVendorIntegration {
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
         module: MODULE_NAME, method: 'setStaticPowerLimitation',
-        message: 'Charging Station does not support static power limitation'
+        message: 'Charging Station capabilities does not support static power limitation'
       });
     }
     if (maxAmps < StaticLimitAmps.MIN_LIMIT) {
@@ -202,7 +202,7 @@ export default abstract class ChargingStationVendorIntegration {
       if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
         // Update the connector limit amps
         for (const connectorID of chargePoint.connectorIDs) {
-          const connector = Utils.getChargingStationConnectorFromID(chargingStation, connectorID);
+          const connector = Utils.getConnectorFromID(chargingStation, connectorID);
           connector.amperageLimit = this.convertLimitAmpToAllPhases(
             chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue));
           Logging.logInfo({
@@ -589,8 +589,8 @@ export default abstract class ChargingStationVendorIntegration {
       detailedMessages: { connectorID }
     });
     // Default
-    const limitDefaultMaxAmps = Utils.getChargingStationConnectorFromID(chargingStation, connectorID).amperageLimit;
-    const limitDefaultMaxPower = Utils.getChargingStationConnectorFromID(chargingStation, connectorID).power;
+    const limitDefaultMaxAmps = Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
+    const limitDefaultMaxPower = Utils.getConnectorFromID(chargingStation, connectorID).power;
     // Should fail safe!
     try {
       if (connectorID === 0) {
