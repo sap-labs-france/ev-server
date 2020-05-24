@@ -40,12 +40,10 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
+import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment-timezone');
-momentDurationFormatSetup(moment);
-const _configChargingStation = Configuration.getChargingStationConfig();
+momentDurationFormatSetup(moment as any);
 
 const DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE: OCPPAttribute = {
   unit: OCPPUnitOfMeasure.WATT_HOUR,
@@ -60,7 +58,7 @@ const MODULE_NAME = 'OCPPService';
 export default class OCPPService {
   private chargingStationConfig: ChargingStationConfiguration;
 
-  public constructor(chargingStationConfig: ChargingStationConfiguration = null) {
+  public constructor(chargingStationConfig: ChargingStationConfiguration) {
     this.chargingStationConfig = chargingStationConfig;
   }
 
@@ -1565,13 +1563,13 @@ export default class OCPPService {
       // Has consumption?
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
-        if (_configChargingStation.notifEndOfChargeEnabled &&
+        if (this.chargingStationConfig.notifEndOfChargeEnabled &&
           (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
           // Send Notification
           await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
           // Optimal Charge? (SoC)
-        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-          transaction.currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
+        } else if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled &&
+          transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
           await this.notifyOptimalChargeReached(tenantID, chargingStation, transaction);
         }

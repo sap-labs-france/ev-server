@@ -16,6 +16,7 @@ import sanitize from 'express-sanitizer';
 import { soap } from 'strong-soap';
 
 const MODULE_NAME = 'SoapCentralSystemServer';
+
 export default class SoapCentralSystemServer extends CentralSystemServer {
   private express: express.Application;
 
@@ -68,11 +69,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer12.log = (type, data) => {
-        this._handleSoapServerLog('1.2', type, data);
+        this.handleSoapServerLog('1.2', type, data);
       };
       // Log Request
       soapServer12.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.2', request, methodName);
+        this.handleSoapServerMessage('1.2', request, methodName);
       });
     }
     // OCPP 1.5 -----------------------------------------
@@ -82,11 +83,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = (type, data) => {
-        this._handleSoapServerLog('1.5', type, data);
+        this.handleSoapServerLog('1.5', type, data);
       };
       // Log Request
       soapServer15.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.5', request, methodName);
+        this.handleSoapServerMessage('1.5', request, methodName);
       });
     }
     // OCPP 1.6 -----------------------------------------
@@ -95,11 +96,11 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = (type, data) => {
-        this._handleSoapServerLog('1.6', type, data);
+        this.handleSoapServerLog('1.6', type, data);
       };
       // Log Request
       soapServer16.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.6', request, methodName);
+        this.handleSoapServerMessage('1.6', request, methodName);
       });
     }
   }
@@ -108,24 +109,24 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
-  _handleSoapServerMessage(ocppVersion, request, methodName) {
+  private handleSoapServerMessage(ocppVersion, request, methodName) {
     // Log
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-      method: '_handleSoapServerMessage',
+      method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
     });
   }
 
-  _handleSoapServerLog(ocppVersion, type, data) {
+  private handleSoapServerLog(ocppVersion, type, data) {
     // Do not log 'Info'
     if (type === 'replied') {
       // Log
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-        method: '_handleSoapServerLog',
+        method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }

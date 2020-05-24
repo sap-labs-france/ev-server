@@ -7,6 +7,7 @@ import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
 
 const MODULE_NAME = 'SoapCentralSystemService12';
+
 export default { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */

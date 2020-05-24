@@ -11,9 +11,9 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   public connectorID: number;
   public chargingProfile: Profile;
   public type: string;
-  public keys: any;
   public key: string;
-  public value: any;
+  // pragma public keys: any;
+  // public value: any;
   public transactionId: number;
   public connectorId: number;
 
