@@ -3,7 +3,7 @@ import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -1067,10 +1067,21 @@ export default class ChargingStationService {
         });
       }
       // Get composite schedule
-      const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
-      const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-      result = await chargingStationVendor.getCompositeSchedule(
-        req.user.tenantID, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
+      if (filteredRequest.args.connectorId === 0) {
+        result = [] as OCPPGetCompositeScheduleCommandResult[];
+        for (const connector of chargingStation.connectors) {
+          // Connector ID > 0
+          const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+          result.push(await chargingStationVendor.getCompositeSchedule(
+            req.user.tenantID, chargingStation, chargePoint, connector.connectorId, filteredRequest.args.duration));
+        }
+      } else {
+        // Connector ID > 0
+        const connector = Utils.getConnectorFromID(chargingStation, filteredRequest.args.connectorId);
+        const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+        result = await chargingStationVendor.getCompositeSchedule(
+          req.user.tenantID, chargingStation, chargePoint, filteredRequest.args.connectorId, filteredRequest.args.duration);
+      }
     } else {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, command as unknown as Action, chargingStation)) {

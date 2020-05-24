@@ -30,11 +30,11 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       // Update current Charging Station with Template
-      await this.applyTemplateToChargingStations(tenant);
+      // await this.applyTemplateToChargingStations(tenant);
       // Remove unused props
       await this.cleanUpChargingStationDBProps(tenant);
       // Initialize amperage limitation
-      await this.initChargingStationLimitAmps(tenant);
+      // await this.initChargingStationLimitAmps(tenant);
     }
   }
 

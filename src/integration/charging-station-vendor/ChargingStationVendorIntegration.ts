@@ -459,7 +459,7 @@ export default abstract class ChargingStationVendorIntegration {
   }
 
   public async getCompositeSchedule(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
-    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult | OCPPGetCompositeScheduleCommandResult[]> {
+    connectorID: number, durationSecs: number): Promise<OCPPGetCompositeScheduleCommandResult> {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -477,6 +477,14 @@ export default abstract class ChargingStationVendorIntegration {
         message: 'Charging Station does not support charging profiles'
       });
     }
+    if (connectorID === 0) {
+      throw new BackendError({
+        source: chargingStation.id,
+        action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+        module: MODULE_NAME, method: 'getCompositeSchedule',
+        message: 'Cannot get the composite schedule on Connector ID 0',
+      });
+    }
     // Get the OCPP Client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
     if (!chargingStationClient) {
@@ -488,61 +496,6 @@ export default abstract class ChargingStationVendorIntegration {
       });
     }
     try {
-      // Check if we have to load all connectors in case connector 0 fails
-      if (connectorID === 0) {
-        // Get the Composite Schedule
-        const result = await chargingStationClient.getCompositeSchedule({
-          connectorId: connectorID,
-          duration: durationSecs,
-          chargingRateUnit: chargingStation.powerLimitUnit
-        });
-        // Call each connector?
-        if (result.status !== OCPPGetCompositeScheduleStatus.ACCEPTED) {
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-            message: 'Get Composite Schedule on Connector ID 0 has been rejected, will try connector per connector',
-            module: MODULE_NAME, method: 'getCompositeSchedule',
-            detailedMessages: { result }
-          });
-          const results = [] as OCPPGetCompositeScheduleCommandResult[];
-          for (const connector of chargingStation.connectors) {
-            // Get the Composite Schedule
-            const connectorResult = await chargingStationClient.getCompositeSchedule({
-              connectorId: connector.connectorId,
-              duration: durationSecs,
-              chargingRateUnit: chargingStation.powerLimitUnit
-            });
-            // Convert
-            connectorResult.chargingSchedule = this.convertFromVendorChargingSchedule(
-              chargingStation, chargePoint, connectorResult.connectorId, connectorResult.chargingSchedule);
-            results.push(connectorResult);
-          }
-          Logging.logDebug({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-            message: 'Get Composite Schedule has been called',
-            module: MODULE_NAME, method: 'getCompositeSchedule',
-            detailedMessages: { results }
-          });
-          return results;
-        }
-        Logging.logDebug({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-          message: 'Get Composite Schedule has been called',
-          module: MODULE_NAME, method: 'getCompositeSchedule',
-          detailedMessages: { result }
-        });
-        // Convert
-        result.chargingSchedule = this.convertFromVendorChargingSchedule(
-          chargingStation, chargePoint, result.connectorId, result.chargingSchedule);
-        return result;
-      }
-      // Connector ID > 0
       // Get the Composite Schedule
       const result = await chargingStationClient.getCompositeSchedule({
         connectorId: connectorID,
@@ -605,7 +558,7 @@ export default abstract class ChargingStationVendorIntegration {
       if (chargingStation.capabilities && chargingStation.capabilities.supportChargingProfiles) {
         // Get the current Charging Plan
         const compositeSchedule = await this.getCompositeSchedule(
-          tenantID, chargingStation, chargePoint, connectorID, 60) as OCPPGetCompositeScheduleCommandResult;
+          tenantID, chargingStation, chargePoint, connectorID, 60);
         // Get the current connector limitation from the charging plan
         // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
         if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
