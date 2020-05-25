@@ -5,8 +5,4 @@ export default class SchneiderChargingStationVendorIntegration extends ChargingS
   constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }
-
-  public getOCPPParamNameForChargingLimitation(): string {
-    return 'maxintensitysocket';
-  }
 }

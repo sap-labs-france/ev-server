@@ -1,10 +1,10 @@
 import { HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
-import SiteArea, { SiteAreaConsumption } from '../../../../types/SiteArea';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import Consumption from '../../../../types/Consumption';
 import { DataResult } from '../../../../types/DataResult';
+import SiteArea from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
@@ -59,19 +59,6 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreaCreateRequest(request: any): Partial<SiteArea> {
     return SiteAreaSecurity._filterSiteAreaRequest(request);
-  }
-
-  public static _filterSiteAreaRequest(request: any): Partial<SiteArea> {
-    return {
-      name: sanitize(request.name),
-      address: UtilsSecurity.filterAddressRequest(request.address),
-      image: sanitize(request.image),
-      maximumPower: sanitize(request.maximumPower),
-      numberOfPhases: sanitize(request.numberOfPhases),
-      smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
-      accessControl: UtilsSecurity.filterBoolean(request.accessControl),
-      siteID: sanitize(request.siteID)
-    };
   }
 
   static filterSiteAreaResponse(siteArea: SiteArea, loggedUser: UserToken): SiteArea {
@@ -156,5 +143,19 @@ export default class SiteAreaSecurity {
       limitAmps: consumption.limitAmps,
     }));
     return filteredSiteArea;
+  }
+
+  private static _filterSiteAreaRequest(request: any): Partial<SiteArea> {
+    return {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      image: sanitize(request.image),
+      maximumPower: sanitize(request.maximumPower),
+      numberOfPhases: sanitize(request.numberOfPhases),
+      voltage: sanitize(request.voltage),
+      smartCharging: UtilsSecurity.filterBoolean(request.smartCharging),
+      accessControl: UtilsSecurity.filterBoolean(request.accessControl),
+      siteID: sanitize(request.siteID)
+    };
   }
 }

@@ -63,9 +63,11 @@ export interface OCPPStatusNotificationRequestExtended extends OCPPStatusNotific
   timezone: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPStatusNotificationResponse {
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPHeartbeatRequest {
 }
 
@@ -95,6 +97,7 @@ export interface OCPPMeterValuesExtended extends OCPPMeterValues {
   values: OCPPMeterValue[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPMeterValuesResponse {
 }
 
@@ -291,6 +294,7 @@ export enum OCPPDiagnosticsStatus {
   UPLOADING = 'Uploading'
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPDiagnosticsStatusNotificationResponse {
 }
 
@@ -314,6 +318,7 @@ export interface OCPPFirmwareStatusNotificationRequestExtended extends OCPPFirmw
   timezone: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPFirmwareStatusNotificationResponse {
 }
 

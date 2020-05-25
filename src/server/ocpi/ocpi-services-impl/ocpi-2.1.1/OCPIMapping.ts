@@ -58,10 +58,9 @@ export default class OCPIMapping {
   }
 
   static convertEvseToChargingStation(evseId: string, evse: Partial<OCPIEvse>, location?: OCPILocation): ChargingStation {
-    const chargingStation: ChargingStation = {
+    const chargingStation = {
       id: evseId,
       maximumPower: 0,
-      cannotChargeInParallel: true,
       issuer: false,
       connectors: [],
       chargeBoxSerialNumber: evse.evse_id,
@@ -115,11 +114,7 @@ export default class OCPIMapping {
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
       if (chargingStation.issuer === true && !chargingStation.private) {
-        if (!chargingStation.cannotChargeInParallel) {
-          evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
-        } else {
-          evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
-        }
+        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
       }
     });
     // Return evses

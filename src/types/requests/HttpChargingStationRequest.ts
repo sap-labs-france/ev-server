@@ -1,3 +1,5 @@
+import { ConnectorType, CurrentType } from '../ChargingStation';
+
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
@@ -11,7 +13,7 @@ export interface HttpTriggerSmartChargingRequest {
 
 export interface HttpChargingStationLimitPowerRequest {
   chargeBoxID: string;
-  connectorId: number;
+  chargePointID: number;
   ampLimitValue: number;
   forceUpdateChargingPlan: boolean;
 }
@@ -32,6 +34,25 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?: string;
+}
+
+export interface HttpChargingStationParamsUpdateRequest {
+  id: string;
+  chargingStationURL: string;
+  maximumPower: number;
+  private: boolean;
+  excludeFromSmartCharging: boolean;
+  siteAreaID: string;
+  coordinates: number[];
+  connectors: {
+    connectorId: number;
+    type: ConnectorType;
+    power: number;
+    amperage: number;
+    voltage: number;
+    currentType: CurrentType;
+    numberOfConnectedPhase: number;
+  }[];
 }
 
 export interface HttpChargingStationRequest {
