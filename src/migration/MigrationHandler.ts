@@ -25,6 +25,7 @@ import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
+import UpdateConsumptionsAmpsToAllPhases from './tasks/UpdateConsumptionAmpsToAllPhasesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
 import cluster from 'cluster';
 import moment from 'moment';
@@ -73,6 +74,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new AddInstantAmpsToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
+        currentMigrationTasks.push(new UpdateConsumptionsAmpsToAllPhases());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
