@@ -40,7 +40,7 @@ export default class UpdateConsumptionsAmpsToAllPhases extends MigrationTask {
   }
 
   getVersion() {
-    return '1.2';
+    return '1.0';
   }
 
   getName() {
