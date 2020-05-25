@@ -71,8 +71,8 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
-        // CurrentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
-        // currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
+        currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
+        // CurrentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
