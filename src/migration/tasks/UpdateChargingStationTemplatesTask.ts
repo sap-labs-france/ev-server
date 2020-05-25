@@ -43,6 +43,12 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     let updated = 0;
     // Bypass perf tenant
     if (tenant.subdomain === 'testperf') {
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+        module: MODULE_NAME, method: 'applyTemplateToChargingStations',
+        message: `Bypassed tenant '${tenant.subdomain}'`
+      });
       return;
     }
     // Get the charging stations
