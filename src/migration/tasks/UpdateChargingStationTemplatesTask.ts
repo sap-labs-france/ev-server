@@ -64,7 +64,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Migrate '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}'`,
+          message: `Migrate '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
         });
         const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
           60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
