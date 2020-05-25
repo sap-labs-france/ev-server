@@ -47,7 +47,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-        message: `Bypassed tenant '${tenant.subdomain}'`
+        message: `Bypassed tenant '${tenant.name}' ('${tenant.subdomain}')`
       });
       return;
     }
@@ -58,6 +58,13 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
+        Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'applyTemplateToChargingStations',
+          message: `Migrate '${chargingStation.id}' in Tenant '${tenant.name}'`,
+        });
         const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
           60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
           `Time out error with ${chargingStation.id}`);
