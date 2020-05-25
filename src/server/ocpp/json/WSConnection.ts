@@ -21,9 +21,9 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
+  protected readonly serverIP: string;
   private readonly url: string;
   private readonly clientIP: string;
-  private readonly serverIP: string;
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: any = {};
