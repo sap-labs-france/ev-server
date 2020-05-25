@@ -49,7 +49,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         }
       }
       // Update Consumption
-      limitSiteAreaWatts = limitSiteAreaWatts > limitChargingStationsWatts ? limitSiteAreaWatts : limitChargingStationsWatts;
+      limitSiteAreaWatts = limitSiteAreaWatts ? limitSiteAreaWatts : limitChargingStationsWatts;
       const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
         {
           siteAreaID: Utils.convertToObjectID(siteArea.id),
@@ -90,7 +90,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.2';
+    return '1.3';
   }
 
   getName() {
