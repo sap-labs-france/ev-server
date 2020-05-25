@@ -68,6 +68,20 @@ export default class Utils {
     return intervalMins;
   }
 
+  public static async promiseWithTimeout <T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+    let timeoutHandle;
+    const timeoutPromise = new Promise<never>((resolve, reject) => {
+      timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
+    });
+    return Promise.race([
+      promise,
+      timeoutPromise,
+    ]).then((result) => {
+      clearTimeout(timeoutHandle);
+      return result;
+    });
+  }
+
   public static logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,

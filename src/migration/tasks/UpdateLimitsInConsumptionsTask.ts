@@ -41,10 +41,6 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
         if (limitAmps) {
           limitWatts = Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
           // Update
-          console.log('====================================');
-          console.log(chargingStation.id);
-          console.log(connector.connectorId);
-          console.log({ limitWatts, limitAmps });
           result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
             {
               chargeBoxID: chargingStation.id,
@@ -58,8 +54,6 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
               }
             }
           );
-          console.log({ updated: result.modifiedCount });
-          console.log('====================================');
           updated += result.modifiedCount;
         }
       }

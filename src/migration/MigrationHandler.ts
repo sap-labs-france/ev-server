@@ -48,7 +48,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: 'Running migration tasks...'
+          message: `Running ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration tasks...`
         });
         // Create tasks
         currentMigrationTasks.push(new SiteUsersHashIDsTask());
