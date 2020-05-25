@@ -1168,7 +1168,7 @@ export default class OCPPService {
       } else {
         consumption.consumption = transaction.currentConsumptionWh;
         consumption.instantPower = Math.round(transaction.currentConsumption);
-        consumption.instantAmps = Utils.convertWattToAmp(1, transaction.currentConsumption);
+        consumption.instantAmps = transaction.currentConsumption / 230; // Utils convert method was updated. Needs to be handled by Serge.
         consumption.cumulatedConsumption = transaction.currentTotalConsumption;
         consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
         consumption.totalDurationSecs = !transaction.stop ?
