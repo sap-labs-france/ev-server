@@ -5,8 +5,4 @@ export default class DeltaChargingStationVendorIntegration extends ChargingStati
   constructor(chargingStation: ChargingStation) {
     super(chargingStation);
   }
-
-  public getOCPPParamNameForChargingLimitation(): string {
-    return 'Device/GridCurrent';
-  }
 }

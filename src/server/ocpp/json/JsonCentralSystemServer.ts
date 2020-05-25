@@ -1,5 +1,3 @@
-import * as http from 'http';
-
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
@@ -11,6 +9,7 @@ import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
 import WebSocket from 'ws';
 import global from '../../../types/GlobalType';
+import http from 'http';
 import { v4 as uuid } from 'uuid';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
