@@ -47,7 +47,7 @@ export default class CarStorage {
     // Create Aggregation
     const aggregation = [];
     // Limit on Car for Basic Users
-    if (params.carCatalogIDs && params.carCatalogIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.carCatalogIDs)) {
       // Build filter
       aggregation.push({
         $match: {
@@ -569,7 +569,7 @@ export default class CarStorage {
         if (userCarDB) {
           if (userCarDB.default !== userCar.default || !userCar.active) {
             if (userCar.default) {
-              await CarStorage.clearDefaultUserCar(tenantID,userCar.userID);
+              await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
             }
             userCarDB.active = true;
             userCarDB.default = userCar.default;
@@ -650,18 +650,18 @@ export default class CarStorage {
       ];
     }
     // Limit on Car for Basic Users
-    if (params.carIDs && params.carIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.carIDs)) {
       // Build filter
       filters._id = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
     }
     // Create Aggregation
     const aggregation = [];
-    if ((params.userIDs && params.userIDs.length > 0) || params.withUsers) {
+    if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
       DatabaseUtils.pushUserCarLookupInAggregation({
         tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
         asField: 'userscars', oneToOneCardinality: false
       });
-      if (params.userIDs && params.userIDs.length > 0) {
+      if (!Utils.isEmptyArray(params.userIDs)) {
         filters['userscars.userID'] = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
       }
       if (params.defaultCar) {
@@ -788,15 +788,15 @@ export default class CarStorage {
       filters.active = params.active;
     }
     // Limit on Car for Basic Users
-    if (params.userscarsIDs && params.userscarsIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.userscarsIDs)) {
       // Build filter
       filters._id = { $in: params.userscarsIDs.map((userscarsID) => Utils.convertToObjectID(userscarsID)) };
     }
-    if (params.carIDs && params.carIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.carIDs)) {
       // Build filter
       filters.carID = { $in: params.carIDs.map((carID) => Utils.convertToObjectID(carID)) };
     }
-    if (params.userIDs && params.userIDs.length > 0) {
+    if (!Utils.isEmptyArray(params.userIDs)) {
       // Build filter
       filters.userID = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
     }

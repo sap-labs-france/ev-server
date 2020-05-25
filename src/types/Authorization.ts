@@ -70,7 +70,7 @@ export enum Entity {
   CAR = 'Car',
   CARS = 'Cars',
   USER_CAR='UserCar',
-  USERS_CARS='usersCars',
+  USERS_CARS='UsersCars',
   INVOICE = 'Invoice',
   INVOICES = 'Invoices',
   TAXES = 'Taxes',
