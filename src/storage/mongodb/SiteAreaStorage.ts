@@ -67,6 +67,7 @@ export default class SiteAreaStorage {
       smartCharging: Utils.convertToBoolean(siteAreaToSave.smartCharging),
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID),
       maximumPower: Utils.convertToFloat(siteAreaToSave.maximumPower),
+      voltage: Utils.convertToInt(siteAreaToSave.voltage),
       numberOfPhases: Utils.convertToInt(siteAreaToSave.numberOfPhases),
     };
     if (siteAreaToSave.address) {

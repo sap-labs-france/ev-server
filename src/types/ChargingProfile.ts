@@ -1,6 +1,7 @@
 export interface ChargingProfile {
   id?: string;
   chargingStationID: string;
+  chargePointID: number;
   connectorID?: number;
   profile: Profile;
 }
