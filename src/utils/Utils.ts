@@ -139,14 +139,14 @@ export default class Utils {
   }
 
   public static objectHasProperty(object: object, key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(object, key);
+    return _.has(object, key);
   }
 
   public static generateGUID() {
     return uuid();
   }
 
-  static generateTagID(name, firstName) {
+  static generateTagID(name: string, firstName: string) {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -167,6 +167,10 @@ export default class Utils {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
+  }
+
+  public static isUndefined(obj): boolean {
+    return typeof obj === 'undefined';
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
