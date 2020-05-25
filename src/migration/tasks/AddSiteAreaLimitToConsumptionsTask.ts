@@ -24,54 +24,59 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
     // Get Charging Stations
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargingStations: true }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
+      let limitSiteAreaWatts = 0;
+      let limitChargingStationsWatts = 0;
       if (siteArea.maximumPower) {
-        // Update
-        const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-          {
-            siteAreaID: Utils.convertToObjectID(siteArea.id),
-          },
-          {
-            $set: {
-              limitSiteAreaAmps: siteArea.maximumPower / 230,
-              limitSiteAreaWatts: siteArea.maximumPower,
-              limitSiteAreaSource: SiteAreaLimitSource.SITE_AREA
-            }
+        limitSiteAreaWatts = siteArea.maximumPower;
+      }
+      // Compute charging station power
+      for (const chargingStation of siteArea.chargingStations) {
+        let limitAmps = 0;
+        // Amps from chargepoint
+        if (chargingStation.chargePoints) {
+          for (const chargePoint of chargingStation.chargePoints) {
+            limitAmps += Utils.getChargingStationAmperage(chargingStation, chargePoint);
+            limitChargingStationsWatts += Utils.convertAmpToWatt(chargingStation, 0, limitAmps);
           }
-        );
-        modifiedCount += result.modifiedCount;
-      } else {
-        let limitSiteAreaWatts = 0;
-        for (const chargingStation of siteArea.chargingStations) {
+        // Amps from connector
+        } else {
           for (const connector of chargingStation.connectors) {
-            let limitAmps = 0;
-            // Amps from chargepoint?
-            if (chargingStation.chargePoints) {
-              const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
-              limitAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
-            // Amps from connector
-            } else if (connector.amperage) {
-              limitAmps = connector.amperage;
-            }
-            if (limitAmps) {
-              limitSiteAreaWatts += Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
+            if (connector.amperage) {
+              limitAmps += connector.amperage;
+              limitChargingStationsWatts += Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
             }
           }
         }
-        // Update
-        const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-          {
-            siteAreaID: Utils.convertToObjectID(siteArea.id),
-          },
-          {
-            $set: {
-              limitSiteAreaAmps: limitSiteAreaWatts / 230,
-              limitSiteAreaWatts: limitSiteAreaWatts,
-              limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
-            }
-          }
-        );
-        modifiedCount += result.modifiedCount;
       }
+      // Update Consumption
+      limitSiteAreaWatts = limitSiteAreaWatts > limitChargingStationsWatts ? limitSiteAreaWatts : limitChargingStationsWatts;
+      const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
+        {
+          siteAreaID: Utils.convertToObjectID(siteArea.id),
+        },
+        {
+          $set: {
+            limitSiteAreaAmps: limitSiteAreaWatts / 230,
+            limitSiteAreaWatts: limitSiteAreaWatts,
+            limitSiteAreaSource: SiteAreaLimitSource.CHARGING_STATIONS
+          }
+        }
+      );
+      modifiedCount += result.modifiedCount;
+      // Update Site Area
+      await global.database.getCollection(tenant.id, 'siteareas').updateOne(
+        {
+          '_id': Utils.convertToObjectID(siteArea.id)
+        },
+        {
+          $set: {
+            'voltage': 230,
+            'numberOfPhases': 3,
+            'maximumPower': limitSiteAreaWatts,
+          }
+        },
+        { upsert: false }
+      );
     }
     // Log in the default tenant
     if (modifiedCount > 0) {
@@ -85,7 +90,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.1';
+    return '1.2';
   }
 
   getName() {

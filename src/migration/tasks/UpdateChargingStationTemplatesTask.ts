@@ -37,7 +37,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.8';
+    return '1.9';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
