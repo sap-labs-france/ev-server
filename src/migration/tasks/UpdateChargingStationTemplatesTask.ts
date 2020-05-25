@@ -41,6 +41,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
     let updated = 0;
+    // Bypass perf tenant
+    if (tenant.subdomain === 'testperf') {
+      return;
+    }
     // Get the charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
       issuer: true, includeDeleted: true
