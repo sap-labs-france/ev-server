@@ -68,11 +68,11 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
-        currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
-        currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
-        // CurrentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
+        currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
+        // CurrentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
+        // currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

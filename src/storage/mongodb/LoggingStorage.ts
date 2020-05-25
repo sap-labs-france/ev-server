@@ -1,9 +1,8 @@
-import { Log, LogLevel, LogType } from '../../types/Log';
-
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import { Log } from '../../types/Log';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import cfenv from 'cfenv';
