@@ -29,7 +29,6 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
           {
             siteAreaID: Utils.convertToObjectID(siteArea.id),
-            limitSiteAreaSource: { $exists: false },
           },
           {
             $set: {
@@ -44,14 +43,24 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
         let limitSiteAreaWatts = 0;
         for (const chargingStation of siteArea.chargingStations) {
           for (const connector of chargingStation.connectors) {
-            limitSiteAreaWatts += connector.power;
+            let limitAmps = 0;
+            // Amps from chargepoint?
+            if (chargingStation.chargePoints) {
+              const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+              limitAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+            // Amps from connector
+            } else if (connector.amperage) {
+              limitAmps = connector.amperage;
+            }
+            if (limitAmps) {
+              limitSiteAreaWatts += Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
+            }
           }
         }
         // Update
         const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
           {
             siteAreaID: Utils.convertToObjectID(siteArea.id),
-            limitSiteAreaSource: { $exists: false },
           },
           {
             $set: {
@@ -76,7 +85,7 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.0';
+    return '1.1';
   }
 
   getName() {
