@@ -69,7 +69,7 @@ export default class Utils {
   }
 
   public static async promiseWithTimeout <T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
-    let timeoutHandle: number;
+    let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
     });
