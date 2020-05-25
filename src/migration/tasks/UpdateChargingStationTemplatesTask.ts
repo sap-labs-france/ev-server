@@ -68,7 +68,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         });
         const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
           60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
-          `Time out error with ${chargingStation.id}`);
+          'Time out error with updating Template params');
         // Enrich
         let chargingStationUpdated = false;
         // Check Connectors
@@ -89,7 +89,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           await Utils.promiseWithTimeout<OCPPChangeConfigurationCommandResult>(
             60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(
               tenant.id, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
-            `Time out error with ${chargingStation.id}`);
+            'Time out error with updating OCPP params');
         }
       } catch (error) {
         Logging.logError({
@@ -97,7 +97,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Charging Stations template update errors in Tenant '${tenant.name}'`,
+          message: `Template update error in Tenant '${tenant.name}': ${error.message}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
