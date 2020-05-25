@@ -102,7 +102,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: `The migration has been run in ${totalMigrationTimeSecs} secs`
+          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalMigrationTimeSecs} secs`
         });
       } catch (error) {
         Logging.logError({
