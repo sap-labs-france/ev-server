@@ -36,7 +36,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '1.8124';
+    return '1.8';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
@@ -59,7 +59,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     for (const chargingStation of chargingStations.result) {
       try {
         const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
-          3 * 60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
+          60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
           `Time out error with ${chargingStation.id}`);
         // Enrich
         let chargingStationUpdated = false;
