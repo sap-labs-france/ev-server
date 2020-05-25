@@ -1,6 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
 
+import { AddressInfo } from 'net';
 import CFLog from 'cf-nodejs-logging-support';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import HttpStatusCodes from 'http-status-codes';
@@ -52,12 +54,12 @@ export default class ExpressTools {
     return app;
   }
 
-  public static createHttpServer(serverConfig: any, expressApp: express.Application): http.Server {
+  public static createHttpServer(serverConfig: CentralSystemServerConfiguration, expressApp: express.Application): http.Server {
     let server: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === 'https') {
       // Create the options
-      const options: any = {};
+      const options: https.ServerOptions = {};
       // Set the keys
       options.key = fs.readFileSync(serverConfig['ssl-key']);
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);
@@ -84,11 +86,11 @@ export default class ExpressTools {
     return server;
   }
 
-  public static startServer(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb?: Function, listen = true): void {
+  public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${(httpServer.address() as AddressInfo).address}:${(httpServer.address() as AddressInfo).port}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',
@@ -98,7 +100,7 @@ export default class ExpressTools {
       // eslint-disable-next-line no-console
       console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     }
-    let cb: Function;
+    let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {

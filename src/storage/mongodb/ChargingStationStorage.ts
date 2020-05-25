@@ -499,6 +499,7 @@ export default class ChargingStationStorage {
       coordinates: chargingStationToSave.coordinates,
       remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
       currentIPAddress: chargingStationToSave.currentIPAddress,
+      currentServerLocalIPAddress: chargingStationToSave.currentServerLocalIPAddress,
       capabilities: chargingStationToSave.capabilities,
       ocppStandardParameters: chargingStationToSave.ocppStandardParameters,
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
@@ -553,7 +554,7 @@ export default class ChargingStationStorage {
   }
 
   public static async saveChargingStationHeartBeat(tenantID: string, id: string,
-    params: { lastHeartBeat: Date; currentIPAddress: string }): Promise<void> {
+    params: { lastHeartBeat: Date; currentIPAddress: string; currentServerLocalIPAddress: string }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationHeartBeat');
     // Check Tenant

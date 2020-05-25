@@ -168,6 +168,7 @@ export default class OCPPService {
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
+      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
       // Set the Charging Station URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
@@ -234,8 +235,9 @@ export default class OCPPService {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      // Replace IP
+      // Replace IPs
       chargingStation.currentIPAddress = headers.currentIPAddress;
+      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
@@ -249,7 +251,8 @@ export default class OCPPService {
       // Save Charging Station
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
         lastHeartBeat: chargingStation.lastHeartBeat,
-        currentIPAddress: chargingStation.currentIPAddress
+        currentIPAddress: chargingStation.currentIPAddress,
+        currentServerLocalIPAddress: chargingStation.currentServerLocalIPAddress,
       });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
@@ -1174,7 +1177,7 @@ export default class OCPPService {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         consumption.toPrice = true;
       }
-      // Get the curent limit of the connector
+      // Get the current limit of the connector
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (chargingStationVendor) {
         // Get current limitation

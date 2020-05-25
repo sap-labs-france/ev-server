@@ -60,7 +60,7 @@ export default class JsonWSConnection extends WSConnection {
         tenantID: this.getTenantID(),
         token: this.getToken(),
         From: {
-          Address: this.getIP()
+          Address: this.getClientIP()
         }
       };
       // Ok
@@ -71,7 +71,7 @@ export default class JsonWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         action: ServerAction.WS_JSON_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
-        message: `New Json connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+        message: `New Json connection from '${this.getClientIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
   }
@@ -105,7 +105,8 @@ export default class JsonWSConnection extends WSConnection {
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
-        this.headers.currentIPAddress = this.getIP();
+        this.headers.currentIPAddress = this.getClientIP();
+        this.headers.currentServerLocalIPAddress = this.getServerIP();
       }
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);

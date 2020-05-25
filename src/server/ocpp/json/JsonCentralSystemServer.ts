@@ -48,6 +48,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return null;
   }
 
+  public get address(): string|WebSocket.AddressInfo {
+    return this.wsServer.address();
+  }
+
   public removeJsonConnection(wsConnection: JsonWSConnection) {
     // Check first
     if (this.jsonChargingStationClients[wsConnection.getID()] &&
