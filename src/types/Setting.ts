@@ -8,7 +8,6 @@ export interface Setting {
   category?: 'business' | 'technical';
 }
 
-// Database Settings interface
 export interface SettingDB extends CreatedUpdatedProps, Setting {
   content: SettingDBContent;
 }
@@ -21,7 +20,6 @@ export interface SettingLink {
   url: string;
 }
 
-// Database Settings Content interface
 export interface SettingDBContent {
   type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType;
   ocpi?: OcpiSetting;
@@ -32,6 +30,7 @@ export interface SettingDBContent {
   links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
+  asset?: AssetConnectionSetting;
 }
 
 export enum PricingSettingsType {
@@ -47,6 +46,11 @@ export interface PricingSettings extends Setting {
 }
 
 export interface PricingSetting {
+}
+
+export enum PricingContentType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
 }
 
 export interface SimplePricingSetting extends PricingSetting {
@@ -124,6 +128,10 @@ export interface SmartChargingSettings extends Setting {
 export interface SmartChargingSetting {
 }
 
+export enum SmartChargingContentType {
+  SAP_SMART_CHARGING = 'sapSmartCharging',
+}
+
 export interface SapSmartChargingSetting extends SmartChargingSetting {
   optimizerUrl: string;
   user: string;
@@ -142,6 +150,14 @@ export interface RefundSettings extends Setting {
 
 export interface RefundSetting {
 }
+
+export enum RefundContentType {
+  CONCUR = 'concur',
+  GIREVE = 'gireve',
+  OCPI = 'ocpi',
+  SAC = 'sac',
+}
+
 export interface ConcurRefundSetting extends RefundSetting {
   authenticationUrl: string;
   apiUrl: string;
@@ -181,30 +197,41 @@ export interface StripeBillingSetting extends BillingSetting {
   taxID: string;
 }
 
-export interface AssetSettings extends Setting {
-  identifier: TenantComponents.ASSET;
-  type: AssetSettingsType;
-}
-
-export enum AssetSettingsType {
-}
-
-export enum PricingContentType {
-  SIMPLE = 'simple',
-  CONVERGENT_CHARGING = 'convergentCharging',
-}
-
-export enum RefundContentType {
-  CONCUR = 'concur',
-  GIREVE = 'gireve',
-  OCPI = 'ocpi',
-  SAC = 'sac',
-}
-
 export enum BillingContentType {
   STRIPE = 'stripe',
 }
 
-export enum SmartChargingContentType {
-  SAP_SMART_CHARGING = 'sapSmartCharging',
+export interface AssetSettings extends Setting {
+  identifier: TenantComponents.ASSET;
+  type: AssetSettingsType;
+  asset: AssetSetting;
+}
+
+export enum AssetSettingsType {
+  ASSET = 'asset',
+}
+
+export interface AssetSetting {
+  connections: AssetConnectionSetting[];
+}
+
+export interface AssetConnectionSetting {
+  name: string;
+  description: string;
+  url: string;
+  type: AssetConnectionType;
+  connection: AssetSchneiderConnectionType;
+}
+
+export enum AssetConnectionType {
+  NONE = '',
+  SCHNEIDER = 'schneider',
+}
+
+export interface AssetUserPasswordConnectionType {
+  user: string;
+  password: string;
+}
+
+export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }
