@@ -17,7 +17,7 @@ import Utils from './Utils';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -55,9 +55,7 @@ obs.observe({ entryTypes: ['measure'] });
 export default class Logging {
   // Log Debug
   public static logDebug(log: Log): void {
-    // Log
     log.level = LogLevel.DEBUG;
-    // Log it
     Logging._log(log);
   }
 
@@ -138,31 +136,28 @@ export default class Logging {
     Logging.logError(log);
   }
 
-  // Log
   public static logReceivedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, payload: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action,
-      message: '>> OCPP Request Received',
+      message: `>> OCPP Request '${action}' Received`,
       action: action,
       detailedMessages: { payload }
     });
   }
 
-  // Log
   public static logSendAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, args: any): void {
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
       module: module, method: action,
-      message: '>> OCPP Request Sent',
+      message: `<< OCPP Request '${action}' Sent`,
       action: action,
       detailedMessages: { args }
     });
   }
 
-  // Log
   public static logReturnedAction(module: string, tenantID: string, chargeBoxID: string, action: ServerAction, detailedMessages: any): void {
     if (detailedMessages && detailedMessages['status'] && detailedMessages['status'] === 'Rejected') {
       Logging.logError({

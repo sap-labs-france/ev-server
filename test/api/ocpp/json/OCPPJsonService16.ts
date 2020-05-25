@@ -3,7 +3,7 @@ import OCPPService from '../OCPPService';
 import WSClient from '../../../../src/client/websocket/WSClient';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 export default class OCPPJsonService16 extends OCPPService {
   private _wsSessions: any;

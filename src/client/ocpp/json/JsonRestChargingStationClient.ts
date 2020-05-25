@@ -8,14 +8,14 @@ import { JsonWSClientConfiguration } from '../../../types/configuration/WSClient
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: string;
   private chargingStation: ChargingStation;
-  private requests: any;
+  private requests: { [messageUID: string]: { resolve?: (result: object) => void; reject?: (error: object) => void; command: ServerAction } };
   private wsConnection: WSClient;
   private tenantID: string;
 
@@ -160,17 +160,10 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         try {
           // Parse the message
           const messageJson = JSON.parse(message.data);
-          // Log
-          Logging.logDebug({
-            tenantID: this.tenantID,
-            source: this.chargingStation.id,
-            action: ServerAction.WS_REST_CLIENT_MESSAGE,
-            module: MODULE_NAME, method: 'onMessage',
-            message: `Received message '${message.data}'`,
-            detailedMessages: { messageJson }
-          });
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
+            // Log
+            Logging.logReceivedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, this.requests[messageJson[1]].command, messageJson);
             // Check message type
             if (messageJson[0] === Constants.OCPP_JSON_CALL_ERROR_MESSAGE) {
               // Error message
@@ -190,6 +183,16 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             }
             // Close WS
             this._closeConnection();
+          } else {
+            // Error message
+            Logging.logError({
+              tenantID: this.tenantID,
+              source: this.chargingStation.id,
+              action: ServerAction.WS_REST_CLIENT_ERROR_RESPONSE,
+              module: MODULE_NAME, method: 'onMessage',
+              message: 'Received unknown message',
+              detailedMessages: { messageJson }
+            });
           }
         } catch (error) {
           // Log
@@ -222,25 +225,17 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async _sendMessage(request): Promise<any> {
     // Return a promise
-    // eslint-disable-next-line no-undef
     const promise = await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready
       if (this.wsConnection.isConnectionOpen()) {
         // Log
-        Logging.logDebug({
-          tenantID: this.tenantID,
-          source: this.chargingStation.id,
-          action: ServerAction.WS_REST_CLIENT_SEND_MESSAGE,
-          module: MODULE_NAME, method: 'SendMessage',
-          message: `Send message '${request[2]}'`,
-          detailedMessages: { request }
-        });
+        Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, request[2], request);
         // Send
         await this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function
-        this.requests[request[1]] = { resolve, reject };
+        this.requests[request[1]] = { resolve, reject, command: request[2] };
       } else {
         // Reject it
         return reject(`Socket is closed for message ${request[2]}`);
@@ -251,10 +246,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private _buildRequest(command, params = {}) {
     // Build the request
-    return [
-      Constants.OCPP_JSON_CALL_MESSAGE,
-      uuid(),
-      command,
-      params];
+    return [Constants.OCPP_JSON_CALL_MESSAGE, uuid(), command, params];
   }
 }

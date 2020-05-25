@@ -247,7 +247,7 @@ export default class TenantContext {
     expect(response.data).to.have.property('currentTime');
     let createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
-    expect(createdChargingStation.maximumPower).to.eql(44340);
+    expect(createdChargingStation.maximumPower).to.eql(44160);
     expect(createdChargingStation.powerLimitUnit).to.eql('A');
     for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
       createdChargingStation.connectors[i] = {
@@ -256,7 +256,7 @@ export default class TenantContext {
         errorCode: (connectorsDef && connectorsDef.errorCode ? connectorsDef.errorCode : 'NoError'),
         timestamp: (connectorsDef && connectorsDef.timestamp ? connectorsDef.timestamp : new Date().toISOString()),
         type: (connectorsDef && connectorsDef.type ? connectorsDef.type : 'U'),
-        power: (connectorsDef && connectorsDef.power ? connectorsDef.power : 22170)
+        power: (connectorsDef && connectorsDef.power ? connectorsDef.power : 22080)
       };
     }
     for (const connector of createdChargingStation.connectors) {
@@ -264,18 +264,27 @@ export default class TenantContext {
     }
     createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
+    // Charging Station
+    expect(createdChargingStation.voltage).to.eql(230);
+    // Connectors
     expect(createdChargingStation.connectors.length).to.eql(2);
-    expect(createdChargingStation.connectors[0].power).to.eql(22170);
-    expect(createdChargingStation.connectors[0].voltage).to.eql(400);
-    expect(createdChargingStation.connectors[0].amperage).to.eql(32);
+    expect(createdChargingStation.connectors[0].power).to.eql(22080);
+    expect(createdChargingStation.connectors[0].amperage).to.eql(96);
     expect(createdChargingStation.connectors[0].type).to.eql('T2');
-    expect(createdChargingStation.connectors[1].power).to.eql(22170);
-    expect(createdChargingStation.connectors[1].voltage).to.eql(400);
-    expect(createdChargingStation.connectors[1].amperage).to.eql(32);
+    expect(createdChargingStation.connectors[1].power).to.eql(22080);
+    expect(createdChargingStation.connectors[1].amperage).to.eql(96);
     expect(createdChargingStation.connectors[1].type).to.eql('T2');
+    // Charge Points
+    expect(createdChargingStation.chargePoints.length).to.eql(1);
+    expect(createdChargingStation.chargePoints[0].currentType).to.eql('AC');
+    expect(createdChargingStation.chargePoints[0].numberOfConnectedPhase).to.eql(3);
+    expect(createdChargingStation.chargePoints[0].cannotChargeInParallel).to.eql(false);
+    expect(createdChargingStation.chargePoints[0].sharePowerToAllConnectors).to.eql(false);
+    expect(createdChargingStation.chargePoints[0].excludeFromPowerLimitation).to.eql(false);
+    expect(createdChargingStation.chargePoints[0].ocppParamForPowerLimitation).to.eql('maxintensitysocket');
     // Assign to Site Area
     if (siteArea) {
-      createdChargingStation.siteArea = siteArea;
+      createdChargingStation.siteAreaID = siteArea.id;
       await this.getAdminCentralServerService().updateEntity(
         this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
     }
