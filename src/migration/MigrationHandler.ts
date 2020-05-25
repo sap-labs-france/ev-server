@@ -72,7 +72,7 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
-        // CurrentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
+        currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
