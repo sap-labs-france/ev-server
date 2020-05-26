@@ -282,7 +282,7 @@ export default class MongoDBStorage {
   }
 
   private async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string,
-    name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
+    name: string, indexes?: { fields: any; options?: any }[]): Promise<void> {
     // Safety check
     if (!this.db) {
       throw new BackendError({
@@ -341,6 +341,5 @@ export default class MongoDBStorage {
         await LockingManager.release(createCollection);
       }
     }
-    return false;
   }
 }
