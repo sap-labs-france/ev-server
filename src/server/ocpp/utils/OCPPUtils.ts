@@ -731,9 +731,9 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number, saveOtherConnectors = false) {
+  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number) {
     // Cleanup connector transaction data
-    const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === connectorId);
+    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
     if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;

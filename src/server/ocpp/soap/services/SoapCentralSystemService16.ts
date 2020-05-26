@@ -1,5 +1,6 @@
 import { OCPPProtocol, OCPPVersion } from '../../../../types/ocpp/OCPPServer';
 
+import { AddressInfo } from 'net';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
 import { ServerAction } from '../../../../types/Server';
@@ -52,8 +53,9 @@ export default { /* Services */
           // Add OCPP Version
           headers.ocppVersion = OCPPVersion.VERSION_16;
           headers.ocppProtocol = OCPPProtocol.SOAP;
-          // Add current IP to charging station properties
+          // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
+          headers.currentServerLocalIPAddress = (global.centralSystemSoap.httpServer.address() as AddressInfo).address + ':' + (global.centralSystemSoap.httpServer.address() as AddressInfo).port;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, [ headers, args ]);
           // Handle
@@ -162,8 +164,9 @@ export default { /* Services */
       Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Add current IP to charging station properties
+          // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
+          headers.currentServerLocalIPAddress = (global.centralSystemSoap.httpServer.address() as AddressInfo).address + ':' + (global.centralSystemSoap.httpServer.address() as AddressInfo).port;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, [ headers, args ]);
           // Handle

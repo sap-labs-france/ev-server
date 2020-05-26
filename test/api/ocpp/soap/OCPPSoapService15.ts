@@ -77,7 +77,7 @@ export default class OCPPSoapService15 extends OCPPService {
 
   private async execute(request) {
     // Init Client (Done only once)
-    await this._initSOAPClient();
+    await this.initSOAPClient();
     // Init SOAP header
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
@@ -124,7 +124,7 @@ export default class OCPPSoapService15 extends OCPPService {
     return actionName.replace(/^\w/, (c) => c.toLowerCase()).concat('Request');
   }
 
-  private async _initSOAPClient() {
+  private async initSOAPClient() {
     // Client options
     const options = {};
     // Check

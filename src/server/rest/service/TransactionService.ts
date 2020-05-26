@@ -364,7 +364,7 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getAllTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
@@ -948,7 +948,7 @@ export default class TransactionService {
           transactionsIDsToDelete.push(transactionId);
         } else {
           // Check connector
-          const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+          const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
             // Clear connector
             OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);

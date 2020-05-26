@@ -1,4 +1,4 @@
-import WebSocket, { OPEN } from 'ws';
+import WebSocket, { AddressInfo, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -21,8 +21,9 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
+  protected readonly serverIP: string;
   private readonly url: string;
-  private readonly ip: string;
+  private readonly clientIP: string;
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: any = {};
@@ -34,11 +35,12 @@ export default class WSConnection {
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.ip = Utils.getRequestIP(req);
+    this.clientIP = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
+    this.serverIP = (this.wsServer.address as AddressInfo).address + ':' + (this.wsServer.address as AddressInfo).port;
 
     // Default
     this.tenantIsValid = false;
@@ -239,11 +241,11 @@ export default class WSConnection {
     // To implement in sub-class
   }
 
-  public getWSConnection() {
+  public getWSConnection(): WebSocket {
     return this.wsConnection;
   }
 
-  public getWSServer() {
+  public getWSServer(): JsonCentralSystemServer {
     return this.wsServer;
   }
 
@@ -251,8 +253,12 @@ export default class WSConnection {
     return this.url;
   }
 
-  public getIP(): string {
-    return this.ip;
+  public getClientIP(): string {
+    return this.clientIP;
+  }
+
+  public getServerIP(): string {
+    return this.serverIP;
   }
 
   public async send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
