@@ -11,6 +11,7 @@ import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
+import Configuration from '../../utils/Configuration';
 
 const MODULE_NAME = 'OCPIClient';
 
@@ -308,7 +309,7 @@ export default abstract class OCPIClient {
     return this.settings[this.role].partyID;
   }
 
-  protected getEndpointUrl(service, action: ServerAction) {
+  protected getEndpointUrl(service: string, action: ServerAction): string {
     if (this.ocpiEndpoint.availableEndpoints) {
       return this.ocpiEndpoint.availableEndpoints[service];
     }
@@ -316,6 +317,10 @@ export default abstract class OCPIClient {
       action, message: `No endpoint URL defined for service ${service}`,
       module: MODULE_NAME, method: 'getLocalPartyID',
     });
+  }
+
+  protected getLocalEndpointUrl(service: string): string {
+    return `${Configuration.getOCPIEndpointConfig().baseUrl}/ocpi/${this.role}/${this.ocpiEndpoint.version}/${service}`;
   }
 
   async abstract triggerJobs();
