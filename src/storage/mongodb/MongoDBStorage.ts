@@ -309,18 +309,6 @@ export default class MongoDBStorage {
         if (indexes) {
           // Get current indexes
           const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-          // Check each index that should be created
-          for (const index of indexes) {
-            // Create
-            // Check if it exists
-            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-            if (!foundIndex) {
-              // Create Indexes
-              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
-              // eslint-disable-next-line @typescript-eslint/await-thenable
-              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            }
-          }
           // Check each index that should be dropped
           for (const databaseIndex of databaseIndexes) {
             // Bypass ID
@@ -333,6 +321,18 @@ export default class MongoDBStorage {
               // Drop indexes
               console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
               await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+            }
+          }
+          // Check each index that should be created
+          for (const index of indexes) {
+            // Create
+            // Check if it exists
+            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            if (!foundIndex) {
+              // Create Indexes
+              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
+              // eslint-disable-next-line @typescript-eslint/await-thenable
+              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             }
           }
         }
