@@ -129,9 +129,7 @@ export default class MongoDBStorage {
     ]);
     await this.handleIndexesInCollection(collections, tenantID, 'consumptions', [
       { fields: { transactionId: 1 } },
-      { fields: { siteID: 1, startedAt: 1 } },
       { fields: { siteAreaID: 1, startedAt: 1 } },
-      { fields: { transactionId: 1 } }
     ]);
     Logging.logDebug({
       tenantID: tenantID,
