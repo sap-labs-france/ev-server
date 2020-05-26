@@ -11,6 +11,7 @@ import expressTools from '../ExpressTools';
 import morgan from 'morgan';
 
 const MODULE_NAME = 'ODataServer';
+
 export default class ODataServer {
   private oDataServerConfig: ODataServiceConfiguration;
   private express: express.Application;

@@ -139,14 +139,14 @@ export default class Utils {
   }
 
   public static objectHasProperty(object: object, key: string): boolean {
-    return Object.prototype.hasOwnProperty.call(object, key);
+    return _.has(object, key);
   }
 
   public static generateGUID() {
     return uuid();
   }
 
-  static generateTagID(name, firstName) {
+  static generateTagID(name: string, firstName: string) {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -167,6 +167,10 @@ export default class Utils {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
+  }
+
+  public static isUndefined(obj): boolean {
+    return typeof obj === 'undefined';
   }
 
   public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
@@ -321,13 +325,6 @@ export default class Utils {
         method: 'normalizeAndCheckSOAPParams',
         message: 'The Charging Station ID is invalid'
       });
-    }
-  }
-
-  public static _normalizeOneSOAPParam(headers, name) {
-    const val = _.get(headers, name);
-    if (val && val.$value) {
-      _.set(headers, name, val.$value);
     }
   }
 
@@ -1192,7 +1189,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: MODULE_NAME,
-        method: '_checkIfSiteValid',
+        method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1202,7 +1199,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Name is mandatory',
         module: MODULE_NAME,
-        method: '_checkIfSiteValid',
+        method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1212,7 +1209,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Company ID is mandatory for the Site',
         module: MODULE_NAME,
-        method: '_checkIfSiteValid',
+        method: 'checkIfSiteValid',
         user: req.user.id
       });
     }
@@ -1225,7 +1222,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area ID is mandatory',
         module: MODULE_NAME,
-        method: '_checkIfSiteAreaValid',
+        method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1235,7 +1232,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site Area name is mandatory',
         module: MODULE_NAME,
-        method: '_checkIfSiteAreaValid',
+        method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1245,7 +1242,7 @@ export default class Utils {
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Site ID is mandatory',
         module: MODULE_NAME,
-        method: '_checkIfSiteAreaValid',
+        method: 'checkIfSiteAreaValid',
         user: req.user.id
       });
     }
@@ -1257,7 +1254,7 @@ export default class Utils {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
           module: MODULE_NAME,
-          method: '_checkIfSiteAreaValid',
+          method: 'checkIfSiteAreaValid',
           user: req.user.id
         });
       }
@@ -1267,7 +1264,7 @@ export default class Utils {
           errorCode: HTTPError.GENERAL_ERROR,
           message: `Site area number of phases must be 1 or 3 but got ${siteArea.numberOfPhases}`,
           module: MODULE_NAME,
-          method: '_checkIfSiteAreaValid',
+          method: 'checkIfSiteAreaValid',
           user: req.user.id
         });
       }
@@ -1714,5 +1711,12 @@ export default class Utils {
 
   private static _isPlateIDValid(plateID): boolean {
     return /^[A-Z0-9-]*$/.test(plateID);
+  }
+
+  private static _normalizeOneSOAPParam(headers: object, name: string) {
+    const val = _.get(headers, name);
+    if (val && val.$value) {
+      _.set(headers, name, val.$value);
+    }
   }
 }

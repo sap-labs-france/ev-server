@@ -138,7 +138,11 @@ describe('OCPP tests (all versions)', function() {
         });
 
         it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testIP();
+          await testData.ocppCommonTests.testClientIP();
+        });
+
+        it('Charging station should have saved the server\'s local IP address', async () => {
+          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -263,7 +267,11 @@ describe('OCPP tests (all versions)', function() {
         });
 
         it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testIP();
+          await testData.ocppCommonTests.testClientIP();
+        });
+
+        it('Charging station should have saved the server\'s local IP address', async () => {
+          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -768,7 +776,11 @@ describe('OCPP tests (all versions)', function() {
         });
 
         it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testIP();
+          await testData.ocppCommonTests.testClientIP();
+        });
+
+        it('Charging station should have saved the server\'s local IP address', async () => {
+          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -958,7 +970,11 @@ describe('OCPP tests (all versions)', function() {
         });
 
         it('Charging station should have saved the connection\'s IP address', async () => {
-          await testData.ocppCommonTests.testIP();
+          await testData.ocppCommonTests.testClientIP();
+        });
+
+        it('Charging station should have saved the server\'s local IP address', async () => {
+          await testData.ocppCommonTests.testServerLocalIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {

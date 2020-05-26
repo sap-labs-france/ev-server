@@ -40,12 +40,10 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
+import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const moment = require('moment-timezone');
-momentDurationFormatSetup(moment);
-const _configChargingStation = Configuration.getChargingStationConfig();
+momentDurationFormatSetup(moment as any);
 
 const DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE: OCPPAttribute = {
   unit: OCPPUnitOfMeasure.WATT_HOUR,
@@ -60,7 +58,7 @@ const MODULE_NAME = 'OCPPService';
 export default class OCPPService {
   private chargingStationConfig: ChargingStationConfiguration;
 
-  public constructor(chargingStationConfig: ChargingStationConfiguration = null) {
+  public constructor(chargingStationConfig: ChargingStationConfiguration) {
     this.chargingStationConfig = chargingStationConfig;
   }
 
@@ -170,6 +168,7 @@ export default class OCPPService {
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
+      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
       // Set the Charging Station URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
@@ -236,8 +235,9 @@ export default class OCPPService {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
-      // Replace IP
+      // Replace IPs
       chargingStation.currentIPAddress = headers.currentIPAddress;
+      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
@@ -251,7 +251,8 @@ export default class OCPPService {
       // Save Charging Station
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
         lastHeartBeat: chargingStation.lastHeartBeat,
-        currentIPAddress: chargingStation.currentIPAddress
+        currentIPAddress: chargingStation.currentIPAddress,
+        currentServerLocalIPAddress: chargingStation.currentServerLocalIPAddress,
       });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
@@ -1176,7 +1177,7 @@ export default class OCPPService {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         consumption.toPrice = true;
       }
-      // Get the curent limit of the connector
+      // Get the current limit of the connector
       const chargingStationVendor = ChargingStationVendorFactory.getChargingStationVendorImpl(chargingStation);
       if (chargingStationVendor) {
         // Get current limitation
@@ -1250,7 +1251,7 @@ export default class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
+        OCPPUtils.isActiveEnergyMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption: Consumption = await this.buildConsumptionWithMeterValue(
           tenantID, transaction, chargingStation, meterValue);
@@ -1570,13 +1571,13 @@ export default class OCPPService {
       // Has consumption?
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
-        if (_configChargingStation.notifEndOfChargeEnabled &&
+        if (this.chargingStationConfig.notifEndOfChargeEnabled &&
           (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
           // Send Notification
           await this.notifyEndOfCharge(tenantID, chargingStation, transaction);
           // Optimal Charge? (SoC)
-        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-          transaction.currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
+        } else if (this.chargingStationConfig.notifBeforeEndOfChargeEnabled &&
+          transaction.currentStateOfCharge >= this.chargingStationConfig.notifBeforeEndOfChargePercent) {
           // Send Notification
           await this.notifyOptimalChargeReached(tenantID, chargingStation, transaction);
         }

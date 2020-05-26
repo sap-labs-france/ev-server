@@ -494,6 +494,7 @@ export default class EmspOCPIClient extends OCPIClient {
   async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
     // Get command endpoint url
     const commandUrl = this.getEndpointUrl('commands', ServerAction.OCPI_START_SESSION) + '/' + OCPICommandType.START_SESSION;
+    const callbackUrl = this.getLocalEndpointUrl('commands') + '/' + OCPICommandType.START_SESSION;
     const user = await UserStorage.getUserByTagId(this.tenant.id, tagId);
     if (!user || user.deleted || !user.issuer) {
       throw new BackendError({
@@ -528,7 +529,7 @@ export default class EmspOCPIClient extends OCPIClient {
     const authorizationId = uuid();
     const payload: OCPIStartSession = {
       // eslint-disable-next-line @typescript-eslint/camelcase
-      response_url: commandUrl + '/' + uuid(),
+      response_url: callbackUrl + '/' + authorizationId,
       token: token,
       // eslint-disable-next-line @typescript-eslint/camelcase
       evse_uid: chargingStation.imsi,

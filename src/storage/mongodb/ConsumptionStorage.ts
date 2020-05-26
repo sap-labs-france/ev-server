@@ -148,9 +148,9 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getAllTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllTransactionConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -172,7 +172,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getAllTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'getTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
   }
 

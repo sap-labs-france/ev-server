@@ -6,12 +6,12 @@ import { performance } from 'perf_hooks';
 import { v4 as uuid } from 'uuid';
 
 export default class OCPPJsonService16 extends OCPPService {
-  private _wsSessions: any;
+  private wsSessions: any;
   private requestHandler: any;
 
   public constructor(serverUrl, requestHandler) {
     super(serverUrl);
-    this._wsSessions = new Map();
+    this.wsSessions = new Map();
     this.requestHandler = requestHandler;
   }
 
@@ -80,99 +80,99 @@ export default class OCPPJsonService16 extends OCPPService {
     if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
       result = await this.requestHandler['handle' + commandName](commandPayload);
     }
-    await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
+    await this.send(chargeBoxIdentity, this.buildResponse(messageId, result));
   }
 
   public closeConnection() {
     // Close
-    if (this._wsSessions) {
-      this._wsSessions.forEach((session) => session.connection.close());
-      this._wsSessions = null;
+    if (this.wsSessions) {
+      this.wsSessions.forEach((session) => session.connection.close());
+      this.wsSessions = null;
     }
   }
 
   public async executeAuthorize(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('Authorize', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('Authorize', payload)
     );
   }
 
   public async executeStartTransaction(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('StartTransaction', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('StartTransaction', payload)
     );
   }
 
   public async executeStopTransaction(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('StopTransaction', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('StopTransaction', payload)
     );
   }
 
   public async executeHeartbeat(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('Heartbeat', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('Heartbeat', payload)
     );
   }
 
   public async executeMeterValues(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('MeterValues', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('MeterValues', payload)
     );
   }
 
   public async executeBootNotification(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('BootNotification', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('BootNotification', payload)
     );
   }
 
   public async executeStatusNotification(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('StatusNotification', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('StatusNotification', payload)
     );
   }
 
   public async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('FirmwareStatusNotification', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('FirmwareStatusNotification', payload)
     );
   }
 
   public async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('DiagnosticsStatusNotification', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('DiagnosticsStatusNotification', payload)
     );
   }
 
   public async executeDataTransfer(chargeBoxIdentity, payload) {
-    return await this._send(chargeBoxIdentity,
-      this._buildRequest('DataTransfer', payload)
+    return await this.send(chargeBoxIdentity,
+      this.buildRequest('DataTransfer', payload)
     );
   }
 
-  private async _send(chargeBoxIdentity, message): Promise<any> {
+  private async send(chargeBoxIdentity, message): Promise<any> {
     // WS Opened?
-    if (!this._wsSessions.get(chargeBoxIdentity)) {
+    if (!this.wsSessions.get(chargeBoxIdentity)) {
       // Open WS
       const ws = await this.openConnection(chargeBoxIdentity);
-      this._wsSessions.set(chargeBoxIdentity, ws);
+      this.wsSessions.set(chargeBoxIdentity, ws);
     }
     // Send
     const t0 = performance.now();
-    this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
+    this.wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
       // pragma console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
     if (message[0] === Constants.OCPP_JSON_CALL_MESSAGE) {
       // Return a promise
       return await new Promise((resolve, reject) => {
         // Set the resolve function
-        this._wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
+        this.wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
       });
     }
   }
 
-  private _buildRequest(command, payload) {
+  private buildRequest(command, payload) {
     // Build the request
     return [
       Constants.OCPP_JSON_CALL_MESSAGE,
@@ -181,7 +181,7 @@ export default class OCPPJsonService16 extends OCPPService {
       payload];
   }
 
-  private _buildResponse(messageId, payload) {
+  private buildResponse(messageId, payload) {
     // Build the request
     return [
       Constants.OCPP_JSON_CALL_MESSAGE,
