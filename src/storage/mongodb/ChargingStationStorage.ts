@@ -1,23 +1,24 @@
-import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import fs from 'fs';
+
+import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from './TenantStorage';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import moment from 'moment';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -921,7 +922,7 @@ export default class ChargingStationStorage {
               { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
               { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
               { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null },
-              { 'powerLimitUnit': { $nin: [PowerLimitUnits.AMPERE, PowerLimitUnits.WATT] } },
+              { 'powerLimitUnit': { $nin: [ChargingRateUnitType.AMPERE, ChargingRateUnitType.WATT] } },
               { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
               { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
               { 'connectors.type': { $nin: [ConnectorType.CHADEMO, ConnectorType.COMBO_CCS, ConnectorType.DOMESTIC, ConnectorType.TYPE_1, ConnectorType.TYPE_1_CCS, ConnectorType.TYPE_2, ConnectorType.TYPE_3C] } },
