@@ -30,7 +30,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
-        message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+        message: `New Rest connection from '${this.getClientIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
   }
