@@ -1,12 +1,12 @@
 import { ChargePointStatus, OCPPAttribute, OCPPAuthorizationStatus, OCPPAuthorizeRequestExtended, OCPPAuthorizeResponse, OCPPBootNotificationRequestExtended, OCPPBootNotificationResponse, OCPPDataTransferRequestExtended, OCPPDataTransferResponse, OCPPDataTransferStatus, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPDiagnosticsStatusNotificationResponse, OCPPFirmwareStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatRequestExtended, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesExtended, OCPPMeterValuesResponse, OCPPNormalizedMeterValue, OCPPNormalizedMeterValues, OCPPReadingContext, OCPPSampledValue, OCPPStartTransactionRequestExtended, OCPPStartTransactionResponse, OCPPStatusNotificationRequestExtended, OCPPStatusNotificationResponse, OCPPStopTransactionRequestExtended, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion, RegistrationStatus } from '../../../types/ocpp/OCPPServer';
-import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, PowerLimitUnits, SiteAreaLimitSource } from '../../../types/ChargingStation';
+import { ChargingProfilePurposeType, ChargingRateUnitType } from '../../../types/ChargingProfile';
+import ChargingStation, { ChargerVendor, Connector, ConnectorCurrentLimitSource, ConnectorType, SiteAreaLimitSource } from '../../../types/ChargingStation';
 import Transaction, { InactivityStatus, TransactionAction } from '../../../types/Transaction';
 
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import { BillingDataTransactionStop } from '../../../types/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
@@ -124,7 +124,7 @@ export default class OCPPService {
         // Update props
         chargingStation.createdOn = new Date();
         chargingStation.issuer = true;
-        chargingStation.powerLimitUnit = PowerLimitUnits.AMPERE;
+        chargingStation.powerLimitUnit = ChargingRateUnitType.AMPERE;
         // Assign to Site Area
         if (token.siteAreaID) {
           const siteArea = await SiteAreaStorage.getSiteArea(headers.tenantID, token.siteAreaID);
@@ -365,14 +365,14 @@ export default class OCPPService {
           const transaction = await TransactionStorage.getTransaction(headers.tenantID, meterValues.transactionId);
           // Save Meter Values
           await OCPPStorage.saveMeterValues(headers.tenantID, newMeterValues);
-          // Handle Meter Values
+          // Handle Consumptions
           await this.buildConsumptionsWithMeterValues(headers.tenantID, transaction, newMeterValues, chargingStation);
-          // OCPI
+          // Hndle OCPI
           await this.updateOCPITransaction(headers.tenantID, transaction, chargingStation, TransactionAction.UPDATE);
           // Save Transaction
           await TransactionStorage.saveTransaction(headers.tenantID, transaction);
-          // Update Charging Station Consumption
-          await this.updateChargingStationConsumption(headers.tenantID, chargingStation, transaction);
+          // Update Charging Station
+          await this.updateChargingStationWithTransaction(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
           await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
           // Log
@@ -621,8 +621,7 @@ export default class OCPPService {
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charging Station's connector transaction info
-      const foundConnector = chargingStation.connectors.find(
-        (connector) => connector.connectorId === transaction.connectorId);
+      const foundConnector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
       if (foundConnector) {
         foundConnector.currentConsumption = 0;
         foundConnector.totalConsumption = 0;
@@ -808,7 +807,7 @@ export default class OCPPService {
         });
       }
       // Check and free the connector
-      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId, false);
+      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, transaction.connectorId);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save Charging Station
@@ -897,8 +896,7 @@ export default class OCPPService {
 
   private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, bothConnectorsUpdated) {
     // Get it
-    let foundConnector: Connector = chargingStation.connectors.find(
-      (connector) => connector.connectorId === statusNotification.connectorId);
+    let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
     if (!foundConnector) {
       // Does not exist: Create
       foundConnector = {
@@ -1043,7 +1041,7 @@ export default class OCPPService {
       await this.stopOrDeleteActiveTransactions(
         tenantID, chargingStation.id, statusNotification.connectorId);
       // Clean up connector
-      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, statusNotification.connectorId, true);
+      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, statusNotification.connectorId);
     }
   }
 
@@ -1474,10 +1472,9 @@ export default class OCPPService {
   }
 
   // Save Consumption
-  private async updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
+  private async updateChargingStationWithTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
-    const foundConnector: Connector = chargingStation.connectors.find(
-      (connector) => connector.connectorId === transaction.connectorId);
+    const foundConnector: Connector = Utils.getConnectorFromID(chargingStation, transaction.connectorId);
     // Active transaction?
     if (!transaction.stop && foundConnector) {
       // Set consumption
@@ -1499,7 +1496,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
-        module: MODULE_NAME, method: 'updateChargingStationConsumption',
+        module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
         message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`

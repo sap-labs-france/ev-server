@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingRateUnitType, ChargingSchedule } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, PowerLimitUnits, StaticLimitAmps } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 
 import BackendError from '../../exception/BackendError';
@@ -628,7 +628,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: `Get current limitation on Connectors has been called: ${result.limitAmps} A, ${result.limitWatts} W`,
+      message: `Get current limitation on Connectors has been called: ${result.limitAmps} A, ${result.limitWatts}W, source '${result.limitSource}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });
@@ -642,13 +642,13 @@ export default abstract class ChargingStationVendorIntegration {
     // Check connector
     if (chargingStation.connectors && vendorSpecificChargingProfile.profile && vendorSpecificChargingProfile.profile.chargingSchedule) {
       // Convert to Watts?
-      if (chargingStation.powerLimitUnit === PowerLimitUnits.WATT) {
+      if (chargingStation.powerLimitUnit === ChargingRateUnitType.WATT) {
         vendorSpecificChargingProfile.profile.chargingSchedule.chargingRateUnit = ChargingRateUnitType.WATT;
       }
       // Divide the power by the number of connectors and number of phases
       for (const schedulePeriod of vendorSpecificChargingProfile.profile.chargingSchedule.chargingSchedulePeriod) {
         // Check Unit
-        if (chargingStation.powerLimitUnit === PowerLimitUnits.AMPERE) {
+        if (chargingStation.powerLimitUnit === ChargingRateUnitType.AMPERE) {
           // Limit Amps per phase
           schedulePeriod.limit = this.convertLimitAmpPerPhase(
             chargingStation, chargePoint,
@@ -699,7 +699,7 @@ export default abstract class ChargingStationVendorIntegration {
       limitAmpPerPhase = this.chargePointToConnectorLimitAmps(chargePoint, limitAmpPerPhase);
     }
     // Per pahse
-    limitAmpPerPhase /= Utils.getChargingStationNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
+    limitAmpPerPhase /= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpPerPhase;
   }
 
@@ -711,7 +711,7 @@ export default abstract class ChargingStationVendorIntegration {
       limitAmpAllPhases = this.connectorToChargePointLimitAmps(chargePoint, limitAmpAllPhases);
     }
     // Per pahse
-    limitAmpAllPhases *= Utils.getChargingStationNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
+    limitAmpAllPhases *= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpAllPhases;
   }
 

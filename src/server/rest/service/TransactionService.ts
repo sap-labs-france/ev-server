@@ -948,7 +948,7 @@ export default class TransactionService {
           transactionsIDsToDelete.push(transactionId);
         } else {
           // Check connector
-          const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+          const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
             // Clear connector
             OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);
