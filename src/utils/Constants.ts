@@ -69,6 +69,7 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
   public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
   public static readonly SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING = 'sapSmartCharging';
+  public static readonly SETTING_ASSET_CONTENT_TYPE_ASSET = 'asset'
 
   public static readonly WS_DEFAULT_KEEPALIVE = 30; // Seconds
   public static readonly WS_RECONNECT_DISABLED = 0;

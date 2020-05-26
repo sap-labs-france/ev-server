@@ -30,7 +30,7 @@ export interface SettingDBContent {
   links?: SettingLink[];
   concur?: ConcurRefundSetting;
   sapSmartCharging?: SapSmartChargingSetting;
-  asset?: AssetConnectionSetting;
+  asset?: AssetSetting;
 }
 
 export enum PricingSettingsType {
@@ -204,7 +204,7 @@ export enum BillingContentType {
 export interface AssetSettings extends Setting {
   identifier: TenantComponents.ASSET;
   type: AssetSettingsType;
-  asset: AssetSetting;
+  asset?: AssetSetting;
 }
 
 export enum AssetSettingsType {
@@ -216,11 +216,12 @@ export interface AssetSetting {
 }
 
 export interface AssetConnectionSetting {
+  id: string;
   name: string;
   description: string;
   url: string;
   type: AssetConnectionType;
-  connection: AssetSchneiderConnectionType;
+  connection?: AssetSchneiderConnectionType;
 }
 
 export enum AssetConnectionType {
