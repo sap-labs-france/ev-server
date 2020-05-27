@@ -48,7 +48,7 @@ export default class CarService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
         'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image', 'chargeStandardChargeSpeed',
-        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug', 'fastChargePowerMax', 'drivetrainPowerHP']
+        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug','chargeStandardTables', 'fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -252,6 +252,7 @@ export default class CarService {
         vin: filteredRequest.vin,
         createdBy: { id: req.user.id },
         type: filteredRequest.type,
+        converterType: filteredRequest.converterType,
         createdOn: new Date()
       } as Car;
       newCar.id = await CarStorage.saveCar(req.user.tenantID, newCar);
@@ -326,6 +327,7 @@ export default class CarService {
     car.vin = filteredRequest.vin;
     car.licensePlate = filteredRequest.licensePlate;
     car.type = filteredRequest.type;
+    car.converterType = filteredRequest.converterType;
     car.lastChangedBy = { 'id': req.user.id };
     car.lastChangedOn = new Date();
     await CarStorage.saveCar(req.user.tenantID, car);

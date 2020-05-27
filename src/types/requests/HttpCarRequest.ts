@@ -31,6 +31,7 @@ export interface HttpCarCreateRequest {
   type: CarType;
   isDefault: boolean;
   id?: string;
+  converterType?: string;
 }
 
 export interface HttpUsersAssignRequest {

@@ -142,7 +142,8 @@ export default class CarSecurity {
           rangeWLTP: carCatalog.rangeWLTP,
           efficiencyReal: carCatalog.efficiencyReal,
           image: carCatalog.image,
-          chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed
+          chargeStandardChargeSpeed: carCatalog.chargeStandardChargeSpeed,
+          chargeStandardTables: carCatalog.chargeStandardTables
         });
       }
     }
@@ -156,7 +157,8 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       forced: UtilsSecurity.filterBoolean(request.forced),
       type: sanitize(request.type),
-      isDefault: UtilsSecurity.filterBoolean(request.isDefault)
+      isDefault: UtilsSecurity.filterBoolean(request.isDefault),
+      converterType: sanitize(request.converterType)
     };
   }
 
@@ -167,7 +169,8 @@ export default class CarSecurity {
       carCatalogID: Utils.convertToInt(sanitize(request.carCatalogID)),
       type: sanitize(request.type),
       isDefault: UtilsSecurity.filterBoolean(request.isDefault),
-      id: sanitize(request.id)
+      id: sanitize(request.id),
+      converterType: sanitize(request.converterType)
     };
   }
 
