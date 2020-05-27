@@ -1,14 +1,18 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-
+import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import SiteArea from './SiteArea';
+import { InactivityStatus } from './Transaction';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
   templateHash?: string;
+  templateHashCapabilities?: string;
+  templateHashTechnical?: string;
+  templateHashOcppStandard?: string;
+  templateHashOcppVendor?: string;
   issuer: boolean;
   private: boolean;
   siteAreaID?: string;
@@ -32,27 +36,28 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   lastReboot: Date;
   chargingStationURL: string;
   maximumPower: number;
-  cannotChargeInParallel: boolean;
-  powerLimitUnit: PowerLimitUnits;
+  voltage: Voltage;
+  excludeFromSmartCharging?: boolean;
+  powerLimitUnit: ChargingRateUnitType;
   coordinates: number[];
+  chargePoints: ChargePoint[];
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
+  currentServerLocalIPAddress?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
-  ocppAdvancedCommands?: OcppAdvancedCommands[];
   ocppStandardParameters?: KeyValue[];
   ocppVendorParameters?: KeyValue[];
-  currentType: ChargingStationCurrentType;
   ocpiData?: {
     evse?: OCPIEvse;
   };
 }
 
-export enum ChargingStationCurrentType {
-  AC = 'AC',
-  DC = 'DC',
-  AC_DC = 'AC/DC',
+export interface TemplateUpdateResult {
+  technicalUpdated: boolean;
+  capabilitiesUpdated: boolean;
+  ocppUpdated: boolean;
 }
 
 export interface OcppCommand {
@@ -76,17 +81,8 @@ export enum Command {
   UPDATE_FIRMWARE = 'UpdateFirmware',
 }
 
-export interface OcppAdvancedCommands {
-  command: string|OcppCommand;
-}
-
-export enum PowerLimitUnits {
-  WATT = 'W',
-  AMPERE = 'A'
-}
-
 export enum StaticLimitAmps {
-  MIN_LIMIT = 2,
+  MIN_LIMIT = 6,
 }
 
 export interface Connector {
@@ -102,7 +98,7 @@ export interface Connector {
   vendorErrorCode?: string;
   power: number;
   type: ConnectorType;
-  voltage?: number;
+  voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
   activeTransactionID?: number;
@@ -111,7 +107,8 @@ export interface Connector {
   statusLastChangedOn?: Date;
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
-  currentType?: ConnectorCurrentType;
+  currentType?: CurrentType;
+  chargePointID?: number;
 }
 
 export interface RemoteAuthorization {
@@ -138,52 +135,72 @@ export enum ConnectorCurrentLimitSource {
   CONNECTOR = 'CO'
 }
 
-export enum ConnectorCurrentType {
+export enum CurrentType {
   AC = 'AC',
   DC = 'DC'
+}
+
+export interface ChargePoint {
+  chargePointID: number;
+  currentType: CurrentType;
+  voltage: Voltage;
+  amperage: number;
+  numberOfConnectedPhase: number;
+  cannotChargeInParallel: boolean;
+  sharePowerToAllConnectors: boolean;
+  excludeFromPowerLimitation: boolean;
+  ocppParamForPowerLimitation: string;
+  power: number;
+  efficiency: number;
+  connectorIDs: number[];
+}
+
+export enum Voltage {
+  VOLTAGE_230 = 230,
+  VOLTAGE_110 = 110,
 }
 
 export interface ChargingStationTemplate {
   id?: string;
   hash?: string;
+  hashTechnical?: string;
+  hashCapabilities?: string;
+  hashOcppStandard?: string;
+  hashOcppVendor?: string;
   chargePointVendor: string;
   extraFilters: {
     chargeBoxSerialNumber?: string;
   };
-  template: {
-    private: boolean;
-    cannotChargeInParallel: boolean;
-    currentType: ChargingStationCurrentType;
+  technical: {
     maximumPower: number;
+    voltage?: Voltage;
+    powerLimitUnit: ChargingRateUnitType;
+    chargePoints?: ChargePoint[];
     connectors: {
       connectorId: number;
-      power: number;
       type: ConnectorType;
-      currentType: ConnectorCurrentType;
-      numberOfConnectedPhase: number;
-      voltage: number;
-      amperage: number;
-    }[];
-    capabilities: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      capabilities: ChargingStationCapabilities;
-    }[];
-    ocppAdvancedCommands: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      commands: OcppAdvancedCommands[];
-    }[];
-    ocppStandardParameters: {
-      supportedOcppVersions: string[];
-      parameters: object;
-    }[];
-    ocppVendorParameters: {
-      supportedFirmwareVersions: string[];
-      supportedOcppVersions: string[];
-      parameters: object;
+      power?: number;
+      amperage?: number;
+      voltage?: Voltage;
+      chargePointID?: number;
+      currentType?: CurrentType;
+      numberOfConnectedPhase?: number;
     }[];
   };
+  capabilities: {
+    supportedFirmwareVersions: string[];
+    supportedOcppVersions: string[];
+    capabilities: ChargingStationCapabilities;
+  }[];
+  ocppStandardParameters: {
+    supportedOcppVersions: string[];
+    parameters: object;
+  }[];
+  ocppVendorParameters: {
+    supportedFirmwareVersions: string[];
+    supportedOcppVersions: string[];
+    parameters: object;
+  }[];
 }
 
 export enum ConnectorType {

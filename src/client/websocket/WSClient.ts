@@ -33,12 +33,12 @@ export default class WSClient {
   public readyState: number;
   private url: string;
   private options: JsonWSClientConfiguration;
-  private callbacks: any;
+  private callbacks: { [key: string]: Function };
   private dbLogging: boolean;
   private autoReconnectRetryCount: number;
   private autoReconnectMaxRetries: number;
   private autoReconnectTimeout: number;
-  private logTenantID: any;
+  private logTenantID: string;
   private ws: WebSocket;
 
   public constructor(url: string, options: JsonWSClientConfiguration, dbLogging = true) {

@@ -128,12 +128,8 @@ export default class MongoDBStorage {
       { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
     await this.handleIndexesInCollection(collections, tenantID, 'consumptions', [
-      { fields: { siteID: 1 } },
-      { fields: { transactionId: 1, endedAt: 1 } },
-      { fields: { siteAreaID: 1 } },
       { fields: { transactionId: 1 } },
-      { fields: { chargeBoxID: 1, connectorId: 1 } },
-      { fields: { userID: 1 } }
+      { fields: { siteAreaID: 1, startedAt: 1 } },
     ]);
     Logging.logDebug({
       tenantID: tenantID,
@@ -168,27 +164,6 @@ export default class MongoDBStorage {
       }
     }
   }
-
-  // pragma public async migrateTenantDatabase(tenantID: string): Promise<void> {
-  //   // Safety check
-  //   if (!this.db) {
-  //     throw new BackendError({
-  //       source: Constants.CENTRAL_SERVER,
-  //       module: MODULE_NAME,
-  //       method: 'migrateTenantDatabase',
-  //       message: 'Not supposed to call migrateTenantDatabase before database start',
-  //       action: ServerAction.MONGO_DB
-  //     });
-  //   }
-  //   // Migrate not prefixed collections
-  //   const collections = await this.db.listCollections().toArray();
-
-  //   for (const collection of collections) {
-  //     if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
-  //       await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
-  //     }
-  //   }
-  // }
 
   public getGridFSBucket(name: string): GridFSBucket {
     return new GridFSBucket(this.db, { bucketName: name });
@@ -316,58 +291,52 @@ export default class MongoDBStorage {
         action: ServerAction.MONGO_DB
       });
     }
-    // Check Logs
-    const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-    const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
-    // Check if it exists
-    if (!foundCollection) {
-      // Create
-      await this.db.createCollection(tenantCollectionName);
-    }
-    // Indexes?
-    if (indexes) {
-      // Get current indexes
-      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Check each index that should be created
-      for (const index of indexes) {
-        // Create
+    // Indexes collection Lock
+    const createCollection = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `collection-${tenantID}.${name}`);
+    if (await LockingManager.acquire(createCollection)) {
+      try {
+        // Check Logs
+        const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
+        const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
         // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
-        if (!foundIndex) {
-          // Indexes creation Lock
-          const createIndexesLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `index-${JSON.stringify(index.fields)}`);
-          if (await LockingManager.acquire(createIndexesLock)) {
-            try {
+        if (!foundCollection) {
+          // Create
+          await this.db.createCollection(tenantCollectionName);
+        }
+        // Indexes?
+        if (indexes) {
+          // Get current indexes
+          const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+          // Check each index that should be created
+          for (const index of indexes) {
+            // Create
+            // Check if it exists
+            const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
+            if (!foundIndex) {
               // Create Indexes
-              this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
-            } finally {
-              // Release the indexes creation Lock
-              await LockingManager.release(createIndexesLock);
+              console.log(`Create index ${JSON.stringify(index)} on collection ${tenantID}.${name}`);
+              // eslint-disable-next-line @typescript-eslint/await-thenable
+              await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
             }
           }
-        }
-      }
-      // Check each index that should be dropped
-      for (const databaseIndex of databaseIndexes) {
-        // Bypass ID
-        if (databaseIndex.key._id) {
-          continue;
-        }
-        // Exists?
-        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
-        if (!foundIndex) {
-          // Indexes drop Lock
-          const dropIndexesLock = LockingManager.createExclusiveLock(tenantID, LockEntity.DATABASE_INDEX, `index-${JSON.stringify(databaseIndex.key)}`);
-          if (await LockingManager.acquire(dropIndexesLock)) {
-            try {
+          // Check each index that should be dropped
+          for (const databaseIndex of databaseIndexes) {
+            // Bypass ID
+            if (databaseIndex.key._id) {
+              continue;
+            }
+            // Exists?
+            const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
+            if (!foundIndex) {
               // Drop indexes
+              console.log(`Drop index ${JSON.stringify(databaseIndex.key)} on collection ${tenantID}.${name}`);
               await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
-            } finally {
-              // Release the indexes drop Lock
-              await LockingManager.release(dropIndexesLock);
             }
           }
         }
+      } finally {
+        // Release the creation Lock
+        await LockingManager.release(createCollection);
       }
     }
     return false;

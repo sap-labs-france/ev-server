@@ -42,6 +42,7 @@ export default class LockingManager {
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
+      // Console.log(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return true;
     } catch (error) {
       Logging.logError({
@@ -51,6 +52,7 @@ export default class LockingManager {
         message: `Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock, error: error.message, stack: error.stack }
       });
+      console.log(`Cannot acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return false;
     }
   }
@@ -75,6 +77,7 @@ export default class LockingManager {
       message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
+    // Console.log(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
     return true;
   }
 

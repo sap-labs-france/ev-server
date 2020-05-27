@@ -45,9 +45,9 @@
     "jsonwebtoken": "^8.5.1",
     "locale": "^0.1.0",
     "lodash": "^4.17.15",
-    "moment": "^2.25.3",
+    "moment": "^2.26.0",
     "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.28",
+    "moment-timezone": "^0.5.31",
     "mongo-sanitize": "^1.1.0",
     "mongo-uri-builder": "^2.0.0",
     "mongodb": "^3.5.7",
@@ -69,7 +69,7 @@
     "urlencode": "^1.1.0",
     "uuid": "^8.0.0",
     "validator": "^13.0.0",
-    "ws": "^7.2.3"
+    "ws": "^7.3.0"
   },
   "devDependencies": {
     "@types/basic-auth": "^1.1.3",

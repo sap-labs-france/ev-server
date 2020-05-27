@@ -233,12 +233,20 @@ export default class OCPPCommonTests {
     expect(response.data).to.have.property('currentTime');
   }
 
-  public async testIP() {
+  public async testClientIP() {
     // Read charging station
     const response = await this.chargingStationContext.readChargingStation();
     // Check the presence of the IP
     expect(response.data).to.have.property('currentIPAddress');
     expect(response.data.currentIPAddress).to.not.be.empty;
+  }
+
+  public async testServerLocalIP() {
+    // Read charging station
+    const response = await this.chargingStationContext.readChargingStation();
+    // Check the presence of the server local IP
+    expect(response.data).to.have.property('currentServerLocalIPAddress');
+    expect(response.data.currentServerLocalIPAddress).to.not.be.empty;
   }
 
   public async testDataTransfer() {

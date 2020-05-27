@@ -1,4 +1,4 @@
-import WebSocket, { OPEN } from 'ws';
+import WebSocket, { AddressInfo, OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -21,11 +21,12 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
+  protected readonly serverIP: string;
   private readonly url: string;
-  private readonly ip: string;
+  private readonly clientIP: string;
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
-  private _requests: any = {};
+  private requests: any = {};
   private tenantIsValid: boolean;
   private readonly chargingStationID: string;
   private readonly tenantID: string;
@@ -34,11 +35,12 @@ export default class WSConnection {
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.ip = Utils.getRequestIP(req);
+    this.clientIP = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
+    this.serverIP = (this.wsServer.address as AddressInfo).address + ':' + (this.wsServer.address as AddressInfo).port;
 
     // Default
     this.tenantIsValid = false;
@@ -147,8 +149,8 @@ export default class WSConnection {
           // Respond
           // eslint-disable-next-line no-case-declarations
           let responseCallback: Function;
-          if (Utils.isIterable(this._requests[messageId])) {
-            [responseCallback] = this._requests[messageId];
+          if (Utils.isIterable(this.requests[messageId])) {
+            [responseCallback] = this.requests[messageId];
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
@@ -168,7 +170,7 @@ export default class WSConnection {
               action: commandName
             });
           }
-          delete this._requests[messageId];
+          delete this.requests[messageId];
           responseCallback(commandName);
           break;
         // Error Message
@@ -182,7 +184,7 @@ export default class WSConnection {
             message: `Error occurred when calling the command '${commandName}'`,
             detailedMessages: [messageType, messageId, commandName, commandPayload, errorDetails]
           });
-          if (!this._requests[messageId]) {
+          if (!this.requests[messageId]) {
             // Error
             throw new BackendError({
               source: this.getChargingStationID(),
@@ -194,8 +196,8 @@ export default class WSConnection {
           }
           // eslint-disable-next-line no-case-declarations
           let rejectCallback: Function;
-          if (Utils.isIterable(this._requests[messageId])) {
-            [, rejectCallback] = this._requests[messageId];
+          if (Utils.isIterable(this.requests[messageId])) {
+            [, rejectCallback] = this.requests[messageId];
           } else {
             throw new BackendError({
               source: this.getChargingStationID(),
@@ -205,7 +207,7 @@ export default class WSConnection {
               action: commandName
             });
           }
-          delete this._requests[messageId];
+          delete this.requests[messageId];
 
           rejectCallback(new OCPPError({
             source: this.getChargingStationID(),
@@ -239,11 +241,11 @@ export default class WSConnection {
     // To implement in sub-class
   }
 
-  public getWSConnection() {
+  public getWSConnection(): WebSocket {
     return this.wsConnection;
   }
 
-  public getWSServer() {
+  public getWSServer(): JsonCentralSystemServer {
     return this.wsServer;
   }
 
@@ -251,8 +253,12 @@ export default class WSConnection {
     return this.url;
   }
 
-  public getIP(): string {
-    return this.ip;
+  public getClientIP(): string {
+    return this.clientIP;
+  }
+
+  public getServerIP(): string {
+    return this.serverIP;
   }
 
   public async send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -284,7 +290,7 @@ export default class WSConnection {
         // Request
         case Constants.OCPP_JSON_CALL_MESSAGE:
           // Build request
-          this._requests[messageId] = [responseCallback, rejectCallback];
+          this.requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, command]);
           break;
         // Response
@@ -330,7 +336,7 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = [() => { }, () => { }];
+        self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

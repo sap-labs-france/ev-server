@@ -122,17 +122,15 @@ export default class OCPIUtils {
    */
   public static buildEvseID(countryCode: string, partyId: string, chargingStation: ChargingStation, connector?: Connector): string {
     let evseID = `${countryCode}*${partyId}*E${chargingStation.id}`;
-    if (!chargingStation.cannotChargeInParallel) {
-      if (!connector) {
-        for (const _connector of chargingStation.connectors) {
-          if (_connector) {
-            connector = _connector;
-            break;
-          }
+    if (!connector) {
+      for (const _connector of chargingStation.connectors) {
+        if (_connector) {
+          connector = _connector;
+          break;
         }
       }
-      evseID = `${evseID}*${connector.connectorId}`;
     }
+    evseID = `${evseID}*${connector.connectorId}`;
     return evseID.replace(/[\W_]+/g, '*').toUpperCase();
   }
 
@@ -142,9 +140,6 @@ export default class OCPIUtils {
    * @param {*} connector the connector used to build the evse id
    */
   public static buildEvseUID(chargingStation: ChargingStation, connector?: Connector): string {
-    if (chargingStation.cannotChargeInParallel) {
-      return chargingStation.id;
-    }
     if (!connector) {
       for (const _connector of chargingStation.connectors) {
         if (_connector) {
@@ -163,9 +158,7 @@ export default class OCPIUtils {
    */
   public static buildEvseUIDs(chargingStation: ChargingStation, connector?: Connector): string[] {
     const evseUIDs = [];
-    if (chargingStation.cannotChargeInParallel) {
-      evseUIDs.push(chargingStation.id);
-    } else if (connector) {
+    if (connector) {
       evseUIDs.push(`${chargingStation.id}*${connector.connectorId}`);
     } else if (chargingStation.connectors) {
       for (const _connector of chargingStation.connectors) {

@@ -2,7 +2,6 @@ import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
-import AddLimitToConsumptionsTask from './tasks/AddLimitToConsumptionsTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddSiteAreaLimitToConsumptionsTask from './tasks/AddSiteAreaLimitToConsumptionsTask';
@@ -23,8 +22,10 @@ import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import RenameTagPropertiesTask from './tasks/RenameTagPropertiesTask';
 import { ServerAction } from '../types/Server';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import UpdateChargingStationStaticLimitationTask from './tasks/UpdateChargingStationStaticLimitationTask';
 import UpdateChargingStationTemplatesTask from './tasks/UpdateChargingStationTemplatesTask';
 import UpdateConsumptionsToObjectIDs from './tasks/UpdateConsumptionsToObjectIDs';
+import UpdateLimitsInConsumptionsTask from './tasks/UpdateLimitsInConsumptionsTask';
 import cluster from 'cluster';
 import moment from 'moment';
 
@@ -47,7 +48,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: 'Running migration tasks...'
+          message: `Running ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration tasks...`
         });
         // Create tasks
         currentMigrationTasks.push(new SiteUsersHashIDsTask());
@@ -61,16 +62,17 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new CleanupMeterValuesTask());
         currentMigrationTasks.push(new RenameTagPropertiesTask());
         currentMigrationTasks.push(new AddInactivityStatusInTransactionsTask());
-        currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new AddIssuerFieldTask());
         currentMigrationTasks.push(new CleanupOrphanBadgeTask());
         currentMigrationTasks.push(new AddLastChangePropertiesToBadgeTask());
-        currentMigrationTasks.push(new AddLimitToConsumptionsTask());
         currentMigrationTasks.push(new AddActivePropertyToTagsTask());
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
-        currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
+        currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
+        currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
+        currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
+        currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check
@@ -100,7 +102,7 @@ export default class MigrationHandler {
           tenantID: Constants.DEFAULT_TENANT,
           action: ServerAction.MIGRATION,
           module: MODULE_NAME, method: 'migrate',
-          message: `The migration has been run in ${totalMigrationTimeSecs} secs`
+          message: `The ${processAsyncTasksOnly ? 'asynchronous' : 'synchronous'} migration has been run in ${totalMigrationTimeSecs} secs`
         });
       } catch (error) {
         Logging.logError({
