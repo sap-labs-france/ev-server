@@ -169,10 +169,13 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  public static filterChargingStationProfilesRequest(request: any): HttpChargingProfilesRequest {
+  public static filterChargingProfilesRequest(request: any): HttpChargingProfilesRequest {
     const filteredRequest: HttpChargingProfilesRequest = {} as HttpChargingProfilesRequest;
+    filteredRequest.Search = sanitize(request.Search),
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorID = sanitize(request.ConnectorID);
+    filteredRequest.WithChargingStation = UtilsSecurity.filterBoolean(request.WithChargingStation);
+    filteredRequest.WithSiteArea = UtilsSecurity.filterBoolean(request.WithSiteArea);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

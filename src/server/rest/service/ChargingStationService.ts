@@ -380,22 +380,23 @@ export default class ChargingStationService {
 
   public static async handleGetChargingProfiles(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationProfilesRequest(req.query);
-    UtilsService.assertIdIsProvided(action, filteredRequest.ChargeBoxID, MODULE_NAME, 'handleGetChargingProfiles', req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingProfilesRequest(req.query);
     // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
+    if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.READ,
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME,
-        method: 'handleGetChargingProfiles',
-        value: filteredRequest.ChargeBoxID
+        method: 'handleGetChargingProfiles'
       });
     }
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: filteredRequest.ChargeBoxID, connectorID: filteredRequest.ConnectorID },
+      { chargingStationID: filteredRequest.ChargeBoxID,
+        connectorID: filteredRequest.ConnectorID,
+        withChargingStation: filteredRequest.WithChargingStation,
+        withSiteArea: filteredRequest.WithSiteArea },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     res.json(chargingProfiles);
     next();

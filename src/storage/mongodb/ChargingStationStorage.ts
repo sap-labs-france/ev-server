@@ -12,6 +12,7 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
+import SiteAreaStorage from './SiteAreaStorage';
 import TenantComponents from '../../types/TenantComponents';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
@@ -702,7 +703,7 @@ export default class ChargingStationStorage {
   public static async getChargingProfiles(tenantID: string,
     params: {
       chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
-      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number;
+      profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
     // Debug
@@ -743,6 +744,7 @@ export default class ChargingStationStorage {
         $match: filters
       });
     }
+
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -784,12 +786,29 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    if (params.withChargingStation || params.withSiteArea) {
+      DatabaseUtils.pushChargingStationLookupInAggregation({
+        tenantID, aggregation, localField: 'chargingStationID', foreignField: '_id',
+        asField: 'chargingStation',
+        oneToOneCardinality: true,
+        oneToOneCardinalityNotNull: false
+      });
+    }
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingProfilesMDB = await global.database.getCollection<ChargingProfile>(tenantID, 'chargingprofiles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
+
+    if (params.withSiteArea) {
+      for (const chargingProfile of chargingProfilesMDB) {
+        if (chargingProfile.chargingStation.siteAreaID) {
+          chargingProfile.siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingProfile.chargingStation.siteAreaID);
+        }
+      }
+    }
+
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getChargingProfiles', uniqueTimerID, { params, dbParams });
     return {

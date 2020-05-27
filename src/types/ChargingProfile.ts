@@ -1,8 +1,13 @@
+import ChargingStation from './ChargingStation';
+import SiteArea from './SiteArea';
+
 export interface ChargingProfile {
   id?: string;
   chargingStationID: string;
+  chargingStation?: ChargingStation;
   chargePointID: number;
   connectorID?: number;
+  siteArea?: SiteArea;
   profile: Profile;
 }
 
