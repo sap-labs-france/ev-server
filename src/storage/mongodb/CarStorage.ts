@@ -547,7 +547,6 @@ export default class CarStorage {
 
   public static async updateUsersCar(tenantID: string, carID: string, usersCarToSave: UserCar[]): Promise<ActionsResponse> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'updateUsersCar');
     const actionsDone: ActionsResponse = {
       inSuccess: 0,
       inError: 0
@@ -569,7 +568,7 @@ export default class CarStorage {
       try {
         const userCarDB = await CarStorage.getUserCarByCarUser(tenantID, carID, userCar.userID);
         if (userCarDB) {
-          if (userCarDB.default !== userCar.default || !userCar.active) {
+          if (userCarDB.default !== userCar.default || !userCarDB.active) {
             if (userCar.default) {
               await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
             }

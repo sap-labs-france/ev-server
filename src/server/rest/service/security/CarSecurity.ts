@@ -209,7 +209,9 @@ export default class CarSecurity {
         vin: car.vin,
         licensePlate: car.licensePlate,
         carCatalogID: car.carCatalogID,
-        type: car.type
+        type: car.type,
+        converterType: car.converterType,
+        isDefault: car.isDefault
       };
     }
     if (car.users) {

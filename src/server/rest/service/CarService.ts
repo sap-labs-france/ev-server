@@ -48,7 +48,7 @@ export default class CarService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'vehicleModel', 'vehicleMake', 'vehicleModelVersion', 'batteryCapacityFull', 'fastchargeChargeSpeed', 'performanceTopspeed',
         'performanceAcceleration', 'rangeWLTP', 'rangeReal', 'efficiencyReal', 'image', 'chargeStandardChargeSpeed',
-        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug','chargeStandardTables', 'fastChargePowerMax', 'drivetrainPowerHP']
+        'chargeStandardPower', 'chargeStandardPhase', 'chargePlug', 'fastChargePlug', 'chargeStandardTables', 'fastChargePowerMax', 'drivetrainPowerHP']
     );
     // Filter
     CarSecurity.filterCarCatalogsResponse(carCatalogs, req.user);
@@ -289,8 +289,8 @@ export default class CarService {
 
   public static async handleUpdateCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
-      Action.UPDATE, Entity.SITE, MODULE_NAME, 'handleUpdateSite');
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
+      Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
     // Check
@@ -404,9 +404,14 @@ export default class CarService {
     }
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
-
-    // Get the car
-    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
+    let car: Car;
+    if (Authorizations.isBasic(req.user)) {
+      car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
+      car.isDefault = (await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.ID, req.user.id)).default;
+    } else {
+      // Get the car
+      car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
+    }
 
     // Return
     res.json(CarSecurity.filterCarResponse(car, req.user));
@@ -444,7 +449,7 @@ export default class CarService {
 
   public static async handleAssignUsersCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.CREATE, Entity.USER_CAR,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.CREATE, Entity.USERS_CARS,
       MODULE_NAME, 'handleAssignUsersCar');
     // Check auth
     if (!Authorizations.canAssignUsersCar(req.user)) {
@@ -464,7 +469,7 @@ export default class CarService {
 
   public static async handleUpdateUsersCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.UPDATE, Entity.USER_CAR,
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.UPDATE, Entity.USERS_CARS,
       MODULE_NAME, 'handleUpdateUsersCar');
     // Check auth
     if (!Authorizations.canUpdateUsersCar(req.user)) {

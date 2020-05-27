@@ -210,7 +210,7 @@ class RequestMapper {
           [ServerAction.OCPI_ENDPOINT_UNREGISTER]: OCPIEndpointService.handleUnregisterOcpiEndpoint.bind(this),
           [ServerAction.SYNCHRONIZE_CAR_CATALOGS]: CarService.handleSynchronizeCarCatalogs.bind(this),
           [ServerAction.CAR_UPDATE]: CarService.handleUpdateCar.bind(this),
-          [ServerAction.USER_CAR_UPDATE]: CarService.handleUpdateUsersCar.bind(this),
+          [ServerAction.USERS_CAR_UPDATE]: CarService.handleUpdateUsersCar.bind(this),
         });
         break;
 
