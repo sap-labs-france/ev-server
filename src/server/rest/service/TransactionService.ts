@@ -7,6 +7,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Consumption from '../../../types/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
@@ -297,7 +298,7 @@ export default class TransactionService {
         MODULE_NAME, 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
-    const result = await new OCPPService().handleStopTransaction(
+    const result = await new OCPPService(Configuration.getChargingStationConfig()).handleStopTransaction(
       {
         chargeBoxIdentity: chargingStation.id,
         tenantID: req.user.tenantID
@@ -363,7 +364,7 @@ export default class TransactionService {
     // Get the consumption
     let consumptions: Consumption[];
     if (filteredRequest.LoadAllConsumptions) {
-      consumptions = await ConsumptionStorage.getAllTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
+      consumptions = await ConsumptionStorage.getTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     } else {
       consumptions = await ConsumptionStorage.getOptimizedTransactionConsumptions(req.user.tenantID, { transactionId: transaction.id });
     }
@@ -947,7 +948,7 @@ export default class TransactionService {
           transactionsIDsToDelete.push(transactionId);
         } else {
           // Check connector
-          const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+          const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
           if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
             // Clear connector
             OCPPUtils.checkAndFreeChargingStationConnector(transaction.chargeBox, transaction.connectorId);

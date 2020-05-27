@@ -151,7 +151,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentSignedData = transaction.currentSignedData;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
-        const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
         filteredTransaction.status = foundConnector ? foundConnector.status : null;
       }
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
