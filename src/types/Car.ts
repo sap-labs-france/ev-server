@@ -147,6 +147,7 @@ export interface UserCar extends CreatedUpdatedProps {
   car?: Car;
   default?: boolean;
   active?: boolean;
+  owner?: boolean;
 }
 
 export interface CarMaker {

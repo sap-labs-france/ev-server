@@ -182,7 +182,7 @@ export default class CarService {
   }
 
   public static async handleCarCreate(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
-    let newCar: Car;
+    let newCar: Car, isNewCar = false;
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR,
       Action.CREATE, Entity.CAR, MODULE_NAME, 'handleCarCreate');
@@ -255,6 +255,7 @@ export default class CarService {
         createdOn: new Date()
       } as Car;
       newCar.id = await CarStorage.saveCar(req.user.tenantID, newCar);
+      isNewCar = true;
     }
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -275,7 +276,8 @@ export default class CarService {
         userID: req.user.id,
         default: filteredRequest.isDefault,
         createdBy: { id: req.user.id },
-        createdOn: new Date()
+        createdOn: new Date(),
+        owner: isNewCar
       } as UserCar;
       newUserCar.id = await CarStorage.saveUserCar(req.user.tenantID, newUserCar);
     }

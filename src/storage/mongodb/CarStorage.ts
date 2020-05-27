@@ -490,7 +490,8 @@ export default class CarStorage {
       userID: Utils.convertToObjectID(userCarToSave.userID),
       carID: Utils.convertToObjectID(userCarToSave.carID),
       default: userCarToSave.default,
-      active: true
+      active: true,
+      owner: (userCarToSave.owner === true ? true : false)
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(userCarMDB, userCarToSave);
@@ -571,6 +572,10 @@ export default class CarStorage {
             if (userCar.default) {
               await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
             }
+            if (userCar.owner !== userCarDB.owner) {
+              await CarStorage.clearUserCarOwner(tenantID, carID);
+            }
+            userCarDB.owner = userCar.owner;
             userCarDB.active = true;
             userCarDB.default = userCar.default;
             await CarStorage.saveUserCar(tenantID, userCarDB);
@@ -579,6 +584,9 @@ export default class CarStorage {
         } else {
           if (userCar.default) {
             await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
+          }
+          if (userCar.owner) {
+            await CarStorage.clearUserCarOwner(tenantID, carID);
           }
           userCar.carID = carID;
           userCar.lastChangedOn = new Date();
@@ -758,6 +766,21 @@ export default class CarStorage {
         $set: { default: false }
       });
     Logging.traceEnd(MODULE_NAME, 'clearDefaultCar', uniqueTimerID, { userID });
+  }
+
+  public static async clearUserCarOwner(tenantID: string, carID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'clearDefaultCar');
+    await Utils.checkTenant(tenantID);
+
+    await global.database.getCollection<any>(tenantID, 'userscars').updateMany(
+      {
+        carID: Utils.convertToObjectID(carID),
+        owner: true
+      },
+      {
+        $set: { owner: false }
+      });
+    Logging.traceEnd(MODULE_NAME, 'clearUserCarOwner', uniqueTimerID, { carID });
   }
 
   public static async getUserCarByCarUser(tenantID: string,

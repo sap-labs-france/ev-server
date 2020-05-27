@@ -247,7 +247,8 @@ export default class CarSecurity {
       user: userCar.user,
       carID: userCar.carID,
       userID: userCar.userID,
-      default: userCar.default
+      default: userCar.default,
+      owner: userCar.owner
     };
     return filteredUserCar;
   }
@@ -286,6 +287,7 @@ export default class CarSecurity {
         usersCar.push({
           userID: userCar.user.id,
           default: userCar.default,
+          owner: userCar.owner
         } as UserCar);
       }
     }
