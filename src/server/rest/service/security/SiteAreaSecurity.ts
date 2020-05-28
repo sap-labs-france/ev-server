@@ -79,6 +79,7 @@ export default class SiteAreaSecurity {
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
         filteredSiteArea.maximumPower = siteArea.maximumPower;
+        filteredSiteArea.voltage = siteArea.voltage;
         filteredSiteArea.numberOfPhases = siteArea.numberOfPhases;
       }
       if (Utils.objectHasProperty(siteArea, 'address')) {
