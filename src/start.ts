@@ -31,6 +31,7 @@ export default class Bootstrap {
   private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static centralRestServer: CentralRestServer;
   private static chargingStationConfig: ChargingStationConfiguration;
+  // FIXME: Add a database agnostic storage notification type definition
   private static storageNotification: MongoDBStorageNotification;
   private static storageConfig: StorageConfiguration;
   private static centralSystemsConfig: CentralSystemConfiguration[];
