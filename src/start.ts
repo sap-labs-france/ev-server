@@ -42,7 +42,7 @@ export default class Bootstrap {
   private static oDataServerConfig: ODataServiceConfiguration;
   private static oDataServer: ODataServer;
   private static databaseDone: boolean;
-  private static database: any;
+  private static database: MongoDBStorage;
   private static migrationConfig: MigrationConfiguration;
   private static migrationDone: boolean;
 
@@ -221,16 +221,16 @@ export default class Bootstrap {
         if (!Bootstrap.centralRestServer) {
           Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
         }
-        // Create database Web Socket notifications
-        if (!Bootstrap.storageNotification) {
-          Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
-        }
-        // Start database Web Socket notifications
-        Bootstrap.storageNotification.start();
         // Start it
         await Bootstrap.centralRestServer.start();
         // FIXME: Issue with cluster, see https://github.com/LucasBrazi06/ev-server/issues/1097
         if (this.centralSystemRestConfig.socketIO) {
+          // Create database Socket IO notifications
+          if (!Bootstrap.storageNotification) {
+            Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
+          }
+          // Start database Socket IO notifications
+          await Bootstrap.storageNotification.start();
           await this.centralRestServer.startSocketIO();
         }
       }
