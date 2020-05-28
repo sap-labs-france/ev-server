@@ -647,27 +647,6 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Notifiy
       await this.notifyStartTransaction(headers.tenantID, transaction, chargingStation, user);
-      // Handle Smart Charging
-      // Must be handled at the end to get the Transaction ID
-      if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
-        // Call async because the Charging Station should get the Transaction ID first
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        setTimeout(async () => {
-          try {
-            // Trigger Smart Charging
-            await this.triggerSmartCharging(tenant, chargingStation);
-          } catch (error) {
-            Logging.logError({
-              tenantID: tenant.id,
-              source: chargingStation.id,
-              module: MODULE_NAME, method: 'handleStartTransaction',
-              action: ServerAction.START_TRANSACTION,
-              message: 'An error occurred while trying to call smart charging',
-              detailedMessages: { error: error.message, stack: error.stack }
-            });
-          }
-        }, Constants.DELAY_SMART_CHARGING_EXECUTION_MILLIS);
-      }
       // Log
       if (user) {
         // Log
@@ -857,7 +836,7 @@ export default class OCPPService {
         setTimeout(async () => {
           try {
             // Trigger Smart Charging
-            await this.triggerSmartCharging(tenant, chargingStation);
+            await this.triggerSmartCharging(tenant.id, chargingStation);
           } catch (error) {
             Logging.logError({
               tenantID: tenant.id,
@@ -897,6 +876,7 @@ export default class OCPPService {
   private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, bothConnectorsUpdated) {
     // Get it
     let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
+    const oldConnectorStatus = foundConnector.status;
     if (!foundConnector) {
       // Does not exist: Create
       foundConnector = {
@@ -961,6 +941,27 @@ export default class OCPPService {
     await this.updateOCPIStatus(tenantID, chargingStation, foundConnector);
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
+    // Start Transaction in OCPP: trigger Smart Charging
+    if ((statusNotification.status === ChargePointStatus.CHARGING ||
+         statusNotification.status === ChargePointStatus.SUSPENDED_EV ||
+         statusNotification.status === ChargePointStatus.SUSPENDED_EVSE) &&
+        (oldConnectorStatus === ChargePointStatus.PREPARING ||
+         oldConnectorStatus === ChargePointStatus.AVAILABLE)) {
+      // Handle Smart Charging
+      try {
+        // Trigger Smart Charging
+        await this.triggerSmartCharging(tenantID, chargingStation);
+      } catch (error) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'updateConnectorStatus',
+          action: ServerAction.STATUS_NOTIFICATION,
+          message: 'An error occurred while trying to call the smart charging',
+          detailedMessages: { error: error.message, stack: error.stack }
+        });
+      }
+    }
   }
 
   private async checkStatusNotificationInactivity(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, connector: Connector) {
@@ -1931,14 +1932,14 @@ export default class OCPPService {
     }
   }
 
-  private async triggerSmartCharging(tenant: Tenant, chargingStation: ChargingStation) {
+  private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
     // Get Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(tenant.id, chargingStation.siteAreaID);
+    const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
     if (siteArea.smartCharging) {
-      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenant.id, siteArea);
+      const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
       if (siteAreaLock) {
         try {
-          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenant.id);
+          const smartCharging = await SmartChargingFactory.getSmartChargingImpl(tenantID);
           if (smartCharging) {
             await smartCharging.computeAndApplyChargingProfiles(siteArea);
           }
