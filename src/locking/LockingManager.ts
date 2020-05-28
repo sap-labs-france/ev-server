@@ -42,6 +42,7 @@ export default class LockingManager {
         message: `Acquired successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
         detailedMessages: { lock }
       });
+      // pragma console.log(`Acquire the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
       return true;
     } catch (error) {
       Logging.logError({
@@ -76,6 +77,7 @@ export default class LockingManager {
       message: `Released successfully the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`,
       detailedMessages: { lock }
     });
+    // pragma console.log(`Released the lock entity '${lock.entity}' ('${lock.key}') of type '${lock.type}'`);
     return true;
   }
 

@@ -81,6 +81,7 @@ export default abstract class AbstractOCPIService {
   // Rest Service Implementation
   public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
+    // FIXME: use a express request parameter instead of using regexp to parse the request URL
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
       throw new BackendError({

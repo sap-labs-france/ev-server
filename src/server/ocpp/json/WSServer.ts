@@ -67,7 +67,7 @@ export default class WSServer extends WebSocket.Server {
     // Secured protocol?
     if (serverConfig.protocol === 'wss') {
       // Create the options
-      const options: any = {};
+      const options: https.ServerOptions = {};
       // Set the keys
       options.key = fs.readFileSync(serverConfig['ssl-key']);
       options.cert = fs.readFileSync(serverConfig['ssl-cert']);

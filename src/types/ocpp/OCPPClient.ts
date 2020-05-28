@@ -1,7 +1,6 @@
-import { ChargingProfile, ChargingSchedule, Profile } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 
 import { KeyValue } from '../GlobalType';
-import { PowerLimitUnits } from '../ChargingStation';
 
 export interface OCPPCommandParam {
 }
@@ -118,7 +117,7 @@ export enum OCPPChargingProfileStatus {
 export interface OCPPGetCompositeScheduleCommandParam extends OCPPCommandParam {
   connectorId: number;
   duration: number;
-  chargingRateUnit?: PowerLimitUnits;
+  chargingRateUnit?: ChargingRateUnitType;
 }
 
 export interface OCPPGetCompositeScheduleCommandResult {

@@ -13,8 +13,8 @@ import http from 'http';
 import { v4 as uuid } from 'uuid';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
-  private _serverName: string;
-  private _MODULE_NAME: string;
+  private serverName: string;
+  private MODULE_NAME: string;
   private jsonChargingStationClients: JsonWSConnection[];
   private jsonRestClients: JsonRestWSConnection[];
   private wsServer: WSServer;
@@ -23,21 +23,71 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
-    this._serverName = 'OCPP';
-    this._MODULE_NAME = 'JsonCentralSystemServer';
+    this.serverName = 'OCPP';
+    this.MODULE_NAME = 'JsonCentralSystemServer';
     this.jsonChargingStationClients = [];
     this.jsonRestClients = [];
   }
 
-  get MODULE_NAME() {
-    return this._MODULE_NAME;
+  public start() {
+    // Keep it global
+    global.centralSystemJsonServer = this;
+    // Make server to listen
+    this.startListening();
   }
 
-  get serverName() {
-    return this._serverName;
+  public getChargingStationClient(tenantID: string, chargingStationID: string): JsonWSConnection {
+    // Build ID
+    const id = `${tenantID}~${chargingStationID}}`;
+    // Charging Station exists?
+    if (this.jsonChargingStationClients[id]) {
+      // Return from the cache
+      return this.jsonChargingStationClients[id].getChargingStationClient();
+    }
+    // Not found!
+    return null;
   }
 
-  public _createWSServer() {
+  public get address(): string|WebSocket.AddressInfo {
+    return this.wsServer.address();
+  }
+
+  public removeJsonConnection(wsConnection: JsonWSConnection) {
+    // Check first
+    if (this.jsonChargingStationClients[wsConnection.getID()] &&
+      this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
+      // Remove from cache
+      delete this.jsonChargingStationClients[wsConnection.getID()];
+    }
+  }
+
+  public removeRestConnection(wsConnection: JsonRestWSConnection) {
+    // Check first
+    if (this.jsonRestClients[wsConnection.getID()] &&
+      this.jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
+      // Remove from cache
+      delete this.jsonRestClients[wsConnection.getID()];
+    }
+  }
+
+  private addJsonConnection(wsConnection: JsonWSConnection) {
+    // Keep the connection
+    this.jsonChargingStationClients[wsConnection.getID()] = wsConnection;
+  }
+
+  private addRestConnection(wsConnection: JsonRestWSConnection) {
+    // Keep the connection
+    this.jsonRestClients[wsConnection.getID()] = wsConnection;
+  }
+
+  private startListening() {
+    // Create the WS server
+    this.createWSServer();
+    // Make server to listen
+    this.wsServer.startListening();
+  }
+
+  private createWSServer() {
     const verifyClient = (info) => {
       // Check the URI
       if (info.req.url.startsWith('/OCPP16')) {
@@ -48,14 +98,14 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME, method: 'verifyClient',
+        module: this.MODULE_NAME, method: 'verifyClient',
         action: ServerAction.EXPRESS_SERVER,
         message: `Invalid connection URL ${info.req.url}`
       });
       return false;
     };
 
-    const handleProtocols = (protocols, request): boolean|string => {
+    const handleProtocols = (protocols, request): boolean | string => {
       // Check the protocols
       // Ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
@@ -73,7 +123,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: this._MODULE_NAME, method: 'handleProtocols',
+        module: this.MODULE_NAME, method: 'handleProtocols',
         action: ServerAction.EXPRESS_SERVER,
         message: `Invalid protocol ${protocols}`
       });
@@ -81,7 +131,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     };
 
     // Create the WS server
-    this.wsServer = new WSServer(WSServer.createHttpServer(this.centralSystemConfig), this._serverName,
+    this.wsServer = new WSServer(WSServer.createHttpServer(this.centralSystemConfig), this.serverName,
       this.centralSystemConfig, verifyClient, handleProtocols);
     this.wsServer.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
       try {
@@ -106,65 +156,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, ServerAction.WS_CONNECTION, '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
+          error, ServerAction.WS_CONNECTION, '', this.MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
     });
-  }
-
-  public start() {
-    // Keep it global
-    global.centralSystemJson = this;
-    // Make server to listen
-    this._startListening();
-  }
-
-  public _startListening() {
-    // Create the WS server
-    this._createWSServer();
-    // Make server to listen
-    this.wsServer.startListening();
-  }
-
-  public addJsonConnection(wsConnection: JsonWSConnection) {
-    // Keep the connection
-    this.jsonChargingStationClients[wsConnection.getID()] = wsConnection;
-  }
-
-  public removeJsonConnection(wsConnection: JsonWSConnection) {
-    // Check first
-    if (this.jsonChargingStationClients[wsConnection.getID()] &&
-      this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
-      // Remove from cache
-      delete this.jsonChargingStationClients[wsConnection.getID()];
-    }
-  }
-
-  public addRestConnection(wsConnection: JsonRestWSConnection) {
-    // Keep the connection
-    this.jsonRestClients[wsConnection.getID()] = wsConnection;
-  }
-
-  public removeRestConnection(wsConnection: JsonRestWSConnection) {
-    // Check first
-    if (this.jsonRestClients[wsConnection.getID()] &&
-      this.jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection()['id']) {
-      // Remove from cache
-      delete this.jsonRestClients[wsConnection.getID()];
-    }
-  }
-
-  public getChargingStationClient(tenantID: string, chargingStationID: string): JsonWSConnection {
-    // Build ID
-    const id = `${tenantID}~${chargingStationID}}`;
-    // Charging Station exists?
-    if (this.jsonChargingStationClients[id]) {
-      // Return from the cache
-      return this.jsonChargingStationClients[id].getChargingStationClient();
-    }
-    // Not found!
-    return null;
   }
 }
 
