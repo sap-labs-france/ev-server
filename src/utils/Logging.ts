@@ -164,7 +164,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: '<< OCPP Request Returned',
+        message: '>> OCPP Request Returned',
         action: action,
         detailedMessages
       });
@@ -173,7 +173,7 @@ export default class Logging {
         tenantID: tenantID,
         source: chargeBoxID,
         module: module, method: action,
-        message: '<< OCPP Request Returned',
+        message: '>> OCPP Request Returned',
         action: action,
         detailedMessages
       });
