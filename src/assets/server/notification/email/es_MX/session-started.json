@@ -1,0 +1,34 @@
+{
+  "subject": "Sesión iniciada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Sesión iniciada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hola <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Su vehículo eléctrico está conectado correctamente a la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b>."
+    ],
+    "action": {
+      "title": "Ver Sesion",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {}
+  }
+}
