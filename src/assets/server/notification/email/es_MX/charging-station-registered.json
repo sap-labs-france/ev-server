@@ -1,0 +1,35 @@
+{
+  "subject": "'<% - chargeBoxID%> 'se acaba de conectar",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Terminal conectada",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Estimado administrador,",
+      "",
+      "La terminal <b> <% - chargeBoxID%> </b> acaba de conectarse al servidor central."
+    ],
+    "action": {
+      "title": "Ver <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
