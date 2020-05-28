@@ -1,24 +1,23 @@
-import fs from 'fs';
-
-import moment from 'moment';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
-import DbParams from '../../types/database/DbParams';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import { DataResult } from '../../types/DataResult';
-import global from '../../types/GlobalType';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
+import fs from 'fs';
+import global from '../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -217,10 +216,6 @@ export default class ChargingStationStorage {
     }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs)) {
-      // If sites but no site area, no results can be found - return early.
-      if (params.withNoSiteArea) {
-        return { count: 0, result: [] };
-      }
       // Build filter
       aggregation.push({
         $match: {
