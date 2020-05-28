@@ -566,6 +566,10 @@ export default class Utils {
     return 0;
   }
 
+  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
+    return Math.round(numberToRound * 100) / 100;
+  }
+
   public static getNumberOfConnectedPhases(chargingStation: ChargingStation,
     chargePoint?: ChargePoint, connectorId = 0): number {
     if (chargingStation) {

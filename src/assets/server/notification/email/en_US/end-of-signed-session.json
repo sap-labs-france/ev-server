@@ -4,16 +4,16 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "stats": [
-      { "label": "Ladepunkt", "value": "<%- chargeBoxID %>" },
-      { "label": "Anschluss", "value": "<%- connectorId %>" },
-      { "label": "ID Tag", "value": "<%- tagId %>" },
-      { "label": "Start-Zeit", "value": "<%- startDate %>" },
-      { "label": "Ende-Zeit", "value": "<%- endDate %>" },
-      { "label": "Start-Zählerstand", "value": "<%- meterStart %> kWh" },
-      { "label": "Ende-Zählerstand", "value": "<%- meterStop %> kWh" },
-      { "label": "Verbrauch", "value": "<%- totalConsumption %> kWh" },
-      { "label": "Kosten", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
-      { "label": "Vertrag über", "value":"LOCAL (informativ)" }
+      { "label": "Charger", "value": "<%- chargeBoxID %>" },
+      { "label": "Connector", "value": "<%- connectorId %>" },
+      { "label": "Badge ID", "value": "<%- tagId %>" },
+      { "label": "Start time", "value": "<%- startDate %>" },
+      { "label": "End time", "value": "<%- endDate %>" },
+      { "label": "Start counter", "value": "<%- meterStart %> kWh" },
+      { "label": "Start counter", "value": "<%- meterStop %> kWh" },
+      { "label": "Consumption", "value": "<%- totalConsumption %> kWh" },
+      { "label": "Cost", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
+      { "label": "Contract for", "value":"LOCAL (informativ)" }
     ],
     "transactionId": "<%- transactionId %>",
     "startSignedData": "<%- startSignedData %>",
