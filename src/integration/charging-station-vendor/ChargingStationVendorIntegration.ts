@@ -493,7 +493,7 @@ export default abstract class ChargingStationVendorIntegration {
             }
             const result: ConnectorCurrentLimit = {
               limitAmps: connectorLimitAmps,
-              limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
+              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
               limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
             };
             Logging.logDebug({
@@ -527,7 +527,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
         const result: ConnectorCurrentLimit = {
           limitAmps: connectorLimitAmps,
-          limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
+          limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
           limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
         };
         Logging.logDebug({
@@ -588,7 +588,7 @@ export default abstract class ChargingStationVendorIntegration {
         } else {
           // Limit Watts for all the phases (Cahors)
           schedulePeriod.limit = Utils.convertAmpToWatt(
-            chargingStation, vendorSpecificChargingProfile.connectorID,
+            chargingStation, chargePoint, vendorSpecificChargingProfile.connectorID,
             this.chargePointToConnectorLimitAmps(chargePoint, schedulePeriod.limit));
         }
       }
@@ -608,12 +608,12 @@ export default abstract class ChargingStationVendorIntegration {
         // Convert to Amps for all phases
         if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
           chargingSchedulePeriod['limitWatts'] = chargingSchedulePeriod.limit;
-          chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, connectorID, chargingSchedulePeriod.limit);
+          chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
         }
         // Limit is per connector and per phase Convert to max Amp
         chargingSchedulePeriod.limit = this.convertLimitAmpToAllPhases(
           chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
-        chargingSchedulePeriod['limitWatts'] = Utils.convertAmpToWatt(chargingStation, connectorID, chargingSchedulePeriod.limit);
+        chargingSchedulePeriod['limitWatts'] = Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
       }
     }
     // Convert to Amps?
