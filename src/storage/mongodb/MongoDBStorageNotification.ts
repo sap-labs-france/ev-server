@@ -64,6 +64,13 @@ export default class MongoDBStorageNotification {
     if (this.dbConfig.monitorDBChange) {
       // Check
       if (!this.centralRestServer) {
+        // Log
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.STARTUP,
+          module: MODULE_NAME, method: 'start',
+          message: `Error starting to monitor changes on database '${this.dbConfig.implementation}': REST server attribute not initialized`
+        });
         return;
       }
 
