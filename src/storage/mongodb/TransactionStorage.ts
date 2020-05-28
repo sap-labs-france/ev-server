@@ -1,19 +1,19 @@
-import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-
-import Constants from '../../utils/Constants';
-import ConsumptionStorage from './ConsumptionStorage';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
-import { NotifySessionNotStarted } from '../../types/Notification';
-import { ServerAction } from '../../types/Server';
-import User from '../../types/User';
-import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
 import moment from 'moment';
+
+import global from './../../types/GlobalType';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import { ServerAction } from '../../types/Server';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
+import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import ConsumptionStorage from './ConsumptionStorage';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -234,7 +234,7 @@ export default class TransactionStorage {
     params: {
       transactionId?: number; issuer?: boolean; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[];
       chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteIDs?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: InactivityStatus[];
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[]; inactivityStatus?: string[];
       ocpiSessionId?: string; ocpiSessionDateFrom?: Date; ocpiSessionDateTo?: Date; ocpiCdrDateFrom?: Date; ocpiCdrDateTo?: Date;
       ocpiSessionChecked?: boolean; ocpiCdrChecked?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
