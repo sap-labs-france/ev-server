@@ -1,5 +1,5 @@
 import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
-import ChargingStation, { Connector, ConnectorType } from '../../../../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorType } from '../../../../types/ChargingStation';
 import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
 import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
@@ -24,6 +24,7 @@ import Tenant from '../../../../types/Tenant';
 import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
 import moment from 'moment';
 
 /**
@@ -426,13 +427,20 @@ export default class OCPIMapping {
         format = OCPIConnectorFormat.CABLE;
         break;
     }
+    let chargePoint: ChargePoint;
+    if (connector.chargePointID) {
+      chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
+    }
+    const voltage = Utils.getChargingStationVoltage(chargingStation, connector.connectorId);
+    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+    const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {
       'id': `${evseID}*${connector.connectorId}`,
       'standard': type,
       'format': format,
-      'voltage': connector.voltage,
-      'amperage': connector.amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(connector.numberOfConnectedPhase),
+      'voltage': voltage,
+      'amperage': amperage,
+      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase),
       'last_updated': chargingStation.lastHeartBeat
     };
   }
