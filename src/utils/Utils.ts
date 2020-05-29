@@ -1,6 +1,6 @@
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -329,6 +329,17 @@ export default class Utils {
         method: 'normalizeAndCheckSOAPParams',
         message: 'The Charging Station ID is invalid'
       });
+    }
+  }
+
+  public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
+    switch (limitSource) {
+      case ConnectorCurrentLimitSource.CHARGING_PROFILE:
+        return 'Charging Profile';
+      case ConnectorCurrentLimitSource.CONNECTOR:
+        return 'Connector';
+      case ConnectorCurrentLimitSource.STATIC_LIMITATION:
+        return 'Static Limitation';
     }
   }
 
