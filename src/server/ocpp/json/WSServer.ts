@@ -13,7 +13,6 @@ import https from 'https';
 const MODULE_NAME = 'WSServer';
 
 export default class WSServer extends WebSocket.Server {
-  public clients: Set<WebSocket>;
   private httpServer: http.Server;
   private serverName: string;
   private serverConfig: CentralSystemConfiguration;
