@@ -431,7 +431,7 @@ export default class OCPIMapping {
     if (connector.chargePointID) {
       chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
     }
-    const voltage = Utils.getChargingStationVoltage(chargingStation, connector.connectorId);
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connector.connectorId);
     const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
     const numberOfConnectedPhase = Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connector.connectorId);
     return {

@@ -876,7 +876,7 @@ export default class OCPPService {
   private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, bothConnectorsUpdated) {
     // Get it
     let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
-    const oldConnectorStatus = foundConnector.status;
+    const oldConnectorStatus = foundConnector ? foundConnector.status : null;
     if (!foundConnector) {
       // Does not exist: Create
       foundConnector = {
@@ -942,7 +942,8 @@ export default class OCPPService {
     // Save
     await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     // Start Transaction in OCPP: trigger Smart Charging
-    if ((statusNotification.status === ChargePointStatus.CHARGING ||
+    if (oldConnectorStatus &&
+        (statusNotification.status === ChargePointStatus.CHARGING ||
          statusNotification.status === ChargePointStatus.SUSPENDED_EV ||
          statusNotification.status === ChargePointStatus.SUSPENDED_EVSE) &&
         (oldConnectorStatus === ChargePointStatus.PREPARING ||
@@ -1500,7 +1501,7 @@ export default class OCPPService {
         module: MODULE_NAME, method: 'updateChargingStationWithTransaction',
         action: ServerAction.CONSUMPTION,
         user: transaction.userID,
-        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
+        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.currentConsumption / 1000)} kW, Total: ${Utils.getRoundedNumberToTwoDecimals(foundConnector.totalConsumption / 1000)} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
