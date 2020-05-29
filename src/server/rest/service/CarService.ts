@@ -311,6 +311,19 @@ export default class CarService {
     const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
+    if (Authorizations.isBasic(req.user)) {
+      const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.id, req.user.id);
+      if (!userCar || !userCar.owner) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.UPDATE,
+          entity: Entity.CAR,
+          module: MODULE_NAME,
+          method: 'handleUpdateCar'
+        });
+      }
+    }
     if (car.licensePlate !== filteredRequest.licensePlate || car.vin !== filteredRequest.vin) {
       const checkCar = await CarStorage.getCarByVinLicensePlate(req.user.tenantID, filteredRequest.licensePlate, filteredRequest.vin);
       if (checkCar) {
@@ -342,6 +355,9 @@ export default class CarService {
     if (Authorizations.isBasic(req.user)) {
       const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, car.id, req.user.id);
       if (userCar.default !== filteredRequest.isDefault) {
+        if (filteredRequest.isDefault) {
+          await CarStorage.clearDefaultUserCar(req.user.tenantID, req.user.id);
+        }
         userCar.default = filteredRequest.isDefault;
         userCar.lastChangedBy = { 'id': req.user.id };
         userCar.lastChangedOn = new Date();
@@ -379,7 +395,8 @@ export default class CarService {
     const cars = await CarStorage.getCars(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null
+        userIDs: Authorizations.isBasic(req.user) ? [req.user.id] : null,
+        withUsers: true
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter

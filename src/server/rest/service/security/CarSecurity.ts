@@ -221,6 +221,9 @@ export default class CarSecurity {
     if (car.carCatalog) {
       filteredCar.carCatalog = CarSecurity.filterCarCatalogResponse(car.carCatalog, loggedUser);
     }
+    if (car.usersCar) {
+      filteredCar.owner = (car.usersCar.find((usersCar) => usersCar.userID.toString() === loggedUser.id)).owner;
+    }
     return filteredCar;
   }
 

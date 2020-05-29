@@ -568,11 +568,11 @@ export default class CarStorage {
       try {
         const userCarDB = await CarStorage.getUserCarByCarUser(tenantID, carID, userCar.userID);
         if (userCarDB) {
-          if (userCarDB.default !== userCar.default || !userCarDB.active) {
+          if (userCarDB.default !== userCar.default || !userCarDB.active || (userCar.owner && !userCarDB.owner)) {
             if (userCar.default) {
               await CarStorage.clearDefaultUserCar(tenantID, userCar.userID);
             }
-            if (userCar.owner !== userCarDB.owner) {
+            if (userCar.owner && !userCarDB.owner) {
               await CarStorage.clearUserCarOwner(tenantID, carID);
             }
             userCarDB.owner = userCar.owner;
@@ -667,13 +667,13 @@ export default class CarStorage {
     if (!Utils.isEmptyArray(params.userIDs) || params.withUsers) {
       DatabaseUtils.pushUserCarLookupInAggregation({
         tenantID: tenantID, aggregation, localField: '_id', foreignField: 'carID',
-        asField: 'userscars', oneToOneCardinality: false
+        asField: 'usersCar', oneToOneCardinality: false
       });
       if (!Utils.isEmptyArray(params.userIDs)) {
-        filters['userscars.userID'] = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
+        filters['usersCar.userID'] = { $in: params.userIDs.map((userID) => Utils.convertToObjectID(userID)) };
       }
       if (params.defaultCar) {
-        filters['userscars.default'] = true;
+        filters['usersCar.default'] = true;
       }
     }
     // Filters
@@ -688,8 +688,8 @@ export default class CarStorage {
     });
     if (params.withUsers) {
       DatabaseUtils.pushUserLookupInAggregation({
-        tenantID: tenantID, aggregation, localField: 'userscars.userID', foreignField: '_id',
-        asField: 'users', oneToOneCardinality: false
+        tenantID: tenantID, aggregation, localField: 'usersCar.userID', foreignField: '_id',
+        asField: 'users', oneToOneCardinality: false, objectIDFields: ['_id']
       });
     }
     // Limit records?
@@ -715,6 +715,7 @@ export default class CarStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Handle the ID
     DatabaseUtils.pushRenameDatabaseID(aggregation);
+
     // Sort
     if (dbParams.sort) {
       aggregation.push({

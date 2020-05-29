@@ -139,6 +139,8 @@ export interface Car extends CreatedUpdatedProps {
   type?: CarType;
   converterType?: string;
   isDefault?: boolean;
+  owner?: boolean;
+  usersCar?: UserCar[];
 }
 
 export interface UserCar extends CreatedUpdatedProps {
