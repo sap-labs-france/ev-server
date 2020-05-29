@@ -25,8 +25,8 @@ export interface ActionsResponse {
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
-  centralSystemJson: JsonCentralSystemServer;
-  centralSystemSoap: SoapCentralSystemServer;
+  centralSystemJsonServer: JsonCentralSystemServer;
+  centralSystemSoapServer: SoapCentralSystemServer;
   userHashMapIDs: Map<string, string>;
   tenantHashMapIDs: Map<string, string>;
 }

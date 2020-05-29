@@ -30,10 +30,6 @@ import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
 
-const {
-  WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
-  WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT
-} = {};
 const _appEnv = cfenv.getAppEnv();
 let config = null;
 
@@ -284,10 +280,10 @@ export default class Configuration {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;
     }
     if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
     }
     if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
-      Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
+      Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;
   }

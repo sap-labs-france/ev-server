@@ -1,15 +1,15 @@
-import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
-import User, { UserRole } from '../../../../types/User';
+import sanitize from 'mongo-sanitize';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import { DataResult } from '../../../../types/DataResult';
-import Tag from '../../../../types/Tag';
 import { UserInError } from '../../../../types/InError';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import Tag from '../../../../types/Tag';
+import User, { UserRole } from '../../../../types/User';
 import UserNotifications from '../../../../types/UserNotifications';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
 
 export default class UserSecurity {
 
@@ -116,7 +116,9 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
-    filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
+    if (Utils.objectHasProperty(request, 'issuer')) {
+      filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
+    }
     if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }

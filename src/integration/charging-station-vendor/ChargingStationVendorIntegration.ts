@@ -26,7 +26,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: 'Get Power limitation is being called',
+      message: 'Get power limitation...',
       module: MODULE_NAME, method: 'getStaticPowerLimitation',
       detailedMessages: { chargePoint }
     });
@@ -60,14 +60,6 @@ export default abstract class ChargingStationVendorIntegration {
       const connectorLimitAmps = Utils.convertToInt(ocppConfiguration.configurationKey[0].value);
       ampLimitation = this.convertLimitAmpToAllPhases(chargingStation, chargePoint, 0, connectorLimitAmps);
     }
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingStation.id,
-      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: 'Get Power limitation has been called',
-      module: MODULE_NAME, method: 'getStaticPowerLimitation',
-      detailedMessages: { ampLimitation }
-    });
     return ampLimitation;
   }
 
@@ -77,7 +69,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: `Set Power limitation is being called with ${maxAmps}A`,
+      message: `Set power limitation is being called with ${maxAmps}A...`,
       module: MODULE_NAME, method: 'setStaticPowerLimitation',
       detailedMessages: { chargePoint, maxAmps }
     });
@@ -177,14 +169,6 @@ export default abstract class ChargingStationVendorIntegration {
       // Save it
       await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
     }
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingStation.id,
-      action: ServerAction.CHARGING_STATION_LIMIT_POWER,
-      message: 'Set Power limitation has been called',
-      module: MODULE_NAME, method: 'setStaticPowerLimitation',
-      detailedMessages: { result }
-    });
     return result;
   }
 
@@ -194,7 +178,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.OCPP_PARAM_UPDATE,
-      message: 'Check update of OCPP Params is being called',
+      message: 'Check update of OCPP Params...',
       module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
       detailedMessages: { ocppParamName, ocppParamValue }
     });
@@ -219,13 +203,6 @@ export default abstract class ChargingStationVendorIntegration {
         await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
       }
     }
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingStation.id,
-      action: ServerAction.OCPP_PARAM_UPDATE,
-      message: 'Check update of OCPP Params has been called',
-      module: MODULE_NAME, method: 'checkUpdateOfOCPPParams'
-    });
   }
 
   public async setChargingProfile(tenantID: string, chargingStation: ChargingStation, chargePoint: ChargePoint,
@@ -234,7 +211,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Set Charging Profile is being called',
+      message: 'Set charging profile...',
       module: MODULE_NAME, method: 'setChargingProfile',
       detailedMessages: { chargingProfile }
     });
@@ -286,38 +263,14 @@ export default abstract class ChargingStationVendorIntegration {
             });
             results.push(ret);
           }
-          Logging.logDebug({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_PROFILE_UPDATE,
-            message: 'Set Charging Profile has been called',
-            module: MODULE_NAME, method: 'setChargingProfile',
-            detailedMessages: { results }
-          });
           return results;
         }
-        Logging.logDebug({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          action: ServerAction.CHARGING_PROFILE_UPDATE,
-          message: 'Set Charging Profile has been called',
-          module: MODULE_NAME, method: 'setChargingProfile',
-          detailedMessages: { result }
-        });
         return result;
       }
       // Connector ID > 0
       const result = await chargingStationClient.setChargingProfile({
         connectorId: vendorSpecificChargingProfile.connectorID,
         csChargingProfiles: vendorSpecificChargingProfile.profile
-      });
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_PROFILE_UPDATE,
-        message: 'Set Charging Profile has been called',
-        module: MODULE_NAME, method: 'setChargingProfile',
-        detailedMessages: { result }
       });
       return result;
     } catch (error) {
@@ -344,7 +297,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_PROFILE_DELETE,
-      message: 'Clear Charging Profile is being called',
+      message: 'Clear charging profile...',
       module: MODULE_NAME, method: 'clearChargingProfile',
       detailedMessages: { chargingProfile }
     });
@@ -397,14 +350,6 @@ export default abstract class ChargingStationVendorIntegration {
             await this.setStaticPowerLimitation(tenantID, chargingStation, chargePoint,
               Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
           }
-          Logging.logDebug({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_PROFILE_DELETE,
-            message: 'Clear Charging Profile has been called',
-            module: MODULE_NAME, method: 'clearChargingProfile',
-            detailedMessages: { results }
-          });
           return results;
         }
         // Reapply the current limitation
@@ -414,14 +359,6 @@ export default abstract class ChargingStationVendorIntegration {
               Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
           }
         }
-        Logging.logDebug({
-          tenantID: tenantID,
-          source: chargingStation.id,
-          action: ServerAction.CHARGING_PROFILE_DELETE,
-          message: 'Clear Charging Profile has been called',
-          module: MODULE_NAME, method: 'clearChargingProfile',
-          detailedMessages: { result }
-        });
         return result;
       }
       // Connector ID > 0
@@ -436,14 +373,6 @@ export default abstract class ChargingStationVendorIntegration {
             Utils.getChargingStationAmperageLimit(chargingStation, chargePoint));
         }
       }
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_PROFILE_DELETE,
-        message: 'Clear Charging Profile has been called',
-        module: MODULE_NAME, method: 'clearChargingProfile',
-        detailedMessages: { result }
-      });
       return result;
     } catch (error) {
       Logging.logError({
@@ -464,7 +393,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-      message: 'Get Composite Schedule is being called',
+      message: 'Get composite schedule...',
       module: MODULE_NAME, method: 'getCompositeSchedule',
       detailedMessages: { connectorID, durationSecs }
     });
@@ -482,7 +411,7 @@ export default abstract class ChargingStationVendorIntegration {
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
         module: MODULE_NAME, method: 'getCompositeSchedule',
-        message: 'Cannot get the composite schedule on Connector ID 0',
+        message: `Cannot get the charging profiles on Connector ID '${connectorID}'`,
       });
     }
     // Get the OCPP Client
@@ -501,14 +430,6 @@ export default abstract class ChargingStationVendorIntegration {
         connectorId: connectorID,
         duration: durationSecs,
         chargingRateUnit: chargingStation.powerLimitUnit
-      });
-      Logging.logDebug({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        action: ServerAction.CHARGING_STATION_GET_COMPOSITE_SCHEDULE,
-        message: 'Get Composite Schedule has been called',
-        module: MODULE_NAME, method: 'getCompositeSchedule',
-        detailedMessages: { result }
       });
       // Convert
       result.chargingSchedule = this.convertFromVendorChargingSchedule(
@@ -537,7 +458,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: 'Get current connector limitation is being called',
+      message: 'Get current connector limitation...',
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { connectorID }
     });
@@ -560,29 +481,40 @@ export default abstract class ChargingStationVendorIntegration {
         const compositeSchedule = await this.getCompositeSchedule(
           tenantID, chargingStation, chargePoint, connectorID, 60);
         // Get the current connector limitation from the charging plan
-        // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
-        if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
-            compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
-            compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
-          let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
-          // Check
-          if (connectorLimitAmps > limitDefaultMaxAmps) {
-            connectorLimitAmps = limitDefaultMaxAmps;
+        if (compositeSchedule.status === OCPPGetCompositeScheduleStatus.ACCEPTED) {
+          // When startPeriod of first schedule is 0 meaning that the charging plan is in progress
+          if (compositeSchedule && compositeSchedule.chargingSchedule && compositeSchedule.chargingSchedule.chargingSchedulePeriod &&
+              compositeSchedule.chargingSchedule.chargingSchedulePeriod.length > 0 &&
+              compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].startPeriod === 0) {
+            let connectorLimitAmps = Utils.convertToInt(compositeSchedule.chargingSchedule.chargingSchedulePeriod[0].limit);
+            // Check
+            if (connectorLimitAmps > limitDefaultMaxAmps) {
+              connectorLimitAmps = limitDefaultMaxAmps;
+            }
+            const result: ConnectorCurrentLimit = {
+              limitAmps: connectorLimitAmps,
+              limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
+              limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+            };
+            Logging.logDebug({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+              message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${result.limitSource}'`,
+              module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+              detailedMessages: { result }
+            });
+            return result;
           }
-          const result: ConnectorCurrentLimit = {
-            limitAmps: connectorLimitAmps,
-            limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
-            limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
-          };
-          Logging.logDebug({
+        } else {
+          Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `Get current limitation on Chargin Plan has been called: ${result.limitAmps} A, ${result.limitWatts} W, source '${result.limitSource}'`,
+            message: `Connector ID '${connectorID}' current limit: Cannot retrieve the charging plan`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
-            detailedMessages: { result }
+            detailedMessages: { compositeSchedule }
           });
-          return result;
         }
       }
       // Check next the static power limitation
@@ -595,14 +527,14 @@ export default abstract class ChargingStationVendorIntegration {
         }
         const result: ConnectorCurrentLimit = {
           limitAmps: connectorLimitAmps,
-          limitWatts: Utils.convertAmpToWatt(chargingStation, connectorID, connectorLimitAmps),
+          limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, connectorLimitAmps),
           limitSource: ConnectorCurrentLimitSource.STATIC_LIMITATION,
         };
         Logging.logDebug({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-          message: `Get current limitation on Static Limitation has been called: ${result.limitAmps} A, ${result.limitWatts} W, source '${result.limitSource}'`,
+          message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${result.limitSource}'`,
           module: MODULE_NAME, method: 'getCurrentConnectorLimit',
           detailedMessages: { result }
         });
@@ -613,7 +545,7 @@ export default abstract class ChargingStationVendorIntegration {
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-        message: `Cannot retrieve the current limitation on Connector ID '${connectorID}'`,
+        message: `Cannot retrieve the current limit on Connector ID '${connectorID}'`,
         module: MODULE_NAME, method: 'getCurrentConnectorLimit',
         detailedMessages: { error: error.message, stack: error.stack }
       });
@@ -628,7 +560,7 @@ export default abstract class ChargingStationVendorIntegration {
       tenantID: tenantID,
       source: chargingStation.id,
       action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-      message: `Get current limitation on Connectors has been called: ${result.limitAmps} A, ${result.limitWatts}W, source '${result.limitSource}'`,
+      message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${result.limitSource}'`,
       module: MODULE_NAME, method: 'getCurrentConnectorLimit',
       detailedMessages: { result }
     });
@@ -656,7 +588,7 @@ export default abstract class ChargingStationVendorIntegration {
         } else {
           // Limit Watts for all the phases (Cahors)
           schedulePeriod.limit = Utils.convertAmpToWatt(
-            chargingStation, vendorSpecificChargingProfile.connectorID,
+            chargingStation, chargePoint, vendorSpecificChargingProfile.connectorID,
             this.chargePointToConnectorLimitAmps(chargePoint, schedulePeriod.limit));
         }
       }
@@ -676,12 +608,12 @@ export default abstract class ChargingStationVendorIntegration {
         // Convert to Amps for all phases
         if (chargingSchedule.chargingRateUnit === ChargingRateUnitType.WATT) {
           chargingSchedulePeriod['limitWatts'] = chargingSchedulePeriod.limit;
-          chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, connectorID, chargingSchedulePeriod.limit);
+          chargingSchedulePeriod.limit = Utils.convertWattToAmp(chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
         }
         // Limit is per connector and per phase Convert to max Amp
         chargingSchedulePeriod.limit = this.convertLimitAmpToAllPhases(
           chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
-        chargingSchedulePeriod['limitWatts'] = Utils.convertAmpToWatt(chargingStation, connectorID, chargingSchedulePeriod.limit);
+        chargingSchedulePeriod['limitWatts'] = Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, chargingSchedulePeriod.limit);
       }
     }
     // Convert to Amps?

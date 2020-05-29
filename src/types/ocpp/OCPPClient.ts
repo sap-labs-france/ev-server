@@ -1,4 +1,5 @@
 import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
+
 import { KeyValue } from '../GlobalType';
 
 export interface OCPPCommandParam {

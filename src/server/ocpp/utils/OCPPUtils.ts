@@ -277,9 +277,6 @@ export default class OCPPUtils {
             break;
           }
         }
-        // Recalculate Max Power
-        // TODO
-        this.recalculateChargingStationMaxPower(chargingStation);
       }
       // Log
       Logging.logInfo({
@@ -478,18 +475,6 @@ export default class OCPPUtils {
       message: 'Set and Save Charging Profile has been called',
       module: MODULE_NAME, method: 'setAndSaveChargingProfile'
     });
-  }
-
-  public static recalculateChargingStationMaxPower(chargingStation: ChargingStation) {
-    let maximumPower = 0;
-    for (const connector of chargingStation.connectors) {
-      if (Utils.objectHasProperty(connector, 'power')) {
-        maximumPower += connector.power;
-      }
-    }
-    if (maximumPower) {
-      chargingStation.maximumPower = maximumPower;
-    }
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {

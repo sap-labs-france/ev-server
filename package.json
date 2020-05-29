@@ -104,7 +104,7 @@
     "@types/passport": "^1.0.3",
     "@types/passport-jwt": "^3.0.3",
     "@types/rosie": "0.0.37",
-    "@types/socket.io": "^2.1.6",
+    "@types/socket.io": "^2.1.8",
     "@types/socketio-jwt": "0.0.1",
     "@types/stripe": "^7.13.23",
     "@types/tz-lookup": "^6.1.0",

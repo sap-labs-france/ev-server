@@ -31,7 +31,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
 
   public start() {
     // Keep it global
-    global.centralSystemJson = this;
+    global.centralSystemJsonServer = this;
     // Make server to listen
     this.startListening();
   }

@@ -17,7 +17,7 @@ export interface Log {
   message: string|object;
   user?: User|UserToken|string;
   actionOnUser?: User|UserToken|string;
-  detailedMessages?: any;
+  detailedMessages?: string|object;
 }
 
 export enum LogLevel {
