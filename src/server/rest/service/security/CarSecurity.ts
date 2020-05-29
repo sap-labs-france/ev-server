@@ -213,6 +213,9 @@ export default class CarSecurity {
         converterType: car.converterType,
         isDefault: car.isDefault
       };
+      if (!Utils.isEmptyArray(car.usersCar)) {
+        filteredCar.owner = (car.usersCar.find((usersCar) => usersCar.userID.toString() === loggedUser.id)).owner;
+      }
     }
     if (car.users) {
       filteredCar.users = car.users.map(
@@ -220,9 +223,6 @@ export default class CarSecurity {
     }
     if (car.carCatalog) {
       filteredCar.carCatalog = CarSecurity.filterCarCatalogResponse(car.carCatalog, loggedUser);
-    }
-    if (car.usersCar) {
-      filteredCar.owner = (car.usersCar.find((usersCar) => usersCar.userID.toString() === loggedUser.id)).owner;
     }
     return filteredCar;
   }
