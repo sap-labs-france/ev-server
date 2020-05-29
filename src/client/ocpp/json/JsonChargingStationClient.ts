@@ -2,7 +2,6 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 import { Command } from '../../../types/ChargingStation';
-import Constants from '../../../utils/Constants';
 import JsonWSConnection from '../../../server/ocpp/json/JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { MessageType } from '../../../types/WebSocket';
