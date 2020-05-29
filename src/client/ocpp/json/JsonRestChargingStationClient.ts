@@ -162,8 +162,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
           if (this.requests[messageJson[1]]) {
-            // Log
-            Logging.logReceivedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, this.requests[messageJson[1]].command, messageJson);
             // Check message type
             if (messageJson[0] === MessageType.ERROR_MESSAGE) {
               // Error message

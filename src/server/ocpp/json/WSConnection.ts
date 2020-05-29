@@ -24,15 +24,15 @@ export default class WSConnection {
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
   protected readonly serverIP: string;
+  protected readonly chargingStationID: string;
+  protected readonly tenantID: string;
+  private readonly token: string;
   private readonly url: string;
   private readonly clientIP: string;
   private readonly wsConnection: WebSocket;
   private req: http.IncomingMessage;
   private requests: any = {};
   private tenantIsValid: boolean;
-  private readonly chargingStationID: string;
-  private readonly tenantID: string;
-  private readonly token: string;
 
   constructor(wsConnection: WebSocket, req: http.IncomingMessage, wsServer: JsonCentralSystemServer) {
     // Init
@@ -97,7 +97,6 @@ export default class WSConnection {
     try {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
-      // Ok
       this.tenantIsValid = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
