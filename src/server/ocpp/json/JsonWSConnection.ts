@@ -1,10 +1,10 @@
+import { MessageType, OcppErrorType } from '../../../types/WebSocket';
 import { OCPPProtocol, OCPPVersion } from '../../../types/ocpp/OCPPServer';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
 import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
 import JsonChargingStationService from './services/JsonChargingStationService';
@@ -30,7 +30,7 @@ export default class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case 'ocpp1.6':
         // Create the Json Client
-        this.chargingStationClient = new JsonChargingStationClient(this);
+        this.chargingStationClient = new JsonChargingStationClient(this, this.tenantID, this.chargingStationID);
         // Create the Json Server Service
         this.chargingStationService = new JsonChargingStationService(chargingStationConfig);
         break;
@@ -99,7 +99,7 @@ export default class JsonWSConnection extends WSConnection {
     this.wsServer.removeJsonConnection(this);
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
@@ -113,14 +113,14 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
     } else {
       // Throw Exception
       throw new OCPPError({
         source: this.getChargingStationID(),
         module: MODULE_NAME,
         method: 'handleRequest',
-        code: Constants.OCPP_ERROR_NOT_IMPLEMENTED,
+        code: OcppErrorType.NOT_IMPLEMENTED,
         message: `The OCPP method 'handle${commandName}' has not been implemented`
       });
     }

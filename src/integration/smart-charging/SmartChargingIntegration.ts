@@ -25,13 +25,6 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       inSuccess: 0,
       inError: 0
     };
-    Logging.logDebug({
-      tenantID: this.tenantID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Compute and Apply Charging Profiles is being called',
-      module: MODULE_NAME, method: 'computeAndApplyChargingProfiles',
-      detailedMessages: { siteArea }
-    });
     // Call the charging plans
     const chargingProfiles: ChargingProfile[] = await this.buildChargingProfiles(siteArea);
     if (!chargingProfiles) {
@@ -68,12 +61,6 @@ export default abstract class SmartChargingIntegration<T extends SmartChargingSe
       '{{inSuccess}} charging plan(s) were successfully pushed and {{inError}} failed to be pushed',
       'No charging plans have been pushed'
     );
-    Logging.logDebug({
-      tenantID: this.tenantID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Compute and Apply Charging Profiles has been called',
-      module: MODULE_NAME, method: 'computeAndApplyChargingProfiles'
-    });
     return actionsResponse;
   }
 

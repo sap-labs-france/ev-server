@@ -1,7 +1,8 @@
+import StatisticFilter, { StatsGroupBy } from '../../types/Statistic';
+
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import StatisticFilter from '../../types/Statistic';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 import moment from 'moment';
@@ -66,7 +67,7 @@ export default class StatisticsStorage {
     // Group
     switch (groupBy) {
       // By Consumption
-      case Constants.STATS_GROUP_BY_CONSUMPTION:
+      case StatsGroupBy.CONSUMPTION:
         aggregation.push({
           $group: {
             // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }, unit: '' },
@@ -77,7 +78,7 @@ export default class StatisticsStorage {
         break;
 
       // By Usage
-      case Constants.STATS_GROUP_BY_USAGE:
+      case StatsGroupBy.USAGE:
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
@@ -87,7 +88,7 @@ export default class StatisticsStorage {
         break;
 
       // By Inactivity
-      case Constants.STATS_GROUP_BY_INACTIVITY:
+      case StatsGroupBy.INACTIVITY:
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
@@ -97,7 +98,7 @@ export default class StatisticsStorage {
         break;
 
       // By Transactions
-      case Constants.STATS_GROUP_BY_TRANSACTIONS:
+      case StatsGroupBy.TRANSACTIONS:
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
@@ -107,7 +108,7 @@ export default class StatisticsStorage {
         break;
 
       // By Pricing
-      case Constants.STATS_GROUP_BY_PRICING:
+      case StatsGroupBy.PRICING:
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '$stop.priceUnit' },
@@ -187,7 +188,7 @@ export default class StatisticsStorage {
     // Group
     switch (groupBy) {
       // By Consumption
-      case Constants.STATS_GROUP_BY_CONSUMPTION:
+      case StatsGroupBy.CONSUMPTION:
         aggregation.push({
           $group: {
             // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }, unit: '' },
@@ -198,7 +199,7 @@ export default class StatisticsStorage {
         break;
 
       // By Usage
-      case Constants.STATS_GROUP_BY_USAGE:
+      case StatsGroupBy.USAGE:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
@@ -208,7 +209,7 @@ export default class StatisticsStorage {
         break;
 
       // By Inactivity
-      case Constants.STATS_GROUP_BY_INACTIVITY:
+      case StatsGroupBy.INACTIVITY:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
@@ -218,7 +219,7 @@ export default class StatisticsStorage {
         break;
 
       // By Transactions
-      case Constants.STATS_GROUP_BY_TRANSACTIONS:
+      case StatsGroupBy.TRANSACTIONS:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
@@ -228,7 +229,7 @@ export default class StatisticsStorage {
         break;
 
       // By Pricing
-      case Constants.STATS_GROUP_BY_PRICING:
+      case StatsGroupBy.PRICING:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '$stop.priceUnit' },
