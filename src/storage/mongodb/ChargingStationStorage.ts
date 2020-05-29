@@ -699,7 +699,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenantID: string,
     params: {
-      chargingStationID?: string; connectorID?: number; chargingProfileID?: string;
+      chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
       profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
@@ -717,8 +717,8 @@ export default class ChargingStationStorage {
       filters._id = params.chargingProfileID;
     } else {
       // Charger
-      if (params.chargingStationID) {
-        filters.chargingStationID = params.chargingStationID;
+      if (params.chargingStationIDs) {
+        filters.chargingStationID = { $in: params.chargingStationIDs };
       }
       // Connector
       if (params.connectorID) {
