@@ -21,7 +21,7 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly serverIP: string;
+  protected readonly serverIPPort: string;
   private readonly url: string;
   private readonly clientIP: string;
   private readonly wsConnection: WebSocket;
@@ -40,7 +40,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIP = (this.wsServer.address as AddressInfo).address + ':' + (this.wsServer.address as AddressInfo).port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + (this.wsServer.address as AddressInfo).port;
 
     // Default
     this.tenantIsValid = false;
@@ -257,8 +257,8 @@ export default class WSConnection {
     return this.clientIP;
   }
 
-  public getServerIP(): string {
-    return this.serverIP;
+  public getServerIPPort(): string {
+    return this.serverIPPort;
   }
 
   public async send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
