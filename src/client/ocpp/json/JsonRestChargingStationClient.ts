@@ -3,9 +3,9 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
 import { JsonWSClientConfiguration } from '../../../types/configuration/WSClientConfiguration';
 import Logging from '../../../utils/Logging';
+import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSClient from '../../websocket/WSClient';
 import { v4 as uuid } from 'uuid';
@@ -165,7 +165,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             // Log
             Logging.logReceivedAction(MODULE_NAME, this.tenantID, this.chargingStation.id, this.requests[messageJson[1]].command, messageJson);
             // Check message type
-            if (messageJson[0] === Constants.OCPP_JSON_CALL_ERROR_MESSAGE) {
+            if (messageJson[0] === MessageType.ERROR_MESSAGE) {
               // Error message
               Logging.logError({
                 tenantID: this.tenantID,
@@ -225,6 +225,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private async sendMessage(request): Promise<any> {
     // Return a promise
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     const promise = await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this.openConnection();
@@ -233,7 +234,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, request[2], request);
         // Send
-        await this.wsConnection.send(JSON.stringify(request));
+        this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function
         this.requests[request[1]] = { resolve, reject, command: request[2] };
       } else {
@@ -246,6 +247,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
 
   private buildRequest(command, params = {}) {
     // Build the request
-    return [Constants.OCPP_JSON_CALL_MESSAGE, uuid(), command, params];
+    return [MessageType.CALL_MESSAGE, uuid(), command, params];
   }
 }
