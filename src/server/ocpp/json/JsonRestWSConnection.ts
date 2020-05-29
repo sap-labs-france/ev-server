@@ -1,8 +1,8 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
+import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import WebSocket from 'ws';
@@ -58,7 +58,7 @@ export default class JsonRestWSConnection extends WSConnection {
     this.wsServer.removeRestConnection(this);
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
     // Log
     Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
@@ -96,7 +96,7 @@ export default class JsonRestWSConnection extends WSConnection {
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
     } else {
       // Error
       throw new BackendError({

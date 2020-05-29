@@ -23,7 +23,7 @@ export interface SettingLink {
 
 // Database Settings Content interface
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -140,8 +140,10 @@ export interface RefundSettings extends Setting {
   concur?: ConcurRefundSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RefundSetting {
 }
+
 export interface ConcurRefundSetting extends RefundSetting {
   authenticationUrl: string;
   apiUrl: string;

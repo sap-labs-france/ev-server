@@ -15,6 +15,18 @@ export interface BillingDataTransactionUpdate {
   cancelTransaction?: boolean;
 }
 
+export enum BillingStatus {
+  UNBILLED = 'unbilled',
+  BILLED = 'billed',
+}
+
+export enum BillingMethod {
+  IMMEDIATE = 'immediate',
+  PERIODIC = 'periodic',
+  ADVANCE = 'advance',
+}
+
+
 export interface BillingDataTransactionStop {
   status?: string;
   invoiceStatus?: BillingInvoiceStatus;
