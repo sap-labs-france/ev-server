@@ -231,8 +231,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       await this.openConnection();
       // Check if wsConnection in ready
       if (this.wsConnection.isConnectionOpen()) {
-        // Log
-        Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStation.id, request[2], request);
         // Send
         this.wsConnection.send(JSON.stringify(request));
         // Set the resolve function

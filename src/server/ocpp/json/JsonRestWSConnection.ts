@@ -59,8 +59,6 @@ export default class JsonRestWSConnection extends WSConnection {
   }
 
   public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
-    // Log
-    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
@@ -93,8 +91,6 @@ export default class JsonRestWSConnection extends WSConnection {
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
-      // Log
-      Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
       await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
     } else {
