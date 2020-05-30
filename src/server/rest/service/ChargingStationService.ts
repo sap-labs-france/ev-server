@@ -503,9 +503,9 @@ export default class ChargingStationService {
       });
     }
     // Apply & Save charging plan
-    await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
+    const chargingProfileID = await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(Object.assign({ id: chargingProfileID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

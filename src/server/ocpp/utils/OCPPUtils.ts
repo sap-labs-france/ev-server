@@ -386,7 +386,7 @@ export default class OCPPUtils {
     });
   }
 
-  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
+  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     if (!chargingStation) {
@@ -434,7 +434,7 @@ export default class OCPPUtils {
       });
     }
     // Save
-    await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
+    const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -443,6 +443,7 @@ export default class OCPPUtils {
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
     });
+    return chargingProfileID;
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
