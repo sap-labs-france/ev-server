@@ -36,7 +36,7 @@ export default class CentralRestServer {
   private static changeNotifications: ChangeNotification[] = [];
   private static singleChangeNotifications: SingleChangeNotification[] = [];
   private chargingStationConfig: ChargingStationConfiguration;
-  private express: express.Application;
+  private expressApplication: express.Application;
 
   // Create the rest server
   constructor(centralSystemRestConfig: CentralSystemRestServiceConfiguration, chargingStationConfig: ChargingStationConfiguration) {
@@ -45,15 +45,15 @@ export default class CentralRestServer {
     this.chargingStationConfig = chargingStationConfig;
 
     // Initialize express app
-    this.express = expressTools.init('2mb');
+    this.expressApplication = expressTools.initApplication('2mb');
 
     // Mount express-sanitizer middleware
-    this.express.use(sanitize());
+    this.expressApplication.use(sanitize());
 
     // Log to console
     if (CentralRestServer.centralSystemRestConfig.debug) {
       // Log
-      this.express.use(
+      this.expressApplication.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
@@ -71,18 +71,18 @@ export default class CentralRestServer {
     }
 
     // Authentication
-    this.express.use(CentralRestServerAuthentication.initialize());
+    this.expressApplication.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    this.express.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
+    this.expressApplication.all('/client/auth/:action', CentralRestServerAuthentication.authService.bind(this));
 
     // Secured API
-    this.express.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
+    this.expressApplication.all('/client/api/:action', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured.bind(this));
 
     // Util API
-    this.express.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
+    this.expressApplication.all('/client/util/:action', CentralRestServerService.restServiceUtil.bind(this));
     // Workaround URL encoding issue
-    this.express.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
+    this.expressApplication.all('/client%2Futil%2FFirmwareDownload%3FFileName%3Dr7_update_3.3.0.10_d4.epk', async (req: Request, res: Response, next: NextFunction) => {
       req.url = decodeURIComponent(req.originalUrl);
       req.params.action = 'FirmwareDownload';
       req.query.FileName = 'r7_update_3.3.0.10_d4.epk';
@@ -90,7 +90,7 @@ export default class CentralRestServer {
     });
 
     // Catchall for util with logging
-    this.express.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
+    this.expressApplication.all(['/client/util/*', '/client%2Futil%2F*'], (req: Request, res: Response) => {
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'constructor',
@@ -102,7 +102,7 @@ export default class CentralRestServer {
     });
 
     // Create HTTP server to serve the express app
-    CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.express);
+    CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
   startSocketIO() {
