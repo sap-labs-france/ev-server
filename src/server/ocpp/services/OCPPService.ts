@@ -1936,7 +1936,7 @@ export default class OCPPService {
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea.smartCharging) {
+    if (siteArea && siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
       if (siteAreaLock) {
         try {
