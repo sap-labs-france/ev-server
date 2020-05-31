@@ -234,7 +234,7 @@ export default class CarService {
       // Force to reuse the car
       if (filteredRequest.forced) {
         newCar = car;
-        // Send error to the UI
+      // Send error to the UI
       } else {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,

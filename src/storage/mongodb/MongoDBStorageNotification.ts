@@ -171,6 +171,9 @@ export default class MongoDBStorageNotification {
       case 'cars':
         this.centralRestServer.notifyCar(tenantID, action, { id: documentID });
         break;
+      case 'userscars':
+        this.centralRestServer.notifyUserCar(tenantID, action, { id: documentID });
+        break;
       case 'chargingprofiles':
         this.centralRestServer.notifyChargingProfile(tenantID, action, { id: documentID });
         break;

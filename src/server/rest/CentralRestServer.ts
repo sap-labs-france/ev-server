@@ -384,6 +384,23 @@ export default class CentralRestServer {
     });
   }
 
+  public notifyUserCar(tenantID: string, action: Action, data) {
+    // Add in buffer
+    this.addSingleChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.USER_CAR,
+      'action': action,
+      'data': data
+    });
+    // Add in buffer
+    this.addChangeNotificationInBuffer({
+      'tenantID': tenantID,
+      'entity': Entity.USERS_CARS,
+      'action': action
+    });
+  }
+
+
   public notifyCarCatalog(tenantID: string, action: Action, data) {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({

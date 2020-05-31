@@ -290,7 +290,7 @@ export default class CarSecurity {
 
   public static filterUsersAssignRequest(request: any): HttpUsersAssignRequest {
     const usersCar: UserCar[] = [];
-    if (request.usersCar && request.usersCar.length > 0) {
+    if (!Utils.isEmptyArray(request.usersCar)) {
       for (const userCar of request.usersCar) {
         usersCar.push({
           userID: userCar.user.id,
