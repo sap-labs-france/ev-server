@@ -82,7 +82,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
     return this.sendMessage(params, MessageType.CALL_MESSAGE, Command.UPDATE_FIRMWARE);
   }
 
-  public async sendMessage(params: any, messageType: MessageType, commandName: Command): Promise<any> {
+  private async sendMessage(params: any, messageType: MessageType, commandName: Command): Promise<any> {
     // Log
     Logging.logSendAction(MODULE_NAME, this.tenantID, this.chargingStationID, `ChargingStation${commandName}` as ServerAction, params);
     // Execute

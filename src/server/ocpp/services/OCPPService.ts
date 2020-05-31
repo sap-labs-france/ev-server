@@ -1098,6 +1098,7 @@ export default class OCPPService {
   private async buildConsumptionWithMeterValue(tenantID: string, transaction: Transaction,
     chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
+    // FIXME: Handle missing lastMeterValue attribute
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
     if (OCPPUtils.isSocMeterValue(meterValue)) {
@@ -1936,7 +1937,7 @@ export default class OCPPService {
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea.smartCharging) {
+    if (siteArea && siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
       if (siteAreaLock) {
         try {

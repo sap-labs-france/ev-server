@@ -32,6 +32,7 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import fs from 'fs';
 import localIP from 'quick-local-ip';
 import moment from 'moment';
@@ -951,7 +952,7 @@ export default class Utils {
   }
 
   public static generateToken(email) {
-    return Cypher.hash(`${new Date().toISOString()}~${email}`);
+    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static duplicateJSON(src): any {

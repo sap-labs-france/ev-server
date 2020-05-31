@@ -1,5 +1,4 @@
 import AbstractODataEntities from './AbstractODataEntities';
-import _ from 'lodash';
 
 export default class ODataSites extends AbstractODataEntities {
   public buildParams: any;
