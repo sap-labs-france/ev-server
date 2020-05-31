@@ -67,7 +67,7 @@ export default class TransactionSecurity {
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);

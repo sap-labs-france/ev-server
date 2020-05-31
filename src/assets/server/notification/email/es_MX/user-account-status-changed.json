@@ -1,0 +1,35 @@
+{
+  "subject": "Cuenta <%- (user.status==='A'?'Activada':'Suspendida'); %>",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Cuenta <%- (user.status === 'A' ? 'Activada' : 'Suspendida'); %>",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hola <%- (user.firstName ? user.firstName : user.name) %>,",
+      "",
+      "Su cuenta ha sido <b><%- (user.status === 'A' ? 'activada' : 'suspendida'); %></b> por un administrador."
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

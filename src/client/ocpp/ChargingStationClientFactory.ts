@@ -23,8 +23,8 @@ export default class ChargingStationClientFactory {
         // JSON
         case OCPPProtocol.JSON:
           // Get the client from Json Server
-          if (global.centralSystemJson) {
-            chargingClient = global.centralSystemJson.getChargingStationClient(tenantID, chargingStation.id);
+          if (global.centralSystemJsonServer) {
+            chargingClient = global.centralSystemJsonServer.getChargingStationClient(tenantID, chargingStation.id);
           }
           // Not Found
           if (!chargingClient) {

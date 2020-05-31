@@ -2,6 +2,7 @@ import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from
 
 import { KeyValue } from '../GlobalType';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPCommandParam {
 }
 

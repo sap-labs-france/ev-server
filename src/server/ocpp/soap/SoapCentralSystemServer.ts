@@ -20,25 +20,25 @@ const MODULE_NAME = 'SoapCentralSystemServer';
 
 export default class SoapCentralSystemServer extends CentralSystemServer {
   public httpServer: http.Server;
-  private express: express.Application;
+  private expressApplication: express.Application;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
     // Initialize express app
-    this.express = expressTools.init();
+    this.expressApplication = expressTools.initApplication();
 
     // Initialize the HTTP server
-    this.httpServer = expressTools.createHttpServer(this.centralSystemConfig, this.express);
+    this.httpServer = expressTools.createHttpServer(this.centralSystemConfig, this.expressApplication);
 
     // Mount express-sanitizer middleware
-    this.express.use(sanitize());
+    this.expressApplication.use(sanitize());
 
     // Enable debug?
     if (this.centralSystemConfig.debug) {
       // Log
-      this.express.use(
+      this.expressApplication.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
@@ -62,7 +62,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
    */
   start() {
     // Make it global for SOAP Services
-    global.centralSystemSoap = this;
+    global.centralSystemSoapServer = this;
 
     expressTools.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
 
