@@ -256,9 +256,10 @@ export default class OCPISessionsService {
         startedAt: new Date(transaction.lastMeterValue.timestamp),
         endedAt: new Date(session.last_updated),
         consumption: transaction.currentConsumptionWh,
-        instantPower: Math.round(transaction.currentConsumption),
-        instantAmps: transaction.currentConsumption / 230,
+        instantPower: Math.floor(transaction.currentConsumption),
+        instantAmps: Math.floor(transaction.currentConsumption / 230),
         cumulatedConsumption: transaction.currentTotalConsumption,
+        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumption / 230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :

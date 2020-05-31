@@ -320,6 +320,7 @@ export default class TransactionSecurity {
         instantPower: consumption.instantPower,
         instantAmps: consumption.instantAmps,
         cumulatedConsumption: consumption.cumulatedConsumption,
+        cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
         limitWatts: consumption.limitWatts,

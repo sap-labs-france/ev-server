@@ -102,6 +102,7 @@ export interface TransactionConsumption {
   limitWatts: number;
   limitAmps: number;
   cumulatedConsumption: number;
+  cumulatedConsumptionAmps: number;
   stateOfCharge: number;
   cumulatedAmount: number;
 }

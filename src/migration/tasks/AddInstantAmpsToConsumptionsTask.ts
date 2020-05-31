@@ -23,6 +23,7 @@ export default class AddInstantAmpsToConsumptionsTask extends MigrationTask {
       [
         {
           '$set': {
+            'cumulatedConsumptionAmps': { '$round': [{ '$divide': ['$cumulatedConsumption', 230] }] },
             'limitSiteAreaAmps': { '$round': [{ '$divide': ['$limitSiteAreaWatts', 230] }] },
             'instantAmps': { '$round': [{ '$divide': ['$instantPower', 230] }] }
           }

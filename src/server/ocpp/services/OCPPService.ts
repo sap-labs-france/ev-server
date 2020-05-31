@@ -1172,6 +1172,7 @@ export default class OCPPService {
         consumption.instantPower = Math.round(transaction.currentConsumption);
         consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentConsumption);
         consumption.cumulatedConsumption = transaction.currentTotalConsumption;
+        consumption.cumulatedConsumptionAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentTotalConsumption);
         consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
