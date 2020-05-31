@@ -23,7 +23,7 @@ export default class WSConnection {
   public details: string;
   protected initialized: boolean;
   protected wsServer: JsonCentralSystemServer;
-  protected readonly serverIP: string;
+  protected readonly serverIPPort: string;
   protected readonly chargingStationID: string;
   protected readonly tenantID: string;
   private readonly token: string;
@@ -42,7 +42,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIP = (this.wsServer.address as AddressInfo).address + ':' + (this.wsServer.address as AddressInfo).port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + (this.wsServer.address as AddressInfo).port;
 
     // Default
     this.tenantIsValid = false;
@@ -255,8 +255,8 @@ export default class WSConnection {
     return this.clientIP;
   }
 
-  public getServerIP(): string {
-    return this.serverIP;
+  public getServerIPPort(): string {
+    return this.serverIPPort;
   }
 
   public async send(command, messageType = MessageType.CALL_MESSAGE) {

@@ -33,6 +33,7 @@ import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
+import localIP from 'quick-local-ip';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -68,7 +69,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout <T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -485,7 +486,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
+  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {
@@ -689,7 +690,7 @@ export default class Utils {
             totalAmps += chargePoint.amperage;
           // Connector
           } else if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.amperage &&
-              (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
+            (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
             return chargePoint.amperage;
           }
         } else {
@@ -699,7 +700,7 @@ export default class Utils {
               totalAmps += chargePointOfCS.amperage;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
-                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
               return chargePointOfCS.amperage;
             }
           }
@@ -746,7 +747,7 @@ export default class Utils {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-                chargePointOfCS.sharePowerToAllConnectors) {
+              chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -890,6 +891,10 @@ export default class Utils {
       const ip = host[0];
       return ip;
     }
+  }
+
+  public static getLocalIP(): string {
+    return localIP.getLocalIP4();
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -1124,8 +1129,8 @@ export default class Utils {
       });
     }
     if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-        !filteredRequest.profile.chargingSchedule) {
+      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+      !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
