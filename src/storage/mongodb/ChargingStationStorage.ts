@@ -1,5 +1,5 @@
-import { ChargingProfile, ChargingProfilePurposeType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter, PowerLimitUnits } from '../../types/ChargingStation';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
@@ -216,10 +216,6 @@ export default class ChargingStationStorage {
     }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs)) {
-      // If sites but no site area, no results can be found - return early.
-      if (params.withNoSiteArea) {
-        return { count: 0, result: [] };
-      }
       // Build filter
       aggregation.push({
         $match: {
@@ -921,7 +917,7 @@ export default class ChargingStationStorage {
               { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
               { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
               { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null },
-              { 'powerLimitUnit': { $nin: [PowerLimitUnits.AMPERE, PowerLimitUnits.WATT] } },
+              { 'powerLimitUnit': { $nin: [ChargingRateUnitType.AMPERE, ChargingRateUnitType.WATT] } },
               { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
               { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
               { 'connectors.type': { $nin: [ConnectorType.CHADEMO, ConnectorType.COMBO_CCS, ConnectorType.DOMESTIC, ConnectorType.TYPE_1, ConnectorType.TYPE_1_CCS, ConnectorType.TYPE_2, ConnectorType.TYPE_3C] } },

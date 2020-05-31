@@ -62,7 +62,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
    */
   start() {
     // Make it global for SOAP Services
-    global.centralSystemSoap = this;
+    global.centralSystemSoapServer = this;
 
     expressTools.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
 

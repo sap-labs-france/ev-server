@@ -1,5 +1,6 @@
+import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -21,7 +22,6 @@ import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
-import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
@@ -136,6 +136,10 @@ export default class Utils {
       return InactivityStatus.WARNING;
     }
     return InactivityStatus.ERROR;
+  }
+
+  public static getRoundedNumberToTwoDecimals(numberToRound: number): number {
+    return Math.round(numberToRound * 100) / 100;
   }
 
   public static objectHasProperty(object: object, key: string): boolean {
@@ -328,6 +332,17 @@ export default class Utils {
     }
   }
 
+  public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
+    switch (limitSource) {
+      case ConnectorCurrentLimitSource.CHARGING_PROFILE:
+        return 'Charging Profile';
+      case ConnectorCurrentLimitSource.CONNECTOR:
+        return 'Connector';
+      case ConnectorCurrentLimitSource.STATIC_LIMITATION:
+        return 'Static Limitation';
+    }
+  }
+
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -489,18 +504,17 @@ export default class Utils {
     return userID;
   }
 
-
-  public static convertAmpToWatt(chargingStation: ChargingStation, connectorID = 0, ampValue: number): number {
-    const voltage = Utils.getChargingStationVoltage(chargingStation, connectorID);
-    if (voltage > 0) {
+  public static convertAmpToWatt(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, ampValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
+    if (voltage) {
       return voltage * ampValue;
     }
     return 0;
   }
 
-  public static convertWattToAmp(chargingStation: ChargingStation, connectorID = 0, wattValue: number): number {
-    const voltage = Utils.getChargingStationVoltage(chargingStation, connectorID);
-    if (voltage > 0) {
+  public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
+    if (voltage) {
       return Math.floor(wattValue / voltage);
     }
     return 0;
@@ -537,45 +551,38 @@ export default class Utils {
       }
     }
     if (totalAmps === 0 && chargingStation.maximumPower) {
-      totalAmps = Utils.convertWattToAmp(chargingStation, 0, chargingStation.maximumPower);
+      totalAmps = Utils.convertWattToAmp(chargingStation, null, 0, chargingStation.maximumPower);
     }
     return totalAmps;
   }
 
-  public static getChargingStationPower(chargingStation: ChargingStation, connectorId = 0): number {
-    if (chargingStation) {
-      // Check at charging station level
-      if (connectorId === 0 && chargingStation.maximumPower) {
-        return chargingStation.maximumPower;
-      }
-      // Check at charge point level
-      if (chargingStation.chargePoints) {
-        for (const chargePoint of chargingStation.chargePoints) {
-          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.power &&
-             (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
-            return chargePoint.power;
-          }
-        }
-      }
-      // Check at connector level
-      const connector = Utils.getConnectorFromID(chargingStation, connectorId);
-      if (connector && connector.power) {
-        return connector.power;
-      }
-    }
-    return 0;
+  public static getChargingStationPower(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
+    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
+    return voltage * amperage;
   }
 
-  public static getChargingStationNumberOfConnectedPhases(chargingStation: ChargingStation,
-    chargePoint?: ChargePoint, connectorId = 0): number {
+  public static getNumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     if (chargingStation) {
       // Check at charge point level
-      if (chargePoint) {
-        if (connectorId === 0 && chargePoint.numberOfConnectedPhase) {
-          return chargePoint.numberOfConnectedPhase;
-        }
-        if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.numberOfConnectedPhase) {
-          return chargePoint.numberOfConnectedPhase;
+      if (chargingStation.chargePoints) {
+        if (chargePoint) {
+          if (connectorId === 0 && chargePoint.numberOfConnectedPhase) {
+            return chargePoint.numberOfConnectedPhase;
+          }
+          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.numberOfConnectedPhase) {
+            return chargePoint.numberOfConnectedPhase;
+          }
+        } else {
+          for (const chargePointOfCS of chargingStation.chargePoints) {
+            // Charging Station
+            if (connectorId === 0 && chargePointOfCS.numberOfConnectedPhase) {
+              return chargePointOfCS.numberOfConnectedPhase;
+            // Connector
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
+              return chargePointOfCS.numberOfConnectedPhase;
+            }
+          }
         }
       }
       // Check at connector level
@@ -594,7 +601,7 @@ export default class Utils {
     return 1;
   }
 
-  public static getChargingStationVoltage(chargingStation: ChargingStation, connectorId = 0): number {
+  public static getChargingStationVoltage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     if (chargingStation) {
       // Check at charging station level
       if (chargingStation.voltage) {
@@ -602,13 +609,19 @@ export default class Utils {
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        for (const chargePoint of chargingStation.chargePoints) {
-          // Take the first
-          if (connectorId === 0 && chargePoint.voltage) {
-            return chargePoint.voltage;
-          }
+        if (chargePoint) {
           if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.voltage) {
             return chargePoint.voltage;
+          }
+        } else {
+          for (const chargePointOfCS of chargingStation.chargePoints) {
+            // Charging Station
+            if (connectorId === 0 && chargePointOfCS.voltage) {
+              return chargePointOfCS.voltage;
+            // Connector
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
+              return chargePointOfCS.voltage;
+            }
           }
         }
       }
@@ -628,17 +641,23 @@ export default class Utils {
     return 0;
   }
 
-  public static getChargingStationCurrentType(chargingStation: ChargingStation, connectorId = 0): CurrentType {
+  public static getChargingStationCurrentType(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): CurrentType {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        for (const chargePoint of chargingStation.chargePoints) {
-          // Take the first
-          if (connectorId === 0 && chargePoint.currentType) {
-            return chargePoint.currentType;
-          }
+        if (chargePoint) {
           if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.currentType) {
             return chargePoint.currentType;
+          }
+        } else {
+          for (const chargePointOfCS of chargingStation.chargePoints) {
+            // Charging Station
+            if (connectorId === 0 && chargePointOfCS.currentType) {
+              return chargePointOfCS.currentType;
+            // Connector
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
+              return chargePointOfCS.currentType;
+            }
           }
         }
       }
@@ -659,8 +678,7 @@ export default class Utils {
   }
 
   // Tslint:disable-next-line: cyclomatic-complexity
-  public static getChargingStationAmperage(chargingStation: ChargingStation,
-    chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperage(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     let totalAmps = 0;
     if (chargingStation) {
       // Check at charge point level
@@ -702,8 +720,7 @@ export default class Utils {
     return totalAmps;
   }
 
-  public static getChargingStationAmperageLimit(chargingStation: ChargingStation,
-    chargePoint: ChargePoint, connectorId = 0): number {
+  public static getChargingStationAmperageLimit(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
     let amperageLimit = 0;
     if (chargingStation) {
       if (connectorId > 0) {
@@ -1246,28 +1263,36 @@ export default class Utils {
         user: req.user.id
       });
     }
-    // Smart Charging?
-    if (Utils.isComponentActiveFromToken(req.user, TenantComponents.SMART_CHARGING) && siteArea.smartCharging) {
-      if (siteArea.maximumPower <= 0) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
-          module: MODULE_NAME,
-          method: 'checkIfSiteAreaValid',
-          user: req.user.id
-        });
-      }
-      if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.GENERAL_ERROR,
-          message: `Site area number of phases must be 1 or 3 but got ${siteArea.numberOfPhases}`,
-          module: MODULE_NAME,
-          method: 'checkIfSiteAreaValid',
-          user: req.user.id
-        });
-      }
+    // Power
+    if (siteArea.maximumPower <= 0) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site maximum power must be a positive number but got ${siteArea.maximumPower} kW`,
+        module: MODULE_NAME,
+        method: 'checkIfSiteAreaValid',
+        user: req.user.id
+      });
+    }
+    if (siteArea.voltage !== 230 && siteArea.voltage !== 110) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site voltage must be either 110V or 230V but got ${siteArea.voltage} kW`,
+        module: MODULE_NAME,
+        method: 'checkIfSiteAreaValid',
+        user: req.user.id
+      });
+    }
+    if (siteArea.numberOfPhases !== 1 && siteArea.numberOfPhases !== 3) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: `Site area number of phases must be either 1 or 3 but got ${siteArea.numberOfPhases}`,
+        module: MODULE_NAME,
+        method: 'checkIfSiteAreaValid',
+        user: req.user.id
+      });
     }
   }
 
@@ -1559,16 +1584,16 @@ export default class Utils {
       case TenantComponents.PRICING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
-          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
+          if (activeComponent.type === PricingSettingsType.SIMPLE) {
             // Simple Pricing
             return {
-              'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
+              'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+          } else if (activeComponent.type === PricingSettingsType.CONVERGENT_CHARGING) {
             // SAP CC
             return {
-              'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
+              'type': PricingSettingsType.CONVERGENT_CHARGING,
               'convergentCharging': {}
             } as SettingDBContent;
           }
@@ -1580,7 +1605,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Stripe
           return {
-            'type': Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE,
+            'type': BillingSettingsType.STRIPE,
             'stripe': {}
           } as SettingDBContent;
         }
@@ -1591,7 +1616,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
+            'type': RefundSettingsType.CONCUR,
             'concur': {}
           } as SettingDBContent;
         }
@@ -1602,7 +1627,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
+            'type': RoamingSettingsType.GIREVE,
             'ocpi': {}
           } as SettingDBContent;
         }
@@ -1613,7 +1638,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
+            'type': AnalyticsSettingsType.SAC,
             'sac': {}
           } as SettingDBContent;
         }
@@ -1624,7 +1649,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
-            'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
+            'type': SmartChargingContentType.SAP_SMART_CHARGING,
             'sapSmartCharging': {}
           } as SettingDBContent;
         }

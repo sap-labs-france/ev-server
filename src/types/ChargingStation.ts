@@ -1,5 +1,6 @@
 import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 
+import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
@@ -38,7 +39,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   maximumPower: number;
   voltage: Voltage;
   excludeFromSmartCharging?: boolean;
-  powerLimitUnit: PowerLimitUnits;
+  powerLimitUnit: ChargingRateUnitType;
   coordinates: number[];
   chargePoints: ChargePoint[];
   connectors: Connector[];
@@ -79,11 +80,6 @@ export enum Command {
   GET_COMPOSITE_SCHEDULE = 'GetCompositeSchedule',
   CHANGE_AVAILABILITY = 'ChangeAvailability',
   UPDATE_FIRMWARE = 'UpdateFirmware',
-}
-
-export enum PowerLimitUnits {
-  WATT = 'W',
-  AMPERE = 'A'
 }
 
 export enum StaticLimitAmps {
@@ -179,7 +175,7 @@ export interface ChargingStationTemplate {
   technical: {
     maximumPower: number;
     voltage?: Voltage;
-    powerLimitUnit: PowerLimitUnits;
+    powerLimitUnit: ChargingRateUnitType;
     chargePoints?: ChargePoint[];
     connectors: {
       connectorId: number;

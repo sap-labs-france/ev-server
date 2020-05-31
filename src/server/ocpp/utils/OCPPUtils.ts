@@ -277,9 +277,6 @@ export default class OCPPUtils {
             break;
           }
         }
-        // Recalculate Max Power
-        // TODO
-        this.recalculateChargingStationMaxPower(chargingStation);
       }
       // Log
       Logging.logInfo({
@@ -337,14 +334,6 @@ export default class OCPPUtils {
   }
 
   public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile) {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_DELETE,
-      message: 'Clear and Delete Charging Profile is being called',
-      module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-      detailedMessages: { chargingProfile }
-    });
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Check if Charging Profile is supported
@@ -395,25 +384,9 @@ export default class OCPPUtils {
       message: 'Charging Profile has been deleted successfully',
       detailedMessages: { chargingProfile }
     });
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_DELETE,
-      message: 'Clear and Delete Charging Profile has been called',
-      module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-      detailedMessages: { chargingProfile }
-    });
   }
 
-  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Set and Save Charging Profile is being called',
-      module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-      detailedMessages: { chargingProfile, user }
-    });
+  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     if (!chargingStation) {
@@ -461,7 +434,7 @@ export default class OCPPUtils {
       });
     }
     // Save
-    await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
+    const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -470,26 +443,7 @@ export default class OCPPUtils {
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
     });
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Set and Save Charging Profile has been called',
-      module: MODULE_NAME, method: 'setAndSaveChargingProfile'
-    });
-  }
-
-  public static recalculateChargingStationMaxPower(chargingStation: ChargingStation) {
-    let maximumPower = 0;
-    for (const connector of chargingStation.connectors) {
-      if (Utils.objectHasProperty(connector, 'power')) {
-        maximumPower += connector.power;
-      }
-    }
-    if (maximumPower) {
-      chargingStation.maximumPower = maximumPower;
-    }
+    return chargingProfileID;
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
@@ -731,9 +685,9 @@ export default class OCPPUtils {
     return result;
   }
 
-  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number, saveOtherConnectors = false) {
+  public static checkAndFreeChargingStationConnector(chargingStation: ChargingStation, connectorId: number) {
     // Cleanup connector transaction data
-    const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === connectorId);
+    const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
     if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;

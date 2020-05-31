@@ -1,4 +1,5 @@
 import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
 import { HTTPError } from '../../types/HTTPError';
 import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
@@ -11,7 +12,6 @@ import { OcpiSetting } from '../../types/Setting';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import axios from 'axios';
-import Configuration from '../../utils/Configuration';
 
 const MODULE_NAME = 'OCPIClient';
 

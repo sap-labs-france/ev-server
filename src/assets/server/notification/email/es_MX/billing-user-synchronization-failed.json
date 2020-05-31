@@ -1,0 +1,35 @@
+{
+  "subject": "Facturación: La sincronización del usuario falló",
+  "tenant": "<%- tenantID %>",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Facturación: La sincronización del usuario falló",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Estimado administrador,",
+      "",
+      "No se pueden sincronizar <% - nbrUsersInError%> usuarios con el sistema de facturación."
+    ],
+    "action": {
+      "title": "Ver configuración",
+      "url": "<%- evseDashboardBillingURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

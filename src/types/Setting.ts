@@ -21,7 +21,7 @@ export interface SettingLink {
 }
 
 export interface SettingDBContent {
-  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType;
+  type: RoamingSettingsType | AnalyticsSettingsType | RefundSettingsType | PricingSettingsType | BillingSettingsType | SmartChargingSettingsType | AssetSettingsType | SmartChargingContentType;
   ocpi?: OcpiSetting;
   simple?: SimplePricingSetting;
   convergentCharging?: ConvergentChargingPricingSetting;
@@ -45,6 +45,7 @@ export interface PricingSettings extends Setting {
   convergentCharging?: ConvergentChargingPricingSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PricingSetting {
 }
 
@@ -125,6 +126,7 @@ export interface SmartChargingSettings extends Setting {
   sapSmartCharging?: SapSmartChargingSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SmartChargingSetting {
 }
 
@@ -148,14 +150,8 @@ export interface RefundSettings extends Setting {
   concur?: ConcurRefundSetting;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RefundSetting {
-}
-
-export enum RefundContentType {
-  CONCUR = 'concur',
-  GIREVE = 'gireve',
-  OCPI = 'ocpi',
-  SAC = 'sac',
 }
 
 export interface ConcurRefundSetting extends RefundSetting {
@@ -234,5 +230,6 @@ export interface AssetUserPasswordConnectionType {
   password: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AssetSchneiderConnectionType extends AssetUserPasswordConnectionType {
 }

@@ -13,7 +13,7 @@ export default class JsonChargingStationService {
   constructor(chargingStationConfig: ChargingStationConfiguration) {
     this.chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
-    this.chargingStationService = global.centralSystemJson.getChargingStationService(OCPPVersion.VERSION_16);
+    this.chargingStationService = global.centralSystemJsonServer.getChargingStationService(OCPPVersion.VERSION_16);
   }
 
   public async handleBootNotification(headers, payload) {

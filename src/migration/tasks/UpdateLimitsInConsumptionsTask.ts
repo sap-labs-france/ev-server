@@ -34,12 +34,13 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
         if (chargingStation.chargePoints) {
           const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
           limitAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+          limitWatts = Utils.convertAmpToWatt(chargingStation, chargePoint, connector.connectorId, limitAmps);
         // Amps from connector
         } else if (connector.amperage) {
           limitAmps = connector.amperage;
+          limitWatts = Utils.convertAmpToWatt(chargingStation, null, connector.connectorId, limitAmps);
         }
         if (limitAmps) {
-          limitWatts = Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
           // Update
           result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
             {
