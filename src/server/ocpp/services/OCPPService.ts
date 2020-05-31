@@ -168,7 +168,7 @@ export default class OCPPService {
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
       chargingStation.currentIPAddress = bootNotification.currentIPAddress;
-      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
+      chargingStation.currentServerLocalIPAddressPort = headers.currentServerLocalIPAddressPort;
       // Set the Charging Station URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
@@ -237,7 +237,7 @@ export default class OCPPService {
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Replace IPs
       chargingStation.currentIPAddress = headers.currentIPAddress;
-      chargingStation.currentServerLocalIPAddress = headers.currentServerLocalIPAddress;
+      chargingStation.currentServerLocalIPAddressPort = headers.currentServerLocalIPAddressPort;
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
@@ -252,7 +252,7 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation.id, {
         lastHeartBeat: chargingStation.lastHeartBeat,
         currentIPAddress: chargingStation.currentIPAddress,
-        currentServerLocalIPAddress: chargingStation.currentServerLocalIPAddress,
+        currentServerLocalIPAddressPort: chargingStation.currentServerLocalIPAddressPort,
       });
       // Save Heart Beat
       await OCPPStorage.saveHeartbeat(headers.tenantID, heartbeat);
@@ -1098,6 +1098,7 @@ export default class OCPPService {
   private async buildConsumptionWithMeterValue(tenantID: string, transaction: Transaction,
     chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
+    // FIXME: Handle missing lastMeterValue attribute
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
     if (OCPPUtils.isSocMeterValue(meterValue)) {
@@ -1936,7 +1937,7 @@ export default class OCPPService {
   private async triggerSmartCharging(tenantID: string, chargingStation: ChargingStation) {
     // Get Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID);
-    if (siteArea.smartCharging) {
+    if (siteArea && siteArea.smartCharging) {
       const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(tenantID, siteArea);
       if (siteAreaLock) {
         try {

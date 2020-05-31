@@ -1,5 +1,6 @@
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
 
 import { ActionsResponse } from '../types/GlobalType';
@@ -21,7 +22,6 @@ import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
 import { ObjectID } from 'mongodb';
 import { Request } from 'express';
 import { ServerAction } from '../types/Server';
-import { SettingDBContent } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
@@ -32,7 +32,9 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import fs from 'fs';
+import localIP from 'quick-local-ip';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -68,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout <T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -332,6 +334,17 @@ export default class Utils {
     }
   }
 
+  public static getConnectorLimitSourceString(limitSource: ConnectorCurrentLimitSource): string {
+    switch (limitSource) {
+      case ConnectorCurrentLimitSource.CHARGING_PROFILE:
+        return 'Charging Profile';
+      case ConnectorCurrentLimitSource.CONNECTOR:
+        return 'Connector';
+      case ConnectorCurrentLimitSource.STATIC_LIMITATION:
+        return 'Static Limitation';
+    }
+  }
+
   public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
@@ -474,7 +487,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
+  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {
@@ -678,7 +691,7 @@ export default class Utils {
             totalAmps += chargePoint.amperage;
           // Connector
           } else if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.amperage &&
-              (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
+            (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
             return chargePoint.amperage;
           }
         } else {
@@ -688,7 +701,7 @@ export default class Utils {
               totalAmps += chargePointOfCS.amperage;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
-                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
               return chargePointOfCS.amperage;
             }
           }
@@ -735,7 +748,7 @@ export default class Utils {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-                chargePointOfCS.sharePowerToAllConnectors) {
+              chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -881,6 +894,10 @@ export default class Utils {
     }
   }
 
+  public static getLocalIP(): string {
+    return localIP.getLocalIP4();
+  }
+
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
@@ -935,7 +952,7 @@ export default class Utils {
   }
 
   public static generateToken(email) {
-    return Cypher.hash(`${new Date().toISOString()}~${email}`);
+    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static duplicateJSON(src): any {
@@ -1113,8 +1130,8 @@ export default class Utils {
       });
     }
     if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-        !filteredRequest.profile.chargingSchedule) {
+      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+      !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -1573,16 +1590,16 @@ export default class Utils {
       case TenantComponents.PRICING:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
-          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
+          if (activeComponent.type === PricingSettingsType.SIMPLE) {
             // Simple Pricing
             return {
-              'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
+              'type': PricingSettingsType.SIMPLE,
               'simple': {}
             } as SettingDBContent;
-          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+          } else if (activeComponent.type === PricingSettingsType.CONVERGENT_CHARGING) {
             // SAP CC
             return {
-              'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
+              'type': PricingSettingsType.CONVERGENT_CHARGING,
               'convergentCharging': {}
             } as SettingDBContent;
           }
@@ -1594,7 +1611,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Stripe
           return {
-            'type': Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE,
+            'type': BillingSettingsType.STRIPE,
             'stripe': {}
           } as SettingDBContent;
         }
@@ -1605,7 +1622,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
+            'type': RefundSettingsType.CONCUR,
             'concur': {}
           } as SettingDBContent;
         }
@@ -1616,7 +1633,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
+            'type': RoamingSettingsType.GIREVE,
             'ocpi': {}
           } as SettingDBContent;
         }
@@ -1627,7 +1644,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
           return {
-            'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
+            'type': AnalyticsSettingsType.SAC,
             'sac': {}
           } as SettingDBContent;
         }
@@ -1638,7 +1655,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP sapSmartCharging
           return {
-            'type': Constants.SETTING_SMART_CHARGING_CONTENT_TYPE_SAP_SMART_CHARGING,
+            'type': SmartChargingContentType.SAP_SMART_CHARGING,
             'sapSmartCharging': {}
           } as SettingDBContent;
         }
@@ -1649,7 +1666,10 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Asset
           return {
-            'type': null,
+            'type': AssetSettingsType.ASSET,
+            'asset': {
+              connections: []
+            }
           } as SettingDBContent;
         }
         break;

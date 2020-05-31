@@ -1,3 +1,5 @@
+import { PricingSettingsType, RefundSettingsType } from '../../types/Setting';
+
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import MigrationTask from '../MigrationTask';
@@ -27,7 +29,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       // Add sensitiveData property if not present
       setting.sensitiveData = [];
       // Concur
-      if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
+      if (setting.content.type === RefundSettingsType.CONCUR) {
         setting.sensitiveData = ['content.concur.clientSecret'];
         // Encrypt
         if (setting.content.concur.clientSecret) {
@@ -36,7 +38,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
           setting.content.concur.clientSecret = '';
         }
       // Convergent Charging
-      } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+      } else if (setting.content.type === PricingSettingsType.CONVERGENT_CHARGING) {
         setting.sensitiveData = ['content.convergentCharging.password'];
         if (setting.content.convergentCharging.password) {
           setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password);

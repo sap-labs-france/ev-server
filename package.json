@@ -57,6 +57,7 @@
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "password-generator": "^2.2.3",
+    "quick-local-ip": "^1.0.7",
     "role-acl": "^3.3.7",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^2.3.0",
