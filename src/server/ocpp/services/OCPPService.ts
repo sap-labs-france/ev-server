@@ -1168,10 +1168,9 @@ export default class OCPPService {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         // Set Consumption
       } else {
-        const chargingStationVoltage = Utils.getChargingStationVoltage(chargingStation, null, transaction.connectorId);
         consumption.consumption = transaction.currentConsumptionWh;
         consumption.instantPower = Math.round(transaction.currentConsumption);
-        consumption.instantAmps = Math.round(transaction.currentConsumption / chargingStationVoltage);
+        consumption.instantAmps = Utils.convertWattToAmp(chargingStation, null, transaction.connectorId, transaction.currentConsumption);
         consumption.cumulatedConsumption = transaction.currentTotalConsumption;
         consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
         consumption.totalDurationSecs = !transaction.stop ?
