@@ -114,16 +114,16 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
-        instantAmps: { $sum: '$instantAmps'},
+        instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
-        limitAmps: {$last: '$limitSiteAreaAmps'}
+        limitAmps: { $last: '$limitSiteAreaAmps' }
       }
     });
     // Rebuild the date
     aggregation.push({
       $addFields: {
         startedAt: {
-          $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+          $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
       }
     });
