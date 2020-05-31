@@ -1666,7 +1666,10 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Asset
           return {
-            'type': null,
+            'type': Constants.SETTING_ASSET_CONTENT_TYPE_ASSET,
+            'asset': {
+              connections: []
+            }
           } as SettingDBContent;
         }
         break;
