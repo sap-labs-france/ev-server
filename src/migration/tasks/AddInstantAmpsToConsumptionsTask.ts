@@ -1,12 +1,9 @@
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { ConnectorCurrentLimitSource } from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import { ServerAction } from '../../types/Server';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddInstantAmpsToConsumptionsTask';
@@ -22,11 +19,14 @@ export default class AddInstantAmpsToConsumptionsTask extends MigrationTask {
   async migrateTenant(tenant: Tenant) {
     let modifiedCount = 0;
     const result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
-      {
-        instantAmps: { $exists: false },
-      },
+      { },
       [
-        { '$set': { 'instantAmps': { '$round': [{ '$divide': ['$instantPower', 230] }] } } }
+        {
+          '$set': {
+            'limitSiteAreaAmps': { '$round': [{ '$divide': ['$limitSiteAreaWatts', 230] }] },
+            'instantAmps': { '$round': [{ '$divide': ['$instantPower', 230] }] }
+          }
+        }
       ]
     );
     modifiedCount += result.modifiedCount;
