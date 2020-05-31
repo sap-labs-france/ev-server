@@ -221,7 +221,6 @@ export interface AssetConnectionSetting {
 }
 
 export enum AssetConnectionType {
-  NONE = '',
   SCHNEIDER = 'schneider',
 }
 

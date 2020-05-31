@@ -1,12 +1,12 @@
 import sanitize from 'mongo-sanitize';
+
 import Authorizations from '../../../../authorization/Authorizations';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
-import { AnalyticsSettingsType, AssetConnectionSetting, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
+import { AnalyticsSettingsType, AssetConnectionSetting, AssetConnectionType, AssetSettingsType, BillingSettingsType, ConcurRefundSetting, OcpiBusinessDetails, OcpiSetting, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDB, SettingDBContent, SettingLink, SimplePricingSetting, SmartChargingSettingsType } from '../../../../types/Setting';
 import TenantComponents from '../../../../types/TenantComponents';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
-
 
 export default class SettingSecurity {
 
@@ -156,8 +156,27 @@ export default class SettingSecurity {
           break;
         case AssetSettingsType.ASSET:
           settings.content.asset = {
-            connections: request.content.asset.connections
+            connections: [],
           };
+          for (const connection of request.content.asset.connections) {
+            const sanitizedConnection: AssetConnectionSetting = {
+              id: sanitize(connection.id),
+              name: sanitize(connection.name),
+              description: sanitize(connection.description),
+              url: sanitize(connection.url),
+              type: sanitize(connection.type),
+            };
+            // Check type
+            switch (connection.type) {
+              case AssetConnectionType.SCHNEIDER:
+                sanitizedConnection.connection = {
+                  user: sanitize(connection.connection.user),
+                  password: sanitize(connection.connection.password),
+                };
+                break;
+            }
+            settings.content.asset.connections.push(sanitizedConnection);
+          }
           break;
       }
     }
