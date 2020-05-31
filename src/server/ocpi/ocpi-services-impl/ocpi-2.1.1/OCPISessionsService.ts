@@ -257,7 +257,7 @@ export default class OCPISessionsService {
         endedAt: new Date(session.last_updated),
         consumption: transaction.currentConsumptionWh,
         instantPower: Math.round(transaction.currentConsumption),
-        instantAmps: transaction.currentConsumption / 230, // Utils convert method was updated. Needs to be handled by Serge.
+        instantAmps: transaction.currentConsumption / 230,
         cumulatedConsumption: transaction.currentTotalConsumption,
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
