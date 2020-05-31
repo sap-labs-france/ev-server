@@ -25,7 +25,7 @@ export default class RefundFactory {
         let refundIntegrationImpl = null;
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[RefundSettingsType.CONCUR]);
             break;
         }
         // Check if missing implementation

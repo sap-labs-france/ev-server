@@ -503,9 +503,9 @@ export default class ChargingStationService {
       });
     }
     // Apply & Save charging plan
-    await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
+    const chargingProfileID = await OCPPUtils.setAndSaveChargingProfile(req.user.tenantID, filteredRequest, req.user);
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(Object.assign({ id: chargingProfileID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -1236,7 +1236,7 @@ export default class ChargingStationService {
         action: Action.LIST,
         entity: Entity.CHARGING_STATIONS,
         module: MODULE_NAME,
-        method: 'handleGetChargingStations',
+        method: 'getChargingStations',
       });
     }
     // Filter
@@ -1261,12 +1261,9 @@ export default class ChargingStationService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       }
     );
-    // Build the result
-    if (chargingStations.result && chargingStations.result.length > 0) {
-      // Filter
-      ChargingStationSecurity.filterChargingStationsResponse(
-        chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
-    }
+    // Filter
+    ChargingStationSecurity.filterChargingStationsResponse(
+      chargingStations, req.user, Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
     return chargingStations;
   }
 

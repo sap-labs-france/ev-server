@@ -245,8 +245,8 @@ export default class OCPPCommonTests {
     // Read charging station
     const response = await this.chargingStationContext.readChargingStation();
     // Check the presence of the server local IP
-    expect(response.data).to.have.property('currentServerLocalIPAddress');
-    expect(response.data.currentServerLocalIPAddress).to.not.be.empty;
+    expect(response.data).to.have.property('currentServerLocalIPAddressPort');
+    expect(response.data.currentServerLocalIPAddressPort).to.not.be.empty;
   }
 
   public async testDataTransfer() {

@@ -31,22 +31,8 @@ export default class AddSiteAreaLimitToConsumptionsTask extends MigrationTask {
       }
       // Compute charging station power
       for (const chargingStation of siteArea.chargingStations) {
-        let limitAmps = 0;
-        // Amps from chargepoint
-        if (chargingStation.chargePoints) {
-          for (const chargePoint of chargingStation.chargePoints) {
-            limitAmps += Utils.getChargingStationAmperage(chargingStation, chargePoint);
-            limitChargingStationsWatts += Utils.convertAmpToWatt(chargingStation, 0, limitAmps);
-          }
-        // Amps from connector
-        } else {
-          for (const connector of chargingStation.connectors) {
-            if (connector.amperage) {
-              limitAmps += connector.amperage;
-              limitChargingStationsWatts += Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
-            }
-          }
-        }
+        const limitAmps = Utils.getChargingStationAmperage(chargingStation);
+        limitChargingStationsWatts += Utils.convertAmpToWatt(chargingStation, null, 0, limitAmps);
       }
       // Update Consumption
       limitSiteAreaWatts = limitSiteAreaWatts ? limitSiteAreaWatts : limitChargingStationsWatts;

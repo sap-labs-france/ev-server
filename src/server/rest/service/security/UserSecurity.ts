@@ -113,7 +113,9 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
-    filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
+    if (Utils.objectHasProperty(request, 'issuer')) {
+      filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
+    }
     if (Utils.objectHasProperty(request, 'notificationsActive')) {
       filteredRequest.notificationsActive = sanitize(request.notificationsActive);
     }

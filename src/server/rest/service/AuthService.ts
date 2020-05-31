@@ -23,6 +23,7 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
+import sanitize from 'mongo-sanitize';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -238,9 +239,9 @@ export default class AuthService {
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
-    newUser.locale = req.locale.substring(0, 5);
+    newUser.locale = sanitize(req.locale.substring(0, 5));
     newUser.createdOn = new Date();
-    const verificationToken = Utils.generateToken(req.body.email);
+    const verificationToken = Utils.generateToken(filteredRequest.email);
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
     // Save User
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
@@ -314,7 +315,7 @@ export default class AuthService {
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         }
-      );
+      ).catch(() => { });
     }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -399,7 +400,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardResetPassURL': evseDashboardResetPassURL
       }
-    );
+    ).catch(() => { });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -833,7 +834,7 @@ export default class AuthService {
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       }
-    );
+    ).catch(() => { });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();

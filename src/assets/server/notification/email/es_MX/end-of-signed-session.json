@@ -1,0 +1,21 @@
+{
+  "subject": "Sesión finalizada - Sesión firmada",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "stats": [
+      { "label": "Terminal", "value": "<%- chargeBoxID %>" },
+      { "label": "Conector", "value": "<%- connectorId %>" },
+      { "label": "Insignia", "value": "<%- badgeID %>" },
+      { "label": "Hora de inicio", "value": "<%- startDate %>" },
+      { "label": "Hora de fin", "value": "<%- endDate %>" },
+      { "label": "Iniciar contador", "value": "<%- meterStart %> kWh" },
+      { "label": "Finalizar contador", "value": "<%- meterStop %> kWh" },
+      { "label": "Consumo", "value": "<%- totalConsumption %> kWh" },
+      { "label": "Costo", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
+      { "label": "Contrato para", "value":"LOCAL (informativ)" }
+    ],
+    "xmlContent": "<%- xmlContent %>"
+  }
+}
+

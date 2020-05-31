@@ -22,7 +22,7 @@ import locale from 'locale';
 bodyParserXml(bodyParser);
 
 export default class ExpressTools {
-  public static init(bodyLimit = '1mb'): express.Application {
+  public static initApplication(bodyLimit = '1mb'): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
