@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -1666,7 +1666,7 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Asset
           return {
-            'type': Constants.SETTING_ASSET_CONTENT_TYPE_ASSET,
+            'type': AssetSettingsType.ASSET,
             'asset': {
               connections: []
             }
