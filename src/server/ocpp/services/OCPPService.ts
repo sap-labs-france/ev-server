@@ -1168,9 +1168,10 @@ export default class OCPPService {
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         // Set Consumption
       } else {
+        const chargingStationVoltage = Utils.getChargingStationVoltage(chargingStation, null, transaction.connectorId);
         consumption.consumption = transaction.currentConsumptionWh;
         consumption.instantPower = Math.round(transaction.currentConsumption);
-        consumption.instantAmps = transaction.currentConsumption / 230; // Utils convert method was updated. Needs to be handled by Serge.
+        consumption.instantAmps = Math.round(transaction.currentConsumption / chargingStationVoltage);
         consumption.cumulatedConsumption = transaction.currentTotalConsumption;
         consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
         consumption.totalDurationSecs = !transaction.stop ?
@@ -1205,7 +1206,7 @@ export default class OCPPService {
         // Maximum power of the Site Area provided?
         if (chargingStation.siteArea.maximumPower) {
           consumption.limitSiteAreaWatts = chargingStation.siteArea.maximumPower;
-          consumption.limitSiteAreaAmps = chargingStation.siteArea.maximumPower / 230;
+          consumption.limitSiteAreaAmps = Math.round(chargingStation.siteArea.maximumPower / chargingStation.siteArea.voltage);
           consumption.limitSiteAreaSource = SiteAreaLimitSource.SITE_AREA;
         } else {
           // Compute it for Charging Stations
@@ -1215,7 +1216,7 @@ export default class OCPPService {
               consumption.limitSiteAreaWatts += connector.power;
             }
           }
-          consumption.limitSiteAreaAmps = consumption.limitSiteAreaWatts / 230;
+          consumption.limitSiteAreaAmps = Math.round(consumption.limitSiteAreaWatts / chargingStation.siteArea.voltage);
           consumption.limitSiteAreaSource = SiteAreaLimitSource.CHARGING_STATIONS;
         }
       }
