@@ -1,4 +1,4 @@
-import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -32,7 +32,9 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import _ from 'lodash';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import fs from 'fs';
+import localIP from 'quick-local-ip';
 import moment from 'moment';
 import passwordGenerator from 'password-generator';
 import path from 'path';
@@ -68,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout <T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -485,7 +487,7 @@ export default class Utils {
     return changedValue;
   }
 
-  public static convertUserToObjectID(user: User|UserToken|string): ObjectID | null {
+  public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
     let userID = null;
     // Check Created By
     if (user) {
@@ -689,7 +691,7 @@ export default class Utils {
             totalAmps += chargePoint.amperage;
           // Connector
           } else if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.amperage &&
-              (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
+            (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
             return chargePoint.amperage;
           }
         } else {
@@ -699,7 +701,7 @@ export default class Utils {
               totalAmps += chargePointOfCS.amperage;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
-                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
               return chargePointOfCS.amperage;
             }
           }
@@ -746,7 +748,7 @@ export default class Utils {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-                chargePointOfCS.sharePowerToAllConnectors) {
+              chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -892,6 +894,10 @@ export default class Utils {
     }
   }
 
+  public static getLocalIP(): string {
+    return localIP.getLocalIP4();
+  }
+
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
@@ -946,7 +952,7 @@ export default class Utils {
   }
 
   public static generateToken(email) {
-    return Cypher.hash(`${new Date().toISOString()}~${email}`);
+    return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
   public static duplicateJSON(src): any {
@@ -1124,8 +1130,8 @@ export default class Utils {
       });
     }
     if (!filteredRequest.profile.chargingProfileId || !filteredRequest.profile.stackLevel ||
-        !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
-        !filteredRequest.profile.chargingSchedule) {
+      !filteredRequest.profile.chargingProfilePurpose || !filteredRequest.profile.chargingProfileKind ||
+      !filteredRequest.profile.chargingSchedule) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         action: ServerAction.CHARGING_PROFILE_UPDATE,
@@ -1660,7 +1666,10 @@ export default class Utils {
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Asset
           return {
-            'type': null,
+            'type': AssetSettingsType.ASSET,
+            'asset': {
+              connections: []
+            }
           } as SettingDBContent;
         }
         break;

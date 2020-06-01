@@ -98,8 +98,11 @@ export default interface Transaction {
 export interface TransactionConsumption {
   date: Date;
   instantPower: number;
+  instantAmps: number;
   limitWatts: number;
+  limitAmps: number;
   cumulatedConsumption: number;
+  cumulatedConsumptionAmps: number;
   stateOfCharge: number;
   cumulatedAmount: number;
 }

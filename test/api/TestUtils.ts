@@ -1,4 +1,4 @@
-export default class Utils {
+export default class TestUtils {
   static async sleep(ms) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
   }
@@ -12,7 +12,7 @@ export default class Utils {
   public static convertExportFileToObjectArray(fileData: string): Array<{ [x: string]: any }> {
     let jsonString = '';
     const objectArray = [];
-    const fileArray = Utils.convertExportFileToRawArray(fileData);
+    const fileArray = TestUtils.convertExportFileToRawArray(fileData);
     if (Array.isArray(fileArray) && fileArray.length > 0) {
       const columns = fileArray[0].split('\t');
       for (let i = 1; i < fileArray.length; i++) {

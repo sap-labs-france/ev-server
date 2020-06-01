@@ -116,7 +116,7 @@ export default { /* Services */
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
-          headers.currentServerLocalIPAddress = (global.centralSystemSoapServer.httpServer.address() as AddressInfo).address + ':' + (global.centralSystemSoapServer.httpServer.address() as AddressInfo).port;
+          headers.currentServerLocalIPAddressPort = Utils.getLocalIP() + ':' + (global.centralSystemSoapServer.httpServer.address() as AddressInfo).port;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.HEARTBEAT, [ headers, args ]);
           // Handle
@@ -174,7 +174,7 @@ export default { /* Services */
           headers.ocppProtocol = OCPPProtocol.SOAP;
           // Add current IPs to charging station properties
           headers.currentIPAddress = Utils.getRequestIP(req);
-          headers.currentServerLocalIPAddress = (global.centralSystemSoapServer.httpServer.address() as AddressInfo).address + ':' + (global.centralSystemSoapServer.httpServer.address() as AddressInfo).port;
+          headers.currentServerLocalIPAddressPort = Utils.getLocalIP() + ':' + (global.centralSystemSoapServer.httpServer.address() as AddressInfo).port;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, ServerAction.BOOT_NOTIFICATION, [ headers, args ]);
           // Handle

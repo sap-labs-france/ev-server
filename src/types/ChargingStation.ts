@@ -45,7 +45,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   connectors: Connector[];
   remoteAuthorizations: RemoteAuthorization[];
   currentIPAddress?: string;
-  currentServerLocalIPAddress?: string;
+  currentServerLocalIPAddressPort?: string;
   siteArea?: SiteArea;
   capabilities?: ChargingStationCapabilities;
   ocppStandardParameters?: KeyValue[];
@@ -108,6 +108,7 @@ export interface Connector {
   statusLastChangedOn?: Date;
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
+  excludeFromPowerLimitation?: boolean;
   currentType?: CurrentType;
   chargePointID?: number;
 }
