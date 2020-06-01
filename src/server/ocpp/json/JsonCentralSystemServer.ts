@@ -1,13 +1,16 @@
+import WebSocket, { AddressInfo } from 'ws';
+
 import CentralSystemConfiguration from '../../../types/configuration/CentralSystemConfiguration';
 import CentralSystemServer from '../CentralSystemServer';
 import ChargingStationConfiguration from '../../../types/configuration/ChargingStationConfiguration';
+import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
 import Logging from '../../../utils/Logging';
 import { ServerAction } from '../../../types/Server';
 import WSServer from './WSServer';
-import WebSocket from 'ws';
+import cfenv from 'cfenv';
 import global from '../../../types/GlobalType';
 import http from 'http';
 import { v4 as uuid } from 'uuid';
@@ -48,8 +51,11 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     return null;
   }
 
-  public get address(): string|WebSocket.AddressInfo {
-    return this.wsServer.address();
+  public get port(): number {
+    if (Configuration.isCloudFoundry()) {
+      return cfenv.getAppEnv().port;
+    }
+    return (this.wsServer.address() as AddressInfo).port;
   }
 
   public removeJsonConnection(wsConnection: JsonWSConnection) {

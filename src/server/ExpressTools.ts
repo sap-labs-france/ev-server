@@ -10,6 +10,7 @@ import Logging from '../utils/Logging';
 import { ServerAction } from '../types/Server';
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
+import cfenv from 'cfenv';
 import cluster from 'cluster';
 import cors from 'cors';
 import fs from 'fs';
@@ -84,6 +85,13 @@ export default class ExpressTools {
       server = http.createServer(expressApp);
     }
     return server;
+  }
+
+  public static getHttpServerPort(httpServer: http.Server): number {
+    if (Configuration.isCloudFoundry()) {
+      return cfenv.getAppEnv().port;
+    }
+    return (httpServer.address() as AddressInfo).port;
   }
 
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
