@@ -32,12 +32,12 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       // Update current Charging Station with Template
       await this.applyTemplateToChargingStations(tenant);
       // Remove unused props
-      await this.cleanUpChargingStationDBProps(tenant);
+      // await this.cleanUpChargingStationDBProps(tenant);
     }
   }
 
   getVersion() {
-    return '2.0';
+    return '2.1';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
