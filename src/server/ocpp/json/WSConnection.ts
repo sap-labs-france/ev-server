@@ -1,5 +1,5 @@
 import { MessageType, OcppErrorType } from '../../../types/WebSocket';
-import WebSocket, { AddressInfo, OPEN } from 'ws';
+import WebSocket, { OPEN } from 'ws';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -42,7 +42,7 @@ export default class WSConnection {
     this.req = req;
     this.initialized = false;
     this.wsServer = wsServer;
-    this.serverIPPort = Utils.getLocalIP() + ':' + (this.wsServer.address as AddressInfo).port;
+    this.serverIPPort = Utils.getLocalIP() + ':' + this.wsServer.port;
 
     // Default
     this.tenantIsValid = false;
