@@ -32,11 +32,13 @@ export default class ConsumptionStorage {
       consumption: Utils.convertToFloat(consumptionToSave.consumption),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
       cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
+      cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
       pricingSource: consumptionToSave.pricingSource,
       amount: Utils.convertToFloat(consumptionToSave.amount),
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
       instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
@@ -113,14 +115,16 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
+        instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
+        limitAmps: { $last: '$limitSiteAreaAmps' }
       }
     });
     // Rebuild the date
     aggregation.push({
       $addFields: {
         startedAt: {
-          $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+          $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
       }
     });

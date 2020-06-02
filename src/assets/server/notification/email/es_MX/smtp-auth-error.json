@@ -1,0 +1,39 @@
+{
+  "subject": "Error de autenticación en el servidor de correo electrónico principal",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Error de autenticación del servidor de correo electrónico",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Estimado administrador,",
+      "",
+      "La autenticación en el servidor de correo electrónico principal falló ",
+      "",
+      "Por favor verifique su configuración.",
+      ""
+    ],
+    "action": {
+      "title": "e-Mobility",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Atentamente,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

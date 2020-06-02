@@ -334,14 +334,6 @@ export default class OCPPUtils {
   }
 
   public static async clearAndDeleteChargingProfile(tenantID: string, chargingProfile: ChargingProfile) {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_DELETE,
-      message: 'Clear and Delete Charging Profile is being called',
-      module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-      detailedMessages: { chargingProfile }
-    });
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     // Check if Charging Profile is supported
@@ -392,25 +384,9 @@ export default class OCPPUtils {
       message: 'Charging Profile has been deleted successfully',
       detailedMessages: { chargingProfile }
     });
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_DELETE,
-      message: 'Clear and Delete Charging Profile has been called',
-      module: MODULE_NAME, method: 'clearAndDeleteChargingProfile',
-      detailedMessages: { chargingProfile }
-    });
   }
 
-  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken) {
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Set and Save Charging Profile is being called',
-      module: MODULE_NAME, method: 'setAndSaveChargingProfile',
-      detailedMessages: { chargingProfile, user }
-    });
+  public static async setAndSaveChargingProfile(tenantID: string, chargingProfile: ChargingProfile, user?: UserToken): Promise<string> {
     // Get charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargingProfile.chargingStationID);
     if (!chargingStation) {
@@ -458,7 +434,7 @@ export default class OCPPUtils {
       });
     }
     // Save
-    await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
+    const chargingProfileID = await ChargingStationStorage.saveChargingProfile(tenantID, chargingProfile);
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id,
@@ -467,14 +443,7 @@ export default class OCPPUtils {
       message: 'Charging Profile has been successfully pushed and saved',
       detailedMessages: { chargingProfile }
     });
-    // Log
-    Logging.logDebug({
-      tenantID: tenantID,
-      source: chargingProfile.chargingStationID,
-      action: ServerAction.CHARGING_PROFILE_UPDATE,
-      message: 'Set and Save Charging Profile has been called',
-      module: MODULE_NAME, method: 'setAndSaveChargingProfile'
-    });
+    return chargingProfileID;
   }
 
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {

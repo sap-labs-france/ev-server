@@ -1,18 +1,18 @@
-import moment from 'moment';
-import sanitize from 'mongo-sanitize';
-
-import Authorizations from '../../../../authorization/Authorizations';
-import Consumption from '../../../../types/Consumption';
-import { DataResult } from '../../../../types/DataResult';
-import { TransactionInError } from '../../../../types/InError';
-import RefundReport from '../../../../types/Refund';
 import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import RefundReport from '../../../../types/Refund';
+import { TransactionInError } from '../../../../types/InError';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -318,10 +318,13 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantPower: consumption.instantPower,
+        instantAmps: consumption.instantAmps,
         cumulatedConsumption: consumption.cumulatedConsumption,
+        cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
-        limitWatts: consumption.limitWatts
+        limitWatts: consumption.limitWatts,
+        limitAmps: consumption.limitAmps,
       };
       if (consumption.stateOfCharge) {
         newConsumption.stateOfCharge = consumption.stateOfCharge;

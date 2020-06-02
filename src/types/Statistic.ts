@@ -19,3 +19,12 @@ export default interface StatisticFilter {
     $exists: boolean;
   };
 }
+
+export enum StatsGroupBy {
+  CONSUMPTION = 'C',
+  USAGE = 'U',
+  INACTIVITY = 'I',
+  TRANSACTIONS = 'T',
+  PRICING = 'P',
+}
+
