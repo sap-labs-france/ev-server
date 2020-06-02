@@ -539,6 +539,10 @@ export default class Utils {
   public static computeChargingStationTotalAmps(chargingStation: ChargingStation): number {
     let totalAmps = 0;
     if (chargingStation) {
+      // Check at Charging Station
+      if (chargingStation.maximumPower) {
+        return Utils.convertWattToAmp(chargingStation, null, 0, chargingStation.maximumPower);
+      }
       // Check at charge point level
       if (chargingStation.chargePoints) {
         for (const chargePoint of chargingStation.chargePoints) {
@@ -552,36 +556,72 @@ export default class Utils {
         }
       }
     }
-    if (totalAmps === 0 && chargingStation.maximumPower) {
-      totalAmps = Utils.convertWattToAmp(chargingStation, null, 0, chargingStation.maximumPower);
-    }
     return totalAmps;
   }
 
+  // Tslint:disable-next-line: cyclomatic-complexity
   public static getChargingStationPower(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorId = 0): number {
-    const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
-    const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
-    return voltage * amperage;
+    let totalPower = 0;
+    if (chargingStation) {
+      // Check at charge point level
+      if (chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
+            // Charging Station
+            if (connectorId === 0 && chargePointOfCS.power) {
+              totalPower += chargePointOfCS.power;
+            // Connector
+            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power &&
+                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              // Check Connector ID
+              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+              if (connector.power) {
+                return connector.power;
+              }
+              return chargePointOfCS.power;
+            }
+          }
+        }
+      }
+      // Check at connector level
+      if (totalPower === 0 && chargingStation.connectors) {
+        for (const connector of chargingStation.connectors) {
+          if (connectorId === 0 && connector.power) {
+            totalPower += connector.power;
+          }
+          if (connector.connectorId === connectorId && connector.power) {
+            return connector.power;
+          }
+        }
+      }
+    }
+    if (!totalPower) {
+      const amperage = Utils.getChargingStationAmperage(chargingStation, chargePoint, connectorId);
+      const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
+      if (voltage && amperage) {
+        return voltage * amperage;
+      }
+    }
+    return totalPower;
   }
 
   public static getNumberOfConnectedPhases(chargingStation: ChargingStation, chargePoint?: ChargePoint, connectorId = 0): number {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        if (chargePoint) {
-          if (connectorId === 0 && chargePoint.numberOfConnectedPhase) {
-            return chargePoint.numberOfConnectedPhase;
-          }
-          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.numberOfConnectedPhase) {
-            return chargePoint.numberOfConnectedPhase;
-          }
-        } else {
-          for (const chargePointOfCS of chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.numberOfConnectedPhase) {
               return chargePointOfCS.numberOfConnectedPhase;
+            }
             // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
+            if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
+              // Check Connector ID
+              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+              if (connector.numberOfConnectedPhase) {
+                return connector.numberOfConnectedPhase;
+              }
               return chargePointOfCS.numberOfConnectedPhase;
             }
           }
@@ -611,17 +651,19 @@ export default class Utils {
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        if (chargePoint) {
-          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.voltage) {
-            return chargePoint.voltage;
-          }
-        } else {
-          for (const chargePointOfCS of chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.voltage) {
               return chargePointOfCS.voltage;
+            }
             // Connector
-            } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
+            if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
+              // Check Connector ID
+              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+              if (connector.voltage) {
+                return connector.voltage;
+              }
               return chargePointOfCS.voltage;
             }
           }
@@ -647,17 +689,18 @@ export default class Utils {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        if (chargePoint) {
-          if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.currentType) {
-            return chargePoint.currentType;
-          }
-        } else {
-          for (const chargePointOfCS of chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
+              // Check Connector ID
+              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+              if (connector.currentType) {
+                return connector.currentType;
+              }
               return chargePointOfCS.currentType;
             }
           }
@@ -685,23 +728,19 @@ export default class Utils {
     if (chargingStation) {
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        if (chargePoint) {
-          // Charging Station
-          if (connectorId === 0 && chargePoint.amperage) {
-            totalAmps += chargePoint.amperage;
-          // Connector
-          } else if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.amperage &&
-            (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
-            return chargePoint.amperage;
-          }
-        } else {
-          for (const chargePointOfCS of chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.amperage) {
               totalAmps += chargePointOfCS.amperage;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
               (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              // Check Connector ID
+              const connector = Utils.getConnectorFromID(chargingStation, connectorId);
+              if (connector.amperage) {
+                return connector.amperage;
+              }
               return chargePointOfCS.amperage;
             }
           }
@@ -719,6 +758,13 @@ export default class Utils {
         }
       }
     }
+    if (!totalAmps) {
+      const power = Utils.getChargingStationPower(chargingStation, chargePoint, connectorId);
+      const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorId);
+      if (voltage && power) {
+        return power / voltage;
+      }
+    }
     return totalAmps;
   }
 
@@ -730,25 +776,13 @@ export default class Utils {
       }
       // Check at charge point level
       if (chargingStation.chargePoints) {
-        if (chargePoint) {
-          if (chargePoint.excludeFromPowerLimitation) {
-            return 0;
-          }
-          // Add limit amp of one connector of the charge point
-          if (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors) {
-            return Utils.getConnectorFromID(chargingStation, chargePoint.connectorIDs[0]).amperageLimit;
-          }
-          // Add limit amp of all connectors of the charge point
-          for (const connectorID of chargePoint.connectorIDs) {
-            amperageLimit += Utils.getConnectorFromID(chargingStation, connectorID).amperageLimit;
-          }
-        } else {
-          for (const chargePointOfCS of chargingStation.chargePoints) {
+        for (const chargePointOfCS of chargingStation.chargePoints) {
+          if (!chargePoint || chargePoint.chargePointID === chargePointOfCS.chargePointID) {
             if (chargePointOfCS.excludeFromPowerLimitation) {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-              chargePointOfCS.sharePowerToAllConnectors) {
+                chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -759,8 +793,9 @@ export default class Utils {
             }
           }
         }
+      }
       // Check at connector level
-      } else if (chargingStation.connectors) {
+      if (amperageLimit === 0 && chargingStation.connectors) {
         for (const connector of chargingStation.connectors) {
           amperageLimit += connector.amperageLimit;
         }
