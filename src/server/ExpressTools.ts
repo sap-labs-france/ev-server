@@ -86,6 +86,10 @@ export default class ExpressTools {
     return server;
   }
 
+  public static getHttpServerPort(httpServer: http.Server): number {
+    return (httpServer.address() as AddressInfo).port;
+  }
+
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {

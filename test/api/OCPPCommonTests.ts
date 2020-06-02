@@ -7,6 +7,7 @@ import { InactivityStatus } from '../../src/types/Transaction';
 import { PricingSettingsType } from '../../src/types/Setting';
 import TenantContext from './context/TenantContext';
 import User from '../../src/types/User';
+import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import { fail } from 'assert';
 import faker from 'faker';
@@ -522,7 +523,11 @@ export default class OCPPCommonTests {
       expect(value).to.include({
         'date': transactionCurrentTime.toISOString(),
         'instantPower': this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
-        'cumulatedConsumption': transactionCumulatedConsumption
+        'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+          null, this.newTransaction.connectorId, this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs),
+        'cumulatedConsumption': transactionCumulatedConsumption,
+        'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
+          null, this.newTransaction.connectorId, transactionCumulatedConsumption)
       });
       if (withSoC) {
         // Check

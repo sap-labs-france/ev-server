@@ -108,7 +108,6 @@ export interface Connector {
   statusLastChangedOn?: Date;
   inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
-  excludeFromPowerLimitation?: boolean;
   currentType?: CurrentType;
   chargePointID?: number;
 }
