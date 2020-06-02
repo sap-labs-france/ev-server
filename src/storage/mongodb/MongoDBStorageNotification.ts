@@ -73,7 +73,6 @@ export default class MongoDBStorageNotification {
         });
         return;
       }
-
       const dbChangeStream = global.database.watch(_pipeline, _options);
       dbChangeStream.on('change', (change: { [key: string]: any }) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
@@ -88,28 +87,17 @@ export default class MongoDBStorageNotification {
         if (change.documentKey && change.documentKey._id) {
           documentID = change.documentKey._id.toString();
         }
-        // Temporary debug log
-        Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME, method: 'start',
-          action: ServerAction.DB_WATCH,
-          message: `Change type ${action} occurred in the DB`,
-          detailedMessages: { change }
-        });
         this.handleCollectionChange(tenantID, collection, documentID, action, change);
       });
-
       dbChangeStream.on('error', (error: Error) => {
         MongoDBStorageNotification.handleDBChangeStreamError(error);
       });
-
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
         action: ServerAction.STARTUP,
         message: `Starting to monitor changes on database '${this.dbConfig.implementation}'...`
       });
-
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME, method: 'start',
