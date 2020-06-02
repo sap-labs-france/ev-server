@@ -88,6 +88,14 @@ export default class MongoDBStorageNotification {
         if (change.documentKey && change.documentKey._id) {
           documentID = change.documentKey._id.toString();
         }
+        // Temporary debug log
+        Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
+          module: MODULE_NAME, method: 'start',
+          action: ServerAction.DB_WATCH,
+          message: `Change type ${action} occurred in the DB`,
+          detailedMessages: { change }
+        });
         this.handleCollectionChange(tenantID, collection, documentID, action, change);
       });
 
