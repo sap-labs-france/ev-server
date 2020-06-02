@@ -1,14 +1,16 @@
-import { ChargingProfile, ChargingRateUnitType, ChargingSchedule } from '../../types/ChargingProfile';
+import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
 
 import BackendError from '../../exception/BackendError';
 import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationVendor';
 
@@ -455,10 +457,48 @@ export default abstract class ChargingStationVendorIntegration {
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
-            message: `Connector ID '${connectorID}' current limit: Cannot retrieve the charging plan`,
+            message: `Connector ID '${connectorID}' current limit: Cannot retrieve the Charging Plan, will try in DB`,
             module: MODULE_NAME, method: 'getCurrentConnectorLimit',
             detailedMessages: { compositeSchedule }
           });
+          // Get the TX Charging Profiles from the DB
+          const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
+            { chargingStationID: chargingStation.id, connectorID: connectorID,
+              profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
+          for (const chargingProfile of chargingProfiles.result) {
+            // Check type (only Absolute)
+            if (chargingProfile.profile.chargingProfileKind === ChargingProfileKindType.ABSOLUTE) {
+              const chargingSchedule = chargingProfile.profile.chargingSchedule;
+              // Check if the profile is still valid (must be)
+              const now = moment();
+              if (moment(chargingSchedule.startSchedule).add(chargingSchedule.duration, 's').isAfter(now)) {
+                let lastButOneSchedule: ChargingSchedulePeriod;
+                // Search
+                for (const schedulePeriod of chargingSchedule.chargingSchedulePeriod) {
+                  // First schedule period is always 0 then first one is always bypassed
+                  if (moment(chargingSchedule.startSchedule).add(schedulePeriod.startPeriod, 's').isAfter(now)) {
+                    // Found the schedule: Last but one is the correct one
+                    const result: ConnectorCurrentLimit = {
+                      limitAmps: Utils.convertToInt(lastButOneSchedule.limit),
+                      limitWatts: Utils.convertAmpToWatt(chargingStation, chargePoint, connectorID, Utils.convertToInt(lastButOneSchedule.limit)),
+                      limitSource: ConnectorCurrentLimitSource.CHARGING_PROFILE,
+                    };
+                    Logging.logDebug({
+                      tenantID: tenantID,
+                      source: chargingStation.id,
+                      action: ServerAction.GET_CONNECTOR_CURRENT_LIMIT,
+                      message: `Connector ID '${connectorID}' current limit: ${result.limitAmps} A, ${result.limitWatts} W, source '${Utils.getConnectorLimitSourceString(result.limitSource)} in DB'`,
+                      module: MODULE_NAME, method: 'getCurrentConnectorLimit',
+                      detailedMessages: { result }
+                    });
+                    return result;
+                  }
+                  // Keep it
+                  lastButOneSchedule = schedulePeriod;
+                }
+              }
+            }
+          }
         }
       }
       // Check next the static power limitation
