@@ -1,4 +1,5 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -8,7 +9,6 @@ import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
-import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
 import Company from '../types/Company';
 import Configuration from './Configuration';
@@ -580,7 +580,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.numberOfConnectedPhase) {
               return chargePointOfCS.numberOfConnectedPhase;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.numberOfConnectedPhase) {
               return chargePointOfCS.numberOfConnectedPhase;
             }
@@ -620,7 +620,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.voltage) {
               return chargePointOfCS.voltage;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.voltage) {
               return chargePointOfCS.voltage;
             }
@@ -656,7 +656,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.currentType) {
               return chargePointOfCS.currentType;
             }
@@ -689,7 +689,7 @@ export default class Utils {
           // Charging Station
           if (connectorId === 0 && chargePoint.amperage) {
             totalAmps += chargePoint.amperage;
-          // Connector
+            // Connector
           } else if (chargePoint.connectorIDs.includes(connectorId) && chargePoint.amperage &&
             (chargePoint.cannotChargeInParallel || chargePoint.sharePowerToAllConnectors)) {
             return chargePoint.amperage;
@@ -699,7 +699,7 @@ export default class Utils {
             // Charging Station
             if (connectorId === 0 && chargePointOfCS.amperage) {
               totalAmps += chargePointOfCS.amperage;
-            // Connector
+              // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.amperage &&
               (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
               return chargePointOfCS.amperage;
@@ -759,7 +759,7 @@ export default class Utils {
             }
           }
         }
-      // Check at connector level
+        // Check at connector level
       } else if (chargingStation.connectors) {
         for (const connector of chargingStation.connectors) {
           amperageLimit += connector.amperageLimit;
@@ -1721,6 +1721,26 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Catalog ID  is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car type is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (Authorizations.isBasic(req.user) && car.type === CarType.POOL_CAR) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pool cars can only be created by admin',
         module: MODULE_NAME,
         method: 'checkIfCarValid',
         user: req.user.id

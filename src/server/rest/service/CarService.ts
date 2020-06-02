@@ -293,6 +293,8 @@ export default class CarService {
       Action.UPDATE, Entity.CAR, MODULE_NAME, 'handleUpdateCar');
     // Filter
     const filteredRequest = CarSecurity.filterCarUpdateRequest(req.body);
+    // ID is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.id, 'CarSecurity', 'filterCarUpdateRequest', req.user);
     // Check
     Utils.checkIfCarValid(filteredRequest, req);
     // Check auth
@@ -435,7 +437,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleGetUsersCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
       MODULE_NAME, 'handleGetUsersCar');
@@ -449,6 +451,8 @@ export default class CarService {
       });
     }
     const filteredRequest = CarSecurity.filterUsersCarsRequest(req.query);
+    // CarID is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.carID, 'CarSecurity', 'filterUsersCarsRequest', req.user);
     // Get cars
     const usersCars = await CarStorage.getUsersCars(req.user.tenantID,
       {
@@ -464,7 +468,7 @@ export default class CarService {
     next();
   }
 
-  public static async handleAssignUsersCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleAssignUsersCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.CREATE, Entity.USERS_CARS,
       MODULE_NAME, 'handleAssignUsersCar');
@@ -473,18 +477,20 @@ export default class CarService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.LIST, entity: Entity.USERS_CARS,
+        action: Action.CREATE, entity: Entity.USERS_CARS,
         module: MODULE_NAME, method: 'handleAssignUsersCar'
       });
     }
     const filteredRequest = CarSecurity.filterUsersAssignRequest(req.body);
+    // CarID is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.carID, 'CarSecurity', 'filterUsersAssignRequest', req.user);
     const result = await CarStorage.assignUsersCar(req.user.tenantID, filteredRequest.carID, filteredRequest.usersCar);
     // Return
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });
     next();
   }
 
-  public static async handleUpdateUsersCar(action: Action, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateUsersCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.UPDATE, Entity.USERS_CARS,
       MODULE_NAME, 'handleUpdateUsersCar');
@@ -498,6 +504,8 @@ export default class CarService {
       });
     }
     const filteredRequest = CarSecurity.filterUsersAssignRequest(req.body);
+    // CarID is mandatory
+    UtilsService.assertIdIsProvided(action, filteredRequest.carID, 'CarSecurity', 'filterUsersAssignRequest', req.user);
     const result = await CarStorage.updateUsersCar(req.user.tenantID, filteredRequest.carID, filteredRequest.usersCar);
 
     res.json({ ...result, ...Constants.REST_RESPONSE_SUCCESS });

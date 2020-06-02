@@ -103,7 +103,6 @@ const AUTHORIZATION_DEFINITION: AuthorizationDefinition = {
       { resource: Entity.CAR, action: Action.CREATE, attributes: ['*'] },
       { resource: Entity.CARS, action: Action.LIST, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.UPDATE, attributes: ['*'] },
-      { resource: Entity.USERS_CARS, action: Action.UPDATE, attributes: ['*'] },
       { resource: Entity.CAR, action: Action.READ, attributes: ['*'] },
 
       {
