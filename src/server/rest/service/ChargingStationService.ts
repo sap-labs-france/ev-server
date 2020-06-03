@@ -400,6 +400,10 @@ export default class ChargingStationService {
         withSiteArea: filteredRequest.WithSiteArea },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
 
+    // Build the result
+    ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user,
+      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+
     res.json(chargingProfiles);
     next();
   }

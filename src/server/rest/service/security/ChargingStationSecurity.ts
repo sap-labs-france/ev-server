@@ -149,6 +149,32 @@ export default class ChargingStationSecurity {
     chargingStations.result = filteredChargingStations;
   }
 
+  public static filterChargingProfilesResponse(chargingProfiles: DataResult<ChargingProfile>, loggedUser: UserToken, organizationIsActive: boolean) {
+    const filteredChargingProfiles: ChargingProfile[] = [];
+    // Check
+    if (!chargingProfiles.result) {
+      return null;
+    }
+    if (!Authorizations.canListChargingStations(loggedUser)) {
+      return null;
+    }
+    for (const chargingProfile of chargingProfiles.result) {
+      // Filter
+      if (!chargingProfile || !Authorizations.canReadChargingStation(loggedUser)) {
+        continue;
+      }
+      const siteID = chargingProfile.siteArea ? chargingProfile.siteArea.siteID : null;
+      if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
+        continue;
+      }
+      const filteredchargingProfile = chargingProfile;
+      if (filteredchargingProfile) {
+        filteredChargingProfiles.push(filteredchargingProfile);
+      }
+    }
+    chargingProfiles.result = filteredChargingProfiles;
+  }
+
   public static filterStatusNotificationsResponse(statusNotifications, loggedUser: UserToken) {
     // Check
     if (!Authorizations.canListChargingStations(loggedUser)) {
