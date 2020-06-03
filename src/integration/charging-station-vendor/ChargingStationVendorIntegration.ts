@@ -463,7 +463,7 @@ export default abstract class ChargingStationVendorIntegration {
           });
           // Get the TX Charging Profiles from the DB
           const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID,
-            { chargingStationID: chargingStation.id, connectorID: connectorID,
+            { chargingStationID: [chargingStation.id], connectorID: connectorID,
               profilePurposeType: ChargingProfilePurposeType.TX_PROFILE }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingProfile of chargingProfiles.result) {
             // Check type (only Absolute)

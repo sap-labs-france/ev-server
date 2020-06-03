@@ -732,7 +732,7 @@ export default class OCPPService {
         'OCPPService', 'handleStopTransaction', null);
       // Delete TxProfile if any
       const chargingProfiles = await ChargingStationStorage.getChargingProfiles(headers.tenantID, {
-        chargingStationID: chargingStation.id,
+        chargingStationID: [chargingStation.id],
         connectorID: transaction.connectorId,
         profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
         transactionId: stopTransaction.transactionId

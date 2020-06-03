@@ -309,7 +309,7 @@ export default class OCPPUtils {
     };
     for (const chargingStation of siteArea.chargingStations) {
       const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
-        chargingStationID: chargingStation.id,
+        chargingStationID: [chargingStation.id],
         profilePurposeType: params.profilePurposeType,
         transactionId: params.transactionId
       }, Constants.DB_PARAMS_MAX_LIMIT);

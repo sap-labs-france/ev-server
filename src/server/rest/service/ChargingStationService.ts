@@ -303,7 +303,7 @@ export default class ChargingStationService {
     }
     // Check Charging Profile
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationID: chargingStation.id, connectorID: 0 },
+      { chargingStationID: [chargingStation.id], connectorID: 0 },
       Constants.DB_PARAMS_MAX_LIMIT);
     const updatedChargingProfiles: ChargingProfile[] = Utils.cloneJSonDocument(chargingProfiles.result) as ChargingProfile[];
     for (let index = 0; index < updatedChargingProfiles.length; index++) {

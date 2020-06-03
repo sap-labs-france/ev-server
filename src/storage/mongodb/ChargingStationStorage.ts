@@ -699,7 +699,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenantID: string,
     params: {
-      search?: string; chargingStationID?: string[] | string; connectorID?: number; chargingProfileID?: string;
+      search?: string; chargingStationID?: string[]; connectorID?: number; chargingProfileID?: string;
       profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
