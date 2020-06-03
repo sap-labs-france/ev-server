@@ -629,6 +629,7 @@ export default class OCPPService {
         foundConnector.inactivityStatus = InactivityStatus.INFO;
         foundConnector.currentStateOfCharge = 0;
         foundConnector.activeTransactionID = transaction.id;
+        foundConnector.userID = transaction.userID;
         foundConnector.activeTransactionDate = transaction.timestamp;
         foundConnector.activeTagID = transaction.tagID;
       } else {
@@ -730,36 +731,6 @@ export default class OCPPService {
       const transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
       UtilsService.assertObjectExists(ServerAction.STOP_TRANSACTION, transaction, `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         'OCPPService', 'handleStopTransaction', null);
-      // Delete TxProfile if any
-      const chargingProfiles = await ChargingStationStorage.getChargingProfiles(headers.tenantID, {
-        chargingStationID: chargingStation.id,
-        connectorID: transaction.connectorId,
-        profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
-        transactionId: stopTransaction.transactionId
-      }, Constants.DB_PARAMS_MAX_LIMIT);
-      // Delete all TxProfiles
-      for (const chargingProfile of chargingProfiles.result) {
-        try {
-          await OCPPUtils.clearAndDeleteChargingProfile(headers.tenantID, chargingProfile);
-          Logging.logDebug({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_PROFILE_DELETE,
-            message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > TX Charging Profile with ID '${chargingProfile.id}'`,
-            module: MODULE_NAME, method: 'handleStopTransaction',
-            detailedMessages: { chargingProfile }
-          });
-        } catch (error) {
-          Logging.logError({
-            tenantID: headers.tenantID,
-            source: chargingStation.id,
-            action: ServerAction.CHARGING_PROFILE_DELETE,
-            message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
-            module: MODULE_NAME, method: 'handleStopTransaction',
-            detailedMessages: { error: error.message, stack: error.stack, chargingProfile }
-          });
-        }
-      }
       // Get the TagID that stopped the transaction
       const tagId = this.getStopTransactionTagId(stopTransaction, transaction);
       let user: User, alternateUser: User;
@@ -831,6 +802,8 @@ export default class OCPPService {
       const tenant = await TenantStorage.getTenant(headers.tenantID);
       // Recompute the Smart Charging Plan
       if (Utils.isTenantComponentActive(tenant, TenantComponents.SMART_CHARGING)) {
+        // Delete TxProfile if any
+        await this.deleteAllTransactionTxProfile(headers.tenantID, transaction);
         // Call async because the Transaction ID on the connector should be cleared
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
@@ -873,6 +846,38 @@ export default class OCPPService {
     }
   }
 
+  private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
+    const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
+      chargingStationID: transaction.chargeBoxID,
+      connectorID: transaction.connectorId,
+      profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
+      transactionId: transaction.id
+    }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Delete all TxProfiles
+    for (const chargingProfile of chargingProfiles.result) {
+      try {
+        await OCPPUtils.clearAndDeleteChargingProfile(tenantID, chargingProfile);
+        Logging.logDebug({
+          tenantID: tenantID,
+          source: transaction.chargeBoxID,
+          action: ServerAction.CHARGING_PROFILE_DELETE,
+          message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > TX Charging Profile with ID '${chargingProfile.id}'`,
+          module: MODULE_NAME, method: 'handleStopTransaction',
+          detailedMessages: { chargingProfile }
+        });
+      } catch (error) {
+        Logging.logError({
+          tenantID: tenantID,
+          source: transaction.chargeBoxID,
+          action: ServerAction.CHARGING_PROFILE_DELETE,
+          message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' > Cannot delete TX Charging Profile with ID '${chargingProfile.id}'`,
+          module: MODULE_NAME, method: 'handleStopTransaction',
+          detailedMessages: { error: error.message, stack: error.stack, chargingProfile }
+        });
+      }
+    }
+  }
+
   private async updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification: OCPPStatusNotificationRequestExtended, bothConnectorsUpdated) {
     // Get it
     let foundConnector: Connector = Utils.getConnectorFromID(chargingStation, statusNotification.connectorId);
@@ -883,6 +888,7 @@ export default class OCPPService {
         activeTransactionID: 0,
         activeTransactionDate: null,
         activeTagID: null,
+        userID: null,
         connectorId: statusNotification.connectorId,
         currentConsumption: 0,
         status: ChargePointStatus.UNAVAILABLE,
@@ -1492,6 +1498,7 @@ export default class OCPPService {
       foundConnector.totalInactivitySecs = transaction.currentTotalInactivitySecs;
       // Set Transaction ID
       foundConnector.activeTransactionID = transaction.id;
+      foundConnector.userID = transaction.userID;
       foundConnector.activeTagID = transaction.tagID;
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
@@ -1508,14 +1515,7 @@ export default class OCPPService {
       });
       // Cleanup connector transaction data
     } else if (foundConnector) {
-      foundConnector.currentConsumption = 0;
-      foundConnector.totalConsumption = 0;
-      foundConnector.totalInactivitySecs = 0;
-      foundConnector.inactivityStatus = InactivityStatus.INFO;
-      foundConnector.currentStateOfCharge = 0;
-      foundConnector.activeTransactionID = 0;
-      foundConnector.activeTransactionDate = null;
-      foundConnector.activeTagID = null;
+      OCPPUtils.checkAndFreeChargingStationConnector(chargingStation, foundConnector.connectorId);
     }
   }
 

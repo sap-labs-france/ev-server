@@ -103,6 +103,7 @@ export interface Connector {
   amperage?: number;
   amperageLimit?: number;
   activeTransactionID?: number;
+  userID?: string;
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;
