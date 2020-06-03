@@ -426,10 +426,6 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build Request
-    const chargingStationFilter = {
-      _id: chargingStationToSave.id
-    };
-    // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
@@ -466,7 +462,7 @@ export default class ChargingStationStorage {
       chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
         (chargePoint) => ChargingStationStorage.chargePoint2ChargePointMDB(chargePoint)) : [],
       coordinates: chargingStationToSave.coordinates,
-      remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
+      remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       currentServerLocalIPAddressPort: chargingStationToSave.currentServerLocalIPAddressPort,
       capabilities: chargingStationToSave.capabilities,
@@ -474,17 +470,11 @@ export default class ChargingStationStorage {
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
       ocpiData: chargingStationToSave.ocpiData
     };
-    if (!chargingStationMDB.connectors) {
-      chargingStationMDB.connectors = [];
-    }
-    if (!chargingStationMDB.remoteAuthorizations) {
-      chargingStationMDB.remoteAuthorizations = [];
-    }
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
-      chargingStationFilter,
+      { _id: chargingStationToSave.id },
       { $set: chargingStationMDB },
       { upsert: true });
     // Debug

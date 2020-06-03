@@ -117,11 +117,9 @@ export default class DatabaseUtils {
 
   public static pushArrayLookupInAggregation(arrayName: string, lookupMethod: (lookupParams: DbLookup) => void, lookupParams: DbLookup) {
     // Unwind the source
-    lookupParams.aggregation.push({ '$unwind': `$${arrayName}` });
+    lookupParams.aggregation.push({ '$unwind': { path: `$${arrayName}`, preserveNullAndEmptyArrays: true } });
     // Call the lookup
     lookupMethod(lookupParams);
-    // Unwind the result array
-    // lookupParams.aggregation.push({ '$unwind': { path: `$${lookupParams.asField}`, preserveNullAndEmptyArrays: true } });
     // Group back to arrays
     lookupParams.aggregation.push(
       JSON.parse(`{
@@ -133,7 +131,7 @@ export default class DatabaseUtils {
       }`)
     );
     // Replace array
-    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": "$${arrayName}" } }`));
+    lookupParams.aggregation.push(JSON.parse(`{ "$addFields": { "root.${arrayName}": { "$cond": { "if": { "$eq": [ "$connectors", [{}] ] }, "then": [], "else": "$connectors" } } } }`));
     // Replace root
     lookupParams.aggregation.push({ $replaceRoot: { newRoot: '$root' } });
   }
