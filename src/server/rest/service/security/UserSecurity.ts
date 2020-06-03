@@ -221,8 +221,8 @@ export default class UserSecurity {
   }
 
   // User
-  static filterMinimalUserResponse(user: User, loggedUser: UserToken): void {
-    const filteredUser: any = {};
+  static filterMinimalUserResponse(user: User, loggedUser: UserToken): User {
+    const filteredUser = {} as User;
     if (!user) {
       return null;
     }
