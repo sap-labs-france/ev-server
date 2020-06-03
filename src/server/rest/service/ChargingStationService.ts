@@ -393,11 +393,13 @@ export default class ChargingStationService {
       });
     }
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(req.user.tenantID,
-      { chargingStationIDs: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
+      { search: filteredRequest.Search,
+        chargingStationID: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
         withSiteArea: filteredRequest.WithSiteArea },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+
     res.json(chargingProfiles);
     next();
   }

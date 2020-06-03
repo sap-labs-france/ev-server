@@ -699,7 +699,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingProfiles(tenantID: string,
     params: {
-      chargingStationIDs?: string[]; connectorID?: number; chargingProfileID?: string;
+      search?: string; chargingStationID?: string[] | string; connectorID?: number; chargingProfileID?: string;
       profilePurposeType?: ChargingProfilePurposeType; transactionId?: number; withChargingStation?: boolean; withSiteArea?: boolean;
     } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingProfile>> {
@@ -713,12 +713,19 @@ export default class ChargingStationStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Query by chargingStationID
     const filters: any = {};
+    // Build filter
+    if (params.search) {
+      const searchRegex = Utils.escapeSpecialCharsInRegex(params.search);
+      filters.$or = [
+        { 'chargingStationID': { $regex: searchRegex, $options: 'i' } },
+      ];
+    }
     if (params.chargingProfileID) {
       filters._id = params.chargingProfileID;
     } else {
       // Charger
-      if (params.chargingStationIDs) {
-        filters.chargingStationID = { $in: params.chargingStationIDs };
+      if (params.chargingStationID) {
+        filters.chargingStationID = { $in: params.chargingStationID };
       }
       // Connector
       if (params.connectorID) {
