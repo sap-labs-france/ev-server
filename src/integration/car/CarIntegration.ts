@@ -1,13 +1,13 @@
-import { ActionsResponse } from '../../types/GlobalType';
-import { CarCatalog } from '../../types/Car';
 import CarStorage from '../../storage/mongodb/CarStorage';
+import { CarCatalog } from '../../types/Car';
+import { ActionsResponse } from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import Logging from '../../utils/Logging';
-import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
 
-const MODULE_NAME = 'CarDatabase';
+const MODULE_NAME = 'CarIntegration';
 
 export default abstract class CarIntegration {
   public async synchronizeCarCatalogs(): Promise<ActionsResponse> {

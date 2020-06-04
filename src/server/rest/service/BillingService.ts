@@ -1,21 +1,21 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
 
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import { BillingInvoiceStatus } from '../../../types/Billing';
-import BillingSecurity from './security/BillingSecurity';
 import BillingStorage from '../../../storage/mongodb/BillingStorage';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { BillingInvoiceStatus } from '../../../types/Billing';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { ServerAction } from '../../../types/Server';
 import TenantComponents from '../../../types/TenantComponents';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import BillingSecurity from './security/BillingSecurity';
 import UtilsService from './UtilsService';
 
 const MODULE_NAME = 'BillingService';
@@ -28,20 +28,20 @@ export default class BillingService {
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         entity: Entity.BILLING, action: Action.CHECK_CONNECTION,
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
-      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleGetBillingConnection');
+      Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (!billingImpl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Billing service is not configured',
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
         action: action,
         user: req.user
       });
@@ -51,7 +51,7 @@ export default class BillingService {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Cannot connect to the billing service, check your configuration',
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
         action: action,
         user: req.user
       });
@@ -66,7 +66,7 @@ export default class BillingService {
       Logging.logError({
         tenantID: tenant.id,
         user: req.user,
-        module: MODULE_NAME, method: 'handleGetBillingConnection',
+        module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',
         action: action,
         detailedMessages: { error: error.message, stack: error.stack }

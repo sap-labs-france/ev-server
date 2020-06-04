@@ -115,9 +115,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     for (const siteArea of siteAreas.result) {
-      // Filter
       const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
-      // Add
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }

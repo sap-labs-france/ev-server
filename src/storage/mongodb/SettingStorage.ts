@@ -1,15 +1,15 @@
-import { AnalyticsSettings, AnalyticsSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import { ObjectID } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
-import { ObjectID } from 'mongodb';
-import TenantComponents from '../../types/TenantComponents';
-import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 import global from '../../types/GlobalType';
+import { AnalyticsSettings, AnalyticsSettingsType, AssetSettings, AssetSettingsType, BillingSettings, BillingSettingsType, PricingSettings, PricingSettingsType, RefundSettings, RefundSettingsType, RoamingSettings, SettingDB, SmartChargingSettings, SmartChargingSettingsType } from '../../types/Setting';
+import TenantComponents from '../../types/TenantComponents';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'SettingStorage';
 
@@ -110,6 +110,27 @@ export default class SettingStorage {
       }
     }
     return analyticsSettings;
+  }
+
+  public static async getAssetsSettings(tenantID: string): Promise<AssetSettings> {
+    const assetSettings = {
+      identifier: TenantComponents.ASSET,
+    } as AssetSettings;
+    // Get the settings
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: TenantComponents.ASSET }, Constants.DB_PARAMS_MAX_LIMIT);
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      assetSettings.id = settings.result[0].id;
+      assetSettings.sensitiveData = settings.result[0].sensitiveData;
+      // Asset
+      if (config.asset) {
+        assetSettings.type = AssetSettingsType.ASSET;
+        assetSettings.asset = {
+          connections: config.asset.connections ? config.asset.connections : []
+        };
+      }
+    }
+    return assetSettings;
   }
 
   public static async getRefundSettings(tenantID: string): Promise<RefundSettings> {
