@@ -1104,7 +1104,6 @@ export default class OCPPService {
   private async buildConsumptionWithMeterValue(tenantID: string, transaction: Transaction,
     chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
-    // FIXME: Handle missing lastMeterValue attribute
     const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
     if (OCPPUtils.isSocMeterValue(meterValue)) {
@@ -1204,6 +1203,7 @@ export default class OCPPService {
         consumption.limitWatts = connector.power;
         consumption.limitSource = ConnectorCurrentLimitSource.CONNECTOR;
       }
+      consumption.smartChargingActive = chargingStation.siteArea.smartCharging;
       // Check Org
       const tenant: Tenant = await TenantStorage.getTenant(tenantID);
       if (Utils.isTenantComponentActive(tenant, TenantComponents.ORGANIZATION)) {
