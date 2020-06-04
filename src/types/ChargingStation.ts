@@ -6,6 +6,7 @@ import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
 import SiteArea from './SiteArea';
+import User from './User';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
   id?: string;
@@ -103,6 +104,8 @@ export interface Connector {
   amperage?: number;
   amperageLimit?: number;
   activeTransactionID?: number;
+  userID?: string;
+  user?: User;
   activeTransactionDate?: Date;
   activeTagID?: string;
   statusLastChangedOn?: Date;

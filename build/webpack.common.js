@@ -48,7 +48,8 @@ const config = {
     ]),
     new webpack.ProgressPlugin(),
     new CopyPlugin([
-      { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] }
+      { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] },
+      { from: 'src/integration/pricing/convergent-charging/assets/', to: 'integration/pricing/convergent-charging/assets/', noErrorOnMissing: true }
     ])
   ],
   optimization: {

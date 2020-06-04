@@ -30,4 +30,5 @@ export default interface Consumption {
   limitSiteAreaAmps?: number;
   limitSiteAreaWatts?: number;
   limitSiteAreaSource?: SiteAreaLimitSource;
+  smartChargingActive?: boolean;
 }

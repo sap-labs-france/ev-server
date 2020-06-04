@@ -1,15 +1,15 @@
+import global from './../../types/GlobalType';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { TemplateUpdateResult } from '../../types/ChargingStation';
+import { OCPPChangeConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
-import { OCPPChangeConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../types/Server';
-import { TemplateUpdateResult } from '../../types/ChargingStation';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
 
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
@@ -37,7 +37,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '2.2';
+    return '2.3';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
@@ -54,7 +54,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     }
     // Get the charging stations
     const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, {
-      issuer: true, includeDeleted: true
+      issuer: true
     }, Constants.DB_PARAMS_MAX_LIMIT);
     // Update
     for (const chargingStation of chargingStations.result) {

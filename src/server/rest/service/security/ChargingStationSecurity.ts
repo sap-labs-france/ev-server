@@ -9,6 +9,7 @@ import { DataResult } from '../../../../types/DataResult';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
+import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
@@ -48,13 +49,20 @@ export default class ChargingStationSecurity {
       // Yes: set all params
       filteredChargingStation = chargingStation;
       for (const connector of filteredChargingStation.connectors) {
-        if (connector && filteredChargingStation.inactive) {
-          connector.status = ChargePointStatus.UNAVAILABLE;
-          connector.currentConsumption = 0;
-          connector.totalConsumption = 0;
-          connector.totalInactivitySecs = 0;
-          connector.inactivityStatus = InactivityStatus.INFO;
-          connector.currentStateOfCharge = 0;
+        if (connector) {
+          // Inactive
+          if (filteredChargingStation.inactive) {
+            connector.status = ChargePointStatus.UNAVAILABLE;
+            connector.currentConsumption = 0;
+            connector.totalConsumption = 0;
+            connector.totalInactivitySecs = 0;
+            connector.inactivityStatus = InactivityStatus.INFO;
+            connector.currentStateOfCharge = 0;
+          }
+          // Filter User
+          if (connector.user) {
+            connector.user = UserSecurity.filterMinimalUserResponse(connector.user, loggedUser);
+          }
         }
       }
     } else {
@@ -84,7 +92,8 @@ export default class ChargingStationSecurity {
           numberOfConnectedPhase: connector.numberOfConnectedPhase,
           currentType: connector.currentType,
           voltage: connector.voltage,
-          amperage: connector.amperage
+          amperage: connector.amperage,
+          user: UserSecurity.filterMinimalUserResponse(connector.user, loggedUser)
         };
       });
       if (chargingStation.chargePoints) {

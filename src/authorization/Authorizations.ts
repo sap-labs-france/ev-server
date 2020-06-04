@@ -102,6 +102,9 @@ export default class Authorizations {
     if (!Utils.isComponentActiveFromToken(loggedUser, TenantComponents.ORGANIZATION)) {
       return null;
     }
+    if (this.isDemo(loggedUser)) {
+      return null;
+    }
     if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
