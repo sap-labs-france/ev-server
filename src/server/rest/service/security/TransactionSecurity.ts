@@ -67,7 +67,7 @@ export default class TransactionSecurity {
   public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
-    if (request.Issuer) {
+    if (Utils.objectHasProperty(request, 'Issuer')) {
       filteredRequest.Issuer = UtilsSecurity.filterBoolean(request.Issuer);
     }
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -151,7 +151,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentSignedData = transaction.currentSignedData;
       }
       if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
-        const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        const foundConnector = Utils.getConnectorFromID(transaction.chargeBox, transaction.connectorId);
         filteredTransaction.status = foundConnector ? foundConnector.status : null;
       }
       filteredTransaction.stateOfCharge = transaction.stateOfCharge;
@@ -318,10 +318,13 @@ export default class TransactionSecurity {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
         instantPower: consumption.instantPower,
+        instantAmps: consumption.instantAmps,
         cumulatedConsumption: consumption.cumulatedConsumption,
+        cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,
-        limitWatts: consumption.limitWatts
+        limitWatts: consumption.limitWatts,
+        limitAmps: consumption.limitAmps,
       };
       if (consumption.stateOfCharge) {
         newConsumption.stateOfCharge = consumption.stateOfCharge;

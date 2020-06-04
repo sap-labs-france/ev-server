@@ -12,11 +12,13 @@ export default interface Consumption {
   consumption: number;
   cumulatedAmount: number;
   cumulatedConsumption: number;
+  cumulatedConsumptionAmps: number;
   pricingSource: string;
   amount: number;
   roundedAmount: number;
   currencyCode: string;
   instantPower: number;
+  instantAmps: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;
   stateOfCharge: number;
@@ -28,4 +30,5 @@ export default interface Consumption {
   limitSiteAreaAmps?: number;
   limitSiteAreaWatts?: number;
   limitSiteAreaSource?: SiteAreaLimitSource;
+  smartChargingActive?: boolean;
 }

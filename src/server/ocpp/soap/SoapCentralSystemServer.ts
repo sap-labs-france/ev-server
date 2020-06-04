@@ -11,29 +11,34 @@ import express from 'express';
 import expressTools from '../../ExpressTools';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
+import http from 'http';
 import morgan from 'morgan';
 import sanitize from 'express-sanitizer';
 import { soap } from 'strong-soap';
 
 const MODULE_NAME = 'SoapCentralSystemServer';
-export default class SoapCentralSystemServer extends CentralSystemServer {
 
-  private express: express.Application;
+export default class SoapCentralSystemServer extends CentralSystemServer {
+  public httpServer: http.Server;
+  private expressApplication: express.Application;
 
   constructor(centralSystemConfig: CentralSystemConfiguration, chargingStationConfig: ChargingStationConfiguration) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
     // Initialize express app
-    this.express = expressTools.init();
+    this.expressApplication = expressTools.initApplication();
+
+    // Initialize the HTTP server
+    this.httpServer = expressTools.createHttpServer(this.centralSystemConfig, this.expressApplication);
 
     // Mount express-sanitizer middleware
-    this.express.use(sanitize());
+    this.expressApplication.use(sanitize());
 
     // Enable debug?
     if (this.centralSystemConfig.debug) {
       // Log
-      this.express.use(
+      this.expressApplication.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
@@ -57,50 +62,49 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
    */
   start() {
     // Make it global for SOAP Services
-    global.centralSystemSoap = this;
+    global.centralSystemSoapServer = this;
 
-    const httpServer = expressTools.createHttpServer(this.centralSystemConfig, this.express);
-    expressTools.startServer(this.centralSystemConfig, httpServer, 'OCPP Soap', MODULE_NAME);
+    expressTools.startServer(this.centralSystemConfig, this.httpServer, 'OCPP Soap', MODULE_NAME);
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
-    const soapServer12 = soap.listen(httpServer, '/OCPP12', centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
+    const soapServer12 = soap.listen(this.httpServer, '/OCPP12', centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer12.log = (type, data) => {
-        this._handleSoapServerLog('1.2', type, data);
+        this.handleSoapServerLog('1.2', type, data);
       };
       // Log Request
       soapServer12.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.2', request, methodName);
+        this.handleSoapServerMessage('1.2', request, methodName);
       });
     }
     // OCPP 1.5 -----------------------------------------
-    const soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
+    const soapServer15 = soap.listen(this.httpServer, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
 
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer15.log = (type, data) => {
-        this._handleSoapServerLog('1.5', type, data);
+        this.handleSoapServerLog('1.5', type, data);
       };
       // Log Request
       soapServer15.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.5', request, methodName);
+        this.handleSoapServerMessage('1.5', request, methodName);
       });
     }
     // OCPP 1.6 -----------------------------------------
-    const soapServer16 = soap.listen(httpServer, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
+    const soapServer16 = soap.listen(this.httpServer, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
       soapServer16.log = (type, data) => {
-        this._handleSoapServerLog('1.6', type, data);
+        this.handleSoapServerLog('1.6', type, data);
       };
       // Log Request
       soapServer16.on('request', (request, methodName) => {
-        this._handleSoapServerMessage('1.6', request, methodName);
+        this.handleSoapServerMessage('1.6', request, methodName);
       });
     }
   }
@@ -109,24 +113,24 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/wsdl/${filename}`, 'utf8');
   }
 
-  _handleSoapServerMessage(ocppVersion, request, methodName) {
+  private handleSoapServerMessage(ocppVersion, request, methodName) {
     // Log
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-      method: '_handleSoapServerMessage',
+      method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
     });
   }
 
-  _handleSoapServerLog(ocppVersion, type, data) {
+  private handleSoapServerLog(ocppVersion, type, data) {
     // Do not log 'Info'
     if (type === 'replied') {
       // Log
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-        method: '_handleSoapServerLog',
+        method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }

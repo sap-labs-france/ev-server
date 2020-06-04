@@ -1,15 +1,13 @@
-import { RefundSetting, RefundSettingsType } from '../../types/Setting';
-
-import ConcurRefundIntegration from './export/concur';
-import Constants from '../../utils/Constants';
-import DummyRefundIntegration from './dummy/DummyRefundIntegration';
-import Logging from '../../utils/Logging';
-import RefundIntegration from './RefundIntegration';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import { RefundSetting, RefundSettingsType } from '../../types/Setting';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DummyRefundIntegration from './dummy/DummyRefundIntegration';
+import ConcurRefundIntegration from './export/concur';
+import RefundIntegration from './RefundIntegration';
 
 const MODULE_NAME = 'RefundFactory';
 
@@ -25,7 +23,7 @@ export default class RefundFactory {
         let refundIntegrationImpl = null;
         switch (setting.type) {
           case RefundSettingsType.CONCUR:
-            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+            refundIntegrationImpl = new ConcurRefundIntegration(tenantID, setting[RefundSettingsType.CONCUR]);
             break;
         }
         // Check if missing implementation

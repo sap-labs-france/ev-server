@@ -162,7 +162,7 @@ export default class SiteAreaService {
         siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'name', 'siteID', 'address.coordinates', 'address.city', 'address.country', 'site.id', 'site.name', 'issuer']
+      ['id', 'name', 'siteID', 'maximumPower', 'smartCharging', 'address.coordinates', 'address.city', 'address.country', 'site.id', 'site.name', 'issuer']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
@@ -307,7 +307,6 @@ export default class SiteAreaService {
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
     siteArea.image = filteredRequest.image;
-    const siteAreaMaxPowerHasChanged = siteArea.maximumPower !== filteredRequest.maximumPower;
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.voltage = filteredRequest.voltage;
     if (filteredRequest.smartCharging && filteredRequest.numberOfPhases === 1) {
@@ -341,7 +340,7 @@ export default class SiteAreaService {
     // Update Site Area
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Regtrigger Smart Charging
-    if (siteAreaMaxPowerHasChanged && filteredRequest.smartCharging) {
+    if (filteredRequest.smartCharging) {
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setTimeout(async () => {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);

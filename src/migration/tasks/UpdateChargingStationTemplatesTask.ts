@@ -2,6 +2,7 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import { OCPPChangeConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
 import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import { ServerAction } from '../../types/Server';
 import { TemplateUpdateResult } from '../../types/ChargingStation';
@@ -31,12 +32,12 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
       // Update current Charging Station with Template
       await this.applyTemplateToChargingStations(tenant);
       // Remove unused props
-      await this.cleanUpChargingStationDBProps(tenant);
+      // await this.cleanUpChargingStationDBProps(tenant);
     }
   }
 
   getVersion() {
-    return '1.8124';
+    return '2.3';
   }
 
   private async applyTemplateToChargingStations(tenant: Tenant) {
@@ -47,7 +48,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-        message: `Bypassed tenant '${tenant.subdomain}'`
+        message: `Bypassed tenant '${tenant.name}' ('${tenant.subdomain}')`
       });
       return;
     }
@@ -58,9 +59,16 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
     // Update
     for (const chargingStation of chargingStations.result) {
       try {
+        Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+          source: chargingStation.id,
+          module: MODULE_NAME, method: 'applyTemplateToChargingStations',
+          message: `Migrate '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+        });
         const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
-          3 * 60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
-          `Time out error with ${chargingStation.id}`);
+          60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
+          'Time out error with updating Template params');
         // Enrich
         let chargingStationUpdated = false;
         // Check Connectors
@@ -78,8 +86,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
           updated++;
           // Retrieve OCPP params and update them if needed
-          await OCPPUtils.requestAndSaveChargingStationOcppParameters(
-            tenant.id, chargingStation, chargingStationTemplateUpdated.ocppUpdated);
+          await Utils.promiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+            60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(
+              tenant.id, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
+            'Time out error with updating OCPP params');
         }
       } catch (error) {
         Logging.logError({
@@ -87,7 +97,7 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Charging Stations template update errors in Tenant '${tenant.name}'`,
+          message: `Template update error in Tenant '${tenant.name}': ${error.message}`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }

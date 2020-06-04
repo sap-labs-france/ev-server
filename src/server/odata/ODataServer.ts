@@ -11,20 +11,21 @@ import expressTools from '../ExpressTools';
 import morgan from 'morgan';
 
 const MODULE_NAME = 'ODataServer';
+
 export default class ODataServer {
   private oDataServerConfig: ODataServiceConfiguration;
-  private express: express.Application;
+  private expressApplication: express.Application;
 
   // Create the rest server
   constructor(oDataServerConfig) {
     // Keep params
     this.oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this.express = expressTools.init();
+    this.expressApplication = expressTools.initApplication();
     // Log to console
     if (this.oDataServerConfig.debug) {
       // Log
-      this.express.use(
+      this.expressApplication.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
@@ -50,7 +51,7 @@ export default class ODataServer {
     oDataServer.restServerUrl = restServerUrl;
     ODataSchema.restServerUrl = restServerUrl;
     ODataRestAdapter.restServerUrl = restServerUrl;
-    this.express.use(
+    this.expressApplication.use(
       '/odata',
       ODataSchema.getSchema.bind(this),
       function(req, res) {
@@ -61,7 +62,7 @@ export default class ODataServer {
 
   // Start the server
   start() {
-    expressTools.startServer(this.oDataServerConfig, expressTools.createHttpServer(this.oDataServerConfig, this.express), 'OData', MODULE_NAME);
+    expressTools.startServer(this.oDataServerConfig, expressTools.createHttpServer(this.oDataServerConfig, this.expressApplication), 'OData', MODULE_NAME);
   }
 }
 

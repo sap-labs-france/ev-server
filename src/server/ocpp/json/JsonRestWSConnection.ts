@@ -1,8 +1,8 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
 import JsonCentralSystemServer from './JsonCentralSystemServer';
 import Logging from '../../../utils/Logging';
+import { MessageType } from '../../../types/WebSocket';
 import { ServerAction } from '../../../types/Server';
 import WSConnection from './WSConnection';
 import WebSocket from 'ws';
@@ -30,7 +30,7 @@ export default class JsonRestWSConnection extends WSConnection {
         source: this.getChargingStationID(),
         action: ServerAction.WS_REST_CONNECTION_OPENED,
         module: MODULE_NAME, method: 'initialize',
-        message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+        message: `New Rest connection from '${this.getClientIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
   }
@@ -58,9 +58,7 @@ export default class JsonRestWSConnection extends WSConnection {
     this.wsServer.removeRestConnection(this);
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
-    // Log
-    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
@@ -75,7 +73,7 @@ export default class JsonRestWSConnection extends WSConnection {
       });
     }
     // Get the client from JSON Server
-    const chargingStationClient = global.centralSystemJson.getChargingStationClient(this.getTenantID(), chargingStation.id);
+    const chargingStationClient = global.centralSystemJsonServer.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       throw new BackendError({
         source: this.getChargingStationID(),
@@ -93,10 +91,8 @@ export default class JsonRestWSConnection extends WSConnection {
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
-      // Log
-      Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response
-      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
+      await this.sendMessage(messageId, result, MessageType.RESULT_MESSAGE);
     } else {
       // Error
       throw new BackendError({

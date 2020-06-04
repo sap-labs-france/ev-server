@@ -16,74 +16,74 @@ export default class OCPPSoapService15 extends OCPPService {
   }
 
   public async executeAuthorize(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
     );
   }
 
   public async executeStartTransaction(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
     );
   }
 
   public async executeStopTransaction(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
     );
   }
 
   public async executeHeartbeat(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
     );
   }
 
   public async executeMeterValues(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
     );
   }
 
   public async executeBootNotification(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
     );
   }
 
   public async executeStatusNotification(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
     );
   }
 
   public async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
     );
   }
 
   public async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
     );
   }
 
   public async executeDataTransfer(chargeBoxIdentity, payload) {
-    return await this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
+    return await this.execute(
+      this.buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
     );
   }
 
-  private async _execute(request) {
+  private async execute(request) {
     // Init Client (Done only once)
-    await this._initSOAPClient();
+    await this.initSOAPClient();
     // Init SOAP header
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
     // Build the SOAP Request
     const payload = {};
-    payload[this._getRequestNameFromAction(request.name)] = request.data;
+    payload[this.getRequestNameFromAction(request.name)] = request.data;
     let t0 = 0;
     let t1 = 0;
     try {
@@ -103,7 +103,7 @@ export default class OCPPSoapService15 extends OCPPService {
     }
   }
 
-  private _buildSOAPRequest(chargeBoxIdentity, action, payload) {
+  private buildSOAPRequest(chargeBoxIdentity, action, payload) {
     return {
       name: action,
       headers: {
@@ -120,11 +120,11 @@ export default class OCPPSoapService15 extends OCPPService {
     };
   }
 
-  private _getRequestNameFromAction(actionName) {
+  private getRequestNameFromAction(actionName) {
     return actionName.replace(/^\w/, (c) => c.toLowerCase()).concat('Request');
   }
 
-  private async _initSOAPClient() {
+  private async initSOAPClient() {
     // Client options
     const options = {};
     // Check

@@ -22,6 +22,7 @@ import OCPIServiceConfiguration from '../types/configuration/OCPIServiceConfigur
 import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
 import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import Utils from './Utils';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
 import cfenv from 'cfenv';
@@ -29,10 +30,6 @@ import fs from 'fs';
 import global from './../types/GlobalType';
 import os from 'os';
 
-const {
-  WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
-  WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT
-} = {};
 const _appEnv = cfenv.getAppEnv();
 let config = null;
 
@@ -147,10 +144,13 @@ export default class Configuration {
         centralSystemRestService.port = _appEnv.port;
         centralSystemRestService.host = _appEnv.bind;
       }
-      if (!centralSystemRestService.socketIOSingleNotificationIntervalSecs) {
+      if (Utils.isUndefined(centralSystemRestService.socketIO)) {
+        centralSystemRestService.socketIO = true;
+      }
+      if (Utils.isUndefined(centralSystemRestService.socketIOSingleNotificationIntervalSecs)) {
         centralSystemRestService.socketIOSingleNotificationIntervalSecs = 1;
       }
-      if (!centralSystemRestService.socketIOListNotificationIntervalSecs) {
+      if (Utils.isUndefined(centralSystemRestService.socketIOListNotificationIntervalSecs)) {
         centralSystemRestService.socketIOListNotificationIntervalSecs = 5;
       }
     }
@@ -276,24 +276,24 @@ export default class Configuration {
   // WSClient
   static getWSClientConfig(): WSClientConfiguration {
     // Read conf and set defaults values
-    if (!Configuration.getConfig().WSClient) {
+    if (Utils.isUndefined(Configuration.getConfig().WSClient)) {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;
     }
-    if (!Configuration.getConfig().WSClient.autoReconnectMaxRetries) {
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
+    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectMaxRetries)) {
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES;
     }
-    if (!Configuration.getConfig().WSClient.autoReconnectTimeout) {
-      Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
+    if (Utils.isUndefined(Configuration.getConfig().WSClient.autoReconnectTimeout)) {
+      Configuration.getConfig().WSClient.autoReconnectTimeout = Constants.WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;
   }
 
   static getHealthCheckConfig(): HealthCheckConfiguration {
     // Read conf and set defaults values
-    if (!Configuration.getConfig().HealthCheck) {
+    if (Utils.isUndefined(Configuration.getConfig().HealthCheck)) {
       Configuration.getConfig().HealthCheck = {} as HealthCheckConfiguration;
     }
-    if (!Configuration.getConfig().HealthCheck.enabled) {
+    if (Utils.isUndefined(Configuration.getConfig().HealthCheck.enabled)) {
       Configuration.getConfig().HealthCheck.enabled = true;
     }
     return Configuration.getConfig().HealthCheck;
@@ -301,10 +301,10 @@ export default class Configuration {
 
   static getMigrationConfig(): MigrationConfiguration {
     // Read conf and set defaults values
-    if (!Configuration.getConfig().Migration) {
+    if (Utils.isUndefined(Configuration.getConfig().Migration)) {
       Configuration.getConfig().Migration = {} as MigrationConfiguration;
     }
-    if (!Configuration.getConfig().Migration.active) {
+    if (Utils.isUndefined(Configuration.getConfig().Migration.active)) {
       Configuration.getConfig().Migration.active = false;
     }
     return Configuration.getConfig().Migration;

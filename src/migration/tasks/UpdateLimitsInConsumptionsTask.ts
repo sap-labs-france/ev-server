@@ -32,14 +32,15 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
         let limitWatts = 0, limitAmps = 0;
         // Amps from chargepoint?
         if (chargingStation.chargePoints) {
-          const chargePoint = Utils.getChargePointFromID(chargingStation, connector.connectorId);
+          const chargePoint = Utils.getChargePointFromID(chargingStation, connector.chargePointID);
           limitAmps = Utils.getChargingStationAmperage(chargingStation, chargePoint, connector.connectorId);
+          limitWatts = Utils.convertAmpToWatt(chargingStation, chargePoint, connector.connectorId, limitAmps);
         // Amps from connector
         } else if (connector.amperage) {
           limitAmps = connector.amperage;
+          limitWatts = Utils.convertAmpToWatt(chargingStation, null, connector.connectorId, limitAmps);
         }
         if (limitAmps) {
-          limitWatts = Utils.convertAmpToWatt(chargingStation, connector.connectorId, limitAmps);
           // Update
           result = await global.database.getCollection(tenant.id, 'consumptions').updateMany(
             {
@@ -91,7 +92,7 @@ export default class UpdateLimitsInConsumptionsTask extends MigrationTask {
     // Log
     if (updated > 0) {
       Logging.logDebug({
-        tenantID: tenant.id,
+        tenantID: Constants.DEFAULT_TENANT,
         action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
         module: MODULE_NAME, method: 'migrateTenant',
         message: `${updated} Charging Stations amperage limit has been updated in Tenant '${tenant.name}'`

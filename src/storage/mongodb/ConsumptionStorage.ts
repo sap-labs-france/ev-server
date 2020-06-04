@@ -32,11 +32,13 @@ export default class ConsumptionStorage {
       consumption: Utils.convertToFloat(consumptionToSave.consumption),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
       cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
+      cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
       pricingSource: consumptionToSave.pricingSource,
       amount: Utils.convertToFloat(consumptionToSave.amount),
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
       instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
       stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
@@ -44,6 +46,7 @@ export default class ConsumptionStorage {
       limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       limitSource: consumptionToSave.limitSource,
       userID: Utils.convertToObjectID(consumptionToSave.userID),
+      smartChargingActive: Utils.convertToBoolean(consumptionToSave.smartChargingActive),
       limitSiteAreaWatts: consumptionToSave.limitSiteAreaWatts ? Utils.convertToInt(consumptionToSave.limitSiteAreaWatts) : null,
       limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null,
       limitSiteAreaSource: consumptionToSave.limitSiteAreaSource ? consumptionToSave.limitSiteAreaSource : null,
@@ -113,14 +116,16 @@ export default class ConsumptionStorage {
           minute: { '$minute': '$startedAt' }
         },
         instantPower: { $sum: '$instantPower' },
+        instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
+        limitAmps: { $last: '$limitSiteAreaAmps' }
       }
     });
     // Rebuild the date
     aggregation.push({
       $addFields: {
         startedAt: {
-          $dateFromParts: { 'year' : '$_id.year', 'month' : '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
+          $dateFromParts: { 'year': '$_id.year', 'month': '$_id.month', 'day': '$_id.day', 'hour': '$_id.hour', 'minute': '$_id.minute' }
         }
       }
     });
@@ -148,9 +153,9 @@ export default class ConsumptionStorage {
     return consumptionsMDB;
   }
 
-  static async getAllTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
+  static async getTransactionConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getAllTransactionConsumptions');
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getTransactionConsumptions');
     // Check
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -172,7 +177,7 @@ export default class ConsumptionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getAllTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
+    Logging.traceEnd('ConsumptionStorage', 'getTransactionConsumptions', uniqueTimerID, { transactionId: params.transactionId });
     return consumptionsMDB;
   }
 
