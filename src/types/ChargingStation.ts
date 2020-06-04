@@ -232,11 +232,10 @@ export interface ChargingStationCapabilities {
 export interface ChargingStationOcppParameters {
   id: string;
   timestamp: Date;
-  configuration: KeyValue[];
+  configuration: OcppParameter[];
 }
 
 export interface OcppParameter {
-  id: string;
   key: string;
   value: string;
   readonly: boolean;
