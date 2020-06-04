@@ -1,5 +1,5 @@
 {
-  "subject": "'<%- chargeBoxID %>' - Usuario desconocido tiene una insignia",
+  "subject": "'<%- chargeBoxID %>' - Un usuario desconocido tiene una insignia",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
