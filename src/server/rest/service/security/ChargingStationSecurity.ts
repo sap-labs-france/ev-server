@@ -158,7 +158,7 @@ export default class ChargingStationSecurity {
     chargingStations.result = filteredChargingStations;
   }
 
-  public static filterChargingProfilesResponse(chargingProfiles: DataResult<ChargingProfile>, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingProfilesResponse(chargingProfiles: DataResult<ChargingProfile>, loggedUser: UserToken, organizationIsActive: boolean, filteredRequest: HttpChargingProfilesRequest) {
     const filteredChargingProfiles: ChargingProfile[] = [];
     // Check
     if (!chargingProfiles.result) {
@@ -176,9 +176,15 @@ export default class ChargingStationSecurity {
       if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
         continue;
       }
-      const filteredchargingProfile = chargingProfile;
-      if (filteredchargingProfile) {
-        filteredChargingProfiles.push(filteredchargingProfile);
+      const filteredChargingProfile = chargingProfile;
+      if (filteredChargingProfile) {
+        if (!filteredRequest.WithChargingStation) {
+          delete filteredChargingProfile.chargingStation;
+        }
+        if (!filteredRequest.WithSiteArea) {
+          delete filteredChargingProfile.siteArea;
+        }
+        filteredChargingProfiles.push(filteredChargingProfile);
       }
     }
     chargingProfiles.result = filteredChargingProfiles;

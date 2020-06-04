@@ -397,12 +397,12 @@ export default class ChargingStationService {
         chargingStationID: filteredRequest.ChargeBoxID ? filteredRequest.ChargeBoxID.split('|') : null,
         connectorID: filteredRequest.ConnectorID,
         withChargingStation: filteredRequest.WithChargingStation,
-        withSiteArea: filteredRequest.WithSiteArea },
+        withSiteArea: true },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
 
     // Build the result
     ChargingStationSecurity.filterChargingProfilesResponse(chargingProfiles, req.user,
-      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION));
+      Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION), filteredRequest);
 
     res.json(chargingProfiles);
     next();
