@@ -312,7 +312,6 @@ export default class TransactionStorage {
         filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
       }
     }
-
     // OCPI Session Date provided?
     if (params.ocpiSessionDateFrom || params.ocpiSessionDateTo) {
       // Start date
@@ -328,7 +327,6 @@ export default class TransactionStorage {
       filterMatch['ocpiData.session'] = { $exists: true };
       filterMatch['ocpiData.sessionCheckedOn'] = { $exists: params.ocpiSessionChecked };
     }
-
     // OCPI Cdr Date provided?
     if (params.ocpiCdrDateFrom || params.ocpiCdrDateTo) {
       // Start date
@@ -344,7 +342,6 @@ export default class TransactionStorage {
       filterMatch['ocpiData.cdr'] = { $exists: true };
       filterMatch['ocpiData.cdrCheckedOn'] = { $exists: params.ocpiCdrChecked };
     }
-
     // Check stop transaction
     if (params.stop) {
       filterMatch.stop = params.stop;

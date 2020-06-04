@@ -1,18 +1,18 @@
+import moment from 'moment';
+
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../exception/BackendError';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-
-import BackendError from '../../exception/BackendError';
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { ServerAction } from '../../types/Server';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
-import moment from 'moment';
 
-const MODULE_NAME = 'ChargingStationVendor';
+const MODULE_NAME = 'ChargingStationVendorIntegration';
 
 export default abstract class ChargingStationVendorIntegration {
   protected chargingStation: ChargingStation;
@@ -160,25 +160,27 @@ export default abstract class ChargingStationVendorIntegration {
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
     ocppParamName: string, ocppParamValue: string) {
-    for (const chargePoint of chargingStation.chargePoints) {
-      if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
-        // Update the connector limit amps
-        for (const connectorID of chargePoint.connectorIDs) {
-          const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-          connector.amperageLimit = this.convertLimitAmpToAllPhases(
-            chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue));
-          Logging.logInfo({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.OCPP_PARAM_UPDATE,
-            message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
-            module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
-            detailedMessages: { ocppParamName, ocppParamValue, connectorID,
-              amperageLimit: connector.amperageLimit, chargePoint }
-          });
+    if (chargingStation.chargePoints) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
+          // Update the connector limit amps
+          for (const connectorID of chargePoint.connectorIDs) {
+            const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+            connector.amperageLimit = this.convertLimitAmpToAllPhases(
+              chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue));
+            Logging.logInfo({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.OCPP_PARAM_UPDATE,
+              message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
+              module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
+              detailedMessages: { ocppParamName, ocppParamValue, connectorID,
+                amperageLimit: connector.amperageLimit, chargePoint }
+            });
+          }
+          // Save it
+          await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
         }
-        // Save it
-        await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
       }
     }
   }

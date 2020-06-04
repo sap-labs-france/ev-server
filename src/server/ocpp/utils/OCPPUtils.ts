@@ -697,6 +697,7 @@ export default class OCPPUtils {
       foundConnector.activeTransactionID = 0;
       foundConnector.activeTransactionDate = null;
       foundConnector.activeTagID = null;
+      foundConnector.userID = null;
     }
   }
 }

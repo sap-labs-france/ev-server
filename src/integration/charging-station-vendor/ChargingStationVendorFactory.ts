@@ -1,5 +1,4 @@
 import ChargingStation, { ChargerVendor } from '../../types/ChargingStation';
-
 import ChargingStationVendorIntegration from './ChargingStationVendorIntegration';
 import DeltaChargingStationVendorIntegration from './delta/DeltaChargingStationVendorIntegration';
 import SchneiderChargingStationVendorIntegration from './schneider/SchneiderChargingStationVendorIntegration';
@@ -8,7 +7,7 @@ import WebastoChargingStationVendorIntegration from './webasto/WebastoChargingSt
 export default class ChargingStationVendorFactory {
 
   static getChargingStationVendorImpl(chargingStation: ChargingStation): ChargingStationVendorIntegration {
-    let chargingStationVendorImpl;
+    let chargingStationVendorImpl = null;
     switch (chargingStation.chargePointVendor) {
       // Schneider
       case ChargerVendor.SCHNEIDER:
@@ -21,9 +20,6 @@ export default class ChargingStationVendorFactory {
       // Delta
       case ChargerVendor.DELTA:
         chargingStationVendorImpl = new DeltaChargingStationVendorIntegration(chargingStation);
-        break;
-      default:
-        chargingStationVendorImpl = null;
         break;
     }
     return chargingStationVendorImpl;

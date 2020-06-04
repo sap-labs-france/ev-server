@@ -22,7 +22,7 @@
       "Su vehículo eléctrico está conectado correctamente a la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b>."
     ],
     "action": {
-      "title": "Ver Sesion",
+      "title": "Ver sesion",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [

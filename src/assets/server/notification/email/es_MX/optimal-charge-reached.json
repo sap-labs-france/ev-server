@@ -25,7 +25,7 @@
       { "label": "Nivel de batería", "value": "<%- stateOfCharge %> %" }
     ],
     "action": {
-      "title": "Ver Sesión",
+      "title": "Ver sesión",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
