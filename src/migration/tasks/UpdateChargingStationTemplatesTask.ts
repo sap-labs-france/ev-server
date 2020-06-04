@@ -64,11 +64,10 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
           source: chargingStation.id,
           module: MODULE_NAME, method: 'applyTemplateToChargingStations',
-          message: `Migrate '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+          message: `Check template for '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
         });
-        const chargingStationTemplateUpdated = await Utils.promiseWithTimeout<TemplateUpdateResult>(
-          60 * 1000, OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation),
-          'Time out error with updating Template params');
+        const chargingStationTemplateUpdated =
+          await OCPPUtils.enrichChargingStationWithTemplate(tenant.id, chargingStation);
         // Enrich
         let chargingStationUpdated = false;
         // Check Connectors
@@ -86,10 +85,19 @@ export default class UpdateChargingStationTemplatesTask extends MigrationTask {
           await ChargingStationStorage.saveChargingStation(tenant.id, chargingStation);
           updated++;
           // Retrieve OCPP params and update them if needed
-          await Utils.promiseWithTimeout<OCPPChangeConfigurationCommandResult>(
-            60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(
-              tenant.id, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
-            'Time out error with updating OCPP params');
+          if (chargingStationTemplateUpdated.ocppUpdated) {
+            Logging.logDebug({
+              tenantID: Constants.DEFAULT_TENANT,
+              action: ServerAction.UPDATE_CHARGING_STATION_WITH_TEMPLATE,
+              source: chargingStation.id,
+              module: MODULE_NAME, method: 'applyTemplateToChargingStations',
+              message: `Apply new OCPP Parameters for '${chargingStation.id}' in Tenant '${tenant.name}' ('${tenant.subdomain}')`,
+            });
+            await Utils.promiseWithTimeout<OCPPChangeConfigurationCommandResult>(
+              60 * 1000, OCPPUtils.requestAndSaveChargingStationOcppParameters(
+                tenant.id, chargingStation, chargingStationTemplateUpdated.ocppUpdated),
+              'Time out error with updating OCPP params');
+          }
         }
       } catch (error) {
         Logging.logError({

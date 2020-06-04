@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hola <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Su sesión en el terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b> ha finalizado."
+      "Su sesión en la terminal <b> '<% - chargeBoxID%>' </b>, conector <b> '<% - connectorId%>' </b> ha finalizado."
     ],
     "stats": [
       { "label": "Consumo", "value": "<%- totalConsumption %> kW.h" },
@@ -28,7 +28,7 @@
       { "label": "Nivel de batería", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
-      "title": "Ver Sesión",
+      "title": "Ver sesión",
       "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
