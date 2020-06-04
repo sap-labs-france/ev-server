@@ -160,25 +160,27 @@ export default abstract class ChargingStationVendorIntegration {
 
   public async checkUpdateOfOCPPParams(tenantID: string, chargingStation: ChargingStation,
     ocppParamName: string, ocppParamValue: string) {
-    for (const chargePoint of chargingStation.chargePoints) {
-      if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
-        // Update the connector limit amps
-        for (const connectorID of chargePoint.connectorIDs) {
-          const connector = Utils.getConnectorFromID(chargingStation, connectorID);
-          connector.amperageLimit = this.convertLimitAmpToAllPhases(
-            chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue));
-          Logging.logInfo({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            action: ServerAction.OCPP_PARAM_UPDATE,
-            message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
-            module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
-            detailedMessages: { ocppParamName, ocppParamValue, connectorID,
-              amperageLimit: connector.amperageLimit, chargePoint }
-          });
+    if (chargingStation.chargePoints) {
+      for (const chargePoint of chargingStation.chargePoints) {
+        if (ocppParamName === chargePoint.ocppParamForPowerLimitation) {
+          // Update the connector limit amps
+          for (const connectorID of chargePoint.connectorIDs) {
+            const connector = Utils.getConnectorFromID(chargingStation, connectorID);
+            connector.amperageLimit = this.convertLimitAmpToAllPhases(
+              chargingStation, chargePoint, connectorID, Utils.convertToInt(ocppParamValue));
+            Logging.logInfo({
+              tenantID: tenantID,
+              source: chargingStation.id,
+              action: ServerAction.OCPP_PARAM_UPDATE,
+              message: `Connector ID '${connectorID}' amperage limit set to ${connector.amperageLimit}A following an update of OCPP param '${ocppParamName}'`,
+              module: MODULE_NAME, method: 'checkUpdateOfOCPPParams',
+              detailedMessages: { ocppParamName, ocppParamValue, connectorID,
+                amperageLimit: connector.amperageLimit, chargePoint }
+            });
+          }
+          // Save it
+          await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
         }
-        // Save it
-        await ChargingStationStorage.saveChargingStation(tenantID, chargingStation);
       }
     }
   }

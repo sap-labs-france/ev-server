@@ -46,6 +46,7 @@ export default class ConsumptionStorage {
       limitWatts: Utils.convertToInt(consumptionToSave.limitWatts),
       limitSource: consumptionToSave.limitSource,
       userID: Utils.convertToObjectID(consumptionToSave.userID),
+      smartChargingActive: Utils.convertToBoolean(consumptionToSave.smartChargingActive),
       limitSiteAreaWatts: consumptionToSave.limitSiteAreaWatts ? Utils.convertToInt(consumptionToSave.limitSiteAreaWatts) : null,
       limitSiteAreaAmps: consumptionToSave.limitSiteAreaAmps ? Utils.convertToInt(consumptionToSave.limitSiteAreaAmps) : null,
       limitSiteAreaSource: consumptionToSave.limitSiteAreaSource ? consumptionToSave.limitSiteAreaSource : null,

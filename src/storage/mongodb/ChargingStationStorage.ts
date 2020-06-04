@@ -1,5 +1,5 @@
 import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
@@ -255,6 +255,11 @@ export default class ChargingStationStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Users on connectors
+    DatabaseUtils.pushArrayLookupInAggregation('connectors', DatabaseUtils.pushUserLookupInAggregation.bind(this), {
+      tenantID, aggregation: aggregation, localField: 'connectors.userID', foreignField: '_id',
+      asField: 'connectors.user', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy']
+    });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Convert Object ID to string
@@ -422,44 +427,6 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build Request
-    const chargingStationFilter = {
-      _id: chargingStationToSave.id
-    };
-    // Convert
-    if (chargingStationToSave.connectors && Array.isArray(chargingStationToSave.connectors)) {
-      for (const connector of chargingStationToSave.connectors) {
-        if (connector) {
-          connector.connectorId = Utils.convertToInt(connector.connectorId);
-          connector.power = connector.power ? Utils.convertToInt(connector.power) : null;
-          connector.amperage = connector.amperage ? Utils.convertToInt(connector.amperage) : null;
-          connector.voltage = connector.voltage ? Utils.convertToInt(connector.voltage) : null;
-          connector.chargePointID = connector.chargePointID ? Utils.convertToInt(connector.chargePointID) : null;
-          connector.currentType = connector.currentType ? connector.currentType : null;
-          connector.numberOfConnectedPhase = connector.numberOfConnectedPhase ? Utils.convertToInt(connector.numberOfConnectedPhase) : null;
-          connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
-          connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
-          connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
-          connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
-          connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
-        }
-      }
-    }
-    if (chargingStationToSave.chargePoints && Array.isArray(chargingStationToSave.chargePoints)) {
-      for (const chargePoint of chargingStationToSave.chargePoints) {
-        if (chargePoint) {
-          chargePoint.voltage = chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null;
-          chargePoint.amperage = chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null;
-          chargePoint.numberOfConnectedPhase = chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null;
-          chargePoint.cannotChargeInParallel = Utils.convertToBoolean(chargePoint.cannotChargeInParallel);
-          chargePoint.sharePowerToAllConnectors = Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors);
-          chargePoint.excludeFromPowerLimitation = Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation);
-          chargePoint.power = chargePoint.power ? Utils.convertToInt(chargePoint.power) : null;
-          chargePoint.efficiency = chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null;
-          chargePoint.connectorIDs = chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID));
-        }
-      }
-    }
-    // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
       templateHash: chargingStationToSave.templateHash,
@@ -491,10 +458,12 @@ export default class ChargingStationStorage {
       excludeFromSmartCharging: Utils.convertToBoolean(chargingStationToSave.excludeFromSmartCharging),
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       voltage: Utils.convertToInt(chargingStationToSave.voltage),
-      chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints : null,
-      connectors: chargingStationToSave.connectors,
+      connectors: chargingStationToSave.connectors ? chargingStationToSave.connectors.map(
+        (connector) => ChargingStationStorage.connector2connectorMDB(connector)) : [],
+      chargePoints: chargingStationToSave.chargePoints ? chargingStationToSave.chargePoints.map(
+        (chargePoint) => ChargingStationStorage.chargePoint2ChargePointMDB(chargePoint)) : [],
       coordinates: chargingStationToSave.coordinates,
-      remoteAuthorizations: chargingStationToSave.remoteAuthorizations,
+      remoteAuthorizations: chargingStationToSave.remoteAuthorizations ? chargingStationToSave.remoteAuthorizations : [],
       currentIPAddress: chargingStationToSave.currentIPAddress,
       currentServerLocalIPAddressPort: chargingStationToSave.currentServerLocalIPAddressPort,
       capabilities: chargingStationToSave.capabilities,
@@ -502,17 +471,11 @@ export default class ChargingStationStorage {
       ocppVendorParameters: chargingStationToSave.ocppVendorParameters,
       ocpiData: chargingStationToSave.ocpiData
     };
-    if (!chargingStationMDB.connectors) {
-      chargingStationMDB.connectors = [];
-    }
-    if (!chargingStationMDB.remoteAuthorizations) {
-      chargingStationMDB.remoteAuthorizations = [];
-    }
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
-      chargingStationFilter,
+      { _id: chargingStationToSave.id },
       { $set: chargingStationMDB },
       { upsert: true });
     // Debug
@@ -524,23 +487,11 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'saveChargingStationConnector');
     // Ensure good typing
-    if (connector) {
-      connector.connectorId = Utils.convertToInt(connector.connectorId);
-      connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
-      connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
-      connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
-      connector.power = Utils.convertToInt(connector.power);
-      connector.voltage = Utils.convertToInt(connector.voltage);
-      connector.amperage = Utils.convertToInt(connector.amperage);
-      connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
-      connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
-    }
+    const connectorMDB = ChargingStationStorage.connector2connectorMDB(connector);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
-    updatedFields['connectors.' + (connector.connectorId - 1)] = connector;
-    // Update model
-    chargingStation.connectors[connector.connectorId - 1] = connector;
+    updatedFields['connectors.' + (connector.connectorId - 1)] = connectorMDB;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
@@ -972,5 +923,56 @@ export default class ChargingStationStorage {
       default:
         return [];
     }
+  }
+
+  private static connector2connectorMDB(connector: Connector): object {
+    if (!connector) {
+      return null;
+    }
+    return {
+      connectorId: Utils.convertToInt(connector.connectorId),
+      currentConsumption: Utils.convertToFloat(connector.currentConsumption),
+      currentStateOfCharge: connector.currentStateOfCharge,
+      totalInactivitySecs: Utils.convertToInt(connector.totalInactivitySecs),
+      totalConsumption: Utils.convertToFloat(connector.totalConsumption),
+      status: connector.status,
+      errorCode: connector.errorCode,
+      info: connector.info,
+      vendorErrorCode: connector.vendorErrorCode,
+      power: Utils.convertToInt(connector.power),
+      type: connector.type,
+      voltage: Utils.convertToInt(connector.voltage),
+      amperage: Utils.convertToInt(connector.amperage),
+      amperageLimit: connector.amperageLimit,
+      activeTransactionID: Utils.convertToInt(connector.activeTransactionID),
+      userID: Utils.convertToObjectID(connector.userID),
+      activeTransactionDate: Utils.convertToDate(connector.activeTransactionDate),
+      activeTagID: connector.activeTagID,
+      statusLastChangedOn: connector.statusLastChangedOn,
+      inactivityStatus: connector.inactivityStatus,
+      numberOfConnectedPhase: connector.numberOfConnectedPhase,
+      currentType: connector.currentType,
+      chargePointID: connector.chargePointID,
+    };
+  }
+
+  private static chargePoint2ChargePointMDB(chargePoint: ChargePoint): object {
+    if (!chargePoint) {
+      return null;
+    }
+    return {
+      chargePointID: Utils.convertToInt(chargePoint.chargePointID),
+      currentType: chargePoint.currentType,
+      voltage: chargePoint.voltage ? Utils.convertToInt(chargePoint.voltage) : null,
+      amperage: chargePoint.amperage ? Utils.convertToInt(chargePoint.amperage) : null,
+      numberOfConnectedPhase: chargePoint.numberOfConnectedPhase ? Utils.convertToInt(chargePoint.numberOfConnectedPhase) : null,
+      cannotChargeInParallel: Utils.convertToBoolean(chargePoint.cannotChargeInParallel),
+      sharePowerToAllConnectors: Utils.convertToBoolean(chargePoint.sharePowerToAllConnectors),
+      excludeFromPowerLimitation: Utils.convertToBoolean(chargePoint.excludeFromPowerLimitation),
+      ocppParamForPowerLimitation: chargePoint.ocppParamForPowerLimitation,
+      power: chargePoint.power ? Utils.convertToInt(chargePoint.power) : null,
+      efficiency: chargePoint.efficiency ? Utils.convertToInt(chargePoint.efficiency) : null,
+      connectorIDs: chargePoint.connectorIDs.map((connectorID) => Utils.convertToInt(connectorID)),
+    };
   }
 }
