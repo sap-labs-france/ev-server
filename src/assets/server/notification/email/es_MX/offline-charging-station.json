@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Estimado administrador,",
       "",
-      "Las siguientes terminales están fuera de línea en su organización: <b> <% - chargeBoxIDs%> </b> ",
+      "Las siguientes terminales en su organización están fuera de línea:  <b> <% - chargeBoxIDs%> </b> ",
       ""
     ],
     "action": {
