@@ -1,15 +1,15 @@
-import global from './../../types/GlobalType';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import { TemplateUpdateResult } from '../../types/ChargingStation';
-import { OCPPChangeConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import MigrationTask from '../MigrationTask';
+import { OCPPChangeConfigurationCommandResult } from '../../types/ocpp/OCPPClient';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
+import { TemplateUpdateResult } from '../../types/ChargingStation';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
 
 const MODULE_NAME = 'UpdateChargingStationTemplatesTask';
 
