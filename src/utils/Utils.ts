@@ -1,4 +1,5 @@
 import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
+import { Car, CarType } from '../types/Car';
 import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import User, { UserRole, UserStatus } from '../types/User';
@@ -8,7 +9,6 @@ import AppError from '../exception/AppError';
 import Asset from '../types/Asset';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
-import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
 import Company from '../types/Company';
 import Configuration from './Configuration';
@@ -1756,6 +1756,26 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
         message: 'Car Catalog ID  is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (!car.type) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Car type is mandatory',
+        module: MODULE_NAME,
+        method: 'checkIfCarValid',
+        user: req.user.id
+      });
+    }
+    if (Authorizations.isBasic(req.user) && car.type === CarType.POOL_CAR) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Pool cars can only be created by admin',
         module: MODULE_NAME,
         method: 'checkIfCarValid',
         user: req.user.id
