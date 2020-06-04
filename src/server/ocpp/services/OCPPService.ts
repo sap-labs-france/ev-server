@@ -848,7 +848,7 @@ export default class OCPPService {
 
   private async deleteAllTransactionTxProfile(tenantID: string, transaction: Transaction) {
     const chargingProfiles = await ChargingStationStorage.getChargingProfiles(tenantID, {
-      chargingStationID: transaction.chargeBoxID,
+      chargingStationID: [transaction.chargeBoxID],
       connectorID: transaction.connectorId,
       profilePurposeType: ChargingProfilePurposeType.TX_PROFILE,
       transactionId: transaction.id
