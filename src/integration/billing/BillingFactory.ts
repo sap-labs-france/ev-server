@@ -1,12 +1,13 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { BillingSetting, BillingSettingsType } from '../../types/Setting';
+
+import BillingIntegration from './BillingIntegration';
+import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import StripeBillingIntegration from './stripe/StripeBillingIntegration';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import BillingIntegration from './BillingIntegration';
-import StripeBillingIntegration from './stripe/StripeBillingIntegration';
 
 const MODULE_NAME = 'BillingFactory';
 
