@@ -1,6 +1,6 @@
 import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
-import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, TemplateUpdateResult } from '../../../types/ChargingStation';
+import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, OcppParameter, TemplateUpdateResult } from '../../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
 
 import BackendError from '../../../exception/BackendError';
@@ -10,7 +10,6 @@ import ChargingStationVendorFactory from '../../../integration/charging-station-
 import Constants from '../../../utils/Constants';
 import { InactivityStatus } from '../../../types/Transaction';
 import Logging from '../../../utils/Logging';
-import OCPPConstants from './OCPPConstants';
 import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
@@ -530,17 +529,21 @@ export default class OCPPUtils {
       // Set default?
       if (!chargingStationOcppParameters.configuration) {
         // Check if there is an already existing config in DB
-        const existingConfiguration = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
-        if (!existingConfiguration) {
+        const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
+        if (ocppParametersFromDB.count === 0) {
           // No config at all: Set default OCPP configuration
-          chargingStationOcppParameters.configuration = OCPPConstants.DEFAULT_OCPP_16_CONFIGURATION;
+          chargingStationOcppParameters.configuration = Constants.DEFAULT_OCPP_16_CONFIGURATION;
+        } else {
+          // Set DB
+          chargingStationOcppParameters.configuration = ocppParametersFromDB.result;
         }
       }
       // Save config
       await ChargingStationStorage.saveOcppParameters(tenantID, chargingStationOcppParameters);
       // Check OCPP Configuration
       if (forceUpdateOcppParametersWithTemplate) {
-        await this.checkAndUpdateChargingStationOcppParameters(tenantID, chargingStation, chargingStationOcppParameters);
+        await this.updateChargingStationTemplateOcppParameters(
+          tenantID, chargingStation, chargingStationOcppParameters.configuration);
       }
       // Ok
       Logging.logInfo({
@@ -558,17 +561,30 @@ export default class OCPPUtils {
     }
   }
 
-  public static async checkAndUpdateChargingStationOcppParameters(tenantID: string, chargingStation: ChargingStation, currentParameters: ChargingStationOcppParameters) {
-    let oneOcppParameterUpdated = false;
+  public static async updateChargingStationTemplateOcppParameters(tenantID: string, chargingStation: ChargingStation,
+    currentOcppParameters?: OcppParameter[]): Promise<ActionsResponse> {
+    const updatedOcppParams = {
+      inError: 0,
+      inSuccess: 0,
+    };
+    // Not Provided: Get from DB
+    if (!currentOcppParameters) {
+      // Check if there is an already existing config in DB
+      const ocppParametersFromDB = await ChargingStationStorage.getOcppParameters(tenantID, chargingStation.id);
+      if (ocppParametersFromDB.count > 0) {
+        currentOcppParameters = ocppParametersFromDB.result;
+      }
+    }
+    // Check
     if (Utils.isEmptyArray(chargingStation.ocppStandardParameters) && Utils.isEmptyArray(chargingStation.ocppVendorParameters)) {
       Logging.logInfo({
         tenantID: tenantID,
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-        module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
-        message: 'Charging Station has no Standard/Vendor OCPP Parameters to change'
+        module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
+        message: 'Charging Station has no OCPP Parameters'
       });
-      return;
+      return updatedOcppParams;
     }
     // Get the Charging Station client
     const chargingStationClient = await ChargingStationClientFactory.getChargingStationClient(tenantID, chargingStation);
@@ -576,7 +592,7 @@ export default class OCPPUtils {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-        module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+        module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
         message: 'Charging Station is not connected to the backend',
       });
     }
@@ -585,7 +601,7 @@ export default class OCPPUtils {
     // Check Standard OCPP Params
     for (const ocppParameter of ocppParameters) {
       // Find OCPP Param
-      const currentOcppParam: KeyValue = currentParameters.configuration.find(
+      const currentOcppParam: KeyValue = currentOcppParameters.find(
         (ocppParam) => ocppParam.key === ocppParameter.key);
       try {
         if (!currentOcppParam) {
@@ -594,9 +610,10 @@ export default class OCPPUtils {
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-            module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+            module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
           });
+          updatedOcppParams.inError++;
         }
         // Check Value
         if (ocppParameter.value === currentOcppParam.value) {
@@ -605,7 +622,7 @@ export default class OCPPUtils {
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-            module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+            module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
             message: `OCPP Parameter '${ocppParameter.key}' has the correct value '${currentOcppParam.value}'`
           });
           continue;
@@ -617,39 +634,42 @@ export default class OCPPUtils {
         });
         if (result.status === OCPPConfigurationStatus.ACCEPTED) {
           // Ok
-          oneOcppParameterUpdated = true;
+          updatedOcppParams.inSuccess++;
           // Value is different: Update it
           Logging.logInfo({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-            module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+            module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
             message: `OCPP Parameter '${currentOcppParam.key}' has been successfully set from '${currentOcppParam.value}' to '${ocppParameter.value}'`
           });
         } else {
+          updatedOcppParams.inError++;
           Logging.logError({
             tenantID: tenantID,
             source: chargingStation.id,
             action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-            module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+            module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
             message: `Error '${result.status}' in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}': `
           });
         }
       } catch (error) {
+        updatedOcppParams.inError++;
         Logging.logError({
           tenantID: tenantID,
           source: chargingStation.id,
           action: ServerAction.CHARGING_STATION_CHANGE_CONFIGURATION,
-          module: MODULE_NAME, method: 'checkAndUpdateChargingStationOcppParameters',
+          module: MODULE_NAME, method: 'updateChargingStationTemplateOcppParameters',
           message: `Error in changing OCPP parameter '${ocppParameter.key}' from '${currentOcppParam.value}' to '${ocppParameter.value}'`,
           detailedMessages: { error: error.message, stack: error.stack }
         });
       }
     }
     // Parameter Updated?
-    if (oneOcppParameterUpdated) {
+    if (updatedOcppParams.inSuccess) {
       await this.requestAndSaveChargingStationOcppParameters(tenantID, chargingStation);
     }
+    return updatedOcppParams;
   }
 
   public static async requestChangeChargingStationOcppParameters(

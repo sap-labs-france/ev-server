@@ -1,6 +1,7 @@
 import { ChargingProfile, ChargingRateUnitType, ChargingSchedule, Profile } from '../../types/ChargingProfile';
 
 import { KeyValue } from '../GlobalType';
+import { OcppParameter } from '../ChargingStation';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface OCPPCommandParam {
@@ -43,7 +44,7 @@ export interface OCPPGetConfigurationCommandParam extends OCPPCommandParam {
 }
 
 export interface OCPPGetConfigurationCommandResult {
-  configurationKey: KeyValue[];
+  configurationKey: OcppParameter[];
   unknownKey?: string[];
 }
 
