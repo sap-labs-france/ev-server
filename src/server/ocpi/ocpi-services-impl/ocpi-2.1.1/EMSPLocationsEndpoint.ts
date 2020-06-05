@@ -1,27 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
-import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-
-import AbstractEndpoint from '../AbstractEndpoint';
-import AbstractOCPIService from '../../AbstractOCPIService';
-import AppError from '../../../../exception/AppError';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import ChargingStation from '../../../../types/ChargingStation';
-import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import { HTTPError } from '../../../../types/HTTPError';
 import HttpStatusCodes from 'http-status-codes';
-import Logging from '../../../../utils/Logging';
+
 import OCPIClientFactory from '../../../../client/ocpi/OCPIClientFactory';
+import AppError from '../../../../exception/AppError';
+import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import ChargingStation from '../../../../types/ChargingStation';
+import { HTTPError } from '../../../../types/HTTPError';
 import { OCPIConnector } from '../../../../types/ocpi/OCPIConnector';
 import OCPIEndpoint from '../../../../types/ocpi/OCPIEndpoint';
+import { OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import OCPIMapping from './OCPIMapping';
 import { OCPIResponse } from '../../../../types/ocpi/OCPIResponse';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../../types/Server';
-import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
+import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIUtils from '../../OCPIUtils';
+import AbstractEndpoint from '../AbstractEndpoint';
+import OCPIMapping from './OCPIMapping';
 
 const EP_IDENTIFIER = 'locations';
 const MODULE_NAME = 'EMSPLocationsEndpoint';
@@ -259,7 +259,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: chargingStation.connectors.length,
-          currentConsumption: 0,
+          currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         });

@@ -9,15 +9,15 @@ export default interface Consumption {
   connectorId: number;
   siteAreaID: string;
   siteID: string;
-  consumption: number;
+  consumptionWh: number;
   cumulatedAmount: number;
-  cumulatedConsumption: number;
+  cumulatedConsumptionWh: number;
   cumulatedConsumptionAmps: number;
   pricingSource: string;
   amount: number;
   roundedAmount: number;
   currencyCode: string;
-  instantPower: number;
+  instantWatts: number;
   instantAmps: number;
   totalInactivitySecs: number;
   totalDurationSecs: number;

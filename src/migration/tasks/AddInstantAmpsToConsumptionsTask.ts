@@ -1,10 +1,10 @@
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
+import { ServerAction } from '../../types/Server';
+import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import { ServerAction } from '../../types/Server';
-import Tenant from '../../types/Tenant';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'AddInstantAmpsToConsumptionsTask';
 
@@ -23,9 +23,9 @@ export default class AddInstantAmpsToConsumptionsTask extends MigrationTask {
       [
         {
           '$set': {
-            'cumulatedConsumptionAmps': { '$round': [{ '$divide': ['$cumulatedConsumption', 230] }] },
+            'cumulatedConsumptionAmps': { '$round': [{ '$divide': ['$cumulatedConsumptionWh', 230] }] },
             'limitSiteAreaAmps': { '$round': [{ '$divide': ['$limitSiteAreaWatts', 230] }] },
-            'instantAmps': { '$round': [{ '$divide': ['$instantPower', 230] }] }
+            'instantAmps': { '$round': [{ '$divide': ['$instantWatts', 230] }] }
           }
         }
       ]

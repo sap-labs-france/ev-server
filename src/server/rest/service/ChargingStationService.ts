@@ -1,40 +1,41 @@
-import { Action, Entity } from '../../../types/Authorization';
-import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
-import { NextFunction, Request, Response } from 'express';
-import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import fs from 'fs';
 
+import { NextFunction, Request, Response } from 'express';
+import sanitize from 'mongo-sanitize';
+
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import { ChargingProfile } from '../../../types/ChargingProfile';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import { ChargingStationInErrorType } from '../../../types/InError';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import { DataResult } from '../../../types/DataResult';
-import I18nManager from '../../../utils/I18nManager';
+import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';
-import Logging from '../../../utils/Logging';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import { ServerAction } from '../../../types/Server';
-import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import SmartChargingFactory from '../../../integration/smart-charging/SmartChargingFactory';
-import TenantComponents from '../../../types/TenantComponents';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { Action, Entity } from '../../../types/Authorization';
+import { ChargingProfile } from '../../../types/ChargingProfile';
+import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
+import { DataResult } from '../../../types/DataResult';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
+import { ChargingStationInErrorType } from '../../../types/InError';
+import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import { ServerAction } from '../../../types/Server';
+import SiteArea from '../../../types/SiteArea';
+import TenantComponents from '../../../types/TenantComponents';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import I18nManager from '../../../utils/I18nManager';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -658,8 +659,8 @@ export default class ChargingStationService {
       });
     }
     for (const connector of chargingStation.connectors) {
-      if (connector && connector.activeTransactionID) {
-        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.activeTransactionID);
+      if (connector && connector.currentTransactionID) {
+        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.currentTransactionID);
         if (transaction && !transaction.stop) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -1182,8 +1183,8 @@ export default class ChargingStationService {
     for (let index = 0; index < chargingStation.connectors.length; index++) {
       const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === index + 1);
-      if (foundConnector.activeTransactionID > 0) {
-        const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.activeTransactionID);
+      if (foundConnector.currentTransactionID > 0) {
+        const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.currentTransactionID);
         results.push({
           'isStartAuthorized': false,
           'isStopAuthorized': Authorizations.canStopTransaction(user, transaction),

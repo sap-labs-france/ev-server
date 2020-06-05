@@ -1,19 +1,19 @@
-import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
-import ChargingStation, { Command } from '../../../../types/ChargingStation';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import sanitize from 'mongo-sanitize';
 
 import Authorizations from '../../../../authorization/Authorizations';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import { ChargingStationInError } from '../../../../types/InError';
+import { ChargingProfile, ChargingSchedule, ChargingSchedulePeriod, Profile } from '../../../../types/ChargingProfile';
+import ChargingStation, { Command } from '../../../../types/ChargingStation';
 import { DataResult } from '../../../../types/DataResult';
+import { ChargingStationInError } from '../../../../types/InError';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingProfilesRequest, HttpChargingStationCommandRequest, HttpChargingStationGetFirmwareRequest, HttpChargingStationLimitPowerRequest, HttpChargingStationOcppParametersRequest, HttpChargingStationParamsUpdateRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest, HttpTriggerSmartChargingRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import { InactivityStatus } from '../../../../types/Transaction';
-import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
-import sanitize from 'mongo-sanitize';
 
 export default class ChargingStationSecurity {
 
@@ -53,10 +53,10 @@ export default class ChargingStationSecurity {
           // Inactive
           if (filteredChargingStation.inactive) {
             connector.status = ChargePointStatus.UNAVAILABLE;
-            connector.currentConsumption = 0;
-            connector.totalConsumption = 0;
-            connector.totalInactivitySecs = 0;
-            connector.inactivityStatus = InactivityStatus.INFO;
+            connector.currentInstantWatts = 0;
+            connector.currentTotalConsumptionWh = 0;
+            connector.currentTotalInactivitySecs = 0;
+            connector.currentInactivityStatus = InactivityStatus.INFO;
             connector.currentStateOfCharge = 0;
           }
           // Filter User
@@ -78,14 +78,14 @@ export default class ChargingStationSecurity {
           id: connector.id,
           connectorId: connector.connectorId,
           status: (filteredChargingStation.inactive ? ChargePointStatus.UNAVAILABLE : connector.status),
-          currentConsumption: (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
+          currentInstantWatts: (filteredChargingStation.inactive ? 0 : connector.currentInstantWatts),
           currentStateOfCharge: (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
-          totalConsumption: (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
-          totalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          inactivityStatus: connector.inactivityStatus,
-          activeTransactionID: connector.activeTransactionID,
-          activeTransactionDate: connector.activeTransactionDate,
-          activeTagID: connector.activeTagID,
+          currentTotalConsumptionWh: (filteredChargingStation.inactive ? 0 : connector.currentTotalConsumptionWh),
+          currentTotalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.currentTotalInactivitySecs),
+          currentInactivityStatus: connector.currentInactivityStatus,
+          currentTransactionID: connector.currentTransactionID,
+          currentTransactionDate: connector.currentTransactionDate,
+          currentTagID: connector.currentTagID,
           errorCode: connector.errorCode,
           type: connector.type,
           power: connector.power,

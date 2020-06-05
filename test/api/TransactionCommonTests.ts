@@ -1,16 +1,16 @@
 import chai, { expect } from 'chai';
-
-import CentralServerService from './client/CentralServerService';
-import ChargingStationContext from './context/ChargingStationContext';
-import { InactivityStatus } from '../../src/types/Transaction';
-import TenantContext from './context/TenantContext';
-import TestUtils from './TestUtils';
-import User from '../../src/types/User';
-import Utils from '../../src/utils/Utils';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+
+import { InactivityStatus } from '../../src/types/Transaction';
+import User from '../../src/types/User';
+import Utils from '../../src/utils/Utils';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import ChargingStationContext from './context/ChargingStationContext';
+import TenantContext from './context/TenantContext';
+import TestUtils from './TestUtils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -121,8 +121,8 @@ export default class TransactionCommonTests {
       connectorId: connectorId,
       tagID: tagId,
       chargeBoxID: this.chargingStationContext.getChargingStation().id,
-      currentConsumption: 0,
-      currentTotalConsumption: 0,
+      currentInstantWatts: 0,
+      currentTotalConsumptionWh: 0,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
@@ -156,8 +156,8 @@ export default class TransactionCommonTests {
       connectorId: connectorId,
       tagID: tagId,
       chargeBoxID: this.chargingStationContext.getChargingStation().id,
-      currentConsumption: load,
-      currentTotalConsumption: load,
+      currentInstantWatts: load,
+      currentTotalConsumptionWh: load,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
@@ -196,8 +196,8 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
-      currentConsumption: load,
-      currentTotalConsumption: cumulated - meterStart,
+      currentInstantWatts: load,
+      currentTotalConsumptionWh: cumulated - meterStart,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart,
@@ -249,7 +249,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -295,7 +295,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -307,7 +307,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -351,7 +351,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -363,7 +363,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -411,7 +411,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -423,7 +423,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -468,7 +468,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 0,
+        totalConsumptionWh: 0,
         totalInactivitySecs: 3600,
         inactivityStatus: InactivityStatus.ERROR,
         meterStop: meterStart,
@@ -526,17 +526,17 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
-          cumulatedConsumption: cumulated - meterStart
+          instantWatts: meterValues[1].value,
+          cumulatedConsumptionWh: cumulated - meterStart
         }
       ]
     });
@@ -576,19 +576,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: cumulated - meterStart,
+          cumulatedConsumptionWh: cumulated - meterStart,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, cumulated - meterStart),
         }
@@ -635,10 +635,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -655,10 +655,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -675,19 +675,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -704,19 +704,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -733,10 +733,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -753,10 +753,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -791,10 +791,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -810,19 +810,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -838,19 +838,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -877,10 +877,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: stopDate.toISOString(),
-          instantPower: meterStop - meterStart,
+          instantWatts: meterStop - meterStart,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterStop - meterStart),
-          cumulatedConsumption: meterStop,
+          cumulatedConsumptionWh: meterStop,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterStop),
         }
