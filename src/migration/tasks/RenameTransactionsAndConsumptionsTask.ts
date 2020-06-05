@@ -74,7 +74,7 @@ export default class RenameTransactionsAndConsumptionsTask extends MigrationTask
   }
 
   getVersion() {
-    return '1.01';
+    return '1.0';
   }
 
   getName() {
