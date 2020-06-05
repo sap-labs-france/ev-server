@@ -386,7 +386,7 @@ export default class ChargingStationService {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
-        action: Action.READ,
+        action: Action.LIST,
         entity: Entity.CHARGING_STATION,
         module: MODULE_NAME,
         method: 'handleGetChargingProfiles'
