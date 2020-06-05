@@ -1,13 +1,14 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { RefundSetting, RefundSettingsType } from '../../types/Setting';
+
+import ConcurRefundIntegration from './export/concur';
+import DummyRefundIntegration from './dummy/DummyRefundIntegration';
+import Logging from '../../utils/Logging';
+import RefundIntegration from './RefundIntegration';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import DummyRefundIntegration from './dummy/DummyRefundIntegration';
-import ConcurRefundIntegration from './export/concur';
-import RefundIntegration from './RefundIntegration';
 
 const MODULE_NAME = 'RefundFactory';
 

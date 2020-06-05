@@ -1,12 +1,13 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { AssetConnectionType, AssetSetting } from '../../types/Setting';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
+
 import AssetIntegration from './AssetIntegration';
 import AssetSchneiderIntegration from './schneider/AssetSchneiderIntegration';
+import Logging from '../../utils/Logging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'AssetFactory';
 

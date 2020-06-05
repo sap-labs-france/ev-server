@@ -1,6 +1,6 @@
 import Connection from '../../types/Connection';
-import { RefundStatus } from '../../types/Refund';
 import { RefundSetting } from '../../types/Setting';
+import { RefundStatus } from '../../types/Refund';
 import Transaction from '../../types/Transaction';
 
 export default abstract class RefundIntegration<T extends RefundSetting> {
