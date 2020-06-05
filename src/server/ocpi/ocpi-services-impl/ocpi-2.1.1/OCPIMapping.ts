@@ -1,31 +1,31 @@
-import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
-import ChargingStation, { ChargePoint, Connector, ConnectorType } from '../../../../types/ChargingStation';
-import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
-import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
-import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
-import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import moment from 'moment';
 
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
-import Configuration from '../../../../utils/Configuration';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import { DataResult } from '../../../../types/DataResult';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
-import { OCPISession } from '../../../../types/ocpi/OCPISession';
-import OCPIUtils from '../../OCPIUtils';
 import SettingStorage from '../../../../storage/mongodb/SettingStorage';
-import Site from '../../../../types/Site';
-import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import Tenant from '../../../../types/Tenant';
-import Transaction from '../../../../types/Transaction';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import ChargingStation, { ChargePoint, Connector, ConnectorType } from '../../../../types/ChargingStation';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import { CdrDimensionType, OCPIChargingPeriod } from '../../../../types/ocpi/OCPIChargingPeriod';
+import { OCPIConnector, OCPIConnectorFormat, OCPIConnectorType, OCPIPowerType } from '../../../../types/ocpi/OCPIConnector';
+import { OCPICapability, OCPIEvse, OCPIEvseStatus } from '../../../../types/ocpi/OCPIEvse';
+import { OCPILocation, OCPILocationType } from '../../../../types/ocpi/OCPILocation';
+import { OCPIRole } from '../../../../types/ocpi/OCPIRole';
+import { OCPISession } from '../../../../types/ocpi/OCPISession';
+import { OCPIToken, OCPITokenType, OCPITokenWhitelist } from '../../../../types/ocpi/OCPIToken';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import Tenant from '../../../../types/Tenant';
+import Transaction from '../../../../types/Transaction';
+import Configuration from '../../../../utils/Configuration';
+import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
-import moment from 'moment';
+import OCPIUtils from '../../OCPIUtils';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -91,7 +91,7 @@ export default class OCPIMapping {
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: connectorId,
-          currentConsumption: 0,
+          currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         };
@@ -569,7 +569,7 @@ export default class OCPIMapping {
         }
       }
     } else {
-      const consumption: number = transaction.stop ? transaction.stop.totalConsumption : transaction.currentTotalConsumption;
+      const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
         // eslint-disable-next-line @typescript-eslint/camelcase
         start_date_time: transaction.timestamp,
@@ -600,10 +600,10 @@ export default class OCPIMapping {
       start_date_time: consumption.startedAt,
       dimensions: []
     };
-    if (consumption.consumption > 0) {
+    if (consumption.consumptionWh > 0) {
       chargingPeriod.dimensions.push({
         type: CdrDimensionType.ENERGY,
-        volume: consumption.consumption / 1000
+        volume: consumption.consumptionWh / 1000
       });
       if (consumption.limitAmps > 0) {
         chargingPeriod.dimensions.push({

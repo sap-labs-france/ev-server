@@ -1,18 +1,18 @@
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
-import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
-
-import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
-import { DataResult } from '../../../../types/DataResult';
-import RefundReport from '../../../../types/Refund';
-import { TransactionInError } from '../../../../types/InError';
-import User from '../../../../types/User';
-import UserToken from '../../../../types/UserToken';
-import Utils from '../../../../utils/Utils';
-import UtilsSecurity from './UtilsSecurity';
 import moment from 'moment';
 import sanitize from 'mongo-sanitize';
+
+import Authorizations from '../../../../authorization/Authorizations';
+import Consumption from '../../../../types/Consumption';
+import { DataResult } from '../../../../types/DataResult';
+import { TransactionInError } from '../../../../types/InError';
+import RefundReport from '../../../../types/Refund';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import Transaction, { TransactionConsumption } from '../../../../types/Transaction';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -139,8 +139,8 @@ export default class TransactionSecurity {
         filteredTransaction.pricingSource = transaction.pricingSource;
       }
       if (!transaction.stop) {
-        filteredTransaction.currentConsumption = transaction.currentConsumption;
-        filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
+        filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
+        filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
         filteredTransaction.currentTotalDurationSecs =
@@ -181,7 +181,7 @@ export default class TransactionSecurity {
           tagID: Authorizations.isDemo(loggedUser) ? Constants.ANONYMIZED_VALUE : transaction.stop.tagID,
           meterStop: transaction.stop.meterStop,
           timestamp: transaction.stop.timestamp,
-          totalConsumption: transaction.stop.totalConsumption,
+          totalConsumptionWh: transaction.stop.totalConsumptionWh,
           totalInactivitySecs: transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs,
           inactivityStatus: transaction.stop.inactivityStatus,
           totalDurationSecs: transaction.stop.totalDurationSecs,
@@ -317,9 +317,9 @@ export default class TransactionSecurity {
     filteredTransaction.values = consumptions.map((consumption) => {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
-        instantPower: consumption.instantPower,
+        instantWatts: consumption.instantWatts,
         instantAmps: consumption.instantAmps,
-        cumulatedConsumption: consumption.cumulatedConsumption,
+        cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,

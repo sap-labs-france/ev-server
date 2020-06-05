@@ -1,9 +1,8 @@
 import ChargingStation, { Voltage } from '../types/ChargingStation';
-
+import Site from '../types/Site';
 import Address from './Address';
 import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import Site from '../types/Site';
 
 export default interface SiteArea extends CreatedUpdatedProps {
   id: string;
@@ -29,7 +28,7 @@ export default interface SiteArea extends CreatedUpdatedProps {
 
 export interface SiteAreaConsumption {
   date: Date;
-  instantPower: number;
+  instantWatts: number;
   instantAmps: number;
   limitWatts: number;
   limitAmps: number;

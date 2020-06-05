@@ -1,13 +1,13 @@
-import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import fs from 'fs';
 
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
-import Logging from '../../../utils/Logging';
-import SchemaValidator from '../../rest/validation/SchemaValidator';
-import { ServerAction } from '../../../types/Server';
-import Utils from '../../../utils/Utils';
-import fs from 'fs';
 import global from '../../../types/GlobalType';
+import { OCPPAuthorizeRequestExtended, OCPPBootNotificationRequestExtended, OCPPDataTransferRequestExtended, OCPPDiagnosticsStatusNotificationRequestExtended, OCPPFirmwareStatusNotificationRequestExtended, OCPPHeartbeatRequestExtended, OCPPMeterValuesExtended, OCPPStatusNotificationRequestExtended, OCPPStopTransactionRequestExtended, OCPPVersion } from '../../../types/ocpp/OCPPServer';
+import { ServerAction } from '../../../types/Server';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import SchemaValidator from '../../rest/validation/SchemaValidator';
 
 const MODULE_NAME = 'OCPPValidation';
 
@@ -115,7 +115,7 @@ export default class OCPPValidation extends SchemaValidator {
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
-    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.activeTransactionID : 0);
+    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer

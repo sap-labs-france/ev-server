@@ -1,19 +1,19 @@
-import RefundReport, { RefundStatus } from '../../types/Refund';
-import Transaction, { InactivityStatus } from '../../types/Transaction';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-
-import Constants from '../../utils/Constants';
-import ConsumptionStorage from './ConsumptionStorage';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
-import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
-import { NotifySessionNotStarted } from '../../types/Notification';
-import { ServerAction } from '../../types/Server';
-import User from '../../types/User';
-import Utils from '../../utils/Utils';
-import global from './../../types/GlobalType';
 import moment from 'moment';
+
+import global from './../../types/GlobalType';
+import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import RefundReport, { RefundStatus } from '../../types/Refund';
+import { ServerAction } from '../../types/Server';
+import Transaction, { InactivityStatus } from '../../types/Transaction';
+import User from '../../types/User';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import ConsumptionStorage from './ConsumptionStorage';
+import DatabaseUtils from './DatabaseUtils';
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -75,16 +75,16 @@ export default class TransactionStorage {
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
-      currentConsumption: Utils.convertToFloat(transactionToSave.currentConsumption),
-      currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
+      currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
+      currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
     };
     if (transactionToSave.stop) {
       // Remove runtime props
-      delete transactionMDB.currentConsumption;
+      delete transactionMDB.currentInstantWatts;
       delete transactionMDB.currentCumulatedPrice;
       delete transactionMDB.currentSignedData;
       delete transactionMDB.currentStateOfCharge;
-      delete transactionMDB.currentTotalConsumption;
+      delete transactionMDB.currentTotalConsumptionWh;
       delete transactionMDB.currentTotalInactivitySecs;
       delete transactionMDB.currentInactivityStatus;
       delete transactionMDB.lastMeterValue;
@@ -98,7 +98,7 @@ export default class TransactionStorage {
         transactionData: transactionToSave.stop.transactionData,
         stateOfCharge: Utils.convertToInt(transactionToSave.stop.stateOfCharge),
         signedData: transactionToSave.stop.signedData,
-        totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
+        totalConsumptionWh: Utils.convertToFloat(transactionToSave.stop.totalConsumptionWh),
         totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
         extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
         extraInactivityComputed: !!transactionToSave.stop.extraInactivityComputed,
@@ -407,7 +407,7 @@ export default class TransactionStorage {
             _id: null,
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
-            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
             totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
             totalPrice: { $sum: '$stop.price' },
             totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
@@ -422,7 +422,7 @@ export default class TransactionStorage {
             _id: null,
             firstTimestamp: { $min: '$timestamp' },
             lastTimestamp: { $max: '$timestamp' },
-            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumptionWh' },
             totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, '$stop.price', 0] } },
             totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 0, '$stop.price'] } },
             countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [RefundStatus.SUBMITTED, RefundStatus.APPROVED]] }, 1, 0] } },
@@ -1163,7 +1163,7 @@ export default class TransactionStorage {
         ];
       case TransactionInErrorType.NO_CONSUMPTION:
         return [
-          { $match: { 'stop.totalConsumption': { $lte: 0 } } },
+          { $match: { 'stop.totalConsumptionWh': { $lte: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.NO_CONSUMPTION } }
         ];
       case TransactionInErrorType.NEGATIVE_ACTIVITY:
@@ -1193,7 +1193,7 @@ export default class TransactionStorage {
           { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
           { $match: { 'activeDuration': { $gt: 0 } } },
           { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-          { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } } },
+          { $addFields: { averagePower: { $abs: { $multiply: [{ $divide: ['$stop.totalConsumptionWh', '$activeDuration'] }, 3600] } } } },
           { $addFields: { impossiblePower: { $lte: [{ $subtract: [{ $multiply: ['$connector.power', 1.05] }, '$averagePower'] }, 0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': TransactionInErrorType.OVER_CONSUMPTION } }
@@ -1201,7 +1201,7 @@ export default class TransactionStorage {
       case TransactionInErrorType.MISSING_PRICE:
         return [
           { $match: { 'stop.price': { $lte: 0 } } },
-          { $match: { 'stop.totalConsumption': { $gt: 0 } } },
+          { $match: { 'stop.totalConsumptionWh': { $gt: 0 } } },
           { $addFields: { 'errorCode': TransactionInErrorType.MISSING_PRICE } }
         ];
       case TransactionInErrorType.MISSING_USER:

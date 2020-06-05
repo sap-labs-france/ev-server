@@ -1,22 +1,22 @@
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import HttpStatusCodes from 'http-status-codes';
+import moment from 'moment';
 
 import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../../utils/Constants';
-import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import { HTTPError } from '../../../../types/HTTPError';
-import HttpStatusCodes from 'http-status-codes';
-import Logging from '../../../../utils/Logging';
-import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
-import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import OCPIUtils from '../../OCPIUtils';
 import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Consumption from '../../../../types/Consumption';
+import { HTTPError } from '../../../../types/HTTPError';
+import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
+import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
+import Constants from '../../../../utils/Constants';
+import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
-import moment from 'moment';
+import OCPIUtils from '../../OCPIUtils';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -99,7 +99,7 @@ export default class OCPISessionsService {
         currentTotalInactivitySecs: 0,
         pricingSource: 'ocpi',
         currentInactivityStatus: InactivityStatus.INFO,
-        currentConsumption: 0,
+        currentInstantWatts: 0,
         currentConsumptionWh: 0,
         lastMeterValue: {
           value: 0,
@@ -152,7 +152,7 @@ export default class OCPISessionsService {
         stateOfCharge: 0,
         tagID: session.auth_id,
         timestamp: stopTimestamp,
-        totalConsumption: session.kwh * 1000,
+        totalConsumptionWh: session.kwh * 1000,
         totalDurationSecs: Math.round(moment.duration(moment(stopTimestamp).diff(moment(transaction.timestamp))).asSeconds()),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         inactivityStatus: transaction.currentInactivityStatus,
@@ -218,7 +218,7 @@ export default class OCPISessionsService {
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
-      totalConsumption: cdr.total_energy * 1000,
+      totalConsumptionWh: cdr.total_energy * 1000,
       totalDurationSecs: cdr.total_time,
       totalInactivitySecs: cdr.total_parking_time,
       inactivityStatus: transaction.currentInactivityStatus,
@@ -238,11 +238,11 @@ export default class OCPISessionsService {
     const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
     if (consumptionWh > 0 || duration > 0) {
       const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
-      const currentConsumption = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
+      const currentInstantWatts = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
       const amount = session.total_cost - transaction.price;
-      transaction.currentConsumption = currentConsumption;
+      transaction.currentInstantWatts = currentInstantWatts;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
-      transaction.currentTotalConsumption = transaction.currentTotalConsumption + transaction.currentConsumptionWh;
+      transaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh + transaction.currentConsumptionWh;
       if (consumptionWh <= 0) {
         transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
@@ -255,11 +255,11 @@ export default class OCPISessionsService {
         userID: transaction.userID,
         startedAt: new Date(transaction.lastMeterValue.timestamp),
         endedAt: new Date(session.last_updated),
-        consumption: transaction.currentConsumptionWh,
-        instantPower: Math.floor(transaction.currentConsumption),
-        instantAmps: Math.floor(transaction.currentConsumption / 230),
-        cumulatedConsumption: transaction.currentTotalConsumption,
-        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumption / 230),
+        consumptionWh: transaction.currentConsumptionWh,
+        instantWatts: Math.floor(transaction.currentInstantWatts),
+        instantAmps: Math.floor(transaction.currentInstantWatts / 230),
+        cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
+        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / 230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :

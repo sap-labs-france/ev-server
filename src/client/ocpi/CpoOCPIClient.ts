@@ -1,37 +1,37 @@
-import ChargingStation, { Connector } from '../../types/ChargingStation';
-import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
-import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
-import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import axios from 'axios';
+import _ from 'lodash';
+import moment from 'moment';
 
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import NotificationHandler from '../../notification/NotificationHandler';
-import { OCPICdr } from '../../types/ocpi/OCPICdr';
-import OCPIClient from './OCPIClient';
-import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
-import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
-import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import { OCPIRole } from '../../types/ocpi/OCPIRole';
-import { OCPIToken } from '../../types/ocpi/OCPIToken';
 import OCPITokensService from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPITokensService';
 import OCPIUtils from '../../server/ocpi/OCPIUtils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import { OcpiSetting } from '../../types/Setting';
-import { ServerAction } from '../../types/Server';
-import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import ChargingStation, { Connector } from '../../types/ChargingStation';
+import { OCPIAllowed, OCPIAuthorizationInfo } from '../../types/ocpi/OCPIAuthorizationInfo';
+import { OCPICdr } from '../../types/ocpi/OCPICdr';
+import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
+import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
+import { OCPILocation, OCPILocationReference } from '../../types/ocpi/OCPILocation';
+import { OCPIRole } from '../../types/ocpi/OCPIRole';
+import { OCPIAuthMethod, OCPISession, OCPISessionStatus } from '../../types/ocpi/OCPISession';
+import { OCPIToken } from '../../types/ocpi/OCPIToken';
+import { ServerAction } from '../../types/Server';
+import { OcpiSetting } from '../../types/Setting';
+import Site from '../../types/Site';
+import Tenant from '../../types/Tenant';
+import Transaction from '../../types/Transaction';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import _ from 'lodash';
-import axios from 'axios';
-import moment from 'moment';
+import OCPIClient from './OCPIClient';
 
 const MODULE_NAME = 'CpoOCPIClient';
 
@@ -296,7 +296,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
-    transaction.ocpiData.session.kwh = transaction.currentTotalConsumption / 1000;
+    transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.last_updated = transaction.lastUpdate;
     // eslint-disable-next-line @typescript-eslint/camelcase
@@ -371,7 +371,7 @@ export default class CpoOCPIClient extends OCPIClient {
     }
     // Get tokens endpoint url
     const tokensUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
-    transaction.ocpiData.session.kwh = transaction.stop.totalConsumption / 1000;
+    transaction.ocpiData.session.kwh = transaction.stop.totalConsumptionWh / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.stop.roundedPrice;
     // eslint-disable-next-line @typescript-eslint/camelcase
@@ -446,7 +446,7 @@ export default class CpoOCPIClient extends OCPIClient {
       // eslint-disable-next-line @typescript-eslint/camelcase
       total_time: transaction.stop.totalDurationSecs,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      total_energy: transaction.stop.totalConsumption / 1000,
+      total_energy: transaction.stop.totalConsumptionWh / 1000,
       // eslint-disable-next-line @typescript-eslint/camelcase
       total_cost: transaction.stop.roundedPrice,
       currency: transaction.priceUnit,

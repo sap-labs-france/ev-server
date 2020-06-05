@@ -1,22 +1,23 @@
-import { Action, Entity } from '../../../types/Authorization';
-import { NextFunction, Request, Response } from 'express';
-import StatisticFilter, { StatsGroupBy } from '../../../types/Statistic';
+import fs from 'fs';
 
-import AppAuthError from '../../../exception/AppAuthError';
+import { NextFunction, Request, Response } from 'express';
+import moment from 'moment';
+
 import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
+import AppAuthError from '../../../exception/AppAuthError';
+import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+import { Action, Entity } from '../../../types/Authorization';
 import { HTTPAuthError } from '../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../types/Server';
-import StatisticSecurity from './security/StatisticSecurity';
-import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+import StatisticFilter, { StatsGroupBy } from '../../../types/Statistic';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
 import Utils from '../../../utils/Utils';
+import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import moment from 'moment';
 
 const MODULE_NAME = 'StatisticService';
 
@@ -308,28 +309,6 @@ export default class StatisticService {
     const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
     // Return
     res.json(transactions);
-    next();
-  }
-
-  static async handleGetCurrentMetrics(action: ServerAction, req: Request, res: Response, next: NextFunction) {
-    // Check auth
-    if (!Authorizations.canListChargingStations(req.user)) {
-      throw new AppAuthError({
-        errorCode: HTTPAuthError.ERROR,
-        user: req.user,
-        action: Action.LIST,
-        entity: Entity.TRANSACTIONS,
-        module: MODULE_NAME,
-        method: 'handleGetCurrentMetrics'
-      });
-    }
-    // Filter
-    const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
-    // Get Data
-    const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID,
-      { periodInMonth: filteredRequest.PeriodInMonth });
-    // Return
-    res.json(metrics);
     next();
   }
 
