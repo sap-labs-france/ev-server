@@ -1,12 +1,13 @@
-import BackendError from '../../exception/BackendError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import { ChargingProfile } from '../../types/ChargingProfile';
 import { ActionsResponse } from '../../types/GlobalType';
-import { ServerAction } from '../../types/Server';
-import { SmartChargingSetting } from '../../types/Setting';
-import SiteArea from '../../types/SiteArea';
+import BackendError from '../../exception/BackendError';
+import { ChargingProfile } from '../../types/ChargingProfile';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
+import SiteArea from '../../types/SiteArea';
+import { SmartChargingSetting } from '../../types/Setting';
+
 import Utils from '../../utils/Utils';
 
 const MODULE_NAME = 'SmartChargingIntegration';

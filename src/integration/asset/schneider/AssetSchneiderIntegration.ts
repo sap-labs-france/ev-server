@@ -1,4 +1,5 @@
 import { AssetConnectionSetting, AssetSetting } from '../../../types/Setting';
+
 import AssetIntegration from '../AssetIntegration';
 
 const MODULE_NAME = 'AssetSchneiderIntegration';
