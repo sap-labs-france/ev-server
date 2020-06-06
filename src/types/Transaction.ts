@@ -71,7 +71,7 @@ export default interface Transaction {
   pricingSource?: string;
   stateOfCharge: number;
   timezone: string;
-  lastUpdate?: Date;
+  currentTimestamp?: Date;
   currentTotalInactivitySecs: number;
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
