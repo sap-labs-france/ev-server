@@ -1,47 +1,48 @@
-import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
-import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
-import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
-import User, { UserRole, UserStatus } from '../types/User';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
 
-import { ActionsResponse } from '../types/GlobalType';
-import AppError from '../exception/AppError';
-import Asset from '../types/Asset';
+import bcrypt from 'bcryptjs';
+import { Request } from 'express';
+import _ from 'lodash';
+import moment from 'moment';
+import { ObjectID } from 'mongodb';
+import passwordGenerator from 'password-generator';
+import localIP from 'quick-local-ip';
+import tzlookup from 'tz-lookup';
+import { v4 as uuid } from 'uuid';
+import validator from 'validator';
+
 import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import Asset from '../types/Asset';
 import { Car } from '../types/Car';
 import { ChargingProfile } from '../types/ChargingProfile';
+import ChargingStation, { ChargePoint, Connector, ConnectorCurrentLimitSource, CurrentType, StaticLimitAmps } from '../types/ChargingStation';
 import Company from '../types/Company';
-import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
+import { ActionsResponse } from '../types/GlobalType';
 import { HTTPError } from '../types/HTTPError';
-import { InactivityStatus } from '../types/Transaction';
-import Logging from './Logging';
 import OCPIEndpoint from '../types/ocpi/OCPIEndpoint';
-import { ObjectID } from 'mongodb';
-import { Request } from 'express';
+import { ChargePointStatus, OCPPProtocol, OCPPVersion } from '../types/ocpp/OCPPServer';
 import { ServerAction } from '../types/Server';
+import { AnalyticsSettingsType, AssetSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingContentType } from '../types/Setting';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import Tag from '../types/Tag';
 import Tenant from '../types/Tenant';
 import TenantComponents from '../types/TenantComponents';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
+import { InactivityStatus } from '../types/Transaction';
+import User, { UserRole, UserStatus } from '../types/User';
 import UserToken from '../types/UserToken';
-import _ from 'lodash';
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-import fs from 'fs';
-import localIP from 'quick-local-ip';
-import moment from 'moment';
-import passwordGenerator from 'password-generator';
-import path from 'path';
-import tzlookup from 'tz-lookup';
-import url from 'url';
-import { v4 as uuid } from 'uuid';
-import validator from 'validator';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import Logging from './Logging';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -517,7 +518,7 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return Math.floor(wattValue / voltage);
+      return wattValue / voltage;
     }
     return 0;
   }

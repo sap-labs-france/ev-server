@@ -298,7 +298,7 @@ export default class CpoOCPIClient extends OCPIClient {
     const sessionsUrl = `${this.getEndpointUrl('sessions', ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalCountryCode(ServerAction.OCPI_PUSH_SESSIONS)}/${this.getLocalPartyID(ServerAction.OCPI_PUSH_SESSIONS)}/${transaction.ocpiData.session.id}`;
     transaction.ocpiData.session.kwh = transaction.currentTotalConsumptionWh / 1000;
     // eslint-disable-next-line @typescript-eslint/camelcase
-    transaction.ocpiData.session.last_updated = transaction.lastUpdate;
+    transaction.ocpiData.session.last_updated = transaction.currentTimestamp;
     // eslint-disable-next-line @typescript-eslint/camelcase
     transaction.ocpiData.session.total_cost = transaction.currentCumulatedPrice;
     transaction.ocpiData.session.currency = transaction.priceUnit;

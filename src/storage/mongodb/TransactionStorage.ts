@@ -1,19 +1,19 @@
-import moment from 'moment';
-
-import global from './../../types/GlobalType';
-import DbParams from '../../types/database/DbParams';
-import { DataResult } from '../../types/DataResult';
-import { TransactionInError, TransactionInErrorType } from '../../types/InError';
-import { NotifySessionNotStarted } from '../../types/Notification';
 import RefundReport, { RefundStatus } from '../../types/Refund';
-import { ServerAction } from '../../types/Server';
 import Transaction, { InactivityStatus } from '../../types/Transaction';
-import User from '../../types/User';
+import { TransactionInError, TransactionInErrorType } from '../../types/InError';
+
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import ConsumptionStorage from './ConsumptionStorage';
+import { DataResult } from '../../types/DataResult';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import Logging from '../../utils/Logging';
+import { NotifySessionNotStarted } from '../../types/Notification';
+import { ServerAction } from '../../types/Server';
+import User from '../../types/User';
+import Utils from '../../utils/Utils';
+import global from './../../types/GlobalType';
+import moment from 'moment';
 
 const MODULE_NAME = 'TransactionStorage';
 
@@ -71,24 +71,15 @@ export default class TransactionStorage {
       numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
       currentStateOfCharge: Utils.convertToInt(transactionToSave.currentStateOfCharge),
       currentSignedData: transactionToSave.currentSignedData,
-      lastMeterValue: transactionToSave.lastMeterValue,
+      lastEnergyActiveImportMeterValue: transactionToSave.lastEnergyActiveImportMeterValue,
       currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
       currentInactivityStatus: transactionToSave.currentInactivityStatus,
       currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
       currentInstantWatts: Utils.convertToFloat(transactionToSave.currentInstantWatts),
       currentTotalConsumptionWh: Utils.convertToFloat(transactionToSave.currentTotalConsumptionWh),
+      currentTotalDurationSecs: Utils.convertToInt(transactionToSave.currentTotalDurationSecs),
     };
     if (transactionToSave.stop) {
-      // Remove runtime props
-      delete transactionMDB.currentInstantWatts;
-      delete transactionMDB.currentCumulatedPrice;
-      delete transactionMDB.currentSignedData;
-      delete transactionMDB.currentStateOfCharge;
-      delete transactionMDB.currentTotalConsumptionWh;
-      delete transactionMDB.currentTotalInactivitySecs;
-      delete transactionMDB.currentInactivityStatus;
-      delete transactionMDB.lastMeterValue;
-      delete transactionMDB.numberOfMeterValues;
       // Add stop
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
@@ -109,6 +100,17 @@ export default class TransactionStorage {
         priceUnit: transactionToSave.priceUnit,
         pricingSource: transactionToSave.stop.pricingSource
       };
+      // Remove runtime props
+      delete transactionMDB.currentInstantWatts;
+      delete transactionMDB.currentCumulatedPrice;
+      delete transactionMDB.currentSignedData;
+      delete transactionMDB.currentStateOfCharge;
+      delete transactionMDB.currentTotalConsumptionWh;
+      delete transactionMDB.currentTotalInactivitySecs;
+      delete transactionMDB.currentInactivityStatus;
+      delete transactionMDB.lastEnergyActiveImportMeterValue;
+      delete transactionMDB.numberOfMeterValues;
+      delete transactionMDB.currentTotalDurationSecs;
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {

@@ -370,7 +370,7 @@ export enum OCPPDataTransferStatus {
 
 export interface OCPPStopTransactionRequest {
   idTag?: string;
-  meterStop: string|number;
+  meterStop: number;
   timestamp: string;
   transactionId: number;
   reason?: OCPPReason;

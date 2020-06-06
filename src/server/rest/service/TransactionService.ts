@@ -1,41 +1,40 @@
-import fs from 'fs';
-
+import { Action, Entity } from '../../../types/Authorization';
+import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
 import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
 
-import Authorizations from '../../../authorization/Authorizations';
+import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import RefundFactory from '../../../integration/refund/RefundFactory';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import OCPPService from '../../../server/ocpp/services/OCPPService';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Action, Entity } from '../../../types/Authorization';
+import Authorizations from '../../../authorization/Authorizations';
 import ChargingStation from '../../../types/ChargingStation';
-import Consumption from '../../../types/Consumption';
-import { DataResult } from '../../../types/DataResult';
-import { ActionsResponse } from '../../../types/GlobalType';
-import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { TransactionInErrorType } from '../../../types/InError';
-import { RefundStatus } from '../../../types/Refund';
-import { ServerAction } from '../../../types/Server';
-import TenantComponents from '../../../types/TenantComponents';
-import Transaction from '../../../types/Transaction';
-import User from '../../../types/User';
-import UserToken from '../../../types/UserToken';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import Consumption from '../../../types/Consumption';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
+import { DataResult } from '../../../types/DataResult';
 import I18nManager from '../../../utils/I18nManager';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import RefundFactory from '../../../integration/refund/RefundFactory';
+import { RefundStatus } from '../../../types/Refund';
+import { ServerAction } from '../../../types/Server';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import TenantComponents from '../../../types/TenantComponents';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Transaction from '../../../types/Transaction';
+import { TransactionInErrorType } from '../../../types/InError';
 import TransactionSecurity from './security/TransactionSecurity';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'TransactionService';
 
@@ -310,8 +309,8 @@ export default class TransactionService {
         transactionId: transactionId,
         chargeBoxID: chargingStation.id,
         idTag: req.user.tagIDs[0],
-        timestamp: Utils.convertToDate(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp).toISOString(),
-        meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart
+        timestamp: Utils.convertToDate(transaction.lastEnergyActiveImportMeterValue ? transaction.lastEnergyActiveImportMeterValue.timestamp : transaction.timestamp).toISOString(),
+        meterStop: transaction.lastEnergyActiveImportMeterValue.value ? transaction.lastEnergyActiveImportMeterValue.value : transaction.meterStart
       },
       true
     );

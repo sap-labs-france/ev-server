@@ -1,22 +1,22 @@
-import HttpStatusCodes from 'http-status-codes';
-import moment from 'moment';
+import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
+import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 
 import AppError from '../../../../exception/AppError';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
-import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
-import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
-import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
+import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
 import { HTTPError } from '../../../../types/HTTPError';
+import HttpStatusCodes from 'http-status-codes';
+import Logging from '../../../../utils/Logging';
 import { OCPICdr } from '../../../../types/ocpi/OCPICdr';
 import { OCPILocation } from '../../../../types/ocpi/OCPILocation';
-import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISession';
 import { OCPIStatusCode } from '../../../../types/ocpi/OCPIStatusCode';
-import Transaction, { InactivityStatus } from '../../../../types/Transaction';
-import Constants from '../../../../utils/Constants';
-import Logging from '../../../../utils/Logging';
-import Utils from '../../../../utils/Utils';
 import OCPIUtils from '../../OCPIUtils';
+import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import Utils from '../../../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
@@ -101,25 +101,25 @@ export default class OCPISessionsService {
         currentInactivityStatus: InactivityStatus.INFO,
         currentInstantWatts: 0,
         currentConsumptionWh: 0,
-        lastMeterValue: {
+        lastEnergyActiveImportMeterValue: {
           value: 0,
           timestamp: session.start_datetime
         },
         signedData: '',
       } as Transaction;
     }
-    if (!transaction.lastMeterValue) {
-      transaction.lastMeterValue = {
+    if (!transaction.lastEnergyActiveImportMeterValue) {
+      transaction.lastEnergyActiveImportMeterValue = {
         value: transaction.meterStart,
         timestamp: transaction.timestamp
       };
     }
-    if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
+    if (moment(session.last_updated).isBefore(transaction.lastEnergyActiveImportMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateSession',
-        message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
+        message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
       return;
@@ -131,11 +131,11 @@ export default class OCPISessionsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.session = session;
-    transaction.lastUpdate = session.last_updated;
+    transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
     transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
-    transaction.lastMeterValue = {
+    transaction.lastEnergyActiveImportMeterValue = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
     };
@@ -206,7 +206,7 @@ export default class OCPISessionsService {
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
-    transaction.lastUpdate = cdr.last_updated;
+    transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
       extraInactivitySecs: 0,
@@ -234,8 +234,8 @@ export default class OCPISessionsService {
   }
 
   private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {
-    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastMeterValue.value);
-    const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
+    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastEnergyActiveImportMeterValue.value);
+    const duration = moment(session.last_updated).diff(transaction.lastEnergyActiveImportMeterValue.timestamp, 'milliseconds') / 1000;
     if (consumptionWh > 0 || duration > 0) {
       const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
       const currentInstantWatts = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
@@ -253,7 +253,7 @@ export default class OCPISessionsService {
         connectorId: transaction.connectorId,
         chargeBoxID: transaction.chargeBoxID,
         userID: transaction.userID,
-        startedAt: new Date(transaction.lastMeterValue.timestamp),
+        startedAt: new Date(transaction.lastEnergyActiveImportMeterValue.timestamp),
         endedAt: new Date(session.last_updated),
         consumptionWh: transaction.currentConsumptionWh,
         instantWatts: Math.floor(transaction.currentInstantWatts),
@@ -263,7 +263,7 @@ export default class OCPISessionsService {
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-          moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
+          moment.duration(moment(transaction.lastEnergyActiveImportMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
         stateOfCharge: transaction.currentStateOfCharge,
         amount: amount,
         currencyCode: session.currency,

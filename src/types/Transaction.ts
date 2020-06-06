@@ -1,8 +1,9 @@
-import ChargingStation from '../types/ChargingStation';
+import { ChargePointStatus, OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
+
 import { BillingTransactionData } from './Billing';
+import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
-import { ChargePointStatus, OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
 import { RefundTransactionData } from './Refund';
 import User from './User';
 
@@ -36,22 +37,22 @@ export default interface Transaction {
   signedData?: any;
   user?: User;
   stop?: {
+    timestamp: Date;
+    meterStop: number;
     tagID: string;
     userID: string;
     user?: User;
-    meterStop: number;
     price?: number;
     roundedPrice?: number;
     priceUnit?: string;
     pricingSource?: string;
-    stateOfCharge: number;
-    totalInactivitySecs: number;
+    stateOfCharge?: number;
+    totalInactivitySecs?: number;
     extraInactivitySecs?: number;
     extraInactivityComputed?: boolean;
-    totalConsumptionWh: number;
-    totalDurationSecs: number;
+    totalConsumptionWh?: number;
+    totalDurationSecs?: number;
     inactivityStatus?: InactivityStatus;
-    timestamp: Date;
     transactionData?: any;
     signedData?: any;
   };
@@ -61,7 +62,10 @@ export default interface Transaction {
     userID: string;
   };
   refundData?: RefundTransactionData;
-  lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
+  lastEnergyActiveImportMeterValue?: {
+    value: number;
+    timestamp: Date;
+  };
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;
@@ -71,7 +75,7 @@ export default interface Transaction {
   pricingSource?: string;
   stateOfCharge: number;
   timezone: string;
-  lastUpdate?: Date;
+  currentTimestamp?: Date;
   currentTotalInactivitySecs: number;
   currentInactivityStatus?: InactivityStatus;
   currentStateOfCharge: number;
