@@ -42,7 +42,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken: UserToken) {
+  public static assertObjectExists(action: ServerAction, object: any, errorMsg: string, module: string, method: string, userToken?: UserToken) {
     if (!object) {
       throw new AppError({
         action,

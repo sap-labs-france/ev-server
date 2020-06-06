@@ -10,6 +10,7 @@ export default interface Consumption {
   siteAreaID: string;
   siteID: string;
   consumptionWh: number;
+  consumptionAmps: number;
   cumulatedAmount: number;
   cumulatedConsumptionWh: number;
   cumulatedConsumptionAmps: number;
