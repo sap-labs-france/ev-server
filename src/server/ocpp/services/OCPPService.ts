@@ -1102,7 +1102,7 @@ export default class OCPPService {
     chargingStation: ChargingStation, meterValue: OCPPNormalizedMeterValue): Promise<Consumption> {
     // Get the last one
     const lastMeterValue = transaction.lastMeterValue;
-    // State of Charge
+    // State of Charge ----------------------------------------------
     if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Set current
       transaction.currentStateOfCharge = Utils.convertToFloat(meterValue.value);
@@ -1110,7 +1110,7 @@ export default class OCPPService {
       if (transaction.stateOfCharge === 0) {
         transaction.stateOfCharge = transaction.currentStateOfCharge;
       }
-    // Energy Active Import (Wh)?
+    // Energy Active Import (Wh) ------------------------------------
     } else if (OCPPUtils.isEnergyActiveImportMeterValue(meterValue)) {
       // Update Transaction
       transaction.numberOfMeterValues++;
@@ -1132,7 +1132,7 @@ export default class OCPPService {
         // Update current consumption
         transaction.currentConsumptionWh = currentConsumptionWh;
         transaction.currentInstantWatts = currentConsumptionWatts;
-        transaction.lastUpdate = meterValue.timestamp;
+        transaction.currentTimestamp = meterValue.timestamp;
         transaction.currentTotalConsumptionWh += currentConsumptionWh;
         // Inactivity?
         if (currentConsumptionWh === 0) {
@@ -1263,7 +1263,7 @@ export default class OCPPService {
         const consumption: Consumption = await this.buildConsumptionWithMeterValue(
           tenantID, transaction, chargingStation, meterValue);
         if (consumption) {
-          // Existing Consumption (SoC or Consumption MeterValue)?
+          // Existing Consumption created?
           const existingConsumption = consumptions.find(
             (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
           if (existingConsumption) {
@@ -1272,7 +1272,7 @@ export default class OCPPService {
               existingConsumption[property] = consumption[property];
             }
           } else {
-            // Add
+            // Add new
             consumptions.push(consumption);
           }
         }

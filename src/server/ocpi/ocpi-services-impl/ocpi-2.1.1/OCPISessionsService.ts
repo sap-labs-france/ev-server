@@ -119,7 +119,7 @@ export default class OCPISessionsService {
         tenantID: tenantId,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateSession',
-        message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
+        message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
       return;
@@ -131,7 +131,7 @@ export default class OCPISessionsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.session = session;
-    transaction.lastUpdate = session.last_updated;
+    transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
     transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
@@ -206,7 +206,7 @@ export default class OCPISessionsService {
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
-    transaction.lastUpdate = cdr.last_updated;
+    transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
       extraInactivitySecs: 0,

@@ -580,7 +580,7 @@ export default class OCPIMapping {
       });
       const inactivity: number = transaction.stop ? transaction.stop.totalInactivitySecs : transaction.currentTotalInactivitySecs;
       if (inactivity > 0) {
-        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.lastUpdate;
+        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.currentTimestamp;
         chargingPeriods.push({
           // eslint-disable-next-line @typescript-eslint/camelcase
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
