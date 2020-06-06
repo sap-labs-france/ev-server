@@ -82,7 +82,7 @@ export default abstract class ChargingStationVendorIntegration {
       return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
     }
     // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
@@ -504,7 +504,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
       }
       // Check next the static power limitation
-      if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+      if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation) {
         // Read the static limitation
         let connectorLimitAmps = await this.getStaticPowerLimitation(tenantID, chargingStation, chargePoint);
         // Check

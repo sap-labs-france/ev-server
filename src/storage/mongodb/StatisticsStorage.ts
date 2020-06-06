@@ -1,8 +1,9 @@
-import global from '../../types/GlobalType';
 import StatisticFilter, { StatsGroupBy } from '../../types/Statistic';
+
+import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 
 const MODULE_NAME = 'StatisticsStorage';
 
