@@ -1,23 +1,24 @@
-import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
-import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
-import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
+import fs from 'fs';
+
+import moment from 'moment';
 import { GridFSBucket, GridFSBucketReadStream } from 'mongodb';
 
 import BackendError from '../../exception/BackendError';
-import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import { DataResult } from '../../types/DataResult';
-import DatabaseUtils from './DatabaseUtils';
+import { ChargingProfile, ChargingProfilePurposeType, ChargingRateUnitType } from '../../types/ChargingProfile';
+import ChargingStation, { ChargePoint, ChargingStationOcppParameters, ChargingStationTemplate, Connector, ConnectorType, OcppParameter } from '../../types/ChargingStation';
 import DbParams from '../../types/database/DbParams';
-import Logging from '../../utils/Logging';
+import { DataResult } from '../../types/DataResult';
+import global from '../../types/GlobalType';
+import { ChargingStationInError, ChargingStationInErrorType } from '../../types/InError';
 import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../types/Server';
 import TenantComponents from '../../types/TenantComponents';
-import TenantStorage from './TenantStorage';
+import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import fs from 'fs';
-import global from '../../types/GlobalType';
-import moment from 'moment';
+import DatabaseUtils from './DatabaseUtils';
+import TenantStorage from './TenantStorage';
 
 const MODULE_NAME = 'ChargingStationStorage';
 
@@ -892,10 +893,12 @@ export default class ChargingStationStorage {
     }
     return {
       connectorId: Utils.convertToInt(connector.connectorId),
-      currentConsumption: Utils.convertToFloat(connector.currentConsumption),
+      currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
       currentStateOfCharge: connector.currentStateOfCharge,
-      totalInactivitySecs: Utils.convertToInt(connector.totalInactivitySecs),
-      totalConsumption: Utils.convertToFloat(connector.totalConsumption),
+      currentTotalInactivitySecs: Utils.convertToInt(connector.currentTotalInactivitySecs),
+      currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
+      currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
+      currentTagID: connector.currentTagID,
       status: connector.status,
       errorCode: connector.errorCode,
       info: connector.info,
@@ -905,12 +908,10 @@ export default class ChargingStationStorage {
       voltage: Utils.convertToInt(connector.voltage),
       amperage: Utils.convertToInt(connector.amperage),
       amperageLimit: connector.amperageLimit,
-      activeTransactionID: Utils.convertToInt(connector.activeTransactionID),
+      currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
       userID: Utils.convertToObjectID(connector.userID),
-      activeTransactionDate: Utils.convertToDate(connector.activeTransactionDate),
-      activeTagID: connector.activeTagID,
       statusLastChangedOn: connector.statusLastChangedOn,
-      inactivityStatus: connector.inactivityStatus,
+      currentInactivityStatus: connector.currentInactivityStatus,
       numberOfConnectedPhase: connector.numberOfConnectedPhase,
       currentType: connector.currentType,
       chargePointID: connector.chargePointID,

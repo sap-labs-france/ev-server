@@ -1,19 +1,18 @@
-import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
+import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
+import BackendError from '../../../exception/BackendError';
+import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { ChargingProfile, ChargingProfilePurposeType } from '../../../types/ChargingProfile';
 import ChargingStation, { ChargingStationCapabilities, ChargingStationOcppParameters, ChargingStationTemplate, OcppParameter, TemplateUpdateResult } from '../../../types/ChargingStation';
+import { ActionsResponse, KeyValue } from '../../../types/GlobalType';
 import { OCPPChangeConfigurationCommandParam, OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPConfigurationStatus, OCPPGetConfigurationCommandParam } from '../../../types/ocpp/OCPPClient';
-
-import BackendError from '../../../exception/BackendError';
-import ChargingStationClientFactory from '../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
-import Constants from '../../../utils/Constants';
-import { InactivityStatus } from '../../../types/Transaction';
-import Logging from '../../../utils/Logging';
-import { OCPPNormalizedMeterValue } from '../../../types/ocpp/OCPPServer';
+import { OCPPMeasurand, OCPPNormalizedMeterValue, OCPPReadingContext } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import SiteArea from '../../../types/SiteArea';
+import { InactivityStatus } from '../../../types/Transaction';
 import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OCPPUtils';
@@ -445,22 +444,43 @@ export default class OCPPUtils {
     return chargingProfileID;
   }
 
+  static isValidMeterValue(meterValue: OCPPNormalizedMeterValue) {
+    return OCPPUtils.isSocMeterValue(meterValue) ||
+      OCPPUtils.isEnergyActiveImportMeterValue(meterValue) ||
+      OCPPUtils.isPowerActiveImportMeterValue(meterValue) ||
+      OCPPUtils.isCurrentImportMeterValue(meterValue) ||
+      OCPPUtils.isVoltageMeterValue(meterValue);
+  }
+
   static isSocMeterValue(meterValue: OCPPNormalizedMeterValue) {
     return meterValue.attribute
-      && meterValue.attribute.context === 'Sample.Periodic'
-      && meterValue.attribute.measurand === 'SoC';
+      && meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC
+      && meterValue.attribute.measurand === OCPPMeasurand.STATE_OF_CHARGE;
   }
 
-  static isActiveEnergyMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isEnergyActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
     return !meterValue.attribute ||
-      (meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
-      (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
+      (meterValue.attribute.measurand === OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER &&
+      (meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC ||
+        meterValue.attribute.context === OCPPReadingContext.SAMPLE_CLOCK));
   }
 
-  static isActivePowerMeterValue(meterValue: OCPPNormalizedMeterValue) {
+  static isPowerActiveImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
     return !meterValue.attribute ||
-      (meterValue.attribute.measurand === 'Power.Active.Import' &&
-       meterValue.attribute.context === 'Sample.Periodic');
+      (meterValue.attribute.measurand === OCPPMeasurand.POWER_ACTIVE_IMPORT &&
+       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+  }
+
+  static isCurrentImportMeterValue(meterValue: OCPPNormalizedMeterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === OCPPMeasurand.CURRENT_IMPORT &&
+       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
+  }
+
+  static isVoltageMeterValue(meterValue: OCPPNormalizedMeterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === OCPPMeasurand.VOLTAGE &&
+       meterValue.attribute.context === OCPPReadingContext.SAMPLE_PERIODIC);
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {
@@ -709,14 +729,14 @@ export default class OCPPUtils {
     // Cleanup connector transaction data
     const foundConnector = Utils.getConnectorFromID(chargingStation, connectorId);
     if (foundConnector) {
-      foundConnector.currentConsumption = 0;
-      foundConnector.totalConsumption = 0;
-      foundConnector.totalInactivitySecs = 0;
-      foundConnector.inactivityStatus = InactivityStatus.INFO;
+      foundConnector.currentInstantWatts = 0;
+      foundConnector.currentTotalConsumptionWh = 0;
+      foundConnector.currentTotalInactivitySecs = 0;
+      foundConnector.currentInactivityStatus = InactivityStatus.INFO;
       foundConnector.currentStateOfCharge = 0;
-      foundConnector.activeTransactionID = 0;
-      foundConnector.activeTransactionDate = null;
-      foundConnector.activeTagID = null;
+      foundConnector.currentTransactionID = 0;
+      foundConnector.currentTransactionDate = null;
+      foundConnector.currentTagID = null;
       foundConnector.userID = null;
     }
   }

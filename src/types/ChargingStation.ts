@@ -1,11 +1,10 @@
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
-
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import SiteArea from './SiteArea';
+import { InactivityStatus } from './Transaction';
 import User from './User';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
@@ -90,10 +89,14 @@ export enum StaticLimitAmps {
 export interface Connector {
   id?: string;
   connectorId: number;
-  currentConsumption: number;
+  currentInstantWatts: number;
   currentStateOfCharge?: number;
-  totalInactivitySecs?: number;
-  totalConsumption?: number;
+  currentTotalConsumptionWh?: number;
+  currentTotalInactivitySecs?: number;
+  currentInactivityStatus?: InactivityStatus;
+  currentTransactionID?: number;
+  currentTransactionDate?: Date;
+  currentTagID?: string;
   status: ChargePointStatus;
   errorCode?: string;
   info?: string;
@@ -103,13 +106,9 @@ export interface Connector {
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
-  activeTransactionID?: number;
   userID?: string;
   user?: User;
-  activeTransactionDate?: Date;
-  activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
@@ -219,8 +218,7 @@ export enum ConnectorType {
 }
 
 export interface ChargingStationCapabilities {
-  supportStaticLimitationForChargingStation: boolean;
-  supportStaticLimitationPerConnector: boolean;
+  supportStaticLimitation: boolean;
   supportChargingProfiles: boolean;
   supportCreditCard: boolean;
   supportRemoteStartStopTransaction: boolean;
