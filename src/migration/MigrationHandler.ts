@@ -1,6 +1,5 @@
-import { default as AddConsumptionAmpsToConsumptionsTask, default as AddInstantAmpsToConsumptionsTask } from './tasks/AddConsumptionAmpsToConsumptionsTask';
-
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
+import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
@@ -70,7 +69,6 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
-        currentMigrationTasks.push(new AddInstantAmpsToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
