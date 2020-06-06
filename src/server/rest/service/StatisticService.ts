@@ -1,23 +1,22 @@
-import fs from 'fs';
-
-import { NextFunction, Request, Response } from 'express';
-import moment from 'moment';
-
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
-import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import { Action, Entity } from '../../../types/Authorization';
+import { NextFunction, Request, Response } from 'express';
+import StatisticFilter, { StatsGroupBy } from '../../../types/Statistic';
+
+import AppAuthError from '../../../exception/AppAuthError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
 import { HTTPAuthError } from '../../../types/HTTPError';
 import HttpStatisticsRequest from '../../../types/requests/HttpStatisticRequest';
 import { ServerAction } from '../../../types/Server';
-import StatisticFilter, { StatsGroupBy } from '../../../types/Statistic';
+import StatisticSecurity from './security/StatisticSecurity';
+import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import TenantComponents from '../../../types/TenantComponents';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
-import Constants from '../../../utils/Constants';
 import Utils from '../../../utils/Utils';
-import StatisticSecurity from './security/StatisticSecurity';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import moment from 'moment';
 
 const MODULE_NAME = 'StatisticService';
 
