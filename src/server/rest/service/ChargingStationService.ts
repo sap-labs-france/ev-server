@@ -280,7 +280,7 @@ export default class ChargingStationService {
       });
     }
     // Check if limit is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
