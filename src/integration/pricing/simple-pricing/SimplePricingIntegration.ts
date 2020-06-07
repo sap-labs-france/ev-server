@@ -1,9 +1,9 @@
 import Consumption from '../../../types/Consumption';
 import { PricedConsumption } from '../../../types/Pricing';
+import PricingIntegration from '../PricingIntegration';
 import { SimplePricingSetting } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
-import PricingIntegration from '../PricingIntegration';
 
 export default class SimplePricingIntegration extends PricingIntegration<SimplePricingSetting> {
   constructor(tenantID: string, readonly settings: SimplePricingSetting) {
