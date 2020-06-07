@@ -70,7 +70,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string) {
+  public static async promiseWithTimeout<T>(timeoutMs: number, promise: Promise<T>, failureMessage: string): Promise<T> {
     let timeoutHandle;
     const timeoutPromise = new Promise<never>((resolve, reject) => {
       timeoutHandle = setTimeout(() => reject(new Error(failureMessage)), timeoutMs);
@@ -87,7 +87,7 @@ export default class Utils {
   public static logActionsResponse(
     tenantID: string, action: ServerAction, module: string, method: string, actionsResponse: ActionsResponse,
     messageSuccess: string, messageError: string, messageSuccessAndError: string,
-    messageNoSuccessNoError: string) {
+    messageNoSuccessNoError: string): void {
     // Replace
     messageSuccess = messageSuccess.replace('{{inSuccess}}', actionsResponse.inSuccess.toString());
     messageError = messageError.replace('{{inError}}', actionsResponse.inError.toString());
@@ -148,11 +148,11 @@ export default class Utils {
     return _.has(object, key);
   }
 
-  public static generateGUID() {
+  public static generateGUID(): string {
     return uuid();
   }
 
-  static generateTagID(name: string, firstName: string) {
+  static generateTagID(name: string, firstName: string): string {
     let tagID = '';
     if (name && name.length > 0) {
       tagID = name[0].toUpperCase();
@@ -257,7 +257,7 @@ export default class Utils {
     return config.heartbeatIntervalSecs * 3;
   }
 
-  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation): void {
     // Cannot charge in //
     if (chargingStation.chargePoints) {
       for (const chargePoint of chargingStation.chargePoints) {
@@ -298,7 +298,7 @@ export default class Utils {
     }
   }
 
-  public static getLanguageFromLocale(locale: string) {
+  public static getLanguageFromLocale(locale: string): string {
     let language = Constants.DEFAULT_LANGUAGE;
     // Set the User's locale
     if (locale && locale.length > 2) {
@@ -307,7 +307,7 @@ export default class Utils {
     return language;
   }
 
-  public static async normalizeAndCheckSOAPParams(headers, req) {
+  public static async normalizeAndCheckSOAPParams(headers, req): Promise<void> {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -811,7 +811,7 @@ export default class Utils {
     return true;
   }
 
-  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false) {
+  public static buildUserFullName(user: User, withID = true, withEmail = false, invertedName = false): string {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
@@ -840,7 +840,7 @@ export default class Utils {
   }
 
   // Save the users in file
-  public static saveFile(filename, content) {
+  public static saveFile(filename: string, content: string): void {
     // Save
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
@@ -930,7 +930,7 @@ export default class Utils {
   }
 
   public static getLocalIP(): string {
-    return localIP.getLocalIP4();
+    return localIP.getLocalIP4() as string;
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -949,7 +949,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number, scale) {
+  public static roundTo(number, scale): string|number {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
@@ -986,7 +986,7 @@ export default class Utils {
     return recordSkip;
   }
 
-  public static generateToken(email) {
+  public static generateToken(email: string): string {
     return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
@@ -1046,7 +1046,7 @@ export default class Utils {
     });
   }
 
-  public static isPasswordStrongEnough(password) {
+  public static isPasswordStrongEnough(password: string): boolean {
     const uc = password.match(Constants.PWD_UPPERCASE_RE);
     const lc = password.match(Constants.PWD_LOWERCASE_RE);
     const n = password.match(Constants.PWD_NUMBER_RE);
@@ -1059,7 +1059,7 @@ export default class Utils {
   }
 
 
-  public static generatePassword() {
+  public static generatePassword(): string {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
     while (!Utils.isPasswordStrongEnough(password)) {
@@ -1086,7 +1086,7 @@ export default class Utils {
     }
   }
 
-  public static hashPassword(password) {
+  public static hashPassword(password: string): string {
     return Cypher.hash(password);
   }
 
@@ -1360,7 +1360,7 @@ export default class Utils {
     }
   }
 
-  public static isValidDate(date: any) {
+  public static isValidDate(date: any): boolean {
     return moment(date).isValid();
   }
 
@@ -1407,7 +1407,7 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request) {
+  public static async checkIfUserTagsAreValid(user: User, tags: Tag[], req: Request): Promise<void> {
     // Check that the Badge ID is not already used
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       if (tags) {
@@ -1593,7 +1593,7 @@ export default class Utils {
     }
   }
 
-  public static getTimezone(coordinates: number[]) {
+  public static getTimezone(coordinates: number[]): string {
     if (coordinates && coordinates.length === 2) {
       return tzlookup(coordinates[1], coordinates[0]);
     }

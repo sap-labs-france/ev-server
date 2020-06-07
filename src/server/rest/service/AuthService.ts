@@ -241,7 +241,7 @@ export default class AuthService {
     newUser.locale = filteredRequest.locale;
     newUser.createdOn = new Date();
     const verificationToken = Utils.generateToken(filteredRequest.email);
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, Utils.getLanguageFromLocale(newUser.locale));
     // Save User
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
     // Save User Status
@@ -898,7 +898,7 @@ export default class AuthService {
     // Set Eula Info on Login Only
     if (action === 'Login') {
       // Save EULA
-      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
+      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, Utils.getLanguageFromLocale(user.locale));
       await UserStorage.saveUserEULA(tenantID, user.id,
         {
           eulaAcceptedOn: new Date(),
