@@ -60,7 +60,7 @@ export default class SessionHashService {
   static buildUserHashID(user: User) {
     // Get all field that need to be hashed
     const tags = user.tags && user.tags.length > 0 ? user.tags.map((tag) => tag.id).sort().join('-') : '';
-    const data = `${user.locale.substring(0, 2)}/${user.email}/${user.role}/${user.status}/${tags}`;
+    const data = `${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}/${tags}`;
     return Cypher.hash(data);
   }
 
