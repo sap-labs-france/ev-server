@@ -17,7 +17,7 @@ const MODULE_NAME = 'SessionHashService';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
-  static isSessionHashUpdated(req: Request, res: Response, next: NextFunction) {
+  static isSessionHashUpdated(req: Request, res: Response, next: NextFunction): boolean {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
@@ -57,7 +57,7 @@ export default class SessionHashService {
   }
 
   // Build User Hash ID
-  static buildUserHashID(user: User) {
+  static buildUserHashID(user: User): string {
     // Get all field that need to be hashed
     const tags = user.tags && user.tags.length > 0 ? user.tags.map((tag) => tag.id).sort().join('-') : '';
     const data = `${Utils.getLanguageFromLocale(user.locale)}/${user.email}/${user.role}/${user.status}/${tags}`;
@@ -65,14 +65,14 @@ export default class SessionHashService {
   }
 
   // Build Tenant Hash ID
-  static buildTenantHashID(tenant: Tenant) {
+  static buildTenantHashID(tenant: Tenant): string {
     // Get all field that need to be hashed
     const data = JSON.stringify(Utils.getTenantActiveComponents(tenant));
     return Cypher.hash(data);
   }
 
   // Rebuild and store User Hash ID
-  static async rebuildUserHashID(tenantID: string, userID: string) {
+  static async rebuildUserHashID(tenantID: string, userID: string): Promise<void> {
     // Build User hash
     const user = await UserStorage.getUser(tenantID, userID);
     if (user) {
@@ -83,7 +83,7 @@ export default class SessionHashService {
   }
 
   // Rebuild and store Tenant Hash ID
-  static async rebuildTenantHashID(tenantID: string) {
+  static async rebuildTenantHashID(tenantID: string): Promise<void> {
     // Build Tenant hash
     const tenant = await TenantStorage.getTenant(tenantID);
     if (tenant) {
