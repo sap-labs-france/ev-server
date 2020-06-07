@@ -31,12 +31,13 @@ export default class AuthSecurity {
   public static filterRegisterUserRequest(request: any): Partial<HttpRegisterUserRequest> {
     return {
       name: sanitize(request.name),
+      firstName: sanitize(request.firstName),
+      password: sanitize(request.passwords.password),
       acceptEula: sanitize(request.acceptEula),
       captcha: sanitize(request.captcha),
       status: UserStatus.PENDING,
-      password: sanitize(request.passwords.password),
       email: sanitize(request.email),
-      firstName: sanitize(request.firstName),
+      locale: sanitize(request.locale.substring(0, 5)),
       tenant: sanitize(request.tenant)
     };
   }

@@ -34,7 +34,6 @@ import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -191,8 +190,8 @@ export default class ChargingStationService {
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
-        sanitize(filteredRequest.coordinates[0]),
-        sanitize(filteredRequest.coordinates[1])
+        filteredRequest.coordinates[0],
+        filteredRequest.coordinates[1]
       ];
     }
     // No charge point
