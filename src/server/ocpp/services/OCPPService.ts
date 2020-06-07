@@ -392,7 +392,7 @@ export default class OCPPService {
             user: transaction.userID,
             module: MODULE_NAME, method: 'handleMeterValues',
             message: `Connector '${meterValues.connectorId}' > Transaction ID '${meterValues.transactionId}' > MeterValue have been saved`,
-            detailedMessages: { meterValues }
+            detailedMessages: { newMeterValues }
           });
         } else {
           // Log
@@ -402,7 +402,7 @@ export default class OCPPService {
             action: ServerAction.METER_VALUES,
             module: MODULE_NAME, method: 'handleMeterValues',
             message: `Connector '${meterValues.connectorId}' > Meter Values are ignored as it is not linked to a transaction`,
-            detailedMessages: { meterValues }
+            detailedMessages: { newMeterValues }
           });
         }
       }
