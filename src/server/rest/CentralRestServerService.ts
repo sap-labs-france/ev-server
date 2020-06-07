@@ -292,7 +292,7 @@ export default {
     }
   },
 
-  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
     // Check if User has been updated and require new login

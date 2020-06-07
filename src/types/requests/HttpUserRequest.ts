@@ -51,6 +51,9 @@ export interface HttpResetPasswordRequest {
   email: string;
   tenant: string;
   captcha: string;
+  passwords: { password: string, repeatPassword: string }; // Frontend...
+  password?: string;
+  repeatPassword?: string;
   hash: string;
 }
 export interface HttpCheckEulaRequest {

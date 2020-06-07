@@ -105,7 +105,7 @@ export default class CentralRestServer {
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.expressApplication);
   }
 
-  startSocketIO() {
+  startSocketIO(): void {
     // Log
     const logMsg = 'Starting REST SocketIO Server...';
     Logging.logInfo({
