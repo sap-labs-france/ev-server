@@ -530,7 +530,6 @@ export default class OCPPCommonTests {
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)
       });
       if (withSoC) {
-        // Check
         expect(value).to.include({
           'stateOfCharge': this.transactionMeterSoCValues[i]
         });

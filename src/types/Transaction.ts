@@ -37,22 +37,22 @@ export default interface Transaction {
   signedData?: any;
   user?: User;
   stop?: {
+    timestamp: Date;
+    meterStop: number;
     tagID: string;
     userID: string;
     user?: User;
-    meterStop: number;
     price?: number;
     roundedPrice?: number;
     priceUnit?: string;
     pricingSource?: string;
-    stateOfCharge: number;
-    totalInactivitySecs: number;
+    stateOfCharge?: number;
+    totalInactivitySecs?: number;
     extraInactivitySecs?: number;
     extraInactivityComputed?: boolean;
-    totalConsumptionWh: number;
-    totalDurationSecs: number;
+    totalConsumptionWh?: number;
+    totalDurationSecs?: number;
     inactivityStatus?: InactivityStatus;
-    timestamp: Date;
     transactionData?: any;
     signedData?: any;
   };
@@ -62,7 +62,10 @@ export default interface Transaction {
     userID: string;
   };
   refundData?: RefundTransactionData;
-  lastMeterValue?: Partial<OCPPNormalizedMeterValue>;
+  lastEnergyActiveImportMeterValue?: {
+    value: number;
+    timestamp: Date;
+  };
   chargeBox?: ChargingStation;
   meterStart: number;
   timestamp: Date;

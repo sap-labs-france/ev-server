@@ -1,6 +1,6 @@
 import AddActivePropertyToTagsTask from './tasks/AddActivePropertyToTagsTask';
+import AddConsumptionAmpsToConsumptionsTask from './tasks/AddConsumptionAmpsToConsumptionsTask';
 import AddInactivityStatusInTransactionsTask from './tasks/AddInactivityStatusInTransactionsTask';
-import AddInstantAmpsToConsumptionsTask from './tasks/AddInstantAmpsToConsumptionsTask';
 import AddIssuerFieldTask from './tasks/AddIssuerFieldTask';
 import AddLastChangePropertiesToBadgeTask from './tasks/AddLastChangePropertiesToBadgeTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
@@ -69,13 +69,13 @@ export default class MigrationHandler {
         currentMigrationTasks.push(new InitialCarImportTask());
         currentMigrationTasks.push(new UpdateConsumptionsToObjectIDs());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
-        currentMigrationTasks.push(new AddInstantAmpsToConsumptionsTask());
         currentMigrationTasks.push(new MigrateOcpiTransactionsTask());
         currentMigrationTasks.push(new UpdateChargingStationTemplatesTask());
         currentMigrationTasks.push(new UpdateChargingStationStaticLimitationTask());
         currentMigrationTasks.push(new AddSiteAreaLimitToConsumptionsTask());
         currentMigrationTasks.push(new UpdateLimitsInConsumptionsTask());
         currentMigrationTasks.push(new RenameTransactionsAndConsumptionsTask());
+        currentMigrationTasks.push(new AddConsumptionAmpsToConsumptionsTask());
         // Get the already done migrations from the DB
         const migrationTasksDone = await MigrationStorage.getMigrations();
         // Check

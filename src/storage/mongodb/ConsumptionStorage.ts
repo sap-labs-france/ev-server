@@ -30,6 +30,7 @@ export default class ConsumptionStorage {
       siteAreaID: Utils.convertToObjectID(consumptionToSave.siteAreaID),
       siteID: Utils.convertToObjectID(consumptionToSave.siteID),
       consumptionWh: Utils.convertToFloat(consumptionToSave.consumptionWh),
+      consumptionAmps: Utils.convertToFloat(consumptionToSave.consumptionAmps),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
       cumulatedConsumptionWh: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionWh),
       cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),

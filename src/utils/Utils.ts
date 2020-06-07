@@ -517,7 +517,7 @@ export default class Utils {
   public static convertWattToAmp(chargingStation: ChargingStation, chargePoint: ChargePoint, connectorID = 0, wattValue: number): number {
     const voltage = Utils.getChargingStationVoltage(chargingStation, chargePoint, connectorID);
     if (voltage) {
-      return Math.floor(wattValue / voltage);
+      return wattValue / voltage;
     }
     return 0;
   }
