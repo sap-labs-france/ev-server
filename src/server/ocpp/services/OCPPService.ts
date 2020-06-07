@@ -1211,16 +1211,16 @@ export default class OCPPService {
           moment.duration(moment(meterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.toPrice = true;
+        // Handle current Connector limitation
+        await this.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
+        // Handle current Site Area limitation
+        await this.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
         // Keep last one
         transaction.lastEnergyActiveImportMeterValue = {
           value: Utils.convertToFloat(meterValue.value),
           timestamp: Utils.convertToDate(meterValue.timestamp)
         };
       }
-      // Handle current Connector limitation
-      await this.addConnectorLimitationToConsumption(tenantID, chargingStation, transaction.connectorId, consumption);
-      // Handle current Site Area limitation
-      await this.addSiteLimitationToConsumption(tenantID, chargingStation.siteArea, consumption);
       // Return
       return consumption;
     }
@@ -1664,8 +1664,7 @@ export default class OCPPService {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
-        if (meterValue.attribute.context === 'Sample.Clock') {
-          // Log
+        if (meterValue.attribute && meterValue.attribute.context === 'Sample.Clock') {
           Logging.logWarning({
             tenantID: tenantID,
             source: chargingStation.id,
@@ -1730,19 +1729,19 @@ export default class OCPPService {
           // Add
           newMeterValues.values.push(newLocalMeterValue);
         }
-        // OCPP < 1.6
+      // OCPP 1.5
       } else if (value['value']) {
-        // OCPP 1.2
-        if (value['value']['$value']) {
-          // Set
-          newMeterValue.value = value['value']['$value'];
-          newMeterValue.attribute = value['value'].attributes;
-          // OCPP 1.5
+        if (Array.isArray(value['value'])) {
+          for (const currentValue of value['value']) {
+            newMeterValue.value = Utils.convertToFloat(currentValue['$value']);
+            newMeterValue.attribute = currentValue.attributes;
+            newMeterValues.values.push(JSON.parse(JSON.stringify(newMeterValue)));
+          }
         } else {
-          newMeterValue.value = Utils.convertToFloat(value['value']);
+          newMeterValue.value = Utils.convertToFloat(value['value']['$value']);
+          newMeterValue.attribute = value['value'].attributes;
+          newMeterValues.values.push(newMeterValue);
         }
-        // Add
-        newMeterValues.values.push(newMeterValue);
       }
     }
     return newMeterValues;
