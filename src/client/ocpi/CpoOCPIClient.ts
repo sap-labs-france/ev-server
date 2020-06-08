@@ -669,7 +669,7 @@ export default class CpoOCPIClient extends OCPIClient {
         tenantID: this.tenant.id,
         action: ServerAction.OCPI_CHECK_SESSIONS,
         message: 'Session checked with result',
-        module: MODULE_NAME, method: 'checkLocation',
+        module: MODULE_NAME, method: 'checkSession',
         detailedMessages: { response : response.data }
       });
       const session = response.data.data as OCPISession;
