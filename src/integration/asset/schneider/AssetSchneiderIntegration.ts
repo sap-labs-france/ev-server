@@ -6,7 +6,7 @@ const MODULE_NAME = 'AssetSchneiderIntegration';
 
 export default class AssetSchneiderIntegration extends AssetIntegration<AssetSetting> {
   public constructor(tenantID: string, settings: AssetSetting, connection: AssetConnectionSetting) {
-    super(tenantID, settings,connection);
+    super(tenantID, settings, connection);
   }
 
   public async checkConnection() {

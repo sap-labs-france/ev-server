@@ -64,6 +64,7 @@ class RequestMapper {
           [ServerAction.COMPANY_CREATE]: CompanyService.handleCreateCompany.bind(this),
           [ServerAction.ADD_ASSET_TO_SITE_AREA]: AssetService.handleAssignAssetsToSiteArea.bind(this),
           [ServerAction.REMOVE_ASSET_TO_SITE_AREA]: AssetService.handleAssignAssetsToSiteArea.bind(this),
+          [ServerAction.ASSET_TEST_CONNECTION]: AssetService.handleCheckAssetConnection.bind(this),
           [ServerAction.ASSET_CREATE]: AssetService.handleCreateAsset.bind(this),
           [ServerAction.TENANT_CREATE]: TenantService.handleCreateTenant.bind(this),
           [ServerAction.SITE_CREATE]: SiteService.handleCreateSite.bind(this),

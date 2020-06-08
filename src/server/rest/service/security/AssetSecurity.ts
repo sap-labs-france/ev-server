@@ -1,12 +1,12 @@
-import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpAssetRequest';
-
-import Asset from '../../../../types/Asset';
-import Authorizations from '../../../../authorization/Authorizations';
-import { DataResult } from '../../../../types/DataResult';
-import SiteAreaSecurity from './SiteAreaSecurity';
-import UserToken from '../../../../types/UserToken';
-import UtilsSecurity from './UtilsSecurity';
 import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import Asset from '../../../../types/Asset';
+import { DataResult } from '../../../../types/DataResult';
+import { HttpAssetRequest, HttpAssetsRequest, HttpAssignAssetsToSiteAreaRequest } from '../../../../types/requests/HttpAssetRequest';
+import { AssetConnectionSetting } from '../../../../types/Setting';
+import UserToken from '../../../../types/UserToken';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class AssetSecurity {
 
@@ -51,6 +51,20 @@ export default class AssetSecurity {
 
   public static filterAssetCreateRequest(request: any): Partial<Asset> {
     return AssetSecurity._filterAssetRequest(request);
+  }
+
+  public static filterAssetTestConnection(request: any): Partial<AssetConnectionSetting> {
+    return {
+      id: sanitize(request.id),
+      name: sanitize(request.name),
+      description: sanitize(request.description),
+      url: sanitize(request.url),
+      type: sanitize(request.type),
+      connection: {
+        user: sanitize(request.connection.user),
+        password: sanitize(request.connection.password)
+      }
+    }
   }
 
   public static _filterAssetRequest(request: any): Partial<Asset> {

@@ -22,6 +22,56 @@ const MODULE_NAME = 'AssetService';
 
 export default class AssetService {
 
+  public static async handleCheckAssetConnection(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.CHECK_CONNECTION, Entity.ASSET, MODULE_NAME, 'handleCheckAssetConnection');
+    // Filter request
+    const filteredRequest = AssetSecurity.filterAssetTestConnection(req.body);
+    // Get asset connection type
+    const assetImpl = await AssetFactory.getAssetImpl(req.user.tenantID, filteredRequest.id);
+    // Asset has unknown connection type
+    if (!assetImpl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Asset service is not configured',
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    // Is authorized to check connection ?
+    if (!Authorizations.canCheckConnectionAsset(req.user)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'Not authorized to check asset connections',
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        action: action,
+        user: req.user
+      });
+    }
+    try {
+      // Check connection
+      await assetImpl.checkConnection();
+      // Success
+      res.json(Object.assign({ connectionIsValid: true }, Constants.REST_RESPONSE_SUCCESS))
+    } catch (error) {
+      // KO
+      Logging.logError({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: MODULE_NAME, method: 'handleCheckAssetConnection',
+        message: 'Asset connection failed',
+        action: action,
+        detailedMessages: { error: error.message, stack: error.stack }
+      });
+      res.json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
+    }
+    next();
+  }
+
   public static async handleAssignAssetsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
