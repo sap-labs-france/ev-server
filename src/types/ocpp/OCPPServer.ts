@@ -51,11 +51,11 @@ export enum RegistrationStatus {
 export interface OCPPStatusNotificationRequest {
   connectorId: number;
   errorCode: ChargePointErrorCode;
-  info: string;
+  info?: string;
   status: ChargePointStatus;
   timestamp: string;
-  vendorId: string;
-  vendorErrorCode: string;
+  vendorId?: string;
+  vendorErrorCode?: string;
 }
 
 export interface OCPPStatusNotificationRequestExtended extends OCPPStatusNotificationRequest {
