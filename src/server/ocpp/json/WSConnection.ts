@@ -323,7 +323,7 @@ export default class WSConnection {
           messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
           break;
       }
-      // Check if wsConnection in ready
+      // Check if wsConnection is ready
       if (this.isWSConnectionOpen()) {
         // Yes: Send Message
         this.wsConnection.send(messageToSend);
