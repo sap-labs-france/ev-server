@@ -161,7 +161,7 @@ export default class Authorizations {
       'tagIDs': user.tags ? user.tags.filter((tag) => tag.active).map((tag) => tag.id) : [],
       'firstName': user.firstName,
       'locale': user.locale,
-      'language': user.locale.substring(0, 2),
+      'language': Utils.getLanguageFromLocale(user.locale),
       'currency': currency,
       'tenantID': tenantID,
       'tenantName': tenantName,

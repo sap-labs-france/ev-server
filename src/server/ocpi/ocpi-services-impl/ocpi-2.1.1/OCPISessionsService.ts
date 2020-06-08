@@ -2,7 +2,9 @@ import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISessi
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 
 import AppError from '../../../../exception/AppError';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { Connector } from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -159,7 +161,9 @@ export default class OCPISessionsService {
         userID: transaction.userID
       };
     }
+
     await TransactionStorage.saveTransaction(tenantId, transaction);
+    await this.updateConnector(tenantId, transaction);
   }
 
   public static async processCdr(tenantId: string, cdr: OCPICdr) {
@@ -231,6 +235,39 @@ export default class OCPISessionsService {
 
     transaction.ocpiData.cdr = cdr;
     await TransactionStorage.saveTransaction(tenantId, transaction);
+    await this.updateConnector(tenantId, transaction);
+  }
+
+  public static async updateConnector(tenantId: string, transaction: Transaction) {
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenantId, transaction.chargeBoxID);
+    if (chargingStation && chargingStation.connectors) {
+      for (const connector of chargingStation.connectors) {
+        if (connector.connectorId === transaction.connectorId && connector.currentTransactionID === 0 || connector.currentTransactionID === transaction.id) {
+          if (!transaction.stop) {
+            connector.status = transaction.status;
+            connector.currentTransactionID = transaction.id;
+            connector.currentInactivityStatus = transaction.currentInactivityStatus;
+            connector.currentTagID = transaction.tagID;
+            connector.currentStateOfCharge = transaction.currentStateOfCharge;
+            connector.currentInstantWatts = transaction.currentInstantWatts;
+            connector.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
+            connector.currentTransactionDate = transaction.currentTimestamp;
+            connector.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
+          } else {
+            connector.status = ChargePointStatus.AVAILABLE;
+            connector.currentTransactionID = 0;
+            connector.currentTransactionDate = null;
+            connector.currentTagID = null;
+            connector.currentTotalConsumptionWh = 0;
+            connector.currentStateOfCharge = 0;
+            connector.currentTotalInactivitySecs = 0;
+            connector.currentInstantWatts = 0;
+            connector.currentInactivityStatus = null;
+          }
+          await ChargingStationStorage.saveChargingStation(tenantId, chargingStation);
+        }
+      }
+    }
   }
 
   private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {

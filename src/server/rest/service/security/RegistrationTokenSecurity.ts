@@ -30,7 +30,7 @@ export default class RegistrationTokenSecurity {
     return filteredRequest as HttpRegistrationTokensRequest;
   }
 
-  static filterRegistrationTokensResponse(registrationTokens: DataResult<RegistrationToken>, loggedUser: UserToken) {
+  static filterRegistrationTokensResponse(registrationTokens: DataResult<RegistrationToken>, loggedUser: UserToken): void {
     const filteredTokens = [];
     if (!registrationTokens.result) {
       return null;

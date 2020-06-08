@@ -1,10 +1,11 @@
+import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
+
 import { ChargingRateUnitType } from './ChargingProfile';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import { InactivityStatus } from './Transaction';
 import { KeyValue } from './GlobalType';
 import { OCPIEvse } from './ocpi/OCPIEvse';
-import { ChargePointStatus, OCPPFirmwareStatus, OCPPProtocol, OCPPVersion } from './ocpp/OCPPServer';
 import SiteArea from './SiteArea';
-import { InactivityStatus } from './Transaction';
 import User from './User';
 
 export default interface ChargingStation extends CreatedUpdatedProps {
@@ -89,7 +90,7 @@ export enum StaticLimitAmps {
 export interface Connector {
   id?: string;
   connectorId: number;
-  currentInstantWatts: number;
+  currentInstantWatts?: number;
   currentStateOfCharge?: number;
   currentTotalConsumptionWh?: number;
   currentTotalInactivitySecs?: number;
@@ -101,8 +102,8 @@ export interface Connector {
   errorCode?: string;
   info?: string;
   vendorErrorCode?: string;
-  power: number;
-  type: ConnectorType;
+  power?: number;
+  type?: ConnectorType;
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
@@ -252,4 +253,5 @@ export enum ChargerVendor {
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
   ABB = 'ABB',
+  LEGRAND = 'Legrand',
 }

@@ -13,6 +13,7 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -455,7 +456,55 @@ export default class EmspOCPIClient extends OCPIClient {
     }
   }
 
-  async pushToken(token: OCPIToken) {
+  async checkToken(tokenUid: string): Promise<boolean> {
+    // Get tokens endpoint url
+    const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_CHECK_TOKENS);
+    // Read configuration to retrieve
+    const countryCode = this.getLocalCountryCode(ServerAction.OCPI_CHECK_TOKENS);
+    const partyID = this.getLocalPartyID(ServerAction.OCPI_CHECK_TOKENS);
+    // Build url to IOP
+    const fullUrl = tokensUrl + `/${countryCode}/${partyID}/${tokenUid}`;
+    // Log
+    Logging.logDebug({
+      tenantID: this.tenant.id,
+      action: ServerAction.OCPI_CHECK_TOKENS,
+      message: `Get token at ${fullUrl}`,
+      module: MODULE_NAME, method: 'getToken',
+      detailedMessages: { tokenUid }
+    });
+    // Call IOP
+    const response = await axios.get(fullUrl,
+      {
+        headers: {
+          Authorization: `Token ${this.ocpiEndpoint.token}`
+        },
+        timeout: 10000
+      });
+    if (response.status === 200 && response.data) {
+      Logging.logDebug({
+        tenantID: this.tenant.id,
+        action: ServerAction.OCPI_CHECK_LOCATIONS,
+        message: 'Token checked with result',
+        module: MODULE_NAME, method: 'checkToken',
+        detailedMessages: { response : response.data }
+      });
+      const checkedToken = response.data.data as OCPILocation;
+      if (checkedToken) {
+        return true;
+      }
+    }
+    // Check response
+    if (!response.data) {
+      throw new BackendError({
+        action: ServerAction.OCPI_CHECK_TOKENS,
+        message: `Get token failed with status ${JSON.stringify(response)}`,
+        module: MODULE_NAME, method: 'getToken',
+        detailedMessages: { response: response.data }
+      });
+    }
+  }
+
+  async pushToken(token: OCPIToken): Promise<boolean> {
     // Get tokens endpoint url
     const tokensUrl = this.getEndpointUrl('tokens', ServerAction.OCPI_PUSH_TOKENS);
     // Read configuration to retrieve
@@ -489,6 +538,7 @@ export default class EmspOCPIClient extends OCPIClient {
         detailedMessages: { response: response.data }
       });
     }
+    return this.checkToken(token.uid);
   }
 
   async remoteStartSession(chargingStation: ChargingStation, connectorId: number, tagId: string): Promise<OCPICommandResponse> {
