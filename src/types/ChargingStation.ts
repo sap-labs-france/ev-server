@@ -253,4 +253,5 @@ export enum ChargerVendor {
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
   ABB = 'ABB',
+  LEGRAND = 'Legrand',
 }
