@@ -31,7 +31,6 @@ export default class BillingService {
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
       });
     }
-    const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.BILLING,
       Action.CHECK_CONNECTION, Entity.BILLING, MODULE_NAME, 'handleCheckBillingConnection');
@@ -46,16 +45,6 @@ export default class BillingService {
         user: req.user
       });
     }
-    if (!Authorizations.canCheckConnectionBilling(req.user)) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.GENERAL_ERROR,
-        message: 'Cannot connect to the billing service, check your configuration',
-        module: MODULE_NAME, method: 'handleCheckBillingConnection',
-        action: action,
-        user: req.user
-      });
-    }
     try {
       // Check
       await billingImpl.checkConnection();
@@ -64,7 +53,7 @@ export default class BillingService {
     } catch (error) {
       // Ko
       Logging.logError({
-        tenantID: tenant.id,
+        tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME, method: 'handleCheckBillingConnection',
         message: 'Billing connection failed',

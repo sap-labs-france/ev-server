@@ -33,16 +33,16 @@ export default class OCPPCommonTests {
   public transactionStopUser: User;
   public transactionStartMeterValue: any;
   public transactionStartSoC: any;
-  public transactionMeterValues: any;
-  public transactionMeterSoCValues: any;
+  public energyActiveImportMeterValues: any;
+  public socMeterValues: any;
   public transactionSignedData: any;
   public transactionEndSignedData: any;
-  public transactionMeterValueIntervalSecs: any;
+  public meterValueIntervalSecs: any;
   public transactionStartTime: any;
-  public transactionTotalConsumption: any;
-  public transactionEndMeterValue: any;
-  public transactionEndSoC: any;
-  public transactionTotalInactivity: any;
+  public transactionTotalConsumptionWh: any;
+  public energyActiveImportFinalMeterValue: any;
+  public socFinalMeterValue: any;
+  public transactionTotalInactivitySecs: any;
   public totalPrice: any;
   public newTransaction: any;
   public transactionCurrentTime: any;
@@ -120,24 +120,27 @@ export default class OCPPCommonTests {
     this.transactionStartMeterValue = 0;
     this.transactionSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">wQdZJR1CLRe+QhS3C+kHpkfVL4hqPhc8YIt/+4uHBBb9N6JNygltdEhYufTfaM++AJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eoQxVP10I4Zf9ACcAAAABAAERAP8e/5KqWwEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     this.transactionEndSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">GChPf/f+0Rw6DDWI0mujec6dOMDqm5cuCLXdEVV6MRua6OVqcHNP85q7K70tRPJKAJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eodYDQF0IrEb+ACgAAAABAAERAP8e/8OtYQEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
-    this.transactionMeterValues = Array.from({ length: 12 }, () => faker.random.number({
+    // Energy Import Meter Value (14 values)
+    this.energyActiveImportMeterValues = Array.from({ length: 12 }, () => faker.random.number({
       min: 200,
       max: 500
     })).concat([0, 0]);
-    this.transactionMeterSoCValues = Array.from({ length: 8 }, () => faker.random.number({
+    // SoC Meter Value (14 values)
+    this.socMeterValues = Array.from({ length: 8 }, () => faker.random.number({
       min: 10,
       max: 90
     })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
-    this.transactionStartSoC = this.transactionMeterSoCValues[0];
-    this.transactionMeterValueIntervalSecs = 60;
-    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs + 1, 'seconds');
-    this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
-    this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
-    this.transactionEndSoC = 100;
-    this.transactionTotalInactivity = this.transactionMeterValues.reduce(
-      (sum, meterValue) => (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum), 0);
-    this.totalPrice = this.priceKWH * (this.transactionTotalConsumption / 1000);
-
+    this.transactionStartSoC = this.socMeterValues[0];
+    // Meter Values params
+    this.meterValueIntervalSecs = 60;
+    this.transactionStartTime = moment().subtract(this.energyActiveImportMeterValues.length * this.meterValueIntervalSecs + 1, 'seconds');
+    this.transactionTotalConsumptionWh = this.energyActiveImportMeterValues.reduce((sum, meterValue) => sum + meterValue);
+    this.energyActiveImportFinalMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumptionWh;
+    this.socFinalMeterValue = this.socMeterValues[this.socMeterValues.length - 1];
+    this.transactionTotalInactivitySecs = this.energyActiveImportMeterValues.reduce(
+      (sum, meterValue) => (meterValue === 0 ? sum + this.meterValueIntervalSecs : sum), 0);
+    this.totalPrice = this.priceKWH * (this.transactionTotalConsumptionWh / 1000);
+    // Tags
     this.validTag = faker.random.alphaNumeric(20).toString();
     this.invalidTag = faker.random.alphaNumeric(21).toString();
     this.numberTag = faker.random.number(10000);
@@ -372,11 +375,11 @@ export default class OCPPCommonTests {
     // Check Transaction
     response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     // Send Meter Values (except the last one which will be used in Stop Transaction)
-    for (let index = 0; index <= this.transactionMeterValues.length - 2; index++) {
+    for (let index = 0; index <= this.energyActiveImportMeterValues.length - 2; index++) {
       // Set new meter value
-      transactionCurrentMeterValue += this.transactionMeterValues[index];
+      transactionCurrentMeterValue += this.energyActiveImportMeterValues[index];
       // Add time
-      this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
+      this.transactionCurrentTime.add(this.meterValueIntervalSecs, 's');
       // Send consumption meter value
       response = await this.chargingStationContext.sendConsumptionMeterValue(
         this.newTransaction.connectorId,
@@ -384,17 +387,17 @@ export default class OCPPCommonTests {
         transactionCurrentMeterValue,
         this.transactionCurrentTime,
         withSoC,
-        this.transactionMeterSoCValues[index]);
+        this.socMeterValues[index]);
       expect(response.data).to.eql({});
       // Check the Consumption
       response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
       expect(response.data).to.deep.include({
-        currentInstantWatts: (this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs),
+        currentInstantWatts: (this.energyActiveImportMeterValues[index] * this.meterValueIntervalSecs),
         currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue)
       });
       if (withSoC) {
         expect(response.data).to.deep.include({
-          currentStateOfCharge: this.transactionMeterSoCValues[index]
+          currentStateOfCharge: this.socMeterValues[index]
         });
       } else {
         expect(response.data).to.deep.include({
@@ -406,8 +409,8 @@ export default class OCPPCommonTests {
     response = await this.chargingStationContext.sendEndMeterValue(
       this.newTransaction.connectorId,
       this.newTransaction.transactionId,
-      this.transactionEndMeterValue,
-      this.transactionEndSoC,
+      this.energyActiveImportFinalMeterValue,
+      this.socFinalMeterValue,
       this.transactionEndSignedData,
       moment(this.transactionCurrentTime),
       withSoC,
@@ -419,7 +422,7 @@ export default class OCPPCommonTests {
     response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     if (withSoC) {
       expect(response.data).to.deep.include({
-        currentStateOfCharge: this.transactionEndSoC
+        currentStateOfCharge: this.socFinalMeterValue
       });
     } else {
       expect(response.data).to.deep.include({
@@ -434,10 +437,10 @@ export default class OCPPCommonTests {
     expect(this.transactionCurrentTime).to.not.be.null;
 
     // Set end time
-    this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
+    this.transactionCurrentTime.add(this.meterValueIntervalSecs, 's');
 
     // Stop the Transaction
-    let response = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.transactionEndMeterValue, this.transactionCurrentTime);
+    let response = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.energyActiveImportFinalMeterValue, this.transactionCurrentTime);
     // Check
     expect(response.data).to.have.property('idTagInfo');
     expect(response.data.idTagInfo.status).to.equal('Accepted');
@@ -454,9 +457,9 @@ export default class OCPPCommonTests {
     response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     expect(response.data).to.deep['containSubset']({
       'stop': {
-        'meterStop': this.transactionEndMeterValue,
-        'totalConsumptionWh': this.transactionTotalConsumption,
-        'totalInactivitySecs': this.transactionTotalInactivity,
+        'meterStop': this.energyActiveImportFinalMeterValue,
+        'totalConsumptionWh': this.transactionTotalConsumptionWh,
+        'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
         'totalDurationSecs': moment.duration(moment(this.transactionCurrentTime).diff(this.newTransaction.timestamp)).asSeconds(),
         'price': this.totalPrice,
@@ -465,7 +468,7 @@ export default class OCPPCommonTests {
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
-        'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
+        'stateOfCharge': (withSoC ? this.socFinalMeterValue : 0),
         'user': {
           'id': this.transactionStopUser.id,
           'name': this.transactionStopUser.name,
@@ -490,10 +493,10 @@ export default class OCPPCommonTests {
         'pricingSource': 'simple',
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
-        'totalConsumptionWh': this.transactionTotalConsumption,
-        'totalInactivitySecs': this.transactionTotalInactivity,
+        'totalConsumptionWh': this.transactionTotalConsumptionWh,
+        'totalInactivitySecs': this.transactionTotalInactivitySecs,
         'inactivityStatus': InactivityStatus.INFO,
-        'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
+        'stateOfCharge': (withSoC ? this.socFinalMeterValue : 0),
         'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'user': {
           'id': this.transactionStopUser.id,
@@ -516,22 +519,22 @@ export default class OCPPCommonTests {
       // Get the value
       const value = response.data.values[i];
       // Add time
-      transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
+      transactionCurrentTime.add(this.meterValueIntervalSecs, 's');
       // Sum
-      transactionCumulatedConsumption += this.transactionMeterValues[i];
+      transactionCumulatedConsumption += this.energyActiveImportMeterValues[i];
       // Check
       expect(value).to.include({
         'date': transactionCurrentTime.toISOString(),
-        'instantWatts': this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        'instantWatts': this.energyActiveImportMeterValues[i] * this.meterValueIntervalSecs,
         'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
-          null, this.newTransaction.connectorId, this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs),
+          null, this.newTransaction.connectorId, this.energyActiveImportMeterValues[i] * this.meterValueIntervalSecs),
         'cumulatedConsumptionWh': transactionCumulatedConsumption,
         'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)
       });
       if (withSoC) {
         expect(value).to.include({
-          'stateOfCharge': this.transactionMeterSoCValues[i]
+          'stateOfCharge': this.socMeterValues[i]
         });
       }
     }

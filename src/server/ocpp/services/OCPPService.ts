@@ -1791,7 +1791,7 @@ export default class OCPPService {
           }, {
             'chargeBoxID': activeTransaction.chargeBoxID,
             'transactionId': activeTransaction.id,
-            'meterStop': activeTransaction.lastEnergyActiveImportMeterValue.value,
+            'meterStop': (activeTransaction.lastEnergyActiveImportMeterValue ? activeTransaction.lastEnergyActiveImportMeterValue.value : activeTransaction.meterStart),
             'timestamp': Utils.convertToDate(activeTransaction.lastEnergyActiveImportMeterValue.timestamp).toISOString(),
           }, false, true);
           // Check
