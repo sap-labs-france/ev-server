@@ -1,9 +1,11 @@
+import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValueRequest, OCPPFirmwareStatus, OCPPLocation, OCPPMeasurand, OCPPMeterValueRequest, OCPPReadingContext, OCPPStatusNotificationRequest, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../src/types/ocpp/OCPPServer';
+
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
 import ContextDefinition from './ContextDefinition';
-import { OCPPFirmwareStatus } from '../../types/ocpp/OCPPServer';
 import OCPPService from '../ocpp/OCPPService';
 import TenantContext from './TenantContext';
+import Utils from '../../../src/utils/Utils';
 import faker from 'faker';
 
 export default class ChargingStationContext {
@@ -44,7 +46,7 @@ export default class ChargingStationContext {
     this.transactionsStopped.push(transaction);
   }
 
-  async authorize(tagId) {
+  async authorize(tagId: string) {
     const response = await this.ocppService.executeAuthorize(this.chargingStation.id, {
       idTag: tagId
     });
@@ -62,7 +64,7 @@ export default class ChargingStationContext {
     return await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
   }
 
-  async startTransaction(connectorId, tagId, meterStart, startDate) {
+  async startTransaction(connectorId: number, tagId: string, meterStart: number, startDate: Date) {
     const response = await this.ocppService.executeStartTransaction(this.chargingStation.id, {
       connectorId: connectorId,
       idTag: tagId,
@@ -75,7 +77,7 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async stopTransaction(transactionId, tagId, meterStop, stopDate, transactionData?) {
+  async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: any) {
     const response = await this.ocppService.executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
@@ -89,235 +91,136 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async sendConsumptionMeterValue(connectorId, transactionId, meterValue, timestamp, withSoC = false, meterSocValue?) {
-    let response;
+  async sendConsumptionMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number,
+    timestamp: Date, withSoC = false, meterSocValue = 0) {
+    let meterValueRequest: OCPPMeterValueRequest | OCPP15MeterValueRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
-      // Yes
+      // Energy
+      meterValueRequest = {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: [{
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterEnergyValue.toString(),
+            format: OCPPValueFormat.RAW,
+            measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+            unit: OCPPUnitOfMeasure.WATT_HOUR,
+            location: OCPPLocation.OUTLET,
+            context: OCPPReadingContext.SAMPLE_PERIODIC
+          }]
+        }],
+      };
+      // Soc
       if (withSoC) {
-        // With State of Charge ?
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Sample.Periodic'
-            }, {
-              value: meterSocValue,
-              unit: 'Percent',
-              context: 'Sample.Periodic',
-              measurand: 'SoC',
-              location: 'EV'
-            }]
-          },
-        });
-      } else {
-        // Regular case
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              format: 'Raw',
-              measurand: 'Energy.Active.Import.Register',
-              unit: 'Wh',
-              location: 'Outlet',
-              context: 'Sample.Periodic'
-            }]
-          },
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterSocValue.toString(),
+          unit: OCPPUnitOfMeasure.PERCENT,
+          context: OCPPReadingContext.SAMPLE_PERIODIC,
+          measurand: OCPPMeasurand.STATE_OF_CHARGE,
+          location: OCPPLocation.EV
         });
       }
-      // OCPP 1.5 (only without SoC)
+    // OCPP 1.5 (only without SoC)
     } else {
-      response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
+      // Energy
+      meterValueRequest = {
         connectorId: connectorId,
         transactionId: transactionId,
         values: {
           timestamp: timestamp.toISOString(),
           value: {
             $attributes: {
-              unit: 'Wh',
-              location: 'Outlet',
-              measurand: 'Energy.Active.Import.Register',
-              format: 'Raw',
-              context: 'Sample.Periodic'
+              unit: OCPPUnitOfMeasure.WATT_HOUR,
+              location: OCPPLocation.OUTLET,
+              measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              format: OCPPValueFormat.RAW,
+              context: OCPPReadingContext.SAMPLE_PERIODIC
             },
-            $value: meterValue
+            $value: meterEnergyValue.toString()
           }
         },
-      });
+      };
     }
+    // Execute
+    const response = await this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
     return response;
   }
 
-  async sendBeginMeterValue(connectorId, transactionId, meterValue, meterSocValue, signedValue, timestamp, withSoC = false, withSignedData = false) {
-    let response;
+  async sendBeginMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
+    signedValue: string, timestamp, withSoC = false, withSignedData = false) {
+    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_BEGIN, connectorId, transactionId, meterEnergyValue,
+      meterSocValue, signedValue, timestamp, withSoC, withSignedData);
+  }
+
+  async sendEndMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
+    signedValue: string, timestamp, withSoC = false, withSignedData = false) {
+    return this.sendBeginEndMeterValue(OCPPReadingContext.TRANSACTION_END, connectorId, transactionId, meterEnergyValue,
+      meterSocValue, signedValue, timestamp, withSoC, withSignedData);
+  }
+
+  async sendBeginEndMeterValue(context: OCPPReadingContext.TRANSACTION_BEGIN | OCPPReadingContext.TRANSACTION_END,
+    connectorId: number, transactionId: number, meterEnergyValue: number, meterSocValue: number,
+    signedValue: string, timestamp, withSoC = false, withSignedData = false) {
+    let meterValueRequest: OCPPMeterValueRequest | OCPP15MeterValueRequest;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
-      // Yes
+      // Energy
+      meterValueRequest = {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: [{
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterEnergyValue.toString(),
+            unit: OCPPUnitOfMeasure.WATT_HOUR,
+            context: context
+          }]
+        }],
+      };
+      // Soc
       if (withSoC) {
-        // With State of Charge ?
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.Begin'
-            }, {
-              value: meterSocValue,
-              unit: 'Percent',
-              context: 'Transaction.Begin',
-              measurand: 'SoC',
-              location: 'EV'
-            }]
-          },
-        });
-      } else if (withSignedData) {
-        // With SignedData ?
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: signedValue,
-              unit: 'Wh',
-              context: 'Transaction.Begin',
-              format: 'SignedData'
-            }, {
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.Begin'
-            }]
-          },
-        });
-      } else {
-        // Regular case
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.Begin'
-            }]
-          },
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: meterSocValue.toString(),
+          unit: OCPPUnitOfMeasure.PERCENT,
+          context: context,
+          measurand: OCPPMeasurand.STATE_OF_CHARGE,
+          location: OCPPLocation.EV
         });
       }
-    } // Nothing for OCPP 1.5
-    return response;
-  }
-
-  async sendEndMeterValue(connectorId, transactionId, meterValue, meterSocValue, signedValue, timestamp, withSoC = false, withSignedData = false) {
-    let response;
-    // OCPP 1.6?
-    if (this.chargingStation.ocppVersion === '1.6') {
-      // Yes
-      if (withSoC) {
-        // With State of Charge ?
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.End'
-            }, {
-              value: meterSocValue,
-              unit: 'Percent',
-              context: 'Transaction.End',
-              measurand: 'SoC',
-              location: 'EV'
-            }]
-          },
-        });
-      } else if (withSignedData) {
-        // With SignedData ?
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: signedValue,
-              unit: 'Wh',
-              context: 'Transaction.End',
-              format: 'SignedData'
-            }, {
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.End'
-            }]
-          },
-        });
-      } else {
-        // Regular case
-        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-          connectorId: connectorId,
-          transactionId: transactionId,
-          meterValue: {
-            timestamp: timestamp.toISOString(),
-            sampledValue: [{
-              value: meterValue,
-              unit: 'Wh',
-              context: 'Transaction.End'
-            }]
-          },
+      // Signed Data
+      if (withSignedData) {
+        meterValueRequest.meterValue[0].sampledValue.push({
+          value: signedValue,
+          format: OCPPValueFormat.SIGNED_DATA,
+          context: context,
         });
       }
-    } // Nothing for OCPP 1.5
+    }
+    // Nothing for OCPP 1.5
+    const response = await this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
     return response;
   }
 
-  async sendSoCMeterValue(connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      meterValue: {
-        timestamp: timestamp.toISOString(),
-        sampledValue: [{
-          value: meterValue,
-          format: 'Raw',
-          measurand: 'SoC',
-          context: 'Sample.Periodic'
-        }]
-
-      },
-    });
-    return response;
-  }
-
-  async sendClockMeterValue(connectorId, transactionId, meterValue, timestamp) {
+  async sendClockMeterValue(connectorId: number, transactionId: number, meterValue: number, timestamp: Date) {
     let response;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
       response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
-        meterValue: {
+        meterValue: [{
           timestamp: timestamp.toISOString(),
           sampledValue: [{
-            value: meterValue,
-            format: 'Raw',
-            measurand: 'Energy.Active.Import.Register',
-            unit: 'Wh',
-            location: 'Outlet',
-            context: 'Sample.Clock'
+            value: meterValue.toString(),
+            format: OCPPValueFormat.RAW,
+            measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+            unit: OCPPUnitOfMeasure.WATT_HOUR,
+            location: OCPPLocation.OUTLET,
+            context: OCPPReadingContext.SAMPLE_CLOCK
           }]
-
-        },
+        }],
       });
       // OCPP 1.5
     } else {
@@ -328,13 +231,13 @@ export default class ChargingStationContext {
           timestamp: timestamp.toISOString(),
           value: {
             $attributes: {
-              unit: 'Wh',
-              location: 'Outlet',
-              measurand: 'Energy.Active.Import.Register',
-              format: 'Raw',
-              context: 'Sample.Clock'
+              unit: OCPPUnitOfMeasure.WATT_HOUR,
+              location: OCPPLocation.OUTLET,
+              measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              format: OCPPValueFormat.RAW,
+              context: OCPPReadingContext.SAMPLE_CLOCK
             },
-            $value: meterValue
+            $value: meterValue.toString()
           }
         },
       });
@@ -342,18 +245,18 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async setConnectorStatus(connector) {
-    if (!('connectorId' in connector)) {
+  async setConnectorStatus(connector: OCPPStatusNotificationRequest) {
+    if (!Utils.objectHasProperty(connector, 'connectorId')) {
       connector.connectorId = 1;
     }
-    if (!('status' in connector)) {
-      connector.status = 'Available';
+    if (!Utils.objectHasProperty(connector, 'status')) {
+      connector.status = ChargePointStatus.AVAILABLE;
     }
-    if (!('errorCode' in connector)) {
-      connector.errorCode = 'NoError';
+    if (!Utils.objectHasProperty(connector, 'errorCode')) {
+      connector.errorCode = ChargePointErrorCode.NO_ERROR;
     }
-    if (!('timestamp' in connector)) {
-      connector.timestamp = new Date().toISOString;
+    if (!Utils.objectHasProperty(connector, 'timestamp')) {
+      connector.timestamp = new Date().toISOString();
     }
     const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
     this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;

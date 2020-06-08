@@ -1,3 +1,4 @@
+import { OCPP15MeterValueRequest, OCPPMeterValueRequest } from '../../../src/types/ocpp/OCPPServer';
 
 export default abstract class OCPPService {
   public serverUrl: string;
@@ -15,7 +16,7 @@ export default abstract class OCPPService {
 
   public abstract executeHeartbeat(chargeBoxIdentity, data): any;
 
-  public abstract executeMeterValues(chargeBoxIdentity, data): any;
+  public abstract executeMeterValues(chargeBoxIdentity, data: OCPPMeterValueRequest|OCPP15MeterValueRequest): any;
 
   public abstract executeBootNotification(chargeBoxIdentity, data): any;
 

@@ -87,6 +87,22 @@ export interface OCPPMeterValueRequest {
   meterValue: OCPPMeterValue[];
 }
 
+export interface OCPP15MeterValueRequest {
+  connectorId: number;
+  transactionId?: number;
+  values: OCPP15MeterValues|OCPP15MeterValues[];
+}
+
+export interface OCPP15MeterValues {
+  timestamp: string;
+  value: OCPP15MeterValue|OCPP15MeterValue[];
+}
+
+export interface OCPP15MeterValue {
+  $attributes: OCPPAttribute;
+  $value: string;
+}
+
 export interface OCPPMeterValues {
   transactionId?: number;
   connectorId: number;

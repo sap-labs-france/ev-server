@@ -35,7 +35,7 @@ export default class OCPPCommonTests {
   public transactionStartMeterValue: number;
   public transactionStartSoC: number;
   public energyActiveImportMeterValues: number[];
-  public powerMeterValues: number[];
+  public powerImportMeterValues: number[];
   public socMeterValues: number[];
   public transactionSignedData: string;
   public transactionEndSignedData: string;
@@ -88,7 +88,8 @@ export default class OCPPCommonTests {
     if (this.transactionStartUser === this.centralUserContext) {
       this.transactionStartUserService = this.centralUserService;
     } else {
-      this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+      this.transactionStartUserService = new CentralServerService(
+        this.tenantContext.getTenant().subdomain, this.transactionStartUser);
     }
   }
 
@@ -121,7 +122,9 @@ export default class OCPPCommonTests {
     // Set meter value start
     this.transactionStartMeterValue = 0;
     this.meterValueIntervalSecs = 60;
+    // eslint-disable-next-line no-useless-escape
     this.transactionSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">wQdZJR1CLRe+QhS3C+kHpkfVL4hqPhc8YIt/+4uHBBb9N6JNygltdEhYufTfaM++AJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eoQxVP10I4Zf9ACcAAAABAAERAP8e/5KqWwEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
+    // eslint-disable-next-line no-useless-escape
     this.transactionEndSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">GChPf/f+0Rw6DDWI0mujec6dOMDqm5cuCLXdEVV6MRua6OVqcHNP85q7K70tRPJKAJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eodYDQF0IrEb+ACgAAAABAAERAP8e/8OtYQEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     // Energy Import Meter Value (14 values)
     this.energyActiveImportMeterValues = Array.from({ length: 12 }, () => faker.random.number({
@@ -135,15 +138,11 @@ export default class OCPPCommonTests {
     })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
     this.transactionStartSoC = this.socMeterValues[0];
     // Power Import (14 values)
-    this.powerMeterValues = [];
+    this.powerImportMeterValues = [];
     for (let i = 0; i < this.energyActiveImportMeterValues.length; i++) {
-      this.powerMeterValues.push(
+      this.powerImportMeterValues.push(
         this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs));
     }
-    console.log('====================================');
-    console.log(this.energyActiveImportMeterValues);
-    console.log(this.powerMeterValues);
-    console.log('====================================');
     // Meter Values params
     this.transactionStartTime = moment().subtract(this.energyActiveImportMeterValues.length * this.meterValueIntervalSecs + 1, 'seconds').toDate();
     this.transactionTotalConsumptionWh = this.energyActiveImportMeterValues.reduce((sum, meterValue) => sum + meterValue);
@@ -304,7 +303,7 @@ export default class OCPPCommonTests {
     await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
   }
 
-  public async testStartTransaction(withSoC = false, validTransaction = true) {
+  public async testStartTransaction(validTransaction = true) {
     // Start a new Transaction
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
@@ -406,7 +405,7 @@ export default class OCPPCommonTests {
       // Check the Consumption
       response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
       expect(response.data).to.deep.include({
-        currentInstantWatts: (this.energyActiveImportMeterValues[index] * this.meterValueIntervalSecs),
+        currentInstantWatts: this.powerImportMeterValues[index],
         currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue)
       });
       if (withSoC) {
@@ -632,41 +631,11 @@ export default class OCPPCommonTests {
     expect(user.tags[0].id).eq(unknownTag);
   }
 
-  public async testStartTransactionWithTagAsInteger() {
-    let response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId,
-      this.numberTag,
-      0,
-      this.transactionStartTime
-    );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-    response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId,
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-  }
-
   public async testStartTransactionWithConnectorIdAsString() {
     const response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId.toString(),
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(response).to.be.transactionValid;
-  }
-
-  public async testStartTransactionWithMeterStartAsString() {
-    const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
-      '0',
+      0,
       this.transactionStartTime
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -708,62 +677,6 @@ export default class OCPPCommonTests {
     expect(response).to.be.transactionStatus('Invalid');
   }
 
-  public async testStartTransactionWithInvalidConnectorId() {
-    let response = await this.chargingStationContext.startTransaction(
-      'bla',
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-    response = await this.chargingStationContext.startTransaction(
-      '',
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-    response = await this.chargingStationContext.startTransaction(
-      -1,
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-    response = await this.chargingStationContext.startTransaction(
-      null,
-      this.numberTag.toString(),
-      0,
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-  }
-
-  public async testStartTransactionWithInvalidMeterStart() {
-    let response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId,
-      this.numberTag.toString(),
-      'bla',
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-    response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId,
-      this.numberTag.toString(),
-      '',
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-    response = await this.chargingStationContext.startTransaction(
-      this.chargingStationConnector1.connectorId,
-      this.numberTag.toString(),
-      // eslint-disable-next-line no-undefined
-      undefined,
-      this.transactionStartTime
-    );
-    expect(response).to.be.transactionStatus('Invalid');
-  }
-
   public async testStopTransactionWithoutTransactionData() {
     let response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
@@ -776,7 +689,8 @@ export default class OCPPCommonTests {
     const transactionId = response.data.transactionId;
     this.transactionCurrentTime = moment().toDate();
     const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
+    response = await this.chargingStationContext.stopTransaction(
+      transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
     expect(response.data).to.have.property('idTagInfo');
     expect(response.data.idTagInfo.status).to.equal('Accepted');
   }
@@ -978,7 +892,7 @@ export default class OCPPCommonTests {
       this.chargingStationConnector1.connectorId,
       this.numberTag.toString(),
       meterValue,
-      currentTime
+      currentTime.toDate()
     );
     // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
@@ -987,41 +901,41 @@ export default class OCPPCommonTests {
       this.chargingStationConnector1.connectorId,
       transactionId,
       meterValue += 300,
-      currentTime.add(1, 'minute').clone()
+      currentTime.add(1, 'minute').clone().toDate()
     );
     expect(response.data).to.eql({});
     response = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
       meterValue += 300,
-      currentTime.add(1, 'minute').clone()
+      currentTime.add(1, 'minute').clone().toDate()
     );
     expect(response.data).to.eql({});
     response = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
       meterValue += 300,
-      currentTime.add(1, 'minute').clone()
+      currentTime.add(1, 'minute').clone().toDate()
     );
     expect(response.data).to.eql({});
     response = await this.chargingStationContext.sendClockMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
       0,
-      currentTime.clone()
+      currentTime.clone().toDate()
     );
     expect(response.data).to.eql({});
     response = await this.chargingStationContext.sendConsumptionMeterValue(
       this.chargingStationConnector1.connectorId,
       transactionId,
       meterValue += 300,
-      currentTime.add(1, 'minute').clone()
+      currentTime.add(1, 'minute').clone().toDate()
     );
     expect(response.data).to.eql({});
     response = await this.chargingStationContext.stopTransaction(
       transactionId,
       this.numberTag.toString(),
-      meterValue, currentTime.add(1, 'minute').clone()
+      meterValue, currentTime.add(1, 'minute').clone().toDate()
     );
     expect(response.data).to.have.property('idTagInfo');
     expect(response.data.idTagInfo.status).to.equal('Accepted');
