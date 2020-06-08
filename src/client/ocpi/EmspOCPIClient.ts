@@ -13,6 +13,7 @@ import { OCPICommandType } from '../../types/ocpi/OCPICommandType';
 import OCPIEndpoint from '../../types/ocpi/OCPIEndpoint';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import { OCPIEvseStatus } from '../../types/ocpi/OCPIEvse';
+import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 import { OCPILocation } from '../../types/ocpi/OCPILocation';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import { OCPIRole } from '../../types/ocpi/OCPIRole';
@@ -33,7 +34,6 @@ import _ from 'lodash';
 import axios from 'axios';
 import moment from 'moment';
 import { v4 as uuid } from 'uuid';
-import { OCPIJobResult } from '../../types/ocpi/OCPIJobResult';
 
 const MODULE_NAME = 'EmspOCPIClient';
 

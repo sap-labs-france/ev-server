@@ -2,7 +2,9 @@ import { OCPISession, OCPISessionStatus } from '../../../../types/ocpi/OCPISessi
 import Transaction, { InactivityStatus } from '../../../../types/Transaction';
 
 import AppError from '../../../../exception/AppError';
+import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 import ChargingStationStorage from '../../../../storage/mongodb/ChargingStationStorage';
+import { Connector } from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import Consumption from '../../../../types/Consumption';
 import ConsumptionStorage from '../../../../storage/mongodb/ConsumptionStorage';
@@ -17,8 +19,6 @@ import TransactionStorage from '../../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../../storage/mongodb/UserStorage';
 import Utils from '../../../../utils/Utils';
 import moment from 'moment';
-import { Connector } from '../../../../types/ChargingStation';
-import { ChargePointStatus } from '../../../../types/ocpp/OCPPServer';
 
 const MODULE_NAME = 'EMSPSessionsEndpoint';
 
