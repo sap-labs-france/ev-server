@@ -572,7 +572,7 @@ export default class Utils {
               totalPower += chargePointOfCS.power;
             // Connector
             } else if (chargePointOfCS.connectorIDs.includes(connectorId) && chargePointOfCS.power &&
-                (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
+              (chargePointOfCS.cannotChargeInParallel || chargePointOfCS.sharePowerToAllConnectors)) {
               // Check Connector ID
               const connector = Utils.getConnectorFromID(chargingStation, connectorId);
               if (connector.power) {
@@ -775,7 +775,7 @@ export default class Utils {
               continue;
             }
             if (chargePointOfCS.cannotChargeInParallel ||
-                chargePointOfCS.sharePowerToAllConnectors) {
+              chargePointOfCS.sharePowerToAllConnectors) {
               // Add limit amp of one connector
               amperageLimit += Utils.getConnectorFromID(chargingStation, chargePointOfCS.connectorIDs[0]).amperageLimit;
             } else {
@@ -942,7 +942,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number, scale): string|number {
+  public static roundTo(number, scale): string | number {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 

@@ -1,4 +1,4 @@
-import { Handler, NextFunction, Request, Response } from 'express';
+import { Handler, NextFunction, Request, RequestHandler, Response } from 'express';
 
 import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
@@ -12,11 +12,11 @@ export default {
     return AuthService.initialize();
   },
 
-  authenticate() {
+  authenticate(): RequestHandler {
     return AuthService.authenticate();
   },
 
-  async authService(req: Request, res: Response, next: NextFunction) {
+  async authService(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const action = req.params.action as ServerAction;
     // Get the tenant

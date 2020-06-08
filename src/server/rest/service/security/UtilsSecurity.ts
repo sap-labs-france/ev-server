@@ -6,7 +6,7 @@ import Utils from '../../../../utils/Utils';
 import sanitize from 'mongo-sanitize';
 
 export default class UtilsSecurity {
-  static filterBoolean(value) {
+  static filterBoolean(value): boolean {
     let result = false;
     // Check boolean
     if (value) {
@@ -24,7 +24,7 @@ export default class UtilsSecurity {
     return result;
   }
 
-  static filterSort(request, filteredRequest) {
+  static filterSort(request, filteredRequest): void {
     // Exist?
     if (request.SortFields) {
       // Sanitize
@@ -59,7 +59,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkipAndLimit(request, filteredRequest) {
+  static filterSkipAndLimit(request, filteredRequest): void {
     // Limit
     UtilsSecurity.filterLimit(request, filteredRequest);
     // Skip
@@ -70,7 +70,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterLimit(request, filteredRequest) {
+  static filterLimit(request, filteredRequest): void {
     // Exist?
     if (!request.Limit) {
       // Default
@@ -87,7 +87,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterSkip(request, filteredRequest) {
+  static filterSkip(request, filteredRequest): void {
     // Exist?
     if (!request.Skip) {
       // Default
@@ -104,7 +104,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterAddressRequest(address): Address {
+  static filterAddressRequest(address: Address): Address {
     const filteredAddress: Address = {} as Address;
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);
@@ -124,7 +124,7 @@ export default class UtilsSecurity {
     return filteredAddress;
   }
 
-  static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser: UserToken) {
+  static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser: UserToken): void {
     if (entity.createdBy && typeof entity.createdBy === 'object' &&
       entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user

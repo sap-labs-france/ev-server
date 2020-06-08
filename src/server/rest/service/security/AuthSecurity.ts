@@ -1,5 +1,6 @@
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 
+import Eula from '../../../../types/Eula';
 import { Request } from 'express';
 import { UserStatus } from '../../../../types/User';
 import UtilsSecurity from './UtilsSecurity';
@@ -14,8 +15,8 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterResetPasswordRequest(request: any): Partial<HttpResetPasswordRequest> {
-    const filteredRequest: any = {};
+  public static filterResetPasswordRequest(request: HttpResetPasswordRequest): Partial<HttpResetPasswordRequest> {
+    const filteredRequest = {} as HttpResetPasswordRequest;
     // Set
     filteredRequest.email = sanitize(request.email);
     if (request.passwords) {
@@ -28,7 +29,7 @@ export default class AuthSecurity {
     return filteredRequest;
   }
 
-  public static filterRegisterUserRequest(request: any): Partial<HttpRegisterUserRequest> {
+  public static filterRegisterUserRequest(request: HttpRegisterUserRequest): Partial<HttpRegisterUserRequest> {
     return {
       name: sanitize(request.name),
       firstName: sanitize(request.firstName),
@@ -42,7 +43,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterLoginRequest(request: any): Partial<HttpLoginRequest> {
+  public static filterLoginRequest(request: HttpLoginRequest): Partial<HttpLoginRequest> {
     return {
       email: sanitize(request.email),
       password: sanitize(request.password),
@@ -59,7 +60,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterResendVerificationEmail(request: any): Partial<HttpResendVerificationMailRequest> {
+  public static filterResendVerificationEmail(request: HttpResendVerificationMailRequest): Partial<HttpResendVerificationMailRequest> {
     return {
       email: sanitize(request.email),
       tenant: sanitize(request.tenant),
@@ -76,11 +77,11 @@ export default class AuthSecurity {
     if (request.headers) {
       filteredRequest.tenant = sanitize(request.headers.tenant);
     }
-    return filteredRequest;
+    return filteredRequest as {Language: string; tenant: string};
   }
 
-  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement) {
-    const filteredEndUserLicenseAgreement: any = {};
+  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement: Eula): Eula {
+    const filteredEndUserLicenseAgreement = {} as Eula;
 
     if (!endUserLicenseAgreement) {
       return null;
