@@ -10,7 +10,7 @@ import sanitize from 'mongo-sanitize';
 
 export default class BillingSecurity {
   static filterTaxesResponse(taxes: BillingTax[], loggedUser: UserToken): BillingTax[] {
-    const filteredTaxes = [];
+    const filteredTaxes: BillingTax[] = [];
     if (!taxes) {
       return null;
     }
@@ -41,7 +41,7 @@ export default class BillingSecurity {
   }
 
   static filterInvoicesResponse(invoices: DataResult<BillingInvoice>, loggedUser: UserToken): void {
-    const filteredInvoices = [];
+    const filteredInvoices: BillingInvoice[] = [];
     if (!invoices) {
       return null;
     }

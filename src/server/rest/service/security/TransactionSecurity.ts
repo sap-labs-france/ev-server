@@ -139,13 +139,11 @@ export default class TransactionSecurity {
         filteredTransaction.pricingSource = transaction.pricingSource;
       }
       if (!transaction.stop) {
-        filteredTransaction.currentConsumption = transaction.currentConsumption;
-        filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
+        filteredTransaction.currentInstantWatts = transaction.currentInstantWatts;
+        filteredTransaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentInactivityStatus = transaction.currentInactivityStatus;
-        filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : new Date())
-            .diff(moment(transaction.timestamp))).asSeconds();
+        filteredTransaction.currentTotalDurationSecs = transaction.currentTotalDurationSecs;
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
@@ -181,7 +179,7 @@ export default class TransactionSecurity {
           tagID: Authorizations.isDemo(loggedUser) ? Constants.ANONYMIZED_VALUE : transaction.stop.tagID,
           meterStop: transaction.stop.meterStop,
           timestamp: transaction.stop.timestamp,
-          totalConsumption: transaction.stop.totalConsumption,
+          totalConsumptionWh: transaction.stop.totalConsumptionWh,
           totalInactivitySecs: transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs,
           inactivityStatus: transaction.stop.inactivityStatus,
           totalDurationSecs: transaction.stop.totalDurationSecs,
@@ -317,9 +315,9 @@ export default class TransactionSecurity {
     filteredTransaction.values = consumptions.map((consumption) => {
       const newConsumption: TransactionConsumption = {
         date: consumption.endedAt,
-        instantPower: consumption.instantPower,
+        instantWatts: consumption.instantWatts,
         instantAmps: consumption.instantAmps,
-        cumulatedConsumption: consumption.cumulatedConsumption,
+        cumulatedConsumptionWh: consumption.cumulatedConsumptionWh,
         cumulatedConsumptionAmps: consumption.cumulatedConsumptionAmps,
         stateOfCharge: consumption.stateOfCharge,
         cumulatedAmount: consumption.cumulatedAmount,

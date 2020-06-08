@@ -1,3 +1,5 @@
+import { OCPPAttribute, OCPPLocation, OCPPMeasurand, OCPPReadingContext, OCPPUnitOfMeasure, OCPPValueFormat } from '../types/ocpp/OCPPServer';
+
 import { OcppParameter } from '../types/ChargingStation';
 import Tenant from '../types/Tenant';
 
@@ -146,4 +148,20 @@ export default class Constants {
     { 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null },
     { 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
   ];
+
+  public static readonly DEFAULT_OCPP_CONSUMPTION_ATTRIBUTE: OCPPAttribute = {
+    unit: OCPPUnitOfMeasure.WATT_HOUR,
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
+    measurand: OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+    location: OCPPLocation.OUTLET,
+    format: OCPPValueFormat.RAW,
+  };
+
+  public static readonly DEFAULT_OCPP_SOC_ATTRIBUTE: OCPPAttribute = {
+    unit: OCPPUnitOfMeasure.PERCENT,
+    context: OCPPReadingContext.SAMPLE_PERIODIC,
+    measurand: OCPPMeasurand.STATE_OF_CHARGE,
+    location: OCPPLocation.EV,
+    format: OCPPValueFormat.RAW,
+  };
 }

@@ -34,7 +34,6 @@ import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
-import sanitize from 'mongo-sanitize';
 
 const MODULE_NAME = 'ChargingStationService';
 
@@ -191,8 +190,8 @@ export default class ChargingStationService {
     }
     if (filteredRequest.coordinates && filteredRequest.coordinates.length === 2) {
       chargingStation.coordinates = [
-        sanitize(filteredRequest.coordinates[0]),
-        sanitize(filteredRequest.coordinates[1])
+        filteredRequest.coordinates[0],
+        filteredRequest.coordinates[1]
       ];
     }
     // No charge point
@@ -279,7 +278,7 @@ export default class ChargingStationService {
       });
     }
     // Check if limit is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
       throw new AppError({
         source: chargingStation.id,
         action: action,
@@ -658,8 +657,8 @@ export default class ChargingStationService {
       });
     }
     for (const connector of chargingStation.connectors) {
-      if (connector && connector.activeTransactionID) {
-        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.activeTransactionID);
+      if (connector && connector.currentTransactionID) {
+        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.currentTransactionID);
         if (transaction && !transaction.stop) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
@@ -1182,8 +1181,8 @@ export default class ChargingStationService {
     for (let index = 0; index < chargingStation.connectors.length; index++) {
       const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === index + 1);
-      if (foundConnector.activeTransactionID > 0) {
-        const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.activeTransactionID);
+      if (foundConnector.currentTransactionID > 0) {
+        const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.currentTransactionID);
         results.push({
           'isStartAuthorized': false,
           'isStopAuthorized': Authorizations.canStopTransaction(user, transaction),

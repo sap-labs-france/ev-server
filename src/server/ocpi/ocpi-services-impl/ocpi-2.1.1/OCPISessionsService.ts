@@ -99,27 +99,27 @@ export default class OCPISessionsService {
         currentTotalInactivitySecs: 0,
         pricingSource: 'ocpi',
         currentInactivityStatus: InactivityStatus.INFO,
-        currentConsumption: 0,
+        currentInstantWatts: 0,
         currentConsumptionWh: 0,
-        lastMeterValue: {
+        lastEnergyActiveImportMeterValue: {
           value: 0,
           timestamp: session.start_datetime
         },
         signedData: '',
       } as Transaction;
     }
-    if (!transaction.lastMeterValue) {
-      transaction.lastMeterValue = {
+    if (!transaction.lastEnergyActiveImportMeterValue) {
+      transaction.lastEnergyActiveImportMeterValue = {
         value: transaction.meterStart,
         timestamp: transaction.timestamp
       };
     }
-    if (moment(session.last_updated).isBefore(transaction.lastMeterValue.timestamp)) {
+    if (moment(session.last_updated).isBefore(transaction.lastEnergyActiveImportMeterValue.timestamp)) {
       Logging.logDebug({
         tenantID: tenantId,
         source: Constants.CENTRAL_SERVER,
         module: MODULE_NAME, method: 'updateSession',
-        message: `Ignore session update session.last_updated < transaction.lastUpdate for transaction ${transaction.id}`,
+        message: `Ignore session update session.last_updated < transaction.currentTimestamp for transaction ${transaction.id}`,
         detailedMessages: { session }
       });
       return;
@@ -131,11 +131,11 @@ export default class OCPISessionsService {
       transaction.ocpiData = {};
     }
     transaction.ocpiData.session = session;
-    transaction.lastUpdate = session.last_updated;
+    transaction.currentTimestamp = session.last_updated;
     transaction.price = session.total_cost;
     transaction.priceUnit = session.currency;
     transaction.roundedPrice = Utils.convertToFloat(session.total_cost.toFixed(2));
-    transaction.lastMeterValue = {
+    transaction.lastEnergyActiveImportMeterValue = {
       value: session.kwh * 1000,
       timestamp: session.last_updated
     };
@@ -152,7 +152,7 @@ export default class OCPISessionsService {
         stateOfCharge: 0,
         tagID: session.auth_id,
         timestamp: stopTimestamp,
-        totalConsumption: session.kwh * 1000,
+        totalConsumptionWh: session.kwh * 1000,
         totalDurationSecs: Math.round(moment.duration(moment(stopTimestamp).diff(moment(transaction.timestamp))).asSeconds()),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         inactivityStatus: transaction.currentInactivityStatus,
@@ -206,7 +206,7 @@ export default class OCPISessionsService {
     transaction.priceUnit = cdr.currency;
     transaction.price = cdr.total_cost;
     transaction.roundedPrice = Utils.convertToFloat(cdr.total_cost.toFixed(2));
-    transaction.lastUpdate = cdr.last_updated;
+    transaction.currentTimestamp = cdr.last_updated;
     transaction.stop = {
       extraInactivityComputed: false,
       extraInactivitySecs: 0,
@@ -218,7 +218,7 @@ export default class OCPISessionsService {
       stateOfCharge: 0,
       tagID: cdr.auth_id,
       timestamp: cdr.stop_date_time,
-      totalConsumption: cdr.total_energy * 1000,
+      totalConsumptionWh: cdr.total_energy * 1000,
       totalDurationSecs: cdr.total_time,
       totalInactivitySecs: cdr.total_parking_time,
       inactivityStatus: transaction.currentInactivityStatus,
@@ -234,15 +234,15 @@ export default class OCPISessionsService {
   }
 
   private static async computeConsumption(tenantId: string, transaction: Transaction, session: OCPISession) {
-    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastMeterValue.value);
-    const duration = moment(session.last_updated).diff(transaction.lastMeterValue.timestamp, 'milliseconds') / 1000;
+    const consumptionWh = session.kwh * 1000 - Utils.convertToFloat(transaction.lastEnergyActiveImportMeterValue.value);
+    const duration = moment(session.last_updated).diff(transaction.lastEnergyActiveImportMeterValue.timestamp, 'milliseconds') / 1000;
     if (consumptionWh > 0 || duration > 0) {
       const sampleMultiplier = duration > 0 ? 3600 / duration : 0;
-      const currentConsumption = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
+      const currentInstantWatts = consumptionWh > 0 ? consumptionWh * sampleMultiplier : 0;
       const amount = session.total_cost - transaction.price;
-      transaction.currentConsumption = currentConsumption;
+      transaction.currentInstantWatts = currentInstantWatts;
       transaction.currentConsumptionWh = consumptionWh > 0 ? consumptionWh : 0;
-      transaction.currentTotalConsumption = transaction.currentTotalConsumption + transaction.currentConsumptionWh;
+      transaction.currentTotalConsumptionWh = transaction.currentTotalConsumptionWh + transaction.currentConsumptionWh;
       if (consumptionWh <= 0) {
         transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + duration;
         transaction.currentInactivityStatus = Utils.getInactivityStatusLevel(
@@ -253,17 +253,17 @@ export default class OCPISessionsService {
         connectorId: transaction.connectorId,
         chargeBoxID: transaction.chargeBoxID,
         userID: transaction.userID,
-        startedAt: new Date(transaction.lastMeterValue.timestamp),
+        startedAt: new Date(transaction.lastEnergyActiveImportMeterValue.timestamp),
         endedAt: new Date(session.last_updated),
-        consumption: transaction.currentConsumptionWh,
-        instantPower: Math.floor(transaction.currentConsumption),
-        instantAmps: Math.floor(transaction.currentConsumption / 230),
-        cumulatedConsumption: transaction.currentTotalConsumption,
-        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumption / 230),
+        consumptionWh: transaction.currentConsumptionWh,
+        instantWatts: Math.floor(transaction.currentInstantWatts),
+        instantAmps: Math.floor(transaction.currentInstantWatts / 230),
+        cumulatedConsumptionWh: transaction.currentTotalConsumptionWh,
+        cumulatedConsumptionAmps: Math.floor(transaction.currentTotalConsumptionWh / 230),
         totalInactivitySecs: transaction.currentTotalInactivitySecs,
         totalDurationSecs: transaction.stop ?
           moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-          moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
+          moment.duration(moment(transaction.lastEnergyActiveImportMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds(),
         stateOfCharge: transaction.currentStateOfCharge,
         amount: amount,
         currencyCode: session.currency,

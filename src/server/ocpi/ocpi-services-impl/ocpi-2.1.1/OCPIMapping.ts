@@ -91,7 +91,7 @@ export default class OCPIMapping {
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: connectorId,
-          currentConsumption: 0,
+          currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         };
@@ -569,7 +569,7 @@ export default class OCPIMapping {
         }
       }
     } else {
-      const consumption: number = transaction.stop ? transaction.stop.totalConsumption : transaction.currentTotalConsumption;
+      const consumption: number = transaction.stop ? transaction.stop.totalConsumptionWh : transaction.currentTotalConsumptionWh;
       chargingPeriods.push({
         // eslint-disable-next-line @typescript-eslint/camelcase
         start_date_time: transaction.timestamp,
@@ -580,7 +580,7 @@ export default class OCPIMapping {
       });
       const inactivity: number = transaction.stop ? transaction.stop.totalInactivitySecs : transaction.currentTotalInactivitySecs;
       if (inactivity > 0) {
-        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.lastUpdate;
+        const inactivityStart = transaction.stop ? transaction.stop.timestamp : transaction.currentTimestamp;
         chargingPeriods.push({
           // eslint-disable-next-line @typescript-eslint/camelcase
           start_date_time: moment(inactivityStart).subtract(inactivity, 'seconds').toDate(),
@@ -600,10 +600,10 @@ export default class OCPIMapping {
       start_date_time: consumption.startedAt,
       dimensions: []
     };
-    if (consumption.consumption > 0) {
+    if (consumption.consumptionWh > 0) {
       chargingPeriod.dimensions.push({
         type: CdrDimensionType.ENERGY,
-        volume: consumption.consumption / 1000
+        volume: consumption.consumptionWh / 1000
       });
       if (consumption.limitAmps > 0) {
         chargingPeriod.dimensions.push({

@@ -53,10 +53,10 @@ export default class ChargingStationSecurity {
           // Inactive
           if (filteredChargingStation.inactive) {
             connector.status = ChargePointStatus.UNAVAILABLE;
-            connector.currentConsumption = 0;
-            connector.totalConsumption = 0;
-            connector.totalInactivitySecs = 0;
-            connector.inactivityStatus = InactivityStatus.INFO;
+            connector.currentInstantWatts = 0;
+            connector.currentTotalConsumptionWh = 0;
+            connector.currentTotalInactivitySecs = 0;
+            connector.currentInactivityStatus = InactivityStatus.INFO;
             connector.currentStateOfCharge = 0;
           }
           // Filter User
@@ -78,14 +78,14 @@ export default class ChargingStationSecurity {
           id: connector.id,
           connectorId: connector.connectorId,
           status: (filteredChargingStation.inactive ? ChargePointStatus.UNAVAILABLE : connector.status),
-          currentConsumption: (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
+          currentInstantWatts: (filteredChargingStation.inactive ? 0 : connector.currentInstantWatts),
           currentStateOfCharge: (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
-          totalConsumption: (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
-          totalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          inactivityStatus: connector.inactivityStatus,
-          activeTransactionID: connector.activeTransactionID,
-          activeTransactionDate: connector.activeTransactionDate,
-          activeTagID: connector.activeTagID,
+          currentTotalConsumptionWh: (filteredChargingStation.inactive ? 0 : connector.currentTotalConsumptionWh),
+          currentTotalInactivitySecs: (filteredChargingStation.inactive ? 0 : connector.currentTotalInactivitySecs),
+          currentInactivityStatus: connector.currentInactivityStatus,
+          currentTransactionID: connector.currentTransactionID,
+          currentTransactionDate: connector.currentTransactionDate,
+          currentTagID: connector.currentTagID,
           errorCode: connector.errorCode,
           type: connector.type,
           power: connector.power,

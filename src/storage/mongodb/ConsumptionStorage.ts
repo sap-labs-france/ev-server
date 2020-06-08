@@ -29,15 +29,16 @@ export default class ConsumptionStorage {
       connectorId: Utils.convertToInt(consumptionToSave.connectorId),
       siteAreaID: Utils.convertToObjectID(consumptionToSave.siteAreaID),
       siteID: Utils.convertToObjectID(consumptionToSave.siteID),
-      consumption: Utils.convertToFloat(consumptionToSave.consumption),
+      consumptionWh: Utils.convertToFloat(consumptionToSave.consumptionWh),
+      consumptionAmps: Utils.convertToFloat(consumptionToSave.consumptionAmps),
       cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
-      cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
+      cumulatedConsumptionWh: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionWh),
       cumulatedConsumptionAmps: Utils.convertToFloat(consumptionToSave.cumulatedConsumptionAmps),
       pricingSource: consumptionToSave.pricingSource,
       amount: Utils.convertToFloat(consumptionToSave.amount),
       roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
       currencyCode: consumptionToSave.currencyCode,
-      instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      instantWatts: Utils.convertToFloat(consumptionToSave.instantWatts),
       instantAmps: Utils.convertToFloat(consumptionToSave.instantAmps),
       totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
       totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
@@ -115,7 +116,7 @@ export default class ConsumptionStorage {
           hour: { '$hour': '$startedAt' },
           minute: { '$minute': '$startedAt' }
         },
-        instantPower: { $sum: '$instantPower' },
+        instantWatts: { $sum: '$instantWatts' },
         instantAmps: { $sum: '$instantAmps' },
         limitWatts: { $last: '$limitSiteAreaWatts' },
         limitAmps: { $last: '$limitSiteAreaAmps' }
@@ -196,7 +197,7 @@ export default class ConsumptionStorage {
     });
     aggregation.push({
       $addFields: {
-        roundedInstantPower: { $round: [{ $divide: ['$instantPower', 100] }] }
+        roundedInstantPower: { $round: [{ $divide: ['$instantWatts', 100] }] }
       }
     });
     // Triming excess values

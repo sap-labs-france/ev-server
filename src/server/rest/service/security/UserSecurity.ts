@@ -61,7 +61,7 @@ export default class UserSecurity {
   }
 
   public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
+    const filteredRequest = UserSecurity.filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
@@ -75,77 +75,7 @@ export default class UserSecurity {
   }
 
   public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    return UserSecurity._filterUserRequest(request, loggedUser);
-  }
-
-  public static _filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
-    const filteredRequest: Partial<HttpUserRequest> = {};
-    if (request.costCenter) {
-      filteredRequest.costCenter = sanitize(request.costCenter);
-    }
-    if (request.firstName) {
-      filteredRequest.firstName = sanitize(request.firstName);
-    }
-    if (request.iNumber) {
-      filteredRequest.iNumber = sanitize(request.iNumber);
-    }
-    if (request.image) {
-      filteredRequest.image = sanitize(request.image);
-    }
-    if (request.mobile) {
-      filteredRequest.mobile = sanitize(request.mobile);
-    }
-    if (request.name) {
-      filteredRequest.name = sanitize(request.name);
-    }
-    if (request.locale) {
-      filteredRequest.locale = sanitize(request.locale);
-    }
-    if (request.address) {
-      filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
-    }
-    if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
-      filteredRequest.password = sanitize(request.passwords.password);
-    }
-    if (request.phone) {
-      filteredRequest.phone = sanitize(request.phone);
-    }
-    if (request.email) {
-      filteredRequest.email = sanitize(request.email);
-    }
-    if (Utils.objectHasProperty(request, 'issuer')) {
-      filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
-    }
-    if (Utils.objectHasProperty(request, 'notificationsActive')) {
-      filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-    }
-    // Admin?
-    if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
-      // Ok to set the sensitive data
-      if (request.status) {
-        filteredRequest.status = sanitize(request.status);
-      }
-      if (request.tags) {
-        filteredRequest.tags = [];
-        for (const tag of request.tags) {
-          // Filter
-          const filteredTag = UserSecurity.filterTagRequest(tag);
-          if (filteredTag) {
-            filteredRequest.tags.push(filteredTag);
-          }
-        }
-      }
-      if (request.plateID) {
-        filteredRequest.plateID = sanitize(request.plateID);
-      }
-      if (request.role) {
-        filteredRequest.role = sanitize(request.role);
-      }
-    }
-    if (request.notifications) {
-      filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.role, request.notifications);
-    }
-    return filteredRequest;
+    return UserSecurity.filterUserRequest(request, loggedUser);
   }
 
   // User
@@ -302,5 +232,75 @@ export default class UserSecurity {
       };
     }
     return filteredNotifications;
+  }
+
+  private static filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
+    const filteredRequest: Partial<HttpUserRequest> = {};
+    if (request.costCenter) {
+      filteredRequest.costCenter = sanitize(request.costCenter);
+    }
+    if (request.firstName) {
+      filteredRequest.firstName = sanitize(request.firstName);
+    }
+    if (request.iNumber) {
+      filteredRequest.iNumber = sanitize(request.iNumber);
+    }
+    if (request.image) {
+      filteredRequest.image = sanitize(request.image);
+    }
+    if (request.mobile) {
+      filteredRequest.mobile = sanitize(request.mobile);
+    }
+    if (request.name) {
+      filteredRequest.name = sanitize(request.name);
+    }
+    if (request.locale) {
+      filteredRequest.locale = sanitize(request.locale);
+    }
+    if (request.address) {
+      filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
+    }
+    if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
+      filteredRequest.password = sanitize(request.passwords.password);
+    }
+    if (request.phone) {
+      filteredRequest.phone = sanitize(request.phone);
+    }
+    if (request.email) {
+      filteredRequest.email = sanitize(request.email);
+    }
+    if (Utils.objectHasProperty(request, 'issuer')) {
+      filteredRequest.issuer = UtilsSecurity.filterBoolean(request.issuer);
+    }
+    if (Utils.objectHasProperty(request, 'notificationsActive')) {
+      filteredRequest.notificationsActive = sanitize(request.notificationsActive);
+    }
+    // Admin?
+    if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
+      // Ok to set the sensitive data
+      if (request.status) {
+        filteredRequest.status = sanitize(request.status);
+      }
+      if (request.tags) {
+        filteredRequest.tags = [];
+        for (const tag of request.tags) {
+          // Filter
+          const filteredTag = UserSecurity.filterTagRequest(tag);
+          if (filteredTag) {
+            filteredRequest.tags.push(filteredTag);
+          }
+        }
+      }
+      if (request.plateID) {
+        filteredRequest.plateID = sanitize(request.plateID);
+      }
+      if (request.role) {
+        filteredRequest.role = sanitize(request.role);
+      }
+    }
+    if (request.notifications) {
+      filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.role, request.notifications);
+    }
+    return filteredRequest;
   }
 }

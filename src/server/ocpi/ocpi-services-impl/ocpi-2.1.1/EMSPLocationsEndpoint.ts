@@ -259,7 +259,7 @@ export default class EMSPLocationsEndpoint extends AbstractEndpoint {
           amperage: ocpiConnector.amperage,
           voltage: ocpiConnector.voltage,
           connectorId: chargingStation.connectors.length,
-          currentConsumption: 0,
+          currentInstantWatts: 0,
           power: ocpiConnector.amperage * ocpiConnector.voltage,
           type: OCPIMapping.convertOCPIConnectorType2ConnectorType(ocpiConnector.standard),
         });

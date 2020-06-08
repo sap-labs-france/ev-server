@@ -312,9 +312,9 @@ export default class OCPPCommonTests {
       expect(chargingStationResponse.data).not.null;
       const connector = chargingStationResponse.data.connectors[this.chargingStationConnector1.connectorId - 1];
       expect(connector).not.null;
-      expect(connector.activeTransactionID).eq(transactionId);
-      expect(connector.activeTransactionDate).eq(this.transactionStartTime.toISOString());
-      expect(connector.activeTagID).eq(this.transactionStartUser.tags[0].id);
+      expect(connector.currentTransactionID).eq(transactionId);
+      expect(connector.currentTransactionDate).eq(this.transactionStartTime.toISOString());
+      expect(connector.currentTagID).eq(this.transactionStartUser.tags[0].id);
     } else {
       this.newTransaction = null;
       expect(response).to.be.transactionStatus('Invalid');
@@ -389,8 +389,8 @@ export default class OCPPCommonTests {
       // Check the Consumption
       response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
       expect(response.data).to.deep.include({
-        currentConsumption: (this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs),
-        currentTotalConsumption: (transactionCurrentMeterValue - this.transactionStartMeterValue)
+        currentInstantWatts: (this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs),
+        currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue)
       });
       if (withSoC) {
         expect(response.data).to.deep.include({
@@ -455,7 +455,7 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'stop': {
         'meterStop': this.transactionEndMeterValue,
-        'totalConsumption': this.transactionTotalConsumption,
+        'totalConsumptionWh': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
         'inactivityStatus': InactivityStatus.INFO,
         'totalDurationSecs': moment.duration(moment(this.transactionCurrentTime).diff(this.newTransaction.timestamp)).asSeconds(),
@@ -490,7 +490,7 @@ export default class OCPPCommonTests {
         'pricingSource': 'simple',
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
         'tagID': this.transactionStopUser.tags[0].id,
-        'totalConsumption': this.transactionTotalConsumption,
+        'totalConsumptionWh': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
         'inactivityStatus': InactivityStatus.INFO,
         'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
@@ -522,15 +522,14 @@ export default class OCPPCommonTests {
       // Check
       expect(value).to.include({
         'date': transactionCurrentTime.toISOString(),
-        'instantPower': this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        'instantWatts': this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
         'instantAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs),
-        'cumulatedConsumption': transactionCumulatedConsumption,
+        'cumulatedConsumptionWh': transactionCumulatedConsumption,
         'cumulatedConsumptionAmps': Utils.convertWattToAmp(this.chargingStationContext.getChargingStation(),
           null, this.newTransaction.connectorId, transactionCumulatedConsumption)
       });
       if (withSoC) {
-        // Check
         expect(value).to.include({
           'stateOfCharge': this.transactionMeterSoCValues[i]
         });
@@ -1005,7 +1004,7 @@ export default class OCPPCommonTests {
       id: transactionId,
       meterStart: meterStart,
       stop: {
-        totalConsumption: meterValue - meterStart,
+        totalConsumptionWh: meterValue - meterStart,
         totalInactivitySecs: 60,
         inactivityStatus: InactivityStatus.INFO
       }
@@ -1038,10 +1037,10 @@ export default class OCPPCommonTests {
     expect(responseValidate.data).to.eql({});
     responseValidate = await this.basicTransactionValidation(transactionId, chargingStationConnector.connectorId, startMeterValue, startTime.toISOString());
     expect(responseValidate.data).to.deep.include({
-      currentConsumption: 0,
+      currentInstantWatts: 0,
       currentCumulatedPrice: 0,
       currentStateOfCharge: 0,
-      currentTotalConsumption: 0,
+      currentTotalConsumptionWh: 0,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       price: 0,

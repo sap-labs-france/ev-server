@@ -90,10 +90,14 @@ export enum StaticLimitAmps {
 export interface Connector {
   id?: string;
   connectorId: number;
-  currentConsumption: number;
+  currentInstantWatts: number;
   currentStateOfCharge?: number;
-  totalInactivitySecs?: number;
-  totalConsumption?: number;
+  currentTotalConsumptionWh?: number;
+  currentTotalInactivitySecs?: number;
+  currentInactivityStatus?: InactivityStatus;
+  currentTransactionID?: number;
+  currentTransactionDate?: Date;
+  currentTagID?: string;
   status: ChargePointStatus;
   errorCode?: string;
   info?: string;
@@ -103,13 +107,9 @@ export interface Connector {
   voltage?: Voltage;
   amperage?: number;
   amperageLimit?: number;
-  activeTransactionID?: number;
   userID?: string;
   user?: User;
-  activeTransactionDate?: Date;
-  activeTagID?: string;
   statusLastChangedOn?: Date;
-  inactivityStatus?: InactivityStatus;
   numberOfConnectedPhase?: number;
   currentType?: CurrentType;
   chargePointID?: number;
@@ -219,8 +219,7 @@ export enum ConnectorType {
 }
 
 export interface ChargingStationCapabilities {
-  supportStaticLimitationForChargingStation: boolean;
-  supportStaticLimitationPerConnector: boolean;
+  supportStaticLimitation: boolean;
   supportChargingProfiles: boolean;
   supportCreditCard: boolean;
   supportRemoteStartStopTransaction: boolean;
@@ -254,4 +253,5 @@ export enum ChargerVendor {
   WEBASTO = 'Webasto',
   DELTA = 'DELTA',
   ABB = 'ABB',
+  LEGRAND = 'Legrand',
 }

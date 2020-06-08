@@ -136,7 +136,7 @@ export default class SiteAreaSecurity {
     // Clean
     filteredSiteArea.values = consumptions.map((consumption) => ({
       date: consumption.endedAt,
-      instantPower: consumption.instantPower,
+      instantWatts: consumption.instantWatts,
       instantAmps: consumption.instantAmps,
       limitWatts: consumption.limitWatts,
       limitAmps: consumption.limitAmps,

@@ -9,7 +9,6 @@ import DbParams from '../../types/database/DbParams';
 import Logging from '../../utils/Logging';
 import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
-import { type } from 'os';
 
 const MODULE_NAME = 'CarStorage';
 
