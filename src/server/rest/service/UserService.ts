@@ -753,7 +753,7 @@ export default class UserService {
       });
     }
     // Get users
-    const userSites = await UserStorage.getSites(req.user.tenantID,
+    const userSites = await UserStorage.getUserSites(req.user.tenantID,
       {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID

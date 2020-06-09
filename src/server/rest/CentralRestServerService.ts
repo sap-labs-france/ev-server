@@ -58,8 +58,8 @@ class RequestMapper {
         );
         // Register REST actions
         this.registerJsonActionsPaths({
-          [ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
-          [ServerAction.REMOVE_CHARGING_STATION_FROM_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
+          [ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
+          [ServerAction.REMOVE_CHARGING_STATIONS_FROM_SITE_AREA]: SiteAreaService.handleAssignChargingStationsToSiteArea.bind(this),
           [ServerAction.REGISTRATION_TOKEN_CREATE]: RegistrationTokenService.handleCreateRegistrationToken.bind(this),
           [ServerAction.USER_CREATE]: UserService.handleCreateUser.bind(this),
           [ServerAction.COMPANY_CREATE]: CompanyService.handleCreateCompany.bind(this),

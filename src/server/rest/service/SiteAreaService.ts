@@ -155,7 +155,7 @@ export default class SiteAreaService {
         });
       }
       for (const connector of chargingStation.connectors) {
-        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
+        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             action: action,
@@ -168,7 +168,7 @@ export default class SiteAreaService {
       }
     }
     // Save
-    if (action === ServerAction.ADD_CHARGING_STATION_TO_SITE_AREA) {
+    if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
       await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     } else {
       await SiteAreaStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
