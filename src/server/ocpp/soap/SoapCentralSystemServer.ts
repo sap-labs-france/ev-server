@@ -119,7 +119,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
       method: 'handleSoapServerMessage',
       action: ServerAction.EXPRESS_SERVER,
-      message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
+      message: `>> OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: { request }
     });
   }
@@ -132,7 +132,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
         method: 'handleSoapServerLog',
         action: ServerAction.EXPRESS_SERVER,
-        message: `OCPP ${ocppVersion} - Request Replied`,
+        message: `<< OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: { data }
       });
     }

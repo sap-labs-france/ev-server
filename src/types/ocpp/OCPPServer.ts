@@ -81,13 +81,13 @@ export interface OCPPHeartbeatResponse {
   currentTime: string;
 }
 
-export interface OCPPMeterValueRequest {
+export interface OCPPMeterValuesRequest {
   connectorId: number;
   transactionId?: number;
   meterValue: OCPPMeterValue[];
 }
 
-export interface OCPP15MeterValueRequest {
+export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
   values: OCPP15MeterValues|OCPP15MeterValues[];
@@ -276,7 +276,7 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
 }
 
 export interface OCPPAuthorizeResponse {
-  status: OCPPAuthorizationStatus;
+  idTagInfo: OCPPIdTagInfo;
 }
 
 export interface OCPPIdTagInfo {
@@ -412,5 +412,5 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
 }
 
 export interface OCPPStopTransactionResponse {
-  status: OCPPAuthorizationStatus;
+  idTagInfo: OCPPIdTagInfo;
 }

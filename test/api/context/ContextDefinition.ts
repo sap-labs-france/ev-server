@@ -102,6 +102,8 @@ export default class ContextDefinition {
           }
         },
       },
+      car: {},
+      asset: {},
       ocpi: {
         content: {
           type: RoamingSettingsType.GIREVE,
