@@ -83,9 +83,9 @@ export default class SiteAreaService {
     }
     // Save
     if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
-      await AssetStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
+      await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
     } else {
-      await AssetStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
+      await SiteAreaStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
     }
     // Log
     Logging.logSecurityInfo({
