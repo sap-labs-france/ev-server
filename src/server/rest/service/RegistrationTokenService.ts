@@ -29,7 +29,7 @@ export default class RegistrationTokenService {
       if (Utils.isComponentActiveFromToken(req.user, TenantComponents.ORGANIZATION) && filteredRequest.siteAreaID) {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-        UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+        UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
           MODULE_NAME, 'handleCreateRegistrationToken', req.user);
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
@@ -114,7 +114,7 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist anymore.`,
         MODULE_NAME, 'handleDeleteRegistrationToken', req.user);
       await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
       // Log
@@ -162,7 +162,7 @@ export default class RegistrationTokenService {
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
-      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' doesn't exist anymore.`,
+      UtilsService.assertObjectExists(action, registrationToken, `Registration Token '${tokenID}' does not exist anymore.`,
         MODULE_NAME, 'handleRevokeRegistrationToken', req.user);
       registrationToken.revocationDate = new Date();
       registrationToken.lastChangedBy = { 'id': req.user.id };

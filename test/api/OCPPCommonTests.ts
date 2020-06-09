@@ -36,6 +36,7 @@ export default class OCPPCommonTests {
   public transactionStartSoC: number;
   public energyActiveImportMeterValues: number[];
   public powerImportMeterValues: number[];
+  public totalInactivities: number[];
   public socMeterValues: number[];
   public transactionSignedData: string;
   public transactionEndSignedData: string;
@@ -142,6 +143,13 @@ export default class OCPPCommonTests {
     for (let i = 0; i < this.energyActiveImportMeterValues.length; i++) {
       this.powerImportMeterValues.push(
         this.energyActiveImportMeterValues[i] * (3600 / this.meterValueIntervalSecs));
+    }
+    // Total Inactivity (14 values)
+    this.totalInactivities = [];
+    let lastInactivity = 0;
+    for (let i = 0; i < this.energyActiveImportMeterValues.length; i++) {
+      lastInactivity += (this.energyActiveImportMeterValues[i] === 0 ? this.meterValueIntervalSecs : 0);
+      this.totalInactivities.push(lastInactivity);
     }
     // Meter Values params
     this.transactionStartTime = moment().subtract(this.energyActiveImportMeterValues.length * this.meterValueIntervalSecs + 1, 'seconds').toDate();
@@ -406,7 +414,12 @@ export default class OCPPCommonTests {
       response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
       expect(response.data).to.deep.include({
         currentInstantWatts: this.powerImportMeterValues[index],
-        currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue)
+        currentTotalConsumptionWh: (transactionCurrentMeterValue - this.transactionStartMeterValue),
+        currentTotalDurationSecs: this.meterValueIntervalSecs * (index + 1),
+        currentTotalInactivitySecs: this.totalInactivities[index],
+        currentCumulatedPrice: ((transactionCurrentMeterValue - this.transactionStartMeterValue) / 1000) * this.priceKWH,
+        currentInactivityStatus : Utils.getInactivityStatusLevel(this.chargingStationContext.getChargingStation(),
+          this.newTransaction.connectorId, this.totalInactivities[index]),
       });
       if (withSoC) {
         expect(response.data).to.deep.include({
@@ -989,7 +1002,7 @@ export default class OCPPCommonTests {
     });
   }
 
-  private async basicTransactionValidation(transactionId, connectorId, meterStart, timestamp) {
+  private async basicTransactionValidation(transactionId: number, connectorId: number, meterStart: number, timestamp: Date) {
     const response = await this.centralUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.deep['containSubset']({
@@ -999,6 +1012,9 @@ export default class OCPPCommonTests {
       'connectorId': connectorId,
       'tagID': this.transactionStartUser.tags[0].id,
       'meterStart': meterStart,
+      'userID': this.transactionStartUser.id,
+      'siteAreaID': this.chargingStationContext.getChargingStation().siteAreaID,
+      'siteID': this.chargingStationContext.getChargingStation().siteArea.siteID,
       'user': {
         'id': this.transactionStartUser.id,
         'name': this.transactionStartUser.name,

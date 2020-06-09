@@ -1,3 +1,5 @@
+import WSClientConfiguration from './configuration/WSClientConfiguration';
+import WebSocket from 'ws';
 
 export enum MessageType {
   CALL_MESSAGE = 2, // Client-to-Server
@@ -28,3 +30,8 @@ export enum OcppErrorType {
   GENERIC_ERROR = 'GenericError',
 }
 
+export interface WSClientOptions extends WSClientConfiguration {
+  WSOptions?: WebSocket.ClientOptions;
+  logTenantID?: string;
+  protocols?: string;
+}

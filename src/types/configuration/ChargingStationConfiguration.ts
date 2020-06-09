@@ -6,4 +6,5 @@ export default interface ChargingStationConfiguration {
   notifEndOfChargeEnabled: boolean;
   notifEndOfChargePercent: number;
   notifStopTransactionAndUnlockConnector: boolean;
+  useServerLocalIPForRemoteCommand?: boolean;
 }

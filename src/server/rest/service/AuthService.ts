@@ -19,6 +19,7 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
@@ -100,15 +101,8 @@ export default class AuthService {
       });
     }
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with Email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
-        module: MODULE_NAME,
-        method: 'handleLogIn'
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME, 'handleLogIn', req.user);
     if (user.deleted) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -355,16 +349,8 @@ export default class AuthService {
     }
     // Generate a new password
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-    // Found?
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with Email '${filteredRequest.email}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUserPasswordReset'
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME, 'handleUserPasswordReset', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -408,16 +394,8 @@ export default class AuthService {
   public static async resetUserPassword(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Get the user
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
-    // Found?
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with password reset hash '${filteredRequest.hash}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleUserPasswordReset'
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with password reset hash '${filteredRequest.hash}' does not exist`,
+      MODULE_NAME, 'handleUserPasswordReset', req.user);
     // Deleted
     if (user.deleted) {
       throw new AppError({
@@ -603,16 +581,8 @@ export default class AuthService {
     }
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
-    // User exists?
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        action: action,
-        module: MODULE_NAME, method: 'handleVerifyEmail',
-        message: `The user with email '${filteredRequest.Email}' does not exist`
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.Email}' does not exist`,
+      MODULE_NAME, 'handleVerifyEmail', req.user);
     // User deleted?
     if (user.deleted) {
       throw new AppError({
@@ -761,17 +731,8 @@ export default class AuthService {
     }
     // Is valid email?
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-    // User exists?
-    if (!user) {
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with Email '${filteredRequest.email}' does not exist`,
-        module: MODULE_NAME,
-        method: 'handleResendVerificationEmail',
-        action: action
-      });
-    }
+    UtilsService.assertObjectExists(action, user, `User with email '${filteredRequest.email}' does not exist`,
+      MODULE_NAME, 'handleResendVerificationEmail', req.user);
     // User deleted?
     if (user.deleted) {
       throw new AppError({

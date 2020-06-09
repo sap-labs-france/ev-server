@@ -5,8 +5,10 @@ import { NextFunction, Request, Response } from 'express';
 import { ActionsResponse } from '../../../types/GlobalType';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import AssetStorage from '../../../storage/mongodb/AssetStorage';
 import Authorizations from '../../../authorization/Authorizations';
 import { ChargingProfilePurposeType } from '../../../types/ChargingProfile';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import LockingHelper from '../../../locking/LockingHelper';
@@ -27,6 +29,164 @@ import moment from 'moment';
 const MODULE_NAME = 'SiteAreaService';
 
 export default class SiteAreaService {
+  public static async handleAssignAssetsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ASSET,
+      Action.UPDATE, Entity.ASSET, MODULE_NAME, 'handleAssignAssetsToSiteArea');
+    const filteredRequest = SiteAreaSecurity.filterAssignAssetsToSiteAreaRequest(req.body);
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
+    if (!filteredRequest.assetIDs || (filteredRequest.assetIDs && filteredRequest.assetIDs.length <= 0)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Asset\'s IDs must be provided',
+        module: MODULE_NAME,
+        method: 'handleAssignAssetsToSiteArea',
+        user: req.user
+      });
+    }
+    // Get the Site Area
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
+      MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME,
+        method: 'handleAssignAssetsToSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Get Assets
+    for (const assetID of filteredRequest.assetIDs) {
+      // Check the asset
+      const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
+      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist anymore.`,
+        MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
+      // Check auth
+      if (!Authorizations.canReadAsset(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.READ,
+          entity: Entity.ASSET,
+          module: MODULE_NAME,
+          method: 'handleAssignAssetsToSiteArea',
+          value: assetID
+        });
+      }
+    }
+    // Save
+    if (action === ServerAction.ADD_ASSET_TO_SITE_AREA) {
+      await SiteAreaStorage.addAssetsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
+    } else {
+      await SiteAreaStorage.removeAssetsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.assetIDs);
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user,
+      module: MODULE_NAME,
+      method: 'handleAssignAssetsToSiteArea',
+      message: 'Site Area\'s Assets have been assigned successfully',
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
+  public static async handleAssignChargingStationsToSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, TenantComponents.ORGANIZATION,
+      Action.UPDATE, Entity.CHARGING_STATION, MODULE_NAME, 'handleAssignChargingStationsToSiteArea');
+    // Filter
+    const filteredRequest = SiteAreaSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(action, filteredRequest.siteAreaID, MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+    if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: HTTPError.GENERAL_ERROR,
+        message: 'The Charging Station\'s IDs must be provided',
+        module: MODULE_NAME,
+        method: 'handleAssignChargingStationsToSiteArea',
+        user: req.user
+      });
+    }
+    // Get the Site Area (before auth to get siteID)
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
+      MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+      throw new AppAuthError({
+        errorCode: HTTPAuthError.ERROR,
+        user: req.user,
+        action: Action.UPDATE,
+        entity: Entity.SITE_AREA,
+        module: MODULE_NAME,
+        method: 'handleAssignChargingStationsToSiteArea',
+        value: filteredRequest.siteAreaID
+      });
+    }
+    // Get Charging Stations
+    for (const chargingStationID of filteredRequest.chargingStationIDs) {
+      // Check the charging station
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+      UtilsService.assertObjectExists(action, chargingStation, `ChargingStation '${chargingStationID}' does not exist anymore.`,
+        MODULE_NAME, 'handleAssignChargingStationsToSiteArea', req.user);
+      // Check auth
+      if (!Authorizations.canReadChargingStation(req.user)) {
+        throw new AppAuthError({
+          errorCode: HTTPAuthError.ERROR,
+          user: req.user,
+          action: Action.READ,
+          entity: Entity.CHARGING_STATION,
+          module: MODULE_NAME,
+          method: 'handleAssignChargingStationsToSiteArea',
+          value: chargingStationID
+        });
+      }
+      for (const connector of chargingStation.connectors) {
+        if (connector.numberOfConnectedPhase !== 1 && siteArea.numberOfPhases === 1 && action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            action: action,
+            errorCode: HTTPError.THREE_PHASE_CHARGER_ON_SINGLE_PHASE_SITE_AREA,
+            message: `Error occurred while assigning charging station: '${chargingStation.id}'. Charging Station is not single phased`,
+            module: MODULE_NAME, method: 'handleAssignChargingStationsToSiteArea',
+            user: req.user
+          });
+        }
+      }
+    }
+    // Save
+    if (action === ServerAction.ADD_CHARGING_STATIONS_TO_SITE_AREA) {
+      await SiteAreaStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+    } else {
+      await SiteAreaStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user,
+      module: MODULE_NAME,
+      method: 'handleAssignChargingStationsToSiteArea',
+      message: 'Site Area\'s Charging Stations have been assigned successfully',
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleDeleteSiteArea(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.ORGANIZATION,
@@ -37,7 +197,6 @@ export default class SiteAreaService {
     UtilsService.assertIdIsProvided(action, siteAreaID, MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // Get
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-    // Found?
     UtilsService.assertObjectExists(action, siteArea, `Site Area with ID '${siteAreaID}' does not exist`,
       MODULE_NAME, 'handleDeleteSiteArea', req.user);
     // Check auth
@@ -341,7 +500,7 @@ export default class SiteAreaService {
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
     // Regtrigger Smart Charging
     if (filteredRequest.smartCharging) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-undef
       setTimeout(async () => {
         const siteAreaLock = await LockingHelper.createAndAquireExclusiveLockForSiteArea(req.user.tenantID, siteArea);
         if (siteAreaLock) {

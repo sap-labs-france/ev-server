@@ -12,6 +12,58 @@ import Utils from '../../utils/Utils';
 const MODULE_NAME = 'SiteAreaStorage';
 
 export default class SiteAreaStorage {
+  public static async addAssetsToSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addAssetsToSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site Area provided?
+    if (siteAreaID) {
+      // At least one Asset
+      if (assetIDs && assetIDs.length > 0) {
+        // Update all assets
+        await global.database.getCollection<any>(tenantID, 'assets').updateMany(
+          { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
+          {
+            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+          }, {
+            upsert: false
+          });
+      }
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'addAssetsToSiteArea', uniqueTimerID, {
+      siteAreaID,
+      assetIDs
+    });
+  }
+
+  public static async removeAssetsFromSiteArea(tenantID: string, siteAreaID: string, assetIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeAssetsFromSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site Area provided?
+    if (siteAreaID) {
+      // At least one Asset
+      if (assetIDs && assetIDs.length > 0) {
+        // Update all assets
+        await global.database.getCollection<any>(tenantID, 'assets').updateMany(
+          { '_id': { $in: assetIDs.map((assetID) => Utils.convertToObjectID(assetID)) } },
+          {
+            $set: { siteAreaID: null }
+          }, {
+            upsert: false
+          });
+      }
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'removeAssetsFromSiteArea', uniqueTimerID, {
+      siteAreaID,
+      assetIDs
+    });
+  }
+
   public static async getSiteAreaImage(tenantID: string, id: string): Promise<Image> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'getSiteAreaImage');
@@ -233,6 +285,58 @@ export default class SiteAreaStorage {
         (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
+  }
+
+  public static async addChargingStationsToSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'addChargingStationsToSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one ChargingStation
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // Update all chargers
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+          { '_id': { $in: chargingStationIDs } },
+          {
+            $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
+          }, {
+            upsert: false
+          });
+      }
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'addChargingStationsToSiteArea', uniqueTimerID, {
+      siteAreaID,
+      chargingStationIDs
+    });
+  }
+
+  public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'removeChargingStationsFromSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one ChargingStation
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // Update all chargers
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+          { '_id': { $in: chargingStationIDs } },
+          {
+            $set: { siteAreaID: null }
+          }, {
+            upsert: false
+          });
+      }
+    }
+    // Debug
+    Logging.traceEnd(MODULE_NAME, 'removeChargingStationsFromSiteArea', uniqueTimerID, {
+      siteAreaID,
+      chargingStationIDs
+    });
   }
 
   public static async deleteSiteArea(tenantID: string, id: string): Promise<void> {
