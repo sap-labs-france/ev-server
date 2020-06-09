@@ -46,7 +46,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public async initialize() {
+  public async initialize(): Promise<void> {
     // Already initialized?
     if (!this.initialized) {
       // Call super class
@@ -76,7 +76,7 @@ export default class JsonWSConnection extends WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
@@ -86,7 +86,7 @@ export default class JsonWSConnection extends WSConnection {
     });
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -99,7 +99,7 @@ export default class JsonWSConnection extends WSConnection {
     this.wsServer.removeJsonConnection(this);
   }
 
-  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any) {
+  public async handleRequest(messageId: string, commandName: ServerAction, commandPayload: any): Promise<void> {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
