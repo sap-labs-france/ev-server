@@ -1,4 +1,4 @@
-import { HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import { HttpAssignAssetsToSiteAreaRequest, HttpAssignChargingStationToSiteAreaRequest, HttpSiteAreaConsumptionsRequest, HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
@@ -15,6 +15,13 @@ export default class SiteAreaSecurity {
 
   public static filterSiteAreaRequestByID(request: any): string {
     return sanitize(request.ID);
+  }
+
+  public static filterAssignAssetsToSiteAreaRequest(request: any): HttpAssignAssetsToSiteAreaRequest {
+    return {
+      siteAreaID: sanitize(request.siteAreaID),
+      assetIDs: request.assetIDs.map(sanitize)
+    };
   }
 
   public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {

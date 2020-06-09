@@ -10,7 +10,6 @@ import Authorizations from '../../../authorization/Authorizations';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import Constants from '../../../utils/Constants';
-// pragma import ConvergentChargingPricingIntegration from '../../../integration/pricing/export-convergent-charging';
 import EmspOCPIClient from '../../../client/ocpi/EmspOCPIClient';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
@@ -40,7 +39,6 @@ export default class UserService {
       Action.UPDATE, Entity.SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
-    // Check Mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -64,7 +62,7 @@ export default class UserService {
       });
     }
     // Check auth
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+    if (!Authorizations.canReadUser(req.user, filteredRequest.userID)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
@@ -81,17 +79,9 @@ export default class UserService {
       MODULE_NAME, 'handleAssignSitesToUser', req.user);
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
-      if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.OBJECT_DOES_NOT_EXIST_ERROR,
-          message: `Site with ID '${siteID}' does not exist anymore`,
-          module: MODULE_NAME,
-          method: 'handleAssignSitesToUser',
-          user: req.user,
-          action: action
-        });
-      }
+      const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+      UtilsService.assertObjectExists(action, site, `Site with ID '${siteID}' does not exist`,
+        MODULE_NAME, 'handleUpdateSiteUserOwner', req.user);
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, siteID)) {
         throw new AppAuthError({

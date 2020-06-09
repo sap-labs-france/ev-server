@@ -25,3 +25,8 @@ export interface HttpAssignChargingStationToSiteAreaRequest {
   siteAreaID: string;
   chargingStationIDs: string[];
 }
+
+export interface HttpAssignAssetsToSiteAreaRequest {
+  siteAreaID: string;
+  assetIDs: string[];
+}

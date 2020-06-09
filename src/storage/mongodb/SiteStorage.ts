@@ -503,22 +503,6 @@ export default class SiteStorage {
     Logging.traceEnd(MODULE_NAME, 'deleteCompanySites', uniqueTimerID, { companyID });
   }
 
-  public static async siteExists(tenantID: string, siteID: string): Promise<boolean> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'deleteCompanySites');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Exec
-    const result = await global.database.getCollection<any>(tenantID, 'sites').findOne({ _id: Utils.convertToObjectID(siteID) });
-    // Debug
-    Logging.traceEnd(MODULE_NAME, 'deleteCompanySites', uniqueTimerID, { siteID });
-    // Check
-    if (!result) {
-      return false;
-    }
-    return true;
-  }
-
   public static async siteHasUser(tenantID: string, siteID: string, userID: string): Promise<boolean> {
     // Debug
     const uniqueTimerID = Logging.traceStart(MODULE_NAME, 'siteHasUser');
