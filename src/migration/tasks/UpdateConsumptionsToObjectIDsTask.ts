@@ -6,9 +6,9 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 import global from '../../types/GlobalType';
 
-const MODULE_NAME = 'UpdateConsumptionsToObjectIDs';
+const MODULE_NAME = 'UpdateConsumptionsToObjectIDsTask';
 
-export default class UpdateConsumptionsToObjectIDs extends MigrationTask {
+export default class UpdateConsumptionsToObjectIDsTask extends MigrationTask {
   async migrate() {
     const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
