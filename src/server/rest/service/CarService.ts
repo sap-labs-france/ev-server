@@ -313,8 +313,10 @@ export default class CarService {
     const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(action, car, `Car ID '${filteredRequest.id}' does not exist`,
       MODULE_NAME, 'handleUpdateCar', req.user);
+    // Check Owner if Basic
+    let userCar;
     if (Authorizations.isBasic(req.user)) {
-      const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.id, req.user.id);
+      userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.id, req.user.id);
       if (!userCar || !userCar.owner) {
         throw new AppAuthError({
           errorCode: HTTPAuthError.ERROR,
@@ -326,6 +328,7 @@ export default class CarService {
         });
       }
     }
+    // Car already exists with same VIN and License Plate
     if (car.licensePlate !== filteredRequest.licensePlate || car.vin !== filteredRequest.vin) {
       const checkCar = await CarStorage.getCarByVinLicensePlate(req.user.tenantID, filteredRequest.licensePlate, filteredRequest.vin);
       if (checkCar) {
@@ -338,6 +341,7 @@ export default class CarService {
         });
       }
     }
+    // Ok: Update & Save
     car.carCatalogID = filteredRequest.carCatalogID;
     car.vin = filteredRequest.vin;
     car.licensePlate = filteredRequest.licensePlate;
@@ -354,8 +358,9 @@ export default class CarService {
       action: action,
       detailedMessages: { car }
     });
+    // Handle Basic User specific props in userscars collection
     if (Authorizations.isBasic(req.user)) {
-      const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, car.id, req.user.id);
+      // Only one property in userscars: Default
       if (userCar.default !== filteredRequest.isDefault) {
         if (filteredRequest.isDefault) {
           await CarStorage.clearDefaultUserCar(req.user.tenantID, req.user.id);
@@ -423,31 +428,30 @@ export default class CarService {
     }
     const filteredRequest = CarSecurity.filterCarRequest(req.query);
     UtilsService.assertIdIsProvided(action, filteredRequest.ID, MODULE_NAME, 'handleGetCar', req.user);
-    let car: Car;
+    // Get the car
+    const car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
     if (Authorizations.isBasic(req.user)) {
-      car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
-      car.isDefault = (await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.ID, req.user.id)).default;
-    } else {
-      // Get the car
-      car = await CarStorage.getCar(req.user.tenantID, filteredRequest.ID);
+      const userCar = await CarStorage.getUserCarByCarUser(req.user.tenantID, filteredRequest.ID, req.user.id);
+      if (userCar) {
+        car.isDefault = userCar.default;
+      }
     }
-
     // Return
     res.json(CarSecurity.filterCarResponse(car, req.user));
     next();
   }
 
-  public static async handleGetUsersCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetUsersFromCar(action: ServerAction, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(req.user, TenantComponents.CAR, Action.LIST, Entity.USERS_CARS,
-      MODULE_NAME, 'handleGetUsersCar');
+      MODULE_NAME, 'handleGetUsersFromCar');
     // Check auth
     if (!Authorizations.canListUsersCars(req.user)) {
       throw new AppAuthError({
         errorCode: HTTPAuthError.ERROR,
         user: req.user,
         action: Action.LIST, entity: Entity.USERS_CARS,
-        module: MODULE_NAME, method: 'handleGetUsersCar'
+        module: MODULE_NAME, method: 'handleGetUsersFromCar'
       });
     }
     const filteredRequest = CarSecurity.filterUsersCarsRequest(req.query);
