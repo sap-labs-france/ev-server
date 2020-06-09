@@ -102,7 +102,7 @@ export default class ExpressTools {
         message: logMsg
       });
       // eslint-disable-next-line no-console
-      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}`);
     }
     let cb: () => void;
     if (listenCb && typeof listenCb === 'function') {
@@ -111,7 +111,7 @@ export default class ExpressTools {
       cb = defaultListenCb;
     }
     // Log
-    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}...`;
     // eslint-disable-next-line no-console
     console.log(logMsg);
 
@@ -122,11 +122,11 @@ export default class ExpressTools {
       httpServer.listen(serverConfig.port, cb);
     } else if (listen) {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id.toString() : 'in master'}, missing required port configuration`);
     }
   }
 
-  public static async healthCheckService(req: Request, res: Response, next: NextFunction) {
+  public static async healthCheckService(req: Request, res: Response, next: NextFunction): Promise<void> {
     res.sendStatus(HttpStatusCodes.OK);
   }
 }
