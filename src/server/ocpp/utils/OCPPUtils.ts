@@ -635,6 +635,7 @@ export default class OCPPUtils {
             message: `OCPP Parameter '${ocppParameter.key}' not found in Charging Station's configuration`
           });
           updatedOcppParams.inError++;
+          continue;
         }
         // Check Value
         if (ocppParameter.value === currentOcppParam.value) {
