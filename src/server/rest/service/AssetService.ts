@@ -41,7 +41,7 @@ export default class AssetService {
     }
     // Get the Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+    UtilsService.assertObjectExists(action, siteArea, `Site Area '${filteredRequest.siteAreaID}' does not exist anymore.`,
       MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
@@ -59,7 +59,7 @@ export default class AssetService {
     for (const assetID of filteredRequest.assetIDs) {
       // Check the asset
       const asset = await AssetStorage.getAsset(req.user.tenantID, assetID);
-      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' doesn't exist anymore.`,
+      UtilsService.assertObjectExists(action, asset, `Asset '${assetID}' does not exist anymore.`,
         MODULE_NAME, 'handleAssignAssetsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canUpdateAsset(req.user)) {

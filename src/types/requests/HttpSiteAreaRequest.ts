@@ -20,3 +20,8 @@ export interface HttpSiteAreaConsumptionsRequest {
   StartDate: Date;
   EndDate: Date;
 }
+
+export interface HttpAssignChargingStationToSiteAreaRequest {
+  siteAreaID: string;
+  chargingStationIDs: string[];
+}

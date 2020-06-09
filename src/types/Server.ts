@@ -250,7 +250,7 @@ export enum ServerAction {
   FIRMWARE_STATUS_NOTIFICATION = 'FirmwareStatusNotification',
 
   ADD_CHARGING_STATION_TO_SITE_AREA = 'AddChargingStationsToSiteArea',
-  REMOVE_CHARGING_STATION_TO_SITE_AREA = 'RemoveChargingStationsFromSiteArea',
+  REMOVE_CHARGING_STATION_FROM_SITE_AREA = 'RemoveChargingStationsFromSiteArea',
 
   ADD_ASSET_TO_SITE_AREA = 'AddAssetsToSiteArea',
   REMOVE_ASSET_TO_SITE_AREA = 'RemoveAssetsFromSiteArea',
