@@ -281,6 +281,7 @@ export default class WSConnection {
     // Send a message through WSConnection
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
+    const tenant = await TenantStorage.getTenant(this.tenantID);
     // Create a promise
     return await new Promise((resolve, reject) => {
       let messageToSend;
@@ -322,13 +323,13 @@ export default class WSConnection {
           messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
           break;
       }
-      // Check if wsConnection in ready
+      // Check if wsConnection is ready
       if (this.isWSConnectionOpen()) {
         // Yes: Send Message
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${tenant.name})`);
       }
       // Request?
       if (messageType !== MessageType.CALL_MESSAGE) {
@@ -336,7 +337,7 @@ export default class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)}`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${tenant.name}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
     });
   }

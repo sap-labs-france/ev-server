@@ -90,7 +90,8 @@ export default class TransactionCommonTests {
     const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
 
     const transactionResponse = await this.transactionUserService.transactionApi.readById(response.data.transactionId);
@@ -110,7 +111,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = faker.random.number({ min: 0, max: 1000 });
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     response = await this.transactionUserService.transactionApi.readById(transactionId);
@@ -121,8 +123,8 @@ export default class TransactionCommonTests {
       connectorId: connectorId,
       tagID: tagId,
       chargeBoxID: this.chargingStationContext.getChargingStation().id,
-      currentConsumption: 0,
-      currentTotalConsumption: 0,
+      currentInstantWatts: 0,
+      currentTotalConsumptionWh: 0,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
@@ -141,12 +143,13 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const load = 100;
     const currentTime = startDate.clone().add(1, 'hour');
-    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, meterStart + load, currentTime);
+    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, meterStart + load, currentTime.toDate());
     expect(response.data).to.eql({});
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
@@ -156,8 +159,8 @@ export default class TransactionCommonTests {
       connectorId: connectorId,
       tagID: tagId,
       chargeBoxID: this.chargingStationContext.getChargingStation().id,
-      currentConsumption: load,
-      currentTotalConsumption: load,
+      currentInstantWatts: load,
+      currentTotalConsumptionWh: load,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart
@@ -179,25 +182,26 @@ export default class TransactionCommonTests {
     const currentTime = startDate.clone();
     let cumulated = meterStart;
     let load = 0;
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     load = 100;
     cumulated += load;
     currentTime.add(1, 'hour');
-    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, currentTime);
+    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, currentTime.toDate());
     expect(response.data).to.eql({});
     load = 50;
     cumulated += load;
     currentTime.add(1, 'hour');
-    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, currentTime);
+    response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, currentTime.toDate());
     expect(response.data).to.eql({});
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
-      currentConsumption: load,
-      currentTotalConsumption: cumulated - meterStart,
+      currentInstantWatts: load,
+      currentTotalConsumptionWh: cumulated - meterStart,
       currentTotalInactivitySecs: 0,
       currentInactivityStatus: InactivityStatus.INFO,
       meterStart: meterStart,
@@ -211,10 +215,11 @@ export default class TransactionCommonTests {
     const meterStop = 0;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.data).to.containSubset({
@@ -237,10 +242,11 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
@@ -249,7 +255,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -263,7 +269,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     response = await this.transactionUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
@@ -278,14 +285,16 @@ export default class TransactionCommonTests {
     const startDate = moment().toDate();
     const stopDate = moment(startDate).add(1, 'hour');
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId2 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
@@ -295,7 +304,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -307,7 +316,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -323,15 +332,17 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId2 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readAllCompleted({
       ChargeBoxID: this.chargingStationContext.getChargingStation().id,
@@ -351,7 +362,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -363,7 +374,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -379,15 +390,17 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId2 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readAllCompleted({
       UserId: this.transactionUser.id,
@@ -411,7 +424,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         meterStop: meterStop,
@@ -423,7 +436,7 @@ export default class TransactionCommonTests {
       meterStart: meterStart,
       stop: {
         meterStop: meterStop,
-        totalConsumption: 1000,
+        totalConsumptionWh: 1000,
         totalInactivitySecs: 0,
         inactivityStatus: InactivityStatus.INFO,
         timestamp: stopDate.toISOString(),
@@ -437,7 +450,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     response = await this.transactionUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
@@ -451,15 +465,17 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStart, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStart, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStop, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStop, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId2 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
@@ -468,7 +484,7 @@ export default class TransactionCommonTests {
       id: transactionId1,
       meterStart: meterStart,
       stop: {
-        totalConsumption: 0,
+        totalConsumptionWh: 0,
         totalInactivitySecs: 3600,
         inactivityStatus: InactivityStatus.ERROR,
         meterStop: meterStart,
@@ -483,7 +499,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
@@ -501,7 +518,8 @@ export default class TransactionCommonTests {
     const startDate = moment();
     const currentTime = startDate.clone();
     let cumulated = meterStart;
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const meterValues = [
@@ -516,7 +534,7 @@ export default class TransactionCommonTests {
     ];
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp.toDate());
       expect(response.data).to.eql({});
     }
     response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
@@ -526,17 +544,17 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
-          cumulatedConsumption: cumulated - meterStart
+          instantWatts: meterValues[1].value,
+          cumulatedConsumptionWh: cumulated - meterStart
         }
       ]
     });
@@ -548,7 +566,8 @@ export default class TransactionCommonTests {
     const meterStart = 180;
     const startDate = moment('2018-11-06T08:00:00.000Z');
     let cumulated = meterStart;
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const meterValues = [
@@ -563,7 +582,7 @@ export default class TransactionCommonTests {
     ];
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp.toDate());
       expect(response.data).to.eql({});
     }
     response = await this.transactionUserService.transactionApi.readAllConsumption({
@@ -576,19 +595,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: cumulated - meterStart,
+          cumulatedConsumptionWh: cumulated - meterStart,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, cumulated - meterStart),
         }
@@ -635,10 +654,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -655,10 +674,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -675,19 +694,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -704,19 +723,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -733,10 +752,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -753,10 +772,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -791,10 +810,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         }
@@ -810,19 +829,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -838,19 +857,19 @@ export default class TransactionCommonTests {
       values: [
         {
           date: meterValues[0].timestamp.toISOString(),
-          instantPower: meterValues[0].value,
+          instantWatts: meterValues[0].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
-          cumulatedConsumption: meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[0].value),
         },
         {
           date: meterValues[1].timestamp.toISOString(),
-          instantPower: meterValues[1].value,
+          instantWatts: meterValues[1].value,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value),
-          cumulatedConsumption: meterValues[1].value + meterValues[0].value,
+          cumulatedConsumptionWh: meterValues[1].value + meterValues[0].value,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterValues[1].value + meterValues[0].value),
         }
@@ -865,10 +884,11 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
     expect(response.status).to.equal(200);
@@ -877,10 +897,10 @@ export default class TransactionCommonTests {
       values: [
         {
           date: stopDate.toISOString(),
-          instantPower: meterStop - meterStart,
+          instantWatts: meterStop - meterStart,
           instantAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterStop - meterStart),
-          cumulatedConsumption: meterStop,
+          cumulatedConsumptionWh: meterStop,
           cumulatedConsumptionAmps: Utils.convertWattToAmp(
             this.chargingStationContext.getChargingStation(), null, connectorId, meterStop),
         }
@@ -902,15 +922,18 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId2 = response.data.transactionId;
-    response = await this.chargingStationContext.startTransaction(connectorId2, tagId, meterStart, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId2, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId3 = response.data.transactionId;
     response = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
@@ -945,7 +968,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 0;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     response = await this.transactionUserService.transactionApi.delete(transactionId);
@@ -969,10 +993,11 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.delete(transactionId);
     if (allowed) {
@@ -1002,10 +1027,11 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.deleteMany([transactionId, faker.random.number(100000)]);
     if (allowed) {
@@ -1030,12 +1056,14 @@ export default class TransactionCommonTests {
     const meterStop = 1000;
     const startDate = moment();
     const stopDate = startDate.clone().add(1, 'hour');
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const secondTransactionId = response.data.transactionId;
     response = await this.transactionUserService.transactionApi.deleteMany([transactionId, secondTransactionId]);
@@ -1054,7 +1082,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const currentDate = startDate.clone();
@@ -1087,10 +1116,10 @@ export default class TransactionCommonTests {
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp.toDate());
       expect(response.data).to.eql({});
     }
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour').toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
@@ -1111,7 +1140,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const currentDate = startDate.clone();
@@ -1144,10 +1174,10 @@ export default class TransactionCommonTests {
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp.toDate());
       expect(response.data).to.eql({});
     }
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour').toDate());
     expect(response).to.be.transactionStatus('Accepted');
     response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
@@ -1167,7 +1197,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
     const currentDate = startDate.clone();
@@ -1192,13 +1223,13 @@ export default class TransactionCommonTests {
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp.toDate());
       expect(response.data).to.eql({});
     }
     await TestUtils.sleep(1000);
     expect(await this.centralUserService.mailApi.isMailReceived(this.transactionUser.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
     expect(await this.centralUserService.mailApi.isMailReceived(this.transactionUser.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
-    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour'));
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour').toDate());
     expect(response).to.be.transactionStatus('Accepted');
   }
 
@@ -1207,7 +1238,8 @@ export default class TransactionCommonTests {
     const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
   }
 
@@ -1216,7 +1248,8 @@ export default class TransactionCommonTests {
     const tagId = transactionTag ? transactionTag : this.transactionUser.tags[0].id;
     const meterStart = 180;
     const startDate = moment();
-    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate.toDate());
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
   }
 
@@ -1229,9 +1262,10 @@ export default class TransactionCommonTests {
     const stopDate = moment(startDate).add(1, 'hour');
     const beforeTransaction = await this.centralUserService.transactionApi.readAllCompleted(params);
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
-    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate.toDate());
     expect(response).to.be.transactionStatus('Accepted');
     const afterTransaction = await this.centralUserService.transactionApi.readAllCompleted(params);
     expect(afterTransaction.data.count).to.be.eq(beforeTransaction.data.count + 1);

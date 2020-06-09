@@ -1,12 +1,13 @@
-import SettingStorage from '../../storage/mongodb/SettingStorage';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import { SmartChargingSetting, SmartChargingSettingsType } from '../../types/Setting';
-import Tenant from '../../types/Tenant';
-import TenantComponents from '../../types/TenantComponents';
-import Utils from '../../utils/Utils';
+
 import DummySapSmartChargingIntegration from './dummy/DummySmartChargingIntegration';
 import SapSmartChargingIntegration from './export/sap-smart-charging';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SmartChargingIntegration from './SmartChargingIntegration';
+import Tenant from '../../types/Tenant';
+import TenantComponents from '../../types/TenantComponents';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 export default class SmartChargingFactory {
   static async getSmartChargingImpl(tenantID: string): Promise<SmartChargingIntegration<SmartChargingSetting>> {

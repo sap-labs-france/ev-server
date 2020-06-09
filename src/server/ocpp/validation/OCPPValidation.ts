@@ -115,7 +115,7 @@ export default class OCPPValidation extends SchemaValidator {
         message: `Connector ID '${meterValues.connectorId}' not found in charging station for transaction '${meterValues.transactionId}'`
       });
     }
-    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.activeTransactionID : 0);
+    const chargerTransactionId = Utils.convertToInt(foundConnector ? foundConnector.currentTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (Utils.objectHasProperty(meterValues, 'transactionId')) {
       // Always integer

@@ -571,12 +571,12 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
       // Create or update invoice in Stripe
       let description = '';
       const i18nManager = new I18nManager(transaction.user.locale);
-      const totalConsumption = Math.round(transaction.stop.totalConsumption / 100) / 10;
+      const totalConsumptionWh = Math.round(transaction.stop.totalConsumptionWh / 100) / 10;
       const time = i18nManager.formatDateTime(transaction.stop.timestamp, 'LTS');
       if (chargeBox && chargeBox.siteArea && chargeBox.siteArea.name) {
-        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumption, siteArea: chargeBox.siteArea, time: time });
+        description = i18nManager.translate('billing.chargingStopSiteArea', { totalConsumption: totalConsumptionWh, siteArea: chargeBox.siteArea, time: time });
       } else {
-        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumption, chargeBox: transaction.chargeBoxID, time: time });
+        description = i18nManager.translate('billing.chargingStopChargeBox', { totalConsumption: totalConsumptionWh, chargeBox: transaction.chargeBoxID, time: time });
       }
       // Const taxRates: ITaxRate[] = [];
       // if (this.settings.taxID) {
@@ -897,11 +897,8 @@ export default class StripeBillingIntegration extends BillingIntegration<StripeB
 
   private async modifyUser(user: User): Promise<BillingUser> {
     await this.checkConnection();
-    let locale = user.locale;
     const fullName = Utils.buildUserFullName(user);
-    if (locale) {
-      locale = locale.substr(0, 2).toLocaleLowerCase();
-    }
+    const locale = Utils.getLanguageFromLocale(user.locale).toLocaleLowerCase();
     const i18nManager = new I18nManager(user.locale);
     const description = i18nManager.translate('billing.generatedUser', { email: user.email });
     let customer;

@@ -602,36 +602,23 @@ export default class ChargingStationStorage {
     // Read DB
     const parametersMDB = await global.database.getCollection<ChargingStationOcppParameters>(tenantID, 'configurations')
       .findOne({ '_id': id });
-    // Found?
-    const parameters: OcppParameter[] = [];
-    if (parametersMDB && parametersMDB.configuration && parametersMDB.configuration.length > 0) {
-      // Set values
-      let index = 0;
-      for (const parameter of parametersMDB.configuration) {
-        parameters.push({
-          id: index.toString(),
-          key: parameter.key,
-          value: parameter.value,
-          readonly: parameter.readonly
-        });
-        index++;
-      }
-    }
     // Sort
-    parameters.sort((param1, param2) => {
-      if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
-        return -1;
-      }
-      if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
-        return 1;
-      }
-      return 0;
-    });
+    if (parametersMDB.configuration) {
+      parametersMDB.configuration.sort((param1, param2) => {
+        if (param1.key.toLocaleLowerCase() < param2.key.toLocaleLowerCase()) {
+          return -1;
+        }
+        if (param1.key.toLocaleLowerCase() > param2.key.toLocaleLowerCase()) {
+          return 1;
+        }
+        return 0;
+      });
+    }
     // Debug
     Logging.traceEnd(MODULE_NAME, 'getOcppParameters', uniqueTimerID);
     return {
-      count: parameters.length,
-      result: parameters
+      count: parametersMDB.configuration.length,
+      result: parametersMDB.configuration
     };
   }
 
@@ -905,10 +892,12 @@ export default class ChargingStationStorage {
     }
     return {
       connectorId: Utils.convertToInt(connector.connectorId),
-      currentConsumption: Utils.convertToFloat(connector.currentConsumption),
+      currentInstantWatts: Utils.convertToFloat(connector.currentInstantWatts),
       currentStateOfCharge: connector.currentStateOfCharge,
-      totalInactivitySecs: Utils.convertToInt(connector.totalInactivitySecs),
-      totalConsumption: Utils.convertToFloat(connector.totalConsumption),
+      currentTotalInactivitySecs: Utils.convertToInt(connector.currentTotalInactivitySecs),
+      currentTotalConsumptionWh: Utils.convertToFloat(connector.currentTotalConsumptionWh),
+      currentTransactionDate: Utils.convertToDate(connector.currentTransactionDate),
+      currentTagID: connector.currentTagID,
       status: connector.status,
       errorCode: connector.errorCode,
       info: connector.info,
@@ -918,12 +907,10 @@ export default class ChargingStationStorage {
       voltage: Utils.convertToInt(connector.voltage),
       amperage: Utils.convertToInt(connector.amperage),
       amperageLimit: connector.amperageLimit,
-      activeTransactionID: Utils.convertToInt(connector.activeTransactionID),
+      currentTransactionID: Utils.convertToInt(connector.currentTransactionID),
       userID: Utils.convertToObjectID(connector.userID),
-      activeTransactionDate: Utils.convertToDate(connector.activeTransactionDate),
-      activeTagID: connector.activeTagID,
       statusLastChangedOn: connector.statusLastChangedOn,
-      inactivityStatus: connector.inactivityStatus,
+      currentInactivityStatus: connector.currentInactivityStatus,
       numberOfConnectedPhase: connector.numberOfConnectedPhase,
       currentType: connector.currentType,
       chargePointID: connector.chargePointID,

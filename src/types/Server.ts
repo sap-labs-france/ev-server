@@ -121,6 +121,7 @@ export enum ServerAction {
   OCPI_CHECK_CDRS = 'OcpiCheckCdrs',
   OCPI_CHECK_SESSIONS = 'OcpiCheckSessions',
   OCPI_CHECK_LOCATIONS = 'OcpiCheckLocations',
+  OCPI_CHECK_TOKENS = 'OcpiCheckTokens',
   OCPI_PUSH_TOKENS = 'OcpiPushTokens',
   OCPI_PUSH_SESSIONS = 'OcpiPushSessions',
   OCPI_PUSH_CDRS = 'OcpiPushCdrs',

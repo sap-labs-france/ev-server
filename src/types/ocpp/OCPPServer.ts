@@ -51,11 +51,11 @@ export enum RegistrationStatus {
 export interface OCPPStatusNotificationRequest {
   connectorId: number;
   errorCode: ChargePointErrorCode;
-  info: string;
+  info?: string;
   status: ChargePointStatus;
   timestamp: string;
-  vendorId: string;
-  vendorErrorCode: string;
+  vendorId?: string;
+  vendorErrorCode?: string;
 }
 
 export interface OCPPStatusNotificationRequestExtended extends OCPPStatusNotificationRequest {
@@ -85,6 +85,22 @@ export interface OCPPMeterValueRequest {
   connectorId: number;
   transactionId?: number;
   meterValue: OCPPMeterValue[];
+}
+
+export interface OCPP15MeterValueRequest {
+  connectorId: number;
+  transactionId?: number;
+  values: OCPP15MeterValues|OCPP15MeterValues[];
+}
+
+export interface OCPP15MeterValues {
+  timestamp: string;
+  value: OCPP15MeterValue|OCPP15MeterValue[];
+}
+
+export interface OCPP15MeterValue {
+  $attributes: OCPPAttribute;
+  $value: string;
 }
 
 export interface OCPPMeterValues {
@@ -370,7 +386,7 @@ export enum OCPPDataTransferStatus {
 
 export interface OCPPStopTransactionRequest {
   idTag?: string;
-  meterStop: string|number;
+  meterStop: number;
   timestamp: string;
   transactionId: number;
   reason?: OCPPReason;

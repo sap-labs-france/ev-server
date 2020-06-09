@@ -1,16 +1,16 @@
-import moment from 'moment';
-
-import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
-import BackendError from '../../exception/BackendError';
-import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import { ChargingProfile, ChargingProfileKindType, ChargingProfilePurposeType, ChargingRateUnitType, ChargingSchedule, ChargingSchedulePeriod } from '../../types/ChargingProfile';
 import ChargingStation, { ChargePoint, ConnectorCurrentLimit, ConnectorCurrentLimitSource, StaticLimitAmps } from '../../types/ChargingStation';
 import { OCPPChangeConfigurationCommandResult, OCPPChargingProfileStatus, OCPPClearChargingProfileCommandResult, OCPPClearChargingProfileStatus, OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPGetCompositeScheduleStatus, OCPPSetChargingProfileCommandResult } from '../../types/ocpp/OCPPClient';
-import { ServerAction } from '../../types/Server';
+
+import BackendError from '../../exception/BackendError';
+import ChargingStationClientFactory from '../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPPUtils from '../../server/ocpp/utils/OCPPUtils';
+import { ServerAction } from '../../types/Server';
 import Utils from '../../utils/Utils';
+import moment from 'moment';
 
 const MODULE_NAME = 'ChargingStationVendorIntegration';
 
@@ -82,7 +82,7 @@ export default abstract class ChargingStationVendorIntegration {
       return { status: OCPPConfigurationStatus.NOT_SUPPORTED };
     }
     // Check if feature is supported
-    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+    if (!chargingStation.capabilities || !chargingStation.capabilities.supportStaticLimitation) {
       throw new BackendError({
         source: chargingStation.id,
         action: ServerAction.CHARGING_STATION_LIMIT_POWER,
@@ -504,7 +504,7 @@ export default abstract class ChargingStationVendorIntegration {
         }
       }
       // Check next the static power limitation
-      if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitationForChargingStation) {
+      if (chargingStation.capabilities && chargingStation.capabilities.supportStaticLimitation) {
         // Read the static limitation
         let connectorLimitAmps = await this.getStaticPowerLimitation(tenantID, chargingStation, chargePoint);
         // Check
@@ -628,7 +628,7 @@ export default abstract class ChargingStationVendorIntegration {
       // Get Amp per connector
       limitAmpAllPhases = this.connectorToChargePointLimitAmps(chargePoint, limitAmpAllPhases);
     }
-    // Per pahse
+    // Per phase
     limitAmpAllPhases *= Utils.getNumberOfConnectedPhases(chargingStation, chargePoint, connectorID);
     return limitAmpAllPhases;
   }
