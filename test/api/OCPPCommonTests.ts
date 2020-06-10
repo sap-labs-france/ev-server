@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPPStatusNotificationRequest } from '../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15TransactionData, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPReadingContext, OCPPStatusNotificationRequest, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../src/types/ocpp/OCPPServer';
 import Transaction, { InactivityStatus } from '../../src/types/Transaction';
 import chai, { expect } from 'chai';
 
@@ -567,6 +567,8 @@ export default class OCPPCommonTests {
       // Transaction must be deleted by Admin user
       response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
     }
+    // Remove from transactions to be deleted
+    this.chargingStationContext.removeTransaction(this.newTransaction.id);
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('status');
     expect(response.data.status).to.be.eql('Success');
@@ -710,19 +712,19 @@ export default class OCPPCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
     const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    let transactionData;
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+    let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       transactionData = [
         {
           'timestamp': this.transactionStartTime.toISOString(),
           'sampledValue': [
             {
-              'value': this.transactionStartMeterValue,
-              'context': 'Transaction.Begin',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': this.transactionStartMeterValue.toString(),
+              'context': OCPPReadingContext.TRANSACTION_BEGIN,
+              'format': OCPPValueFormat.RAW,
+              'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              'location': OCPPLocation.OUTLET,
+              'unit': OCPPUnitOfMeasure.WATT_HOUR
             }
           ]
         },
@@ -730,43 +732,44 @@ export default class OCPPCommonTests {
           'timestamp': this.transactionCurrentTime.toISOString(),
           'sampledValue': [
             {
-              'value': stopValue,
-              'context': 'Transaction.End',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': stopValue.toString(),
+              'context': OCPPReadingContext.TRANSACTION_END,
+              'format': OCPPValueFormat.RAW,
+              'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              'location': OCPPLocation.OUTLET,
+              'unit': OCPPUnitOfMeasure.WATT_HOUR
             }
           ]
         }
       ];
+    // OCPP 1.5
     } else {
       transactionData = {
         'values': [
           {
             'timestamp': this.transactionStartTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.Begin',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                'context': OCPPReadingContext.TRANSACTION_BEGIN,
+                'format': OCPPValueFormat.RAW,
+                'location': OCPPLocation.OUTLET,
+                'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+                'unit': OCPPUnitOfMeasure.WATT_HOUR
               },
-              '$value': this.transactionStartMeterValue,
+              '$value': this.transactionStartMeterValue.toString(),
             }
           },
           {
             'timestamp': this.transactionCurrentTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.End',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                'context': OCPPReadingContext.TRANSACTION_END,
+                'format': OCPPValueFormat.RAW,
+                'location': OCPPLocation.OUTLET,
+                'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+                'unit': OCPPUnitOfMeasure.WATT_HOUR
               },
-              '$value': stopValue
+              '$value': stopValue.toString()
             }
           }
         ]
@@ -789,20 +792,20 @@ export default class OCPPCommonTests {
     const transactionId = startTransactionResponse.transactionId;
     this.transactionCurrentTime = moment().toDate();
     const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
-    let transactionData;
+    let transactionData: OCPPMeterValue[] | OCPP15TransactionData;
     // Provide TransactionData for wrong OCPP Version
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.5') {
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_15) {
       transactionData = [
         {
           'timestamp': this.transactionStartTime.toISOString(),
           'sampledValue': [
             {
-              'value': this.transactionStartMeterValue,
-              'context': 'Transaction.Begin',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': this.transactionStartMeterValue.toString(),
+              'context': OCPPReadingContext.TRANSACTION_BEGIN,
+              'format': OCPPValueFormat.RAW,
+              'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              'location': OCPPLocation.OUTLET,
+              'unit': OCPPUnitOfMeasure.WATT_HOUR
             }
           ]
         },
@@ -810,43 +813,44 @@ export default class OCPPCommonTests {
           'timestamp': this.transactionCurrentTime.toISOString(),
           'sampledValue': [
             {
-              'value': stopValue,
-              'context': 'Transaction.End',
-              'format': 'Raw',
-              'measurand': 'Energy.Active.Import.Register',
-              'location': 'Outlet',
-              'unit': 'Wh'
+              'value': stopValue.toString(),
+              'context': OCPPReadingContext.TRANSACTION_END,
+              'format': OCPPValueFormat.RAW,
+              'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+              'location': OCPPLocation.OUTLET,
+              'unit': OCPPUnitOfMeasure.WATT_HOUR
             }
           ]
         }
       ];
+    // OCPP 1.5
     } else {
       transactionData = {
         'values': [
           {
             'timestamp': this.transactionStartTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.Begin',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                'context': OCPPReadingContext.TRANSACTION_BEGIN,
+                'format': OCPPValueFormat.RAW,
+                'location': OCPPLocation.OUTLET,
+                'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+                'unit': OCPPUnitOfMeasure.WATT_HOUR
               },
-              '$value': this.transactionStartMeterValue,
+              '$value': this.transactionStartMeterValue.toString(),
             }
           },
           {
             'timestamp': this.transactionCurrentTime.toISOString(),
             'value': {
-              'attributes': {
-                'context': 'Transaction.End',
-                'format': 'Raw',
-                'location': 'Outlet',
-                'measurand': 'Energy.Active.Import.Register',
-                'unit': 'Wh'
+              '$attributes': {
+                'context': OCPPReadingContext.TRANSACTION_END,
+                'format': OCPPValueFormat.RAW,
+                'location': OCPPLocation.OUTLET,
+                'measurand': OCPPMeasurand.ENERGY_ACTIVE_IMPORT_REGISTER,
+                'unit': OCPPUnitOfMeasure.WATT_HOUR
               },
-              '$value': stopValue
+              '$value': stopValue.toString()
             }
           }
         ]
@@ -867,20 +871,20 @@ export default class OCPPCommonTests {
     expect(bootNotification.status).to.eql('Accepted');
     expect(bootNotification).to.have.property('currentTime');
     let chargingStationResponse = await this.chargingStationContext.readChargingStation();
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       expect(bootNotification.currentTime).to.equal(chargingStationResponse.data.lastReboot);
     } else {
       expect((bootNotification.currentTime as unknown as Date).toISOString()).to.equal(chargingStationResponse.data.lastReboot);
     }
     const bootNotification2 = await this.chargingStationContext.sendBootNotification();
     chargingStationResponse = await this.chargingStationContext.readChargingStation();
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       expect(bootNotification2.currentTime).to.equal(chargingStationResponse.data.lastReboot);
     } else {
       expect((bootNotification2.currentTime as unknown as Date).toISOString()).to.equal(chargingStationResponse.data.lastReboot);
     }
     expect(bootNotification.currentTime).to.not.equal(bootNotification2.currentTime);
-    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+    if (this.chargingStationContext.getChargingStation().ocppVersion === OCPPVersion.VERSION_16) {
       expect(new Date(bootNotification.currentTime)).to.beforeTime(new Date(bootNotification2.currentTime));
     } else {
       expect(bootNotification.currentTime).to.beforeTime(new Date(bootNotification2.currentTime));
