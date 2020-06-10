@@ -237,7 +237,7 @@ export enum ChargePointErrorCode {
   GROUND_FAILURE = 'GroundFailure',
   HIGH_TEMPERATURE = 'HighTemperature',
   INTERNAL_ERROR = 'InternalError',
-  LOCAL_LIST_CONFILCT = 'LocalListConflict',
+  LOCAL_LIST_CONFLICT = 'LocalListConflict',
   NO_ERROR = 'NoError',
   OTHER_ERROR = 'OtherError',
   OVER_CURRENT_FAILURE = 'OverCurrentFailure',
