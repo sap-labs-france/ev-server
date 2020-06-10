@@ -90,12 +90,12 @@ export interface OCPPMeterValuesRequest {
 export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
-  values: OCPP15MeterValues|OCPP15MeterValues[];
+  values: OCPP15MeterValues | OCPP15MeterValues[];
 }
 
 export interface OCPP15MeterValues {
   timestamp: string;
-  value: OCPP15MeterValue|OCPP15MeterValue[];
+  value: OCPP15MeterValue | OCPP15MeterValue[];
 }
 
 export interface OCPP15MeterValue {
@@ -129,7 +129,7 @@ export interface OCPPNormalizedMeterValue {
   transactionId: number;
   timestamp: Date;
   attribute: OCPPAttribute;
-  value: string|number;
+  value: string | number;
 }
 
 export interface OCPPMeterValue {
@@ -275,8 +275,12 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
   authorizationId?: string;
 }
 
-export interface OCPPAuthorizeResponse {
-  idTagInfo: OCPPIdTagInfo;
+interface OCPPResponse {
+  status: string;
+}
+
+export interface OCPPAuthorizeResponse extends OCPPResponse {
+  idTagInfo?: OCPPIdTagInfo;
 }
 
 export interface OCPPIdTagInfo {
@@ -411,6 +415,6 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
   chargeBoxID: string;
 }
 
-export interface OCPPStopTransactionResponse {
-  idTagInfo: OCPPIdTagInfo;
+export interface OCPPStopTransactionResponse extends OCPPResponse {
+  idTagInfo?: OCPPIdTagInfo;
 }
