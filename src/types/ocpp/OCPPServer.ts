@@ -129,7 +129,7 @@ export interface OCPPNormalizedMeterValue {
   transactionId: number;
   timestamp: Date;
   attribute: OCPPAttribute;
-  value: string|number;
+  value: string | number;
 }
 
 export interface OCPPMeterValue {
@@ -275,8 +275,12 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
   authorizationId?: string;
 }
 
-export interface OCPPAuthorizeResponse {
-  idTagInfo: OCPPIdTagInfo;
+interface OCPPResponse {
+  status: string;
+}
+
+export interface OCPPAuthorizeResponse extends OCPPResponse {
+  idTagInfo?: OCPPIdTagInfo;
 }
 
 export interface OCPPIdTagInfo {
@@ -398,7 +402,7 @@ export interface OCPP15TransactionData {
 }
 
 export enum OCPPReason {
-  EMERGENGY_STOP = 'EmergencyStop',
+  EMERGENCY_STOP = 'EmergencyStop',
   EV_DISCONNECTED = 'EVDisconnected',
   HARD_RESET = 'HardReset',
   LOCAL = 'Local',
@@ -415,6 +419,6 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
   chargeBoxID: string;
 }
 
-export interface OCPPStopTransactionResponse {
-  idTagInfo: OCPPIdTagInfo;
+export interface OCPPStopTransactionResponse extends OCPPResponse {
+  idTagInfo?: OCPPIdTagInfo;
 }
