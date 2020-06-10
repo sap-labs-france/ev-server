@@ -398,7 +398,7 @@ export interface OCPP15TransactionData {
 }
 
 export enum OCPPReason {
-  EMERGENGY_STOP = 'EmergencyStop',
+  EMERGENCY_STOP = 'EmergencyStop',
   EV_DISCONNECTED = 'EVDisconnected',
   HARD_RESET = 'HardReset',
   LOCAL = 'Local',
