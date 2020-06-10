@@ -138,7 +138,7 @@ export default class AuthService {
           // Return data
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
-            errorCode: HTTPError.USER_LOCKED_ERROR,
+            errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
             message: 'User is locked',
             module: MODULE_NAME,
             method: 'handleLogIn'
@@ -830,7 +830,7 @@ export default class AuthService {
       // Log
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
-        errorCode: HTTPError.USER_LOCKED_ERROR,
+        errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
         message: 'User is locked',
         module: MODULE_NAME,
         method: 'checkUserLogin',
@@ -922,29 +922,46 @@ export default class AuthService {
     if (user.password) {
       match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     }
-    // Check new and old version of hashing the password
+    // Check password hash
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
-      // Check if the account is pending
-      if (user.status === UserStatus.PENDING) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
-          message: 'Account is pending! User must activate his account in his email',
-          module: MODULE_NAME,
-          method: 'checkUserLogin',
-          user: user
-        });
-      }
-      // Check if the account is active
-      if (user.status !== UserStatus.ACTIVE) {
-        throw new AppError({
-          source: Constants.CENTRAL_SERVER,
-          errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
-          message: `Account is not active ('${user.status}')`,
-          module: MODULE_NAME,
-          method: 'checkUserLogin',
-          user: user
-        });
+      // Check status
+      switch (user.status) {
+        case UserStatus.PENDING:
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.USER_ACCOUNT_PENDING_ERROR,
+            message: 'Account is pending! User must activate his account in his email',
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.LOCKED:
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.USER_ACCOUNT_LOCKED_ERROR,
+            message: `Account is locked ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.INACTIVE:
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.USER_ACCOUNT_INACTIVE_ERROR,
+            message: `Account is inactive ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
+        case UserStatus.BLOCKED:
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: HTTPError.USER_ACCOUNT_BLOCKED_ERROR,
+            message: `Account is blocked ('${user.status}')`,
+            module: MODULE_NAME,
+            method: 'checkUserLogin',
+            user: user
+          });
       }
       // Login OK
       await AuthService.userLoginSucceeded(action, tenantID, user, req, res, next);
