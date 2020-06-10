@@ -267,6 +267,9 @@ export default class Configuration {
     const chargingStationConfiguration: ChargingStationConfiguration = Configuration.getConfig().ChargingStation;
     if (Utils.isUndefined(chargingStationConfiguration.useServerLocalIPForRemoteCommand)) {
       chargingStationConfiguration.useServerLocalIPForRemoteCommand = false;
+      if (Utils.isUndefined(chargingStationConfiguration.secureLocalServer)) {
+        chargingStationConfiguration.secureLocalServer = false;
+      }
     }
     return chargingStationConfiguration;
   }
