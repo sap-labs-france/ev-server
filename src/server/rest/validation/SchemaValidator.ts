@@ -33,14 +33,21 @@ export default class SchemaValidator {
         path: error.dataPath,
         message: error.message ? error.message : ''
       }));
-      const concatenatedError = { path: errors.map((e) => e.path).join(','), message: errors.map((e) => e.message).join(',') };
+      const concatenatedErrors: string[] = [];
+      for (const error of errors) {
+        if (error.path && error.path !== '') {
+          concatenatedErrors.push(`Property '${error.path}': ${error.message}`);
+        } else {
+          concatenatedErrors.push(`Error: ${error.message}`);
+        }
+      }
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: HTTPError.GENERAL_ERROR,
-        message: concatenatedError.message,
+        message: concatenatedErrors.join(', '),
         module: this.moduleName,
         method: 'validate',
-        detailedMessages: { concatenatedError }
+        detailedMessages: { errors, content, schema }
       });
     }
   }

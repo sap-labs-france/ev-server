@@ -1,4 +1,4 @@
-import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat } from '../../../src/types/ocpp/OCPPServer';
+import { ChargePointErrorCode, ChargePointStatus, OCPP15MeterValuesRequest, OCPP15TransactionData, OCPPAuthorizeResponse, OCPPBootNotificationResponse, OCPPDataTransferResponse, OCPPFirmwareStatus, OCPPFirmwareStatusNotificationResponse, OCPPHeartbeatResponse, OCPPLocation, OCPPMeasurand, OCPPMeterValue, OCPPMeterValuesRequest, OCPPMeterValuesResponse, OCPPReadingContext, OCPPStartTransactionResponse, OCPPStatusNotificationRequest, OCPPStatusNotificationResponse, OCPPStopTransactionResponse, OCPPUnitOfMeasure, OCPPValueFormat, OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
@@ -13,14 +13,12 @@ export default class ChargingStationContext {
   private chargingStation: ChargingStation;
   private ocppService: OCPPService;
   private tenantContext: TenantContext;
-  private transactionsStarted: any;
-  private transactionsStopped: any;
+  private transactionsStarted: OCPPStartTransactionResponse[] = [];
+  private transactionsStopped: OCPPStopTransactionResponse[] = [];
 
   constructor(chargingStation, tenantContext) {
     this.chargingStation = chargingStation;
     this.tenantContext = tenantContext;
-    this.transactionsStarted = [];
-    this.transactionsStopped = [];
   }
 
   async initialize(token: string = null) {
@@ -30,7 +28,12 @@ export default class ChargingStationContext {
   async cleanUpCreatedData() {
     // Clean up transactions
     for (const transaction of this.transactionsStarted) {
-      await this.tenantContext.getAdminCentralServerService().transactionApi.delete(transaction.transactionId);
+      if (transaction.transactionId) {
+        const transactionResponse = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transaction.transactionId);
+        if (transactionResponse.status === 200) {
+          await this.tenantContext.getAdminCentralServerService().transactionApi.delete(transaction.transactionId);
+        }
+      }
     }
   }
 
@@ -76,7 +79,8 @@ export default class ChargingStationContext {
     return response;
   }
 
-  async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: any): Promise<OCPPStopTransactionResponse> {
+  async stopTransaction(transactionId: number, tagId: string, meterStop: number, stopDate: Date, transactionData?: OCPPMeterValue[] | OCPP15TransactionData): Promise<OCPPStopTransactionResponse> {
+    // Check props
     const response = await this.ocppService.executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
@@ -90,11 +94,21 @@ export default class ChargingStationContext {
     return response;
   }
 
+  public removeTransaction(transactionId: number) {
+    for (let i = 0; i < this.transactionsStarted.length; i++) {
+      const transaction = this.transactionsStarted[i];
+      if (transaction.transactionId === transactionId) {
+        this.transactionsStarted.splice(i, 1);
+        break;
+      }
+    }
+  }
+
   async sendConsumptionMeterValue(connectorId: number, transactionId: number, meterEnergyValue: number,
     timestamp: Date, withSoC = false, meterSocValue = 0): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
-    if (this.chargingStation.ocppVersion === '1.6') {
+    if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       // Energy
       meterValueRequest = {
         connectorId: connectorId,
@@ -163,7 +177,7 @@ export default class ChargingStationContext {
     signedValue: string, timestamp, withSoC = false, withSignedData = false): Promise<OCPPMeterValuesResponse> {
     let meterValueRequest: OCPPMeterValuesRequest | OCPP15MeterValuesRequest;
     // OCPP 1.6?
-    if (this.chargingStation.ocppVersion === '1.6') {
+    if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       // Energy
       meterValueRequest = {
         connectorId: connectorId,
@@ -195,15 +209,17 @@ export default class ChargingStationContext {
           context: context,
         });
       }
+    // OCPP 1.5
+    } else if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_15) {
+      // Do Nothing
     }
-    // Nothing for OCPP 1.5
     return this.ocppService.executeMeterValues(this.chargingStation.id, meterValueRequest);
   }
 
   async sendClockMeterValue(connectorId: number, transactionId: number, meterValue: number, timestamp: Date): Promise<OCPPMeterValuesResponse> {
     let response: OCPPMeterValuesResponse;
     // OCPP 1.6?
-    if (this.chargingStation.ocppVersion === '1.6') {
+    if (this.chargingStation.ocppVersion === OCPPVersion.VERSION_16) {
       response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
