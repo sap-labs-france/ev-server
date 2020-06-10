@@ -1,7 +1,6 @@
 import { Action, Entity } from '../../../types/Authorization';
 import ChargingStation, { Command, OCPPParams, StaticLimitAmps } from '../../../types/ChargingStation';
 import { HTTPAuthError, HTTPError } from '../../../types/HTTPError';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import { NextFunction, Request, Response } from 'express';
 import { OCPPConfigurationStatus, OCPPGetCompositeScheduleCommandResult, OCPPStatus } from '../../../types/ocpp/OCPPClient';
 
@@ -17,6 +16,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ChargingStationVendorFactory from '../../../integration/charging-station-vendor/ChargingStationVendorFactory';
 import Constants from '../../../utils/Constants';
 import { DataResult } from '../../../types/DataResult';
+import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import I18nManager from '../../../utils/I18nManager';
 import LockingHelper from '../../../locking/LockingHelper';
 import LockingManager from '../../../locking/LockingManager';

@@ -90,11 +90,15 @@ export default class ExpressTools {
     return (httpServer.address() as AddressInfo).port;
   }
 
+  public static getHttpServerAddress(httpServer: http.Server): string {
+    return (httpServer.address() as AddressInfo).address;
+  }
+
   public static startServer(serverConfig: CentralSystemServerConfiguration, httpServer: http.Server, serverName: string, serverModuleName: string, listenCb?: () => void, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${(httpServer.address() as AddressInfo).address}:${(httpServer.address() as AddressInfo).port}'`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${ExpressTools.getHttpServerPort(httpServer)}:${ExpressTools.getHttpServerPort(httpServer)}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName, method: 'startServer',

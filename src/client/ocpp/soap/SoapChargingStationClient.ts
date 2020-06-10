@@ -4,6 +4,7 @@ import { OCPPChangeAvailabilityCommandParam, OCPPChangeAvailabilityCommandResult
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Logging from '../../../utils/Logging';
+import { OCPPVersion } from '../../../types/ocpp/OCPPServer';
 import { ServerAction } from '../../../types/Server';
 import global from '../../../types/GlobalType';
 import { soap } from 'strong-soap';
@@ -37,18 +38,19 @@ export default class SoapChargingStationClient extends ChargingStationClient {
 
   static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
     const scsc = new SoapChargingStationClient(tenantID, chargingStation);
+    // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
       switch (scsc.chargingStation.ocppVersion) {
         // OCPP V1.2
-        case '1.2':
+        case OCPPVersion.VERSION_12:
           chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/wsdl/OCPPChargePointService12.wsdl`;
           break;
-        case '1.5':
+        case OCPPVersion.VERSION_15:
           chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/wsdl/OCPPChargePointService15.wsdl`;
           break;
-        case '1.6':
+        case OCPPVersion.VERSION_16:
           chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/wsdl/OCPPChargePointService16.wsdl`;
           break;
         default:

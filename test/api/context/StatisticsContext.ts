@@ -56,8 +56,9 @@ export default class StatisticsContext {
           this.setUser(user);
           startTime = startTime.clone().add(1, 'days');
           let response = await chargingStation.startTransaction(1, user.tags[0].id, 0, startTime);
+          // eslint-disable-next-line @typescript-eslint/unbound-method
           expect(response).to.be.transactionValid;
-          const transactionId = response.data.transactionId;
+          const transactionId = response.transactionId;
 
           for (let m = 1; m < StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES; m++) {
 
@@ -96,7 +97,8 @@ export default class StatisticsContext {
       status: RefundStatus.APPROVED,
     };
     await TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction);
-    console.log('Updated transaction ' + transaction.id + ' with refund data : ' + JSON.stringify(transaction.refundData));
+    // eslint-disable-next-line no-undef
+    console.log(`${this.tenantContext.getTenant().id} (${this.tenantContext.getTenant().name}) - Updated transaction '${transaction.id}' with refund data`);
   }
 
   public async deleteTestData() {

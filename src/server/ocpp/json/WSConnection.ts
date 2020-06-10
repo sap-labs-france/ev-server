@@ -55,7 +55,7 @@ export default class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+    // Parse URL: should be like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
     // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
     if (splittedURL.length === 4) {
@@ -123,10 +123,10 @@ export default class WSConnection {
     }
   }
 
-  public onError(event: Event) {
+  public onError(event: Event): void {
   }
 
-  public onClose(closeEvent: CloseEvent) {
+  public onClose(closeEvent: CloseEvent): void {
   }
 
   public async onMessage(messageEvent: MessageEvent): Promise<void> {
@@ -235,7 +235,7 @@ export default class WSConnection {
     }
   }
 
-  public async handleRequest(messageId, commandName, commandPayload) {
+  public async handleRequest(messageId, commandName, commandPayload): Promise<void> {
     // To implement in sub-class
   }
 

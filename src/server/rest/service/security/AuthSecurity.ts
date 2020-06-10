@@ -1,5 +1,6 @@
 import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 
+import Constants from '../../../../utils/Constants';
 import Eula from '../../../../types/Eula';
 import { Request } from 'express';
 import { UserStatus } from '../../../../types/User';
@@ -38,7 +39,7 @@ export default class AuthSecurity {
       captcha: sanitize(request.captcha),
       status: UserStatus.PENDING,
       email: sanitize(request.email),
-      locale: sanitize(request.locale.substring(0, 5)),
+      locale: request.locale ? sanitize(request.locale.substring(0, 5)) : Constants.DEFAULT_LOCALE,
       tenant: sanitize(request.tenant)
     };
   }
