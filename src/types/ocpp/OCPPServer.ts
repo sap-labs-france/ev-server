@@ -90,15 +90,15 @@ export interface OCPPMeterValuesRequest {
 export interface OCPP15MeterValuesRequest {
   connectorId: number;
   transactionId?: number;
-  values: OCPP15MeterValues|OCPP15MeterValues[];
-}
-
-export interface OCPP15MeterValues {
-  timestamp: string;
-  value: OCPP15MeterValue|OCPP15MeterValue[];
+  values: OCPP15MeterValue|OCPP15MeterValue[];
 }
 
 export interface OCPP15MeterValue {
+  timestamp: string;
+  value: OCPP15MeterValueValue|OCPP15MeterValueValue[];
+}
+
+export interface OCPP15MeterValueValue {
   $attributes: OCPPAttribute;
   $value: string;
 }
@@ -390,7 +390,11 @@ export interface OCPPStopTransactionRequest {
   timestamp: string;
   transactionId: number;
   reason?: OCPPReason;
-  transactionData?: OCPPMeterValue[];
+  transactionData?: OCPP15TransactionData|OCPPMeterValue[];
+}
+
+export interface OCPP15TransactionData {
+  values: OCPP15MeterValue|OCPP15MeterValue[];
 }
 
 export enum OCPPReason {

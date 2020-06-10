@@ -1,5 +1,6 @@
 import { AnalyticsSettingsType, BillingSettingsType, PricingSettingsType, RefundSettingsType, RoamingSettingsType, SettingDBContent, SmartChargingSettingsType } from '../../../src/types/Setting';
 
+import { OCPPVersion } from '../../../src/types/ocpp/OCPPServer';
 import faker from 'faker';
 
 export interface TenantDefinition {
@@ -551,7 +552,7 @@ export default class ContextDefinition {
   static readonly TENANT_CHARGING_STATION_LIST: any = [
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
-      ocppVersion: '1.6',
+      ocppVersion: OCPPVersion.VERSION_16,
       siteAreaNames: [
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
@@ -562,7 +563,7 @@ export default class ContextDefinition {
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName
-      ocppVersion: '1.5',
+      ocppVersion: OCPPVersion.VERSION_15,
       siteAreaNames: [
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${ContextDefinition.SITE_CONTEXTS.SITE_BASIC}-${ContextDefinition.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
@@ -573,12 +574,12 @@ export default class ContextDefinition {
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16,
-      ocppVersion: '1.6',
+      ocppVersion: OCPPVersion.VERSION_16,
       siteAreaNames: null,
     },
     {
       baseName: ContextDefinition.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15,
-      ocppVersion: '1.5',
+      ocppVersion: OCPPVersion.VERSION_15,
       siteAreaNames: null,
     }
   ];

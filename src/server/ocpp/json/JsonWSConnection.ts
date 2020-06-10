@@ -121,7 +121,7 @@ export default class JsonWSConnection extends WSConnection {
         module: MODULE_NAME,
         method: 'handleRequest',
         code: OcppErrorType.NOT_IMPLEMENTED,
-        message: `The OCPP method 'handle${commandName}' has not been implemented`
+        message: `The OCPP method 'handle${typeof commandName === 'string' ? commandName : JSON.stringify(commandName)}' has not been implemented`
       });
     }
   }
