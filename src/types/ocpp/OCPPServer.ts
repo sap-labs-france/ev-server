@@ -237,7 +237,7 @@ export enum ChargePointErrorCode {
   GROUND_FAILURE = 'GroundFailure',
   HIGH_TEMPERATURE = 'HighTemperature',
   INTERNAL_ERROR = 'InternalError',
-  LOCAL_LIST_CONFILCT = 'LocalListConflict',
+  LOCAL_LIST_CONFLICT = 'LocalListConflict',
   NO_ERROR = 'NoError',
   OTHER_ERROR = 'OtherError',
   OVER_CURRENT_FAILURE = 'OverCurrentFailure',
@@ -275,12 +275,8 @@ export interface OCPPAuthorizeRequestExtended extends OCPPAuthorizeRequest {
   authorizationId?: string;
 }
 
-interface OCPPResponse {
-  status: string;
-}
-
-export interface OCPPAuthorizeResponse extends OCPPResponse {
-  idTagInfo?: OCPPIdTagInfo;
+export interface OCPPAuthorizeResponse {
+  idTagInfo: OCPPIdTagInfo;
 }
 
 export interface OCPPIdTagInfo {
@@ -419,6 +415,6 @@ export interface OCPPStopTransactionRequestExtended extends OCPPStopTransactionR
   chargeBoxID: string;
 }
 
-export interface OCPPStopTransactionResponse extends OCPPResponse {
-  idTagInfo?: OCPPIdTagInfo;
+export interface OCPPStopTransactionResponse {
+  idTagInfo: OCPPIdTagInfo;
 }

@@ -24,8 +24,13 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Get URL
     let chargingStationURL: string;
     if (Configuration.getChargingStationConfig().useServerLocalIPForRemoteCommand) {
-      // FIXME: add support for wss://
-      chargingStationURL = 'ws://' + chargingStation.currentServerLocalIPAddressPort;
+      let URLprotocol: string;
+      if (Configuration.getChargingStationConfig().secureLocalServer) {
+        URLprotocol = 'wss';
+      } else {
+        URLprotocol = 'ws';
+      }
+      chargingStationURL = URLprotocol + '://' + chargingStation.currentServerLocalIPAddressPort;
     } else {
       chargingStationURL = chargingStation.chargingStationURL;
     }
