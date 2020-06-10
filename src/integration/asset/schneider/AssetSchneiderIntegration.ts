@@ -14,10 +14,9 @@ export default class AssetSchneiderIntegration extends AssetIntegration<AssetSet
   }
 
   public async checkConnection() {
-    // TODO: Check connection provided in 'this.connection' and throw an exception in case of failure
     // Check if connection is initialized
     this.isAssetConnectionInitialized();
-    // Set credentials params
+    // Set credential params
     const params = new URLSearchParams();
     params.append('grant_type', 'password');
     params.append('username', this.connection.connection.user);
