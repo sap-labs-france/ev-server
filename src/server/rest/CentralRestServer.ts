@@ -30,7 +30,7 @@ interface SocketIOJwt extends socketio.Socket {
 }
 
 export default class CentralRestServer {
-  private static centralSystemRestConfig;
+  private static centralSystemRestConfig: CentralSystemRestServiceConfiguration;
   private static restHttpServer: http.Server;
   private static socketIOServer: socketio.Server;
   private static changeNotifications: ChangeNotification[] = [];
@@ -155,7 +155,7 @@ export default class CentralRestServer {
         });
         socket.join(userToken.tenantID);
         // Handle Socket IO disconnection
-        socket.on('disconnect', (reason) => {
+        socket.on('disconnect', (reason: string) => {
           Logging.logDebug({
             tenantID: userToken.tenantID,
             module: MODULE_NAME, method: 'startSocketIO',
@@ -187,11 +187,11 @@ export default class CentralRestServer {
   }
 
   // Start the server
-  start() {
+  start(): void {
     expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
-  public notifyUser(tenantID: string, action: Action, data) {
+  public notifyUser(tenantID: string, action: Action, data): void {
     // On User change rebuild userHashID
     if (data && data.id) {
       SessionHashService.rebuildUserHashID(tenantID, data.id).catch(() => {});
@@ -211,7 +211,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyTenant(tenantID: string, action: Action, data) {
+  public notifyTenant(tenantID: string, action: Action, data): void {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
       SessionHashService.rebuildTenantHashID(data.id).catch(() => {});
@@ -231,7 +231,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifySite(tenantID: string, action: Action, data) {
+  public notifySite(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -247,7 +247,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifySiteArea(tenantID: string, action: Action, data) {
+  public notifySiteArea(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -263,7 +263,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCompany(tenantID: string, action: Action, data) {
+  public notifyCompany(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -279,7 +279,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyAsset(tenantID: string, action: Action, data) {
+  public notifyAsset(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -295,7 +295,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyTransaction(tenantID: string, action: Action, data) {
+  public notifyTransaction(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -311,7 +311,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyChargingStation(tenantID: string, action: Action, data) {
+  public notifyChargingStation(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -327,7 +327,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyLogging(tenantID: string, action: Action) {
+  public notifyLogging(tenantID: string, action: Action): void {
     // Add in buffer
     this.addChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -336,7 +336,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyRegistrationToken(tenantID: string, action: Action, data) {
+  public notifyRegistrationToken(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -352,7 +352,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyInvoice(tenantID: string, action: Action, data) {
+  public notifyInvoice(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -368,7 +368,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCar(tenantID: string, action: Action, data) {
+  public notifyCar(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -384,7 +384,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyCarCatalog(tenantID: string, action: Action, data) {
+  public notifyCarCatalog(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -400,7 +400,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyChargingProfile(tenantID: string, action: Action, data) {
+  public notifyChargingProfile(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,
@@ -416,7 +416,7 @@ export default class CentralRestServer {
     });
   }
 
-  public notifyOcpiEndpoint(tenantID: string, action: Action, data) {
+  public notifyOcpiEndpoint(tenantID: string, action: Action, data): void {
     // Add in buffer
     this.addSingleChangeNotificationInBuffer({
       'tenantID': tenantID,

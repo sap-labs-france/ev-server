@@ -48,7 +48,7 @@ const _tenants = [];
 const MODULE_NAME = 'Utils';
 
 export default class Utils {
-  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
+  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number): number {
     let intervalMins = 0;
     if (!chargingStation || !chargingStation.connectors) {
       return 0;
@@ -168,14 +168,14 @@ export default class Utils {
     return tagID;
   }
 
-  public static isIterable(obj): boolean {
+  public static isIterable(obj: object): boolean {
     if (obj) {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
   }
 
-  public static isUndefined(obj): boolean {
+  public static isUndefined(obj: any): boolean {
     return typeof obj === 'undefined';
   }
 
@@ -488,7 +488,7 @@ export default class Utils {
   }
 
   public static convertUserToObjectID(user: User | UserToken | string): ObjectID | null {
-    let userID = null;
+    let userID: ObjectID | null = null;
     // Check Created By
     if (user) {
       // Check User Model
@@ -797,7 +797,7 @@ export default class Utils {
     return amperageLimit;
   }
 
-  public static isEmptyArray(array): boolean {
+  public static isEmptyArray(array: any): boolean {
     if (Array.isArray(array) && array.length > 0) {
       return false;
     }

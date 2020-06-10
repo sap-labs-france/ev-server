@@ -1,6 +1,5 @@
-import { ChargePointStatus, OCPPNormalizedMeterValue } from './ocpp/OCPPServer';
-
 import { BillingTransactionData } from './Billing';
+import { ChargePointStatus } from './ocpp/OCPPServer';
 import ChargingStation from '../types/ChargingStation';
 import { OCPICdr } from './ocpi/OCPICdr';
 import { OCPISession } from './ocpi/OCPISession';
