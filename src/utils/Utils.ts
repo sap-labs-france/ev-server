@@ -804,7 +804,6 @@ export default class Utils {
     return true;
   }
 
-
   public static findDuplicatesInArray(arr: any[]): any[] {
     const sorted_arr = arr.slice().sort();
     const results = [];
@@ -954,7 +953,7 @@ export default class Utils {
     return recordLimit;
   }
 
-  public static roundTo(number, scale): string | number {
+  public static roundTo(number: number, scale: number): string | number {
     return Utils.convertToFloat(number.toFixed(scale));
   }
 
@@ -995,15 +994,7 @@ export default class Utils {
     return Cypher.hash(`${crypto.randomBytes(256).toString('hex')}}~${new Date().toISOString()}~${email}`);
   }
 
-  public static duplicateJSON(src): any {
-    if (!src || typeof src !== 'object') {
-      return src;
-    }
-    // Recreate all of it
-    return JSON.parse(JSON.stringify(src));
-  }
-
-  public static getRoleNameFromRoleID(roleID) {
+  public static getRoleNameFromRoleID(roleID: string): string {
     switch (roleID) {
       case UserRole.BASIC:
         return 'Basic';
@@ -1036,7 +1027,7 @@ export default class Utils {
     });
   }
 
-  public static async checkPasswordBCrypt(password, hash): Promise<boolean> {
+  public static async checkPasswordBCrypt(password: string, hash: string): Promise<boolean> {
     // eslint-disable-next-line no-undef
     return await new Promise((fulfill, reject) => {
       // Compare
