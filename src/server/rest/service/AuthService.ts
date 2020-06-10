@@ -415,7 +415,12 @@ export default class AuthService {
         passwordWrongNbrTrials: 0,
         passwordResetHash: null,
         passwordBlockedUntil: null
-      });
+      }
+    );
+    // Unlock
+    if (user.status === UserStatus.LOCKED) {
+      await UserStorage.saveUserStatus(tenantID, user.id, UserStatus.ACTIVE);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
